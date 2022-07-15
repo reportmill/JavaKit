@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'com.reportmill'
+version '1.0.0'
+
+sourceSets.main.java.srcDirs = ['src']
+sourceSets.main.resources.srcDirs = ['src']
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // If Local SnapKit project, use it
+    if (findProject(':SnapKit') != null) {
+        println 'Using local SnapKit project'
+        implementation project(':SnapKit')
+    }
+
+    // Otherwise use GitHub SnapKit repo build
+    else {
+        println 'Using GitHub/Jitpack SnapKit package'
+        implementation "com.github.reportmill:SnapKit:$snapkitVersion"
+    }
+}
+
+mainClassName = 'javakit.text.JavaTextPane'
+
+
