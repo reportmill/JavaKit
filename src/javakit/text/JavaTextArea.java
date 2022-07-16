@@ -718,15 +718,6 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the project.
-     */
-    public Project getProject()
-    {
-        WebFile file = getSourceFile();
-        return file != null ? Project.get(file) : null;
-    }
-
-    /**
      * Returns BuildIssues from ProjectFile.
      */
     public BuildIssue[] getBuildIssues()
