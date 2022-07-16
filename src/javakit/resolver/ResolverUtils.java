@@ -1,7 +1,6 @@
 package javakit.resolver;
-import javakit.parse.JType;
-import javakit.parse.JVarDecl;
-import javakit.parse.JavaDecl;
+import javakit.parse.*;
+
 import java.lang.reflect.*;
 
 /**
@@ -200,5 +199,15 @@ public class ResolverUtils {
 
         // Complain about anything else
         throw new RuntimeException("JavaKitUtils.getClass: Can't get class from type: " + aType);
+    }
+
+    /**
+     * Returns whether a JavaDecl is expected.
+     */
+    public static boolean isDeclExpected(JNode aNode)
+    {
+        if(aNode instanceof JExprLiteral) return !((JExprLiteral) aNode).isNull();
+        try { return aNode.getClass().getDeclaredMethod("getDeclImpl")!=null; }
+        catch(Exception e) { return false; }
     }
 }
