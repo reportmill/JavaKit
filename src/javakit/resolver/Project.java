@@ -1,8 +1,5 @@
 package javakit.resolver;
-import javakit.parse.JavaDecl;
-import javakit.parse.JavaDeclClass;
 import snap.util.ArrayUtils;
-import snap.util.ClassUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
 
@@ -29,9 +26,6 @@ public class Project extends Resolver {
             aSite.createFile("/bin", true).save();
             ClassPath.createFile(this);
         }
-
-        // Load settings a dependent projects
-        readSettings();
     }
 
     /**
@@ -81,15 +75,6 @@ public class Project extends Resolver {
     public WebFile getBuildDir()
     {
         return getClassPath().getBuildDir();
-    }
-
-    /**
-     * Returns a JavaDecl for object.
-     */
-    public JavaDeclClass getClassDecl(Object anObj)
-    {
-        JavaDecl jd = getJavaDecl(anObj);
-        return jd instanceof JavaDeclClass ? (JavaDeclClass) jd : null;
     }
 
     /**
@@ -151,24 +136,6 @@ public class Project extends Resolver {
     }
 
     /**
-     * Returns the compiled class given file.
-     */
-    public Class getClassForName(String aName)
-    {
-        ClassLoader cldr = getClassLoader();
-        return ClassUtils.getClassForName(aName, cldr);
-    }
-
-    /**
-     * Returns the class for given file.
-     */
-    public Class getClassForFile(WebFile aFile)
-    {
-        String cname = getClassName(aFile);
-        return getClassForName(cname);
-    }
-
-    /**
      * Returns the class that keeps track of class paths.
      */
     public ClassPath getClassPath()
@@ -193,22 +160,6 @@ public class Project extends Resolver {
     public String[] getLibPaths()
     {
         return getClassPath().getLibPathsAbsolute();
-    }
-
-    /**
-     * Reads the settings from project settings file(s).
-     */
-    public void readSettings()
-    {
-        getClassPath().readFile();
-    }
-
-    /**
-     * Standard toString implementation.
-     */
-    public String toString()
-    {
-        return "Project: " + getSite();
     }
 
     /**

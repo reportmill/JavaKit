@@ -168,7 +168,7 @@ public class ResolverUtils {
     /**
      * Returns the class name, converting primitive arrays to 'int[]' instead of '[I'.
      */
-    public static Class getClass(Type aType)
+    public static Class getClassForType(Type aType)
     {
         // Handle Class
         if (aType instanceof Class)
@@ -177,24 +177,24 @@ public class ResolverUtils {
         // Handle GenericArrayType
         if (aType instanceof GenericArrayType) {
             GenericArrayType gat = (GenericArrayType) aType;
-            Class cls = getClass(gat.getGenericComponentType());
+            Class cls = getClassForType(gat.getGenericComponentType());
             return Array.newInstance(cls, 0).getClass();
         }
 
         // Handle ParameterizedType (e.g., Class <T>, List <T>, Map <K,V>)
         if (aType instanceof ParameterizedType)
-            return getClass(((ParameterizedType) aType).getRawType());
+            return getClassForType(((ParameterizedType) aType).getRawType());
 
         // Handle TypeVariable
         if (aType instanceof TypeVariable)
-            return getClass(((TypeVariable) aType).getBounds()[0]);
+            return getClassForType(((TypeVariable) aType).getBounds()[0]);
 
         // Handle WildcardType
         if (aType instanceof WildcardType) {
             WildcardType wc = (WildcardType) aType;
             if (wc.getLowerBounds().length > 0)
-                return getClass(wc.getLowerBounds()[0]);
-            return getClass(wc.getUpperBounds()[0]);
+                return getClassForType(wc.getLowerBounds()[0]);
+            return getClassForType(wc.getUpperBounds()[0]);
         }
 
         // Complain about anything else

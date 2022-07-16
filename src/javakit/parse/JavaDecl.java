@@ -39,13 +39,13 @@ public class JavaDecl implements Comparable<JavaDecl> {
     boolean _varArgs, _default;
 
     // The type this decl evaluates to when referenced
-    JavaDecl _evalType;
+    protected JavaDecl  _evalType;
 
     // The JavaDecls for parameter types for Constructor, Method
-    JavaDecl _paramTypes[];
+    protected JavaDecl[]  _paramTypes;
 
     // The JavaDecls for TypeVars for Class, Method
-    JavaDecl _typeVars[] = EMPTY_DECLS;
+    protected JavaDecl[]  _typeVars = EMPTY_DECLS;
 
     // The VariableDecl
     JVarDecl _vdecl;
@@ -137,7 +137,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
             _type = DeclType.TypeVar;
             _name = _sname = tv.getName();
             Type etypes[] = tv.getBounds();
-            Class ecls = ResolverUtils.getClass(etypes[0]);
+            Class ecls = ResolverUtils.getClassForType(etypes[0]);
             _evalType = getClassDecl(ecls);
             _resolver._decls.put(_id, this);
         }
@@ -475,7 +475,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     {
         String cname = getEvalClassName();
         if (cname == null) return null;
-        return _resolver.getClass(cname);
+        return _resolver.getClassForName(cname);
     }
 
     /**

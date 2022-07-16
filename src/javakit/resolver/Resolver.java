@@ -39,7 +39,7 @@ public class Resolver {
             if (jd != null) return jd;
 
             // If class exists, forward to getClassDecl()
-            Class cls = getClass(id);
+            Class cls = getClassForName(id);
             if (cls != null)
                 return getClassDecl(cls);
             return null;
@@ -133,7 +133,7 @@ public class Resolver {
         }
 
         // Handle Class
-        Class cls = ResolverUtils.getClass(aType);
+        Class cls = ResolverUtils.getClassForType(aType);
         return getClassDecl(cls);
     }
 
@@ -222,7 +222,7 @@ public class Resolver {
     /**
      * Returns a Class for given name.
      */
-    public Class getClass(String aName)
+    public Class getClassForName(String aName)
     {
         // Check for ParamType (should never happen)
         if (aName.indexOf('<') > 0) {
@@ -236,6 +236,21 @@ public class Resolver {
         Class cls = ClassUtils.getClassForName(aName, cldr);
         return cls;
     }
+
+    /**
+     * Standard toString implementation.
+     */
+    public String toString()
+    {
+        String className = getClass().getSimpleName();
+        String propStrings = toStringProps();
+        return className + " { " + propStrings + " }";
+    }
+
+    /**
+     * Standard toStringProps implementation.
+     */
+    public String toStringProps()  { return ""; }
 
     /**
      * Returns reference nodes in given JNode that match given JavaDecl.
