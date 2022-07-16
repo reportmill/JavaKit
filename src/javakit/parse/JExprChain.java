@@ -2,9 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
-import javakit.resolver.ClassExtras;
-
+import snap.util.ClassUtils;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -125,12 +123,12 @@ public class JExprChain extends JExpr {
             }
 
             // Handle inner class
-            Class cls = pclass != null ? ClassExtras.getClass(pclass, name) : null;
+            Class cls = pclass != null ? ClassUtils.getInnerClassForName(pclass, name) : null;
             if (cls != null)
                 return getJavaDecl(cls);
 
             // Handle Field
-            Field field = pclass != null ? ClassExtras.getField(pclass, name) : null;
+            Field field = pclass != null ? ClassUtils.getFieldForName(pclass, name) : null;
             if (field != null) // && Modifier.isStatic(field.getModifiers()))
                 return getJavaDecl(field); // was FieldName
         }

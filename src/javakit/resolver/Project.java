@@ -156,7 +156,7 @@ public class Project extends Resolver {
     public Class getClassForName(String aName)
     {
         ClassLoader cldr = getClassLoader();
-        return ClassUtils.getClass(aName, cldr);
+        return ClassUtils.getClassForName(aName, cldr);
     }
 
     /**

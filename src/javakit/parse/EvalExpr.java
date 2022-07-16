@@ -1,9 +1,6 @@
 package javakit.parse;
-
 import java.lang.reflect.*;
 import java.util.*;
-
-import javakit.resolver.ClassExtras;
 import snap.parse.Parser;
 import snap.util.*;
 
@@ -594,7 +591,7 @@ public class EvalExpr {
     public boolean isField(Object anObj, String aName)
     {
         Class cls = anObj instanceof Class ? (Class) anObj : anObj.getClass();
-        Field field = ClassExtras.getField(cls, aName);
+        Field field = ClassUtils.getFieldForName(cls, aName);
         return field != null;
     }
 
@@ -604,7 +601,7 @@ public class EvalExpr {
     public Object getFieldValue(Object anObj, String aName)
     {
         Class cls = anObj instanceof Class ? (Class) anObj : anObj.getClass();
-        Field field = ClassExtras.getField(cls, aName);
+        Field field = ClassUtils.getFieldForName(cls, aName);
         try {
             return field.get(anObj);
         } catch (Exception e) {
@@ -626,7 +623,7 @@ public class EvalExpr {
             Object arg = theArgs[i];
             classes[i] = arg != null ? arg.getClass() : null;
         }
-        Method meth = ClassUtils.getMethodBest(cls, aName, classes);
+        Method meth = MethodUtils.getMethodBest(cls, aName, classes);
         try {
             return meth.invoke(anObj, theArgs);
         } catch (Exception e) {
@@ -641,18 +638,18 @@ public class EvalExpr {
     {
         // Look for inner class
         String icname = anOR.getClass().getName() + '$' + aName;
-        Class cls = ClassUtils.getClass(icname);
+        Class cls = ClassUtils.getClassForName(icname);
         if (cls != null)
             return cls;
 
         // Look for root level class
-        cls = ClassUtils.getClass(aName);
+        cls = ClassUtils.getClassForName(aName);
         if (cls != null)
             return cls;
 
         // Look for standard class
         String sname = "java.lang." + aName;
-        cls = ClassUtils.getClass(sname);
+        cls = ClassUtils.getClassForName(sname);
         if (cls != null)
             return cls;
 

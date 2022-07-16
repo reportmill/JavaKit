@@ -233,7 +233,7 @@ public class Resolver {
 
         // Get Class loader, find class and return
         ClassLoader cldr = getClassLoader();
-        Class cls = ClassUtils.getClass(aName, cldr);
+        Class cls = ClassUtils.getClassForName(aName, cldr);
         return cls;
     }
 

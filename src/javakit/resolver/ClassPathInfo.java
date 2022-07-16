@@ -69,7 +69,7 @@ public class ClassPathInfo {
     public Class getClass(String aName)
     {
         ClassLoader cldr = _proj.getClassLoader();
-        return ClassUtils.getClass(aName, cldr);
+        return ClassUtils.getClassForName(aName, cldr);
     }
 
     /**

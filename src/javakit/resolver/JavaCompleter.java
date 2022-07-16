@@ -136,7 +136,7 @@ public class JavaCompleter {
             JClassDecl ecd = anId.getEnclosingClassDecl();
             Class ec = ecd != null ? ecd.getEvalClass() : null;
             while (ecd != null && ec != null) {
-                for (Method meth : ClassExtras.getMethods(ec, prefix))
+                for (Method meth : MethodUtils.getMethodsForPrefix(ec, prefix))
                     addDecl(meth);
                 ecd = ecd.getEnclosingClassDecl();
                 ec = ecd != null ? ecd.getEvalClass() : null;

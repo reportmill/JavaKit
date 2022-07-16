@@ -2,11 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.lang.reflect.Field;
 import java.util.*;
-
-import javakit.resolver.ClassExtras;
 import snap.util.*;
 
 /**
@@ -441,14 +438,14 @@ public class JClassDecl extends JMemberDecl {
 
         // See if it's a field reference from superclass
         Class sclass = getSuperClass();
-        Field field = sclass != null ? ClassExtras.getField(sclass, name) : null;
+        Field field = sclass != null ? ClassUtils.getFieldForName(sclass, name) : null;
         if (field != null)
             return getJavaDecl(field);
 
         // Check interfaces
         if (isId) for (JType tp : getImplementsTypes()) {
             Class cls = tp.getEvalClass();
-            Field fd = cls != null ? ClassExtras.getField(cls, name) : null;
+            Field fd = cls != null ? ClassUtils.getFieldForName(cls, name) : null;
             if (fd != null)
                 return getJavaDecl(fd);
         }
@@ -462,7 +459,7 @@ public class JClassDecl extends JMemberDecl {
         Class cdClass = getEvalClass();
         Class cls = null;
         try {
-            cls = cdClass != null ? ClassExtras.getClass(cdClass, name) : null;
+            cls = cdClass != null ? ClassUtils.getInnerClassForName(cdClass, name) : null;
         } catch (Throwable t) {
         }
         if (cls != null)
