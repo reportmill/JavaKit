@@ -11,6 +11,7 @@ import snap.text.*;
 import javakit.parse.JavaParser.JavaTokenizer;
 import snap.util.StringUtils;
 import snap.view.ViewUtils;
+import snap.web.WebFile;
 
 /**
  * A text implementation specifically for Java.
@@ -57,8 +58,15 @@ public class JavaTextBox extends TextBox {
      */
     protected JFilePlus createJFile()
     {
-        JFile jfile = _parser.getJavaFile(getString());
-        jfile.setSourceFile(getSourceFile());
+        // Parse file
+        String javaStr = getString();
+        JFile jfile = _parser.getJavaFile(javaStr);
+
+        // Set SourceFile
+        WebFile sourceFile = getSourceFile();
+        jfile.setSourceFile(sourceFile);
+
+        // Return (wrapped in JFilePlus)
         return new JFilePlus(this, jfile);
     }
 

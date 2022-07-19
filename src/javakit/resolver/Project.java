@@ -10,10 +10,13 @@ import snap.web.WebSite;
 public class Project extends Resolver {
 
     // The encapsulated data site
-    private WebSite  _site;
+    protected WebSite  _site;
 
-    // ClassPath
-    private ClassPath  _classPath;
+    // ProjectConfig
+    protected ProjectConfig  _projConfig;
+
+    // ProjectFiles
+    private ProjectFiles  _projFiles;
 
     // ClassPathInfo
     private ClassPathInfo  _classPathInfo;
@@ -31,8 +34,9 @@ public class Project extends Resolver {
             aSite.getRootDir().save();
             aSite.createFile("/src", true).save();
             aSite.createFile("/bin", true).save();
-            ClassPath.createFile(this);
         }
+
+        _projFiles = new ProjectFiles(this);
     }
 
     /**
@@ -59,7 +63,7 @@ public class Project extends Resolver {
     protected void setSite(WebSite aSite)
     {
         _site = aSite;
-        _site.setProp(Project.class.getName(), this);
+        _site.setProp(Project.class.getSimpleName(), this);
     }
 
     /**
@@ -75,7 +79,7 @@ public class Project extends Resolver {
      */
     public WebFile getSourceDir()
     {
-        return getClassPath().getSourceDir();
+        return _projFiles.getSourceDir();
     }
 
     /**
@@ -83,7 +87,7 @@ public class Project extends Resolver {
      */
     public WebFile getBuildDir()
     {
-        return getClassPath().getBuildDir();
+        return _projFiles.getBuildDir();
     }
 
     /**
@@ -91,20 +95,28 @@ public class Project extends Resolver {
      */
     public WebFile getSourceFile(String aPath, boolean doCreate, boolean isDir)
     {
-        // Look for file in source dir
+        // Get path
         String path = aPath;
-        String spath = getSourceDir().getPath();
-        String bpath = getBuildDir().getDirPath();
 
-        if (bpath.length() > 1 && path.startsWith(bpath)) path = path.substring(bpath.length() - 1);
+        // If Path in BuildDir, strip BuildPath
+        String buildPath = getBuildDir().getDirPath();
+        if (buildPath.length() > 1 && path.startsWith(buildPath))
+            path = path.substring(buildPath.length() - 1);
 
-        if (spath.length() > 1 && !path.startsWith(spath)) path = spath + path;
+        // If Path not in SourceDir, add SourcePath
+        String sourcePath = getSourceDir().getPath();
+        if (sourcePath.length() > 1 && !path.startsWith(sourcePath))
+            path = sourcePath + path;
 
-        WebFile file = getSite().getFile(path);
+        // Get file from site
+        WebSite projSite = getSite();
+        WebFile file = projSite.getFile(path);
 
-        // If file still not found, maybe create and return
+        // If file still not found, maybe create
         if (file == null && doCreate)
-            file = getSite().createFile(path, isDir);
+            file = projSite.createFile(path, isDir);
+
+        // Return
         return file;
     }
 
@@ -147,17 +159,22 @@ public class Project extends Resolver {
     /**
      * Returns the class that keeps track of class paths.
      */
-    public ClassPath getClassPath()
+    public ProjectConfig getProjectConfig()
     {
         // If already set, just return
-        if (_classPath != null) return _classPath;
+        if (_projConfig != null) return _projConfig;
 
-        // Create, add PropChangeListener
-        ClassPath classPath = new ClassPath(this);
-        classPath.addPropChangeListener(pc -> classPathDidPropChange(pc));
+        // Create ProjectConfig
+        ProjectConfig projConfig = new ProjectConfig(this);
+
+        // Read config from file
+        projConfig.readFile();
+
+        // Add PropChangeListener to save config file when changed
+        projConfig.addPropChangeListener(pc -> projConfigDidPropChange(pc));
 
         // Set, return
-        return _classPath = classPath;
+        return _projConfig = projConfig;
     }
 
     /**
@@ -165,7 +182,7 @@ public class Project extends Resolver {
      */
     public String[] getClassPaths()
     {
-        String bpath = getClassPath().getBuildPathAbsolute();
+        String bpath = getProjectConfig().getBuildPathAbsolute();
         String[] libPaths = getLibPaths();
         if (libPaths.length == 0) return new String[]{bpath};
         return ArrayUtils.add(libPaths, bpath, 0);
@@ -176,7 +193,7 @@ public class Project extends Resolver {
      */
     public String[] getLibPaths()
     {
-        return getClassPath().getLibPathsAbsolute();
+        return getProjectConfig().getLibPathsAbsolute();
     }
 
     /**
@@ -193,11 +210,11 @@ public class Project extends Resolver {
     }
 
     /**
-     * Watches Project.ClassPath for JarPaths change to reset ClassPathInfo.
+     * Watches Project.ProjectConfig for JarPaths change to reset ClassPathInfo.
      */
-    private void classPathDidPropChange(PropChange anEvent)
+    private void projConfigDidPropChange(PropChange anEvent)
     {
-        if (anEvent.getPropertyName() == ClassPath.JarPaths_Prop)
+        if (anEvent.getPropertyName() == ProjectConfig.JarPaths_Prop)
             _classPathInfo = null;
     }
 
@@ -223,8 +240,11 @@ public class Project extends Resolver {
      */
     public static synchronized Project get(WebSite aSite, boolean doCreate)
     {
-        Project proj = (Project) aSite.getProp(Project.class.getName());
-        if (proj == null && doCreate) proj = new Project(aSite);
+        Project proj = (Project) aSite.getProp(Project.class.getSimpleName());
+        if (proj == null && doCreate)
+            proj = new Project(aSite);
+
+        // Return
         return proj;
     }
 }
