@@ -2,7 +2,6 @@ package javakit.resolver;
 import snap.util.ArrayUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
-
 import java.util.ArrayList;
 import java.util.List;
 

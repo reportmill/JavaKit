@@ -75,17 +75,27 @@ public class Project extends Resolver {
         if (_projConfig != null) return _projConfig;
 
         // Create ProjectConfig
-        ProjectConfig projConfig = new ProjectConfig(this);
+        ProjectConfig projConfig = createProjectConfig();
 
-        // Read config from file
-        projConfig.readFile();
-
-        // Add PropChangeListener to save config file when changed
+        // Add PropChangeListener to clear ClassPathInfo when changed
         projConfig.addPropChangeListener(pc -> projConfigDidPropChange(pc));
 
         // Set, return
         return _projConfig = projConfig;
     }
+
+    /**
+     * Returns the ProjectConfig that manages project properties.
+     */
+    protected ProjectConfig createProjectConfig()
+    {
+        return new ProjectConfig(this);
+    }
+
+    /**
+     * Returns whether file is config file.
+     */
+    protected boolean isConfigFile(WebFile aFile)  { return false; }
 
     /**
      * Returns the ProjectFiles that manages project files.

@@ -9,33 +9,27 @@ import java.io.File;
 import java.util.Arrays;
 
 /**
- * A class to read/edit the .classpath file.
+ * This class manages project properties.
  */
 public class ProjectConfig extends PropObject {
 
     // The project
     private Project  _proj;
 
-    // The site
-    private WebSite  _site;
-
     // The project source path
-    protected String  _srcPath;
+    public String  _srcPath;
 
     // The project build path
-    protected String  _buildPath;
+    public String  _buildPath;
 
     // The source paths
-    protected String[]  _srcPaths = new String[0];
+    public String[]  _srcPaths;
 
     // The library paths
-    protected String[]  _libPaths = new String[0];
+    public String[]  _libPaths;
 
     // The project paths
-    protected String[]  _projPaths = new String[0];
-
-    // The config file
-    private ProjectConfigFile  _configFile;
+    public String[]  _projPaths;
 
     // Constants for ClassPath properties
     public static final String BuildPath_Prop = "BuildPath";
@@ -48,9 +42,13 @@ public class ProjectConfig extends PropObject {
     public ProjectConfig(Project aProj)
     {
         _proj = aProj;
-        _site = aProj.getSite();
 
-        _configFile = new ProjectConfigFile(aProj, this);
+        // Set defaults
+        _srcPath = "src";
+        _buildPath = "bin";
+        _srcPaths = new String[0];
+        _libPaths = new String[0];
+        _projPaths = new String[0];
     }
 
     /**
@@ -160,12 +158,17 @@ public class ProjectConfig extends PropObject {
      */
     public String[] getLibPathsAbsolute()
     {
+        // Get LibPaths
         String[] libPaths = getLibPaths();
+
+        // Convert to absolute paths
         String[] absPaths = new String[libPaths.length];
         for (int i = 0; i < libPaths.length; i++) {
             String absPath = getAbsolutePath(libPaths[i]);
             absPaths[i] = addDirChar(absPath);
         }
+
+        // Return
         return absPaths;
     }
 
@@ -174,10 +177,13 @@ public class ProjectConfig extends PropObject {
      */
     private String getAbsolutePath(String aPath)
     {
-        String path = aPath;
-        if (!path.startsWith("/"))
-            path = getProjRootDirPath() + path;
-        return path;
+        // If path missing root dir path, add it
+        String filePath = aPath;
+        if (!filePath.startsWith("/"))
+            filePath = getProjRootDirPath() + filePath;
+
+        // Return
+        return filePath;
     }
 
     /**
@@ -195,12 +201,24 @@ public class ProjectConfig extends PropObject {
      */
     private String getRelativePath(String aPath)
     {
-        String path = aPath;
-        if (File.separatorChar != '/') path = path.replace(File.separatorChar, '/');
-        if (!aPath.startsWith("/")) return path;
-        String root = getProjRootDirPath();
-        if (path.startsWith(root)) path = path.substring(root.length());
-        return path;
+        // Get filePath
+        String filePath = aPath;
+
+        // Make sure separator is standard '/'
+        if (File.separatorChar != '/')
+            filePath = filePath.replace(File.separatorChar, '/');
+
+        // If missing root (already relative), just return
+        if (!aPath.startsWith("/"))
+            return filePath;
+
+        // If filePath starts with root dir path, strip it
+        String rootDirPath = getProjRootDirPath();
+        if (filePath.startsWith(rootDirPath))
+            filePath = filePath.substring(rootDirPath.length());
+
+        // Return
+        return filePath;
     }
 
     /**
@@ -208,27 +226,25 @@ public class ProjectConfig extends PropObject {
      */
     private String getProjRootDirPath()
     {
-        String root = _site.getRootDir().getJavaFile().getAbsolutePath();
-        if (File.separatorChar != '/') root = root.replace(File.separatorChar, '/');
-        if (!root.endsWith("/")) root = root + '/';
-        if (!root.startsWith("/")) root = '/' + root;
-        return root;
-    }
+        // Get project root dir path
+        WebSite projSite = _proj.getSite();
+        WebFile rootDir = projSite.getRootDir();
+        String rootDirPath = rootDir.getJavaFile().getAbsolutePath();
 
-    /**
-     * Reads the class path from .classpath file.
-     */
-    public void readFile()
-    {
-        _configFile.readFile();
-    }
+        // Make sure separator is standard '/'
+        if (File.separatorChar != '/')
+            rootDirPath = rootDirPath.replace(File.separatorChar, '/');
 
-    /**
-     * Returns whether given file is config file.
-     */
-    public boolean isConfigFile(WebFile aFile)
-    {
-        return aFile == _configFile.getFile();
+        // Make sure path ends with dir char
+        if (!rootDirPath.endsWith("/"))
+            rootDirPath = rootDirPath + '/';
+
+        // Make sure path start with dir char
+        if (!rootDirPath.startsWith("/"))
+            rootDirPath = '/' + rootDirPath;
+
+        // Return
+        return rootDirPath;
     }
 
     /**
