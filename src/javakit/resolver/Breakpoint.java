@@ -61,7 +61,7 @@ public class Breakpoint implements Comparable<Breakpoint> {
         setFile(aFile);
         setLine(aLine);
         Project proj = Project.get(aFile);
-        _className = proj.getClassName(aFile);
+        _className = proj.getClassNameForFile(aFile);
     }
 
     /**

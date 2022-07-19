@@ -1,6 +1,5 @@
 package javakit.resolver;
 import snap.props.PropChange;
-import snap.util.ArrayUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
 
@@ -16,7 +15,7 @@ public class Project extends Resolver {
     protected ProjectConfig  _projConfig;
 
     // ProjectFiles
-    private ProjectFiles  _projFiles;
+    protected ProjectFiles  _projFiles;
 
     // ClassPathInfo
     private ClassPathInfo  _classPathInfo;
@@ -36,6 +35,7 @@ public class Project extends Resolver {
             aSite.createFile("/bin", true).save();
         }
 
+        // Create/set ProjectFiles
         _projFiles = new ProjectFiles(this);
     }
 
@@ -67,97 +67,7 @@ public class Project extends Resolver {
     }
 
     /**
-     * Returns a file for given path.
-     */
-    public WebFile getFile(String aPath)
-    {
-        return _site.getFile(aPath);
-    }
-
-    /**
-     * Returns the source directory.
-     */
-    public WebFile getSourceDir()
-    {
-        return _projFiles.getSourceDir();
-    }
-
-    /**
-     * Returns the build directory.
-     */
-    public WebFile getBuildDir()
-    {
-        return _projFiles.getBuildDir();
-    }
-
-    /**
-     * Returns the source file for given path.
-     */
-    public WebFile getSourceFile(String aPath, boolean doCreate, boolean isDir)
-    {
-        // Get path
-        String path = aPath;
-
-        // If Path in BuildDir, strip BuildPath
-        String buildPath = getBuildDir().getDirPath();
-        if (buildPath.length() > 1 && path.startsWith(buildPath))
-            path = path.substring(buildPath.length() - 1);
-
-        // If Path not in SourceDir, add SourcePath
-        String sourcePath = getSourceDir().getPath();
-        if (sourcePath.length() > 1 && !path.startsWith(sourcePath))
-            path = sourcePath + path;
-
-        // Get file from site
-        WebSite projSite = getSite();
-        WebFile file = projSite.getFile(path);
-
-        // If file still not found, maybe create
-        if (file == null && doCreate)
-            file = projSite.createFile(path, isDir);
-
-        // Return
-        return file;
-    }
-
-    /**
-     * Returns the given path stripped of SourcePath or BuildPath if file is in either.
-     */
-    public String getSimplePath(String aPath)
-    {
-        // Get path (make sure it's a path) and get SourcePath/BuildPath
-        String path = aPath.startsWith("/") ? aPath : "/" + aPath;
-        String sp = getSourceDir().getPath(), bp = getBuildDir().getPath();
-
-        // If in SourcePath (or is SourcePath) strip SourcePath prefix
-        if (sp.length() > 1 && path.startsWith(sp)) {
-            if (path.length() == sp.length()) path = "/";
-            else if (path.charAt(sp.length()) == '/') path = path.substring(sp.length());
-        }
-
-        // If in BuildPath (or is BuildPath) strip BuildPath prefix
-        else if (bp.length() > 1 && path.startsWith(bp)) {
-            if (path.length() == sp.length()) path = "/";
-            else if (path.charAt(bp.length()) == '/') path = path.substring(bp.length());
-        }
-
-        // Return path
-        return path;
-    }
-
-    /**
-     * Returns the class name for given class file.
-     */
-    public String getClassName(WebFile aFile)
-    {
-        String path = aFile.getPath();
-        int i = path.lastIndexOf('.');
-        if (i > 0) path = path.substring(0, i);
-        return getSimplePath(path).substring(1).replace('/', '.');
-    }
-
-    /**
-     * Returns the class that keeps track of class paths.
+     * Returns the ProjectConfig that manages project properties.
      */
     public ProjectConfig getProjectConfig()
     {
@@ -178,23 +88,9 @@ public class Project extends Resolver {
     }
 
     /**
-     * Returns the paths needed to compile/run project.
+     * Returns the ProjectFiles that manages project files.
      */
-    public String[] getClassPaths()
-    {
-        String bpath = getProjectConfig().getBuildPathAbsolute();
-        String[] libPaths = getLibPaths();
-        if (libPaths.length == 0) return new String[]{bpath};
-        return ArrayUtils.add(libPaths, bpath, 0);
-    }
-
-    /**
-     * Returns the paths needed to compile/run project.
-     */
-    public String[] getLibPaths()
-    {
-        return getProjectConfig().getLibPathsAbsolute();
-    }
+    public ProjectFiles getProjectFiles()  { return _projFiles; }
 
     /**
      * Returns ClassPathInfo.
@@ -204,9 +100,59 @@ public class Project extends Resolver {
         // If already set, just return
         if (_classPathInfo != null) return _classPathInfo;
 
-        // Create, set, return
+        // Create
         ClassPathInfo classPathInfo = new ClassPathInfo(this);
+
+        // Set/return
         return _classPathInfo = classPathInfo;
+    }
+
+    /**
+     * Returns the source directory.
+     */
+    public WebFile getSourceDir()
+    {
+        return _projFiles.getSourceDir();
+    }
+
+    /**
+     * Returns the build directory.
+     */
+    public WebFile getBuildDir()
+    {
+        return _projFiles.getBuildDir();
+    }
+
+    /**
+     * Returns the paths needed to compile/run project.
+     */
+    public String[] getClassPaths()
+    {
+        return _projFiles.getClassPaths();
+    }
+
+    /**
+     * Returns a file for given path.
+     */
+    public WebFile getFile(String aPath)
+    {
+        return _site.getFile(aPath);
+    }
+
+    /**
+     * Returns the source file for given path.
+     */
+    public WebFile getSourceFile(String aPath, boolean doCreate, boolean isDir)
+    {
+        return _projFiles.getSourceFile(aPath, doCreate, isDir);
+    }
+
+    /**
+     * Returns the class name for given class file.
+     */
+    public String getClassNameForFile(WebFile aFile)
+    {
+        return _projFiles.getClassNameForFile(aFile);
     }
 
     /**
