@@ -1,4 +1,5 @@
 package javakit.resolver;
+import snap.props.PropChange;
 import snap.util.ArrayUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
@@ -9,7 +10,13 @@ import snap.web.WebSite;
 public class Project extends Resolver {
 
     // The encapsulated data site
-    WebSite _site;
+    private WebSite  _site;
+
+    // ClassPath
+    private ClassPath  _classPath;
+
+    // ClassPathInfo
+    private ClassPathInfo  _classPathInfo;
 
     /**
      * Creates a new Project for WebSite.
@@ -29,6 +36,11 @@ public class Project extends Resolver {
     }
 
     /**
+     * Returns root project if part of hierarchy.
+     */
+    public Project getRootProject()  { return this; }
+
+    /**
      * Returns the project name.
      */
     public String getName()
@@ -39,10 +51,7 @@ public class Project extends Resolver {
     /**
      * Returns the encapsulated WebSite.
      */
-    public WebSite getSite()
-    {
-        return _site;
-    }
+    public WebSite getSite()  { return _site; }
 
     /**
      * Sets the encapsulated WebSite.
@@ -140,7 +149,15 @@ public class Project extends Resolver {
      */
     public ClassPath getClassPath()
     {
-        return ClassPath.get(this);
+        // If already set, just return
+        if (_classPath != null) return _classPath;
+
+        // Create, add PropChangeListener
+        ClassPath classPath = new ClassPath(this);
+        classPath.addPropChangeListener(pc -> classPathDidPropChange(pc));
+
+        // Set, return
+        return _classPath = classPath;
     }
 
     /**
@@ -160,6 +177,28 @@ public class Project extends Resolver {
     public String[] getLibPaths()
     {
         return getClassPath().getLibPathsAbsolute();
+    }
+
+    /**
+     * Returns ClassPathInfo.
+     */
+    public ClassPathInfo getClassPathInfo()
+    {
+        // If already set, just return
+        if (_classPathInfo != null) return _classPathInfo;
+
+        // Create, set, return
+        ClassPathInfo classPathInfo = new ClassPathInfo(this);
+        return _classPathInfo = classPathInfo;
+    }
+
+    /**
+     * Watches Project.ClassPath for JarPaths change to reset ClassPathInfo.
+     */
+    private void classPathDidPropChange(PropChange anEvent)
+    {
+        if (anEvent.getPropertyName() == ClassPath.JarPaths_Prop)
+            _classPathInfo = null;
     }
 
     /**

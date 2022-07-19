@@ -20,28 +20,31 @@ import java.util.List;
 public class ClassPath {
 
     // The project
-    Project _proj;
+    private Project  _proj;
 
     // The site
-    WebSite _site;
+    private WebSite  _site;
 
     // The web file
-    WebFile _file;
+    private WebFile  _file;
 
     // The XML element
-    XMLElement _xml;
+    private XMLElement  _xml;
 
     // The project source and build paths
-    String _srcPath, _bldPath;
+    private String  _srcPath, _buildPath;
 
     // The project source and build directories
-    WebFile _srcDir, _bldDir;
+    private WebFile  _srcDir, _buildDir;
 
-    // The paths
-    String _srcPaths[], _libPaths[];
+    // The source paths
+    private String[]  _srcPaths;
+
+    // The library paths
+    private String[]  _libPaths;
 
     // The project paths
-    String _projPaths[];
+    private String[] _projPaths;
 
     // The PropChangeSupport
     PropChangeSupport _pcs = PropChangeSupport.EMPTY;
@@ -64,17 +67,16 @@ public class ClassPath {
      */
     public WebFile getFile()
     {
-        return _file != null ? _file : (_file = getFileImpl());
-    }
+        // If already set, just return
+        if (_file != null) return _file;
 
-    /**
-     * Returns the file.
-     */
-    protected WebFile getFileImpl()
-    {
+        // Get file
         WebFile file = _site.getFile(".classpath");
-        if (file == null) file = _site.createFile(".classpath", false);
-        return file;
+        if (file == null)
+            file = _site.createFile(".classpath", false);
+
+        // Set/return
+        return _file = file;
     }
 
     /**
@@ -82,7 +84,9 @@ public class ClassPath {
      */
     public XMLElement getXML()
     {
-        return _xml != null ? _xml : (_xml = createXML());
+        if (_xml != null) return _xml;
+        XMLElement xml = createXML();
+        return _xml = xml;
     }
 
     /**
@@ -106,12 +110,15 @@ public class ClassPath {
         if (_srcPath != null) return _srcPath;
 
         // Get source path from src classpathentry
-        XMLElement xmls[] = getSourcePathXMLs();
+        XMLElement[] xmls = getSourcePathXMLs();
         XMLElement xml = xmls.length > 0 ? xmls[0] : null;
         String path = xml != null ? xml.getAttributeValue("path") : null;
 
         // If no path and /src exists, use it
-        if (path == null && _site.getFile("/src") != null) path = "src";
+        if (path == null && _site.getFile("/src") != null)
+            path = "src";
+
+        // Set/return
         return _srcPath = path;
     }
 
@@ -126,22 +133,20 @@ public class ClassPath {
         _srcDir = null;
 
         // Update XML
-        XMLElement xmls[] = getSourcePathXMLs();
+        XMLElement[] xmls = getSourcePathXMLs();
         XMLElement xml = xmls.length > 0 ? xmls[0] : null;
         if (xml == null) {
             xml = new XMLElement("classpathentry");
             xml.add("kind", "src");
             getXML().add(xml);
         }
-        if (_srcPath != null) xml.add("path", _srcPath);
+        if (_srcPath != null)
+            xml.add("path", _srcPath);
         else getXML().removeElement(xml);
 
         // Save file
-        try {
-            writeFile();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        try { writeFile(); }
+        catch (Exception e) { throw new RuntimeException(e); }
     }
 
     /**
@@ -154,8 +159,11 @@ public class ClassPath {
 
         // Load from ProjectXMLs
         List<String> paths = new ArrayList();
-        for (XMLElement xml : getProjectPathXMLs()) paths.add(xml.getAttributeValue("path"));
-        return _projPaths = paths.toArray(new String[paths.size()]);
+        for (XMLElement xml : getProjectPathXMLs())
+            paths.add(xml.getAttributeValue("path"));
+
+        // Set/return
+        return _projPaths = paths.toArray(new String[0]);
     }
 
     /**
@@ -164,15 +172,18 @@ public class ClassPath {
     public String getBuildPath()
     {
         // If already set, just return
-        if (_bldPath != null) return _bldPath;
+        if (_buildPath != null) return _buildPath;
 
         // Get source path from output classpathentry
         XMLElement xml = getBuildPathXML();
         String path = xml != null ? xml.getAttributeValue("path") : null;
 
         // If path not set, use bin
-        if (path == null) path = "bin";
-        return _bldPath = path;
+        if (path == null)
+            path = "bin";
+
+        // Set/return
+        return _buildPath = path;
     }
 
     /**
@@ -182,8 +193,8 @@ public class ClassPath {
     {
         // Update ivar
         if (SnapUtils.equals(aPath, getBuildPath())) return;
-        _bldPath = aPath != null ? getRelativePath(aPath) : null;
-        _bldDir = null;
+        _buildPath = aPath != null ? getRelativePath(aPath) : null;
+        _buildDir = null;
 
         // Update XML
         XMLElement xml = getBuildPathXML();
@@ -192,15 +203,12 @@ public class ClassPath {
             xml.add("kind", "output");
             getXML().add(xml);
         }
-        if (_bldPath != null) xml.add("path", _bldPath);
+        if (_buildPath != null) xml.add("path", _buildPath);
         else getXML().removeElement(xml);
 
         // Save file
-        try {
-            writeFile();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        try { writeFile(); }
+        catch (Exception e) { throw new RuntimeException(e); }
     }
 
     /**
@@ -213,9 +221,13 @@ public class ClassPath {
 
         // Get from SourcePath and site
         String path = getSourcePath();
-        if (path != null && !path.startsWith("/")) path = '/' + path;
+        if (path != null && !path.startsWith("/"))
+            path = '/' + path;
         WebFile srcDir = path != null ? _site.getFile(path) : _site.getRootDir();
-        if (srcDir == null) srcDir = _site.createFile(path, true);
+        if (srcDir == null)
+            srcDir = _site.createFile(path, true);
+
+        // Set/return
         return _srcDir = srcDir;
     }
 
@@ -225,14 +237,18 @@ public class ClassPath {
     public WebFile getBuildDir()
     {
         // If already set, just return
-        if (_bldDir != null) return _bldDir;
+        if (_buildDir != null) return _buildDir;
 
         // Get from BuildPath and site
         String path = getBuildPath();
-        if (path != null && !path.startsWith("/")) path = '/' + path;
+        if (path != null && !path.startsWith("/"))
+            path = '/' + path;
         WebFile bldDir = path != null ? _site.getFile(path) : _site.getRootDir();
-        if (bldDir == null) bldDir = _site.createFile(path, true);
-        return _bldDir = bldDir;
+        if (bldDir == null)
+            bldDir = _site.createFile(path, true);
+
+        // Set/return
+        return _buildDir = bldDir;
     }
 
     /**
@@ -265,11 +281,8 @@ public class ClassPath {
         getXML().add(xml);
 
         // Save file
-        try {
-            writeFile();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        try { writeFile(); }
+        catch (Exception e) { throw new RuntimeException(e); }
 
         // Clear cached paths and Fire property change
         _srcPaths = null;
@@ -297,11 +310,8 @@ public class ClassPath {
         }
 
         // Save file
-        try {
-            writeFile();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        try { writeFile(); }
+        catch (Exception e) { throw new RuntimeException(e); }
 
         // Fire property change
         firePropChange(SrcPaths_Prop, aPath, null);
@@ -321,6 +331,8 @@ public class ClassPath {
             String path = xml.getAttributeValue("path");
             paths.add(path);
         }
+
+        // Set/return
         return _libPaths = paths.toArray(new String[paths.size()]);
     }
 
@@ -340,11 +352,8 @@ public class ClassPath {
         getXML().add(xml);
 
         // Save file
-        try {
-            writeFile();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        try { writeFile(); }
+        catch (Exception e) { throw new RuntimeException(e); }
 
         // Fire property change
         firePropChange(JarPaths_Prop, null, path);
@@ -369,11 +378,8 @@ public class ClassPath {
         }
 
         // Save file
-        try {
-            writeFile();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        try { writeFile(); }
+        catch (Exception e) { throw new RuntimeException(e); }
 
         // Fire property change
         firePropChange(JarPaths_Prop, aPath, null);
@@ -400,9 +406,13 @@ public class ClassPath {
      */
     public String[] getLibPathsAbsolute()
     {
-        String lpaths[] = getLibPaths(), apaths[] = new String[lpaths.length];
-        for (int i = 0; i < lpaths.length; i++) apaths[i] = addDirChar(getAbsolutePath(lpaths[i]));
-        return apaths;
+        String[] libPaths = getLibPaths();
+        String[] absPaths = new String[libPaths.length];
+        for (int i = 0; i < libPaths.length; i++) {
+            String absPath = getAbsolutePath(libPaths[i]);
+            absPaths[i] = addDirChar(absPath);
+        }
+        return absPaths;
     }
 
     /**
@@ -481,7 +491,7 @@ public class ClassPath {
             String path = src.getAttributeValue("path");
             if (path != null && !path.startsWith("/")) paths.add(src);
         }
-        return paths.toArray(new XMLElement[paths.size()]);
+        return paths.toArray(new XMLElement[0]);
     }
 
     /**
@@ -494,7 +504,7 @@ public class ClassPath {
             String path = src.getAttributeValue("path");
             if (path != null && path.startsWith("/")) paths.add(src);
         }
-        return paths.toArray(new XMLElement[paths.size()]);
+        return paths.toArray(new XMLElement[0]);
     }
 
     /**
@@ -515,8 +525,8 @@ public class ClassPath {
     {
         _xml = null;
         _srcPaths = _libPaths = null;
-        _srcPath = _bldPath = null;
-        _srcDir = _bldDir = null;
+        _srcPath = _buildPath = null;
+        _srcDir = _buildDir = null;
         if (_file != null) _file.reload();
         _file = null;
     }
@@ -526,7 +536,9 @@ public class ClassPath {
      */
     public void writeFile() throws Exception
     {
-        getFile().setBytes(getXML().getBytes());
+        XMLElement xml = getXML();
+        byte[] xmlBytes = xml.getBytes();
+        getFile().setBytes(xmlBytes);
         getFile().save();
     }
 
@@ -537,14 +549,6 @@ public class ClassPath {
     {
         if (_pcs == PropChangeSupport.EMPTY) _pcs = new PropChangeSupport(this);
         _pcs.addPropChangeListener(aLsnr);
-    }
-
-    /**
-     * Remove listener.
-     */
-    public void removePropChangeListener(PropChangeListener aLsnr)
-    {
-        _pcs.removePropChangeListener(aLsnr);
     }
 
     /**
@@ -562,7 +566,8 @@ public class ClassPath {
      */
     public String toString()
     {
-        return getXML().toString();
+        XMLElement xml = getXML();
+        return xml.toString();
     }
 
     /**
@@ -581,16 +586,4 @@ public class ClassPath {
         file.setText(sb.toString());
         file.save();
     }
-
-    /**
-     * Returns the project for a given site.
-     */
-    public static synchronized ClassPath get(Project aProj)
-    {
-        WebSite site = aProj.getSite();
-        ClassPath cpf = (ClassPath) site.getProp("snap.project.ClassPathFile");
-        if (cpf == null) site.setProp("snap.project.ClassPathFile", cpf = new ClassPath(aProj));
-        return cpf;
-    }
-
 }

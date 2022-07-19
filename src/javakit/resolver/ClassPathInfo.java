@@ -1,10 +1,7 @@
 package javakit.resolver;
-
 import java.util.*;
-
-import javakit.parse.JNode;
-import snap.props.PropChange;
-import snap.props.PropChangeListener;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import snap.util.*;
 import snap.web.*;
 
@@ -13,149 +10,152 @@ import snap.web.*;
  */
 public class ClassPathInfo {
 
-    // The Project
-    Project _proj;
-
     // The shared list of class path sites
-    List<WebSite> _sites = new ArrayList();
+    private WebSite[]  _sites;
 
-    // The list of all package files and class files
-    List<WebFile> _apkgs, _acls;
+    // The list of all package files
+    private List<WebFile>  _allPackageDirs;
 
-    // A listener for ClassPath PropChange
-    PropChangeListener _classPathPCL = pc -> classPathDidPropChange(pc);
+    // The list of all class files
+    private List<WebFile>  _allClassFiles;
 
     /**
-     * Creates a new new ClassPathInfo for project class paths.
+     * Constructor.
      */
     public ClassPathInfo(Project aProj)
     {
-        // Set project
-        _proj = aProj;
+        // Add JRE jar file site
+        WebURL jreURL = WebURL.getURL(List.class);
+        WebSite jreSite = jreURL.getSite();
+        List<WebSite> sites = new ArrayList<>();
+        sites.add(jreSite);
 
-        // Add system jar sites
-        WebSite javart = WebURL.getURL(List.class).getSite();
-        _sites.add(javart);
-        //WebSite jfxrt = WebURL.getURL(javafx.scene.Node.class).getSite(); _sites.add(jfxrt);
-
-        // Add project class path sites
+        // Get Project ClassPaths (build dirs, jar files)
         String[] classPaths = aProj.getClassPaths(); // Was ProjectSet JK
-        for (String jar : classPaths) {
-            WebURL jarURL = WebURL.getURL(jar);
-            WebSite jarSite = jarURL.getAsSite();
-            _sites.add(jarSite);
-        }
-    }
 
-    /**
-     * Returns the project.
-     */
-    public Project getProject()
-    {
-        return _proj;
+        // Add project class path sites (build dirs, jar files)
+        for (String classPath : classPaths) {
+            WebURL classPathURL = WebURL.getURL(classPath);
+            WebSite classPathSite = classPathURL.getAsSite();
+            sites.add(classPathSite);
+        }
+
+        // Set Sites
+        _sites = sites.toArray(new WebSite[0]);
     }
 
     /**
      * Returns the class path sites.
      */
-    public List<WebSite> getSites()
-    {
-        return _sites;
-    }
-
-    /**
-     * Returns a class for name.
-     */
-    public Class getClass(String aName)
-    {
-        ClassLoader cldr = _proj.getClassLoader();
-        return ClassUtils.getClassForName(aName, cldr);
-    }
+    public WebSite[] getSites()  { return _sites; }
 
     /**
      * Returns class names for prefix.
      */
-    public List<String> getPackageClassNames(String aPkgName, String aPrefix)
+    public List<String> getPackageClassNamesForPrefix(String aPkgName, String aPrefix)
     {
+        // Get packageDir
         WebFile pkgDir = getPackageDir(aPkgName);
         if (pkgDir == null) return Collections.emptyList();
-        List<WebFile> cfiles = getClassFiles(pkgDir.getFiles(), aPrefix);
-        return getClassNames(cfiles);
+
+        // Get all class files with prefix
+        List<WebFile> packageDirFiles = pkgDir.getFiles();
+        Stream<WebFile> packageDirFilesStream = packageDirFiles.stream();
+        Stream<WebFile> packageDirFilesWithPrefixStream = packageDirFilesStream.filter(f -> isFilePrefixed(f, aPrefix));
+
+        // Get class names for class files
+        Stream<String> classNamesStream = packageDirFilesWithPrefixStream.map(f -> getClassNameForClassFile(f));
+        List<String> classNames = classNamesStream.collect(Collectors.toList());
+
+        // Return
+        return classNames;
     }
 
     /**
      * Returns packages for prefix.
      */
-    public List<String> getPackageChildrenNames(String aPkgName, String aPrefix)
+    public List<String> getPackageChildrenNamesForPrefix(String aPkgName, String aPrefix)
     {
+        // Get dir for package name
         WebFile pkgDir = getPackageDir(aPkgName);
         if (pkgDir == null) return Collections.emptyList();
-        List<WebFile> pfiles = getChildPackages(pkgDir.getFiles(), aPrefix);
-        return getPackageNames(pfiles);
+
+        // Get package dir files for package files
+        List<WebFile> packageFiles = pkgDir.getFiles();
+        List<WebFile> childPackageDirs = getChildPackageDirsForPrefix(packageFiles, aPrefix);
+
+        // Get package names for package children dir files and return
+        return getPackageNamesForPackageDirs(childPackageDirs);
     }
 
     /**
      * Returns all packages with prefix.
      */
-    public List<String> getAllPackageNames(String aPrefix)
+    public List<String> getPackageNamesForPrefix(String aPrefix)
     {
-        List<WebFile> pfiles = getChildPackages(getAllPackages(), aPrefix);
-        return getPackageNames(pfiles);
+        List<WebFile> packageDirs = getAllPackageDirs();
+        List<WebFile> childPackageDirs = getChildPackageDirsForPrefix(packageDirs, aPrefix);
+
+        // Return list of package names for package dir files
+        return getPackageNamesForPackageDirs(childPackageDirs);
+    }
+
+    /**
+     * Returns class names for prefix.
+     */
+    public List<String> getClassNamesForPrefix(String aPrefix)
+    {
+        // If less than 3 letters, return common names for prefix
+        if (aPrefix.length() <= 3)
+            return getCommonClassNamesForPrefix(aPrefix);
+
+        // Return all names
+        return getAllClassNamesForPrefix(aPrefix);
     }
 
     /**
      * Returns all classes with prefix.
      */
-    public List<String> getAllClassNames(String aPrefix)
+    private List<String> getAllClassNamesForPrefix(String aPrefix)
     {
-        List<WebFile> cfiles = getClassFiles(getAllClasses(), aPrefix);
-        return getClassNames(cfiles);
-    }
+        // Get all class files with prefix
+        List<WebFile> allClassFiles = getAllClassFiles();
+        Stream<WebFile> allClassFilesStream = allClassFiles.stream();
+        Stream<WebFile> classFilesWithPrefixStream = allClassFilesStream.filter(f -> isFilePrefixed(f, aPrefix));
 
-    /**
-     * Returns class names for entries list.
-     */
-    private List<String> getClassNames(List<WebFile> theFiles)
-    {
-        List<String> names = new ArrayList(theFiles.size());
-        for (WebFile file : theFiles) {
-            String path = file.getPath(), path2 = path.substring(1, path.length() - 6);
-            names.add(path2.replace('/', '.'));
-        }
-        return names;
+        // Get class names for class files and return
+        Stream<String> classNamesStream = classFilesWithPrefixStream.map(f -> getClassNameForClassFile(f));
+        List<String> classNames = classNamesStream.collect(Collectors.toList());
+        return classNames;
     }
 
     /**
      * Returns all classes with prefix.
      */
-    public List<String> getCommonClassNames(String aPrefix)
+    public List<String> getCommonClassNamesForPrefix(String aPrefix)
     {
         String prefix = aPrefix.toLowerCase();
-        String ccn[] = COMMON_CLASS_NAMES, ccns[] = COMMON_CLASS_NAMES_SIMPLE;
+        String[] commonClassNames = COMMON_CLASS_NAMES;
+        String[] commonClassNamesSimple = COMMON_CLASS_NAMES_SIMPLE;
 
         // Initialize COMMON_CLASS_NAMES_SIMPLE
-        if (ccns == null) {
-            ccns = COMMON_CLASS_NAMES_SIMPLE = new String[ccn.length];
-            for (int i = 0; i < ccn.length; i++) {
-                String str = ccn[i];
+        if (commonClassNamesSimple == null) {
+            commonClassNamesSimple = COMMON_CLASS_NAMES_SIMPLE = new String[commonClassNames.length];
+            for (int i = 0; i < commonClassNames.length; i++) {
+                String str = commonClassNames[i];
                 int ind = str.lastIndexOf('.');
-                ccns[i] = str.substring(ind + 1).toLowerCase();
+                commonClassNamesSimple[i] = str.substring(ind + 1).toLowerCase();
             }
         }
 
-        List list = new ArrayList();
-        for (int i = 0, iMax = ccn.length; i < iMax; i++) if (ccns[i].startsWith(prefix)) list.add(ccn[i]);
-        return list;
-    }
+        // Get commonClassNames where simple name has given prefix
+        List<String> commonClassNamesForPrefix = new ArrayList<>();
+        for (int i = 0, iMax = commonClassNames.length; i < iMax; i++)
+            if (commonClassNamesSimple[i].startsWith(prefix))
+                commonClassNamesForPrefix.add(commonClassNames[i]);
 
-    /**
-     * Returns packages for entries list.
-     */
-    private List<String> getPackageNames(List<WebFile> theFiles)
-    {
-        List names = new ArrayList(theFiles.size());
-        for (WebFile pfile : theFiles) names.add(pfile.getPath().substring(1).replace('/', '.'));
-        return names;
+        // Return
+        return commonClassNamesForPrefix;
     }
 
     /**
@@ -164,10 +164,11 @@ public class ClassPathInfo {
     public WebFile getPackageDir(String aName)
     {
         String path = "/" + aName.replace('.', '/');
-        List<WebSite> sites = getSites();
+        WebSite[] sites = getSites();
         for (WebSite site : sites) {
             WebFile file = site.getFile(path);
-            if (file != null) return file;
+            if (file != null)
+                return file;
         }
         return null;
     }
@@ -175,70 +176,132 @@ public class ClassPathInfo {
     /**
      * Returns a list of class files for a package dir and a prefix.
      */
-    public List<WebFile> getClassFiles(List<WebFile> theFiles, String aPrefix)
+    public List<WebFile> getChildPackageDirsForPrefix(List<WebFile> theFiles, String aPrefix)
     {
-        List cfiles = new ArrayList();
-        for (WebFile file : theFiles) {
-            String name = file.getName();
-            int di = name.lastIndexOf('$');
-            if (di > 0) name = name.substring(di + 1);
-            if (StringUtils.startsWithIC(name, aPrefix) && name.endsWith(".class"))
-                cfiles.add(file);
-        }
-        return cfiles;
-    }
-
-    /**
-     * Returns a list of class files for a package dir and a prefix.
-     */
-    public List<WebFile> getChildPackages(List<WebFile> theFiles, String aPrefix)
-    {
-        List pfiles = new ArrayList();
-        for (WebFile file : theFiles)
-            if (file.isDir() && StringUtils.startsWithIC(file.getName(), aPrefix) && file.getName().indexOf('.') < 0)
-                pfiles.add(file);
-        return pfiles;
+        Stream<WebFile> filesStream = theFiles.stream();
+        Stream<WebFile> packageDirsStream = filesStream.filter(f -> isDirWithPrefix(f, aPrefix));
+        List<WebFile> packageDirs = packageDirsStream.collect(Collectors.toList());
+        return packageDirs;
     }
 
     /**
      * Returns the list of all packages.
      */
-    public List<WebFile> getAllPackages()
+    public List<WebFile> getAllPackageDirs()
     {
-        if (_apkgs == null) createAll();
-        return _apkgs;
+        if (_allPackageDirs == null) getAllClassFiles();
+        return _allPackageDirs;
     }
 
     /**
      * Returns the list of all classes.
      */
-    public List<WebFile> getAllClasses()
+    public List<WebFile> getAllClassFiles()
     {
-        if (_acls == null) createAll();
-        return _acls;
+        // If already set, just return
+        if (_allClassFiles != null) return _allClassFiles;
+
+        // Load AllClassFiles and AllPackageDirs
+        List<WebFile> allClassFiles = new ArrayList<>();
+        List<WebFile> allPackageDirs = new ArrayList<>();
+        for (WebSite site : getSites()) {
+            WebFile siteRootDir = site.getRootDir();
+            getAll(siteRootDir, allClassFiles, allPackageDirs);
+        }
+
+        // Set, return
+        _allPackageDirs = allPackageDirs;
+        return _allClassFiles = allClassFiles;
     }
 
-    protected void createAll()
+    /**
+     * Gets all class files and package dirs in given directory.
+     */
+    private void getAll(WebFile aDir, List<WebFile> classFiles, List<WebFile> packageDirs)
     {
-        _acls = new ArrayList();
-        _apkgs = new ArrayList();
-        for (WebSite site : getSites()) getAll(site.getRootDir(), _acls, _apkgs);
-    }
+        // Get directory files
+        List<WebFile> dirFiles = aDir.getFiles();
 
-    private void getAll(WebFile aDir, List<WebFile> theClasses, List<WebFile> thePkgs)
-    {
-        for (WebFile file : aDir.getFiles()) {
+        // Iterate over dir files and add to ClassFiles or PackageDirs
+        for (WebFile file : dirFiles) {
+
+            // Handle nested dir
             if (file.isDir()) {
                 if (file.getName().indexOf('.') > 0) continue;
-                if (thePkgs != null) thePkgs.add(file);
-                getAll(file, theClasses, null); // Send null because we only want top level packages
-            } else {
+                if (packageDirs != null) packageDirs.add(file);
+                getAll(file, classFiles, null); // Send null because we only want top level packages
+            }
+
+            // Handle plain file: Add to classFiles if interesting and .class
+            else {
                 String path = file.getPath();
                 if (!path.endsWith(".class")) continue;
                 if (!isInterestingPath(path)) continue;
-                theClasses.add(file);
+                classFiles.add(file);
             }
         }
+    }
+
+    /**
+     * Standard toString implementation.
+     */
+    public String toString()
+    {
+        WebSite[] sites = getSites();
+        String sitesString = Arrays.toString(sites);
+        return getClass().getSimpleName() + ": " + sitesString;
+    }
+
+    /**
+     * Returns whether given file has given prefix.
+     */
+    private static boolean isFilePrefixed(WebFile aFile, String aPrefix)
+    {
+        String name = aFile.getName();
+        int di = name.lastIndexOf('$');
+        if (di > 0) name = name.substring(di + 1);
+        return StringUtils.startsWithIC(name, aPrefix) && name.endsWith(".class");
+    }
+
+    /**
+     * Returns whether given file is dir with given prefix (and no extension).
+     */
+    private static boolean isDirWithPrefix(WebFile aFile, String aPrefix)
+    {
+        if (!aFile.isDir()) return false;
+        String dirName = aFile.getName();
+        return StringUtils.startsWithIC(dirName, aPrefix) && dirName.indexOf('.') < 0;
+    }
+
+    /**
+     * Returns class name for class file.
+     */
+    private static String getClassNameForClassFile(WebFile aFile)
+    {
+        String filePath = aFile.getPath();
+        String filePathNoExtension = filePath.substring(1, filePath.length() - 6);
+        String className = filePathNoExtension.replace('/', '.');
+        return className;
+    }
+
+    /**
+     * Returns packages names for list of package dir files.
+     */
+    private List<String> getPackageNamesForPackageDirs(List<WebFile> packageDirs)
+    {
+        Stream<WebFile> packageDirsStream = packageDirs.stream();
+        Stream<String> packageNamesStream = packageDirsStream.map(f -> getPackageNameForFile(f));
+        return packageNamesStream.collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a package name for package dir file.
+     */
+    private static String getPackageNameForFile(WebFile aFile)
+    {
+        String filePath = aFile.getPath();
+        String pkgName = filePath.substring(1).replace('/', '.');
+        return pkgName;
     }
 
     /**
@@ -256,50 +319,6 @@ public class ClassPathInfo {
         int dollar = aPath.endsWith(".class") ? aPath.lastIndexOf('$') : -1;
         if (dollar > 0 && Character.isDigit(aPath.charAt(dollar + 1))) return false;
         return true;
-    }
-
-    /**
-     * Watches Project.ClassPath for JarPaths change to reset ClassPathInfo.
-     */
-    void classPathDidPropChange(PropChange anEvent)
-    {
-//        if (anEvent.getPropertyName() == snap.project.ClassPath.JarPaths_Prop) {
-//            _proj.getSite().setProp("ClassPathInfo", null);
-//            _proj.getClassPath().removePropChangeListener(_classPathPCL);
-//        }
-    }
-
-    /**
-     * Standard toString implementation.
-     */
-    public String toString()
-    {
-        return getClass().getSimpleName() + ": " + getSites();
-    }
-
-    /**
-     * Returns ClassPathInfo for JNode.
-     */
-    public static ClassPathInfo get(JNode aNode)
-    {
-        WebFile file = aNode.getFile().getSourceFile();
-        if (file == null) return null;
-        WebSite site = file.getSite();
-        return ClassPathInfo.get(site);
-    }
-
-    /**
-     * Returns the ClassPathInfo for a JNode.
-     */
-    public static ClassPathInfo get(WebSite aSite)
-    {
-        ClassPathInfo cpinfo = (ClassPathInfo) aSite.getProp("ClassPathInfo");
-        if (cpinfo == null) {
-            Project proj = Project.get(aSite);
-            aSite.setProp("ClassPathInfo", cpinfo = new ClassPathInfo(proj));
-            proj.getClassPath().addPropChangeListener(cpinfo._classPathPCL);
-        }
-        return cpinfo;
     }
 
     /**
