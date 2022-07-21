@@ -1,20 +1,23 @@
-package javakit.parse;
-
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
+package javakit.shell;
 import java.util.*;
 
+import javakit.parse.*;
 import snap.parse.*;
 import snap.util.ListUtils;
 
 /**
  * A class to evaluate Java statements.
  */
-public class EvalStmt {
+public class JSEvalStmt {
 
     // The Expression evaluator
-    EvalExpr _exprEval = EvalExpr.get(null);
+    private JSEvalExpr  _exprEval = JSEvalExpr.get(null);
 
     // A parser to parse expressions
-    static Parser _stmtParser = new StmtParser();
+    private static Parser  _stmtParser = new StmtParser();
 
     /**
      * Evaluate expression.
@@ -30,9 +33,14 @@ public class EvalStmt {
         Object value;
         try {
             value = evalStmt(aOR, stmt);
-        } catch (Exception e) {
+        }
+
+        // Handle exceptions
+        catch (Exception e) {
             return e;
         }
+
+        // Return
         return value;
     }
 
@@ -106,12 +114,18 @@ public class EvalStmt {
      */
     public Object evalJExpr(JExpr anExpr)
     {
+        // Evaluate expr
         Object val;
         try {
             val = _exprEval.evalExpr(anExpr);
-        } catch (Exception e) {
+        }
+
+        // Handle exceptions
+        catch (Exception e) {
             return e;
         }
+
+        // Return
         return val;
     }
 

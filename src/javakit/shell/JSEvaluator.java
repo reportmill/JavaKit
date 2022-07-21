@@ -2,8 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.shell;
-import javakit.parse.EvalExpr;
-import javakit.parse.EvalStmt;
 import snap.view.TextArea;
 
 import java.io.OutputStream;
@@ -18,10 +16,10 @@ public class JSEvaluator {
     private JavaShell  _javaShell;
 
     // A Statement evaluator
-    private EvalStmt  _stmtEval = new EvalStmt();
+    private JSEvalStmt  _stmtEval = new JSEvalStmt();
 
     // An expression evaluator
-    private EvalExpr  _exprEval;
+    private JSEvalExpr  _exprEval;
 
     // The lines
     private String[]  _lines;
@@ -30,9 +28,12 @@ public class JSEvaluator {
     protected Object[]  _lineVals;
 
     // The public out and err PrintStreams
-    PrintStream _sout = System.out, _serr = System.err;
-    PrintStream _pgout = new PGPrintStream(_sout);
-    PrintStream _pgerr = new PGPrintStream(_serr);
+    private PrintStream  _stdOut = System.out;
+    private PrintStream  _stdErr = System.err;
+
+    // Proxy standard out/err to capture console
+    private PrintStream  _shellOut = new PGPrintStream(_stdOut);
+    private PrintStream  _shellErr = new PGPrintStream(_stdErr);
 
     /**
      * Creates a new PGEvaluator.
@@ -40,7 +41,7 @@ public class JSEvaluator {
     public JSEvaluator(JavaShell aPG)
     {
         _javaShell = aPG;
-        _exprEval = EvalExpr.get(_javaShell);
+        _exprEval = JSEvalExpr.get(_javaShell);
     }
 
     /**
@@ -48,9 +49,11 @@ public class JSEvaluator {
      */
     public void eval(String aStr)
     {
-        // Set sys out/err to catch console and clear console
-        System.setOut(_pgout);
-        System.setErr(_pgerr);
+        // Set sys out/err to catch console output
+        System.setOut(_shellOut);
+        System.setErr(_shellErr);
+
+        // Clear console
         _javaShell.getConsole().clear();
 
         _lines = aStr.split("\n");
@@ -62,9 +65,9 @@ public class JSEvaluator {
             _lineVals[i] = evalLine(line);
         }
 
-        // Set sys out/err to catch console
-        System.setOut(_sout);
-        System.setErr(_serr);
+        // Restore sys out/err
+        System.setOut(_stdOut);
+        System.setErr(_stdErr);
     }
 
     /**
@@ -120,7 +123,7 @@ public class JSEvaluator {
         {
             super.write(b);
             String str = String.valueOf(Character.valueOf((char) b));
-            if (this == _pgout)
+            if (this == _shellOut)
                 _javaShell.getConsole().appendOut(str);
             else _javaShell.getConsole().appendErr(str);
         }
@@ -132,10 +135,9 @@ public class JSEvaluator {
         {
             super.write(buf, off, len);
             String str = new String(buf, off, len);
-            if (this == _pgout)
+            if (this == _shellOut)
                 _javaShell.getConsole().appendOut(str);
             else _javaShell.getConsole().appendErr(str);
         }
     }
-
 }

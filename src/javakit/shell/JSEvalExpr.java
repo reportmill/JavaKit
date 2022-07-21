@@ -1,22 +1,27 @@
-package javakit.parse;
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
+package javakit.shell;
 import java.lang.reflect.*;
 import java.util.*;
+
+import javakit.parse.*;
 import snap.parse.Parser;
 import snap.util.*;
 
 /**
  * A class to evaluate expressions.
  */
-public class EvalExpr {
+public class JSEvalExpr {
 
     // The current "this" object
-    protected Object _thisObj;
+    protected Object  _thisObj;
 
     // A map of local variables
-    Map<String, Object> _locals = new HashMap();
+    private Map<String, Object>  _locals = new HashMap<>();
 
     // A parser to parse expressions
-    static Parser _exprParser = JavaParser.getShared().getExprParser();
+    private static Parser  _exprParser = JavaParser.getShared().getExprParser();
 
     /**
      * Evaluate expression.
@@ -31,9 +36,14 @@ public class EvalExpr {
         Object value;
         try {
             value = evalExpr(expr);
-        } catch (Exception e) {
+        }
+
+        // Handle exceptions
+        catch (Exception e) {
             return e;
         }
+
+        // Return
         return value;
     }
 
@@ -42,8 +52,8 @@ public class EvalExpr {
      */
     public Object evalExpr(JExpr anExpr) throws Exception
     {
-        Object oref = thisObject();
-        return evalExpr(oref, anExpr);
+        Object thisObj = thisObject();
+        return evalExpr(thisObj, anExpr);
     }
 
     /**
@@ -51,21 +61,27 @@ public class EvalExpr {
      */
     public Object evalExpr(Object anOR, JExpr anExpr) throws Exception
     {
-        if (anExpr instanceof JExprLiteral) return evalJExprLiteral((JExprLiteral) anExpr);
-        if (anExpr instanceof JExprId) return evalJExprId(anOR, (JExprId) anExpr);
-        if (anExpr instanceof JExprMethodCall) return evalJExprMethodCall(anOR, (JExprMethodCall) anExpr);
-        if (anExpr instanceof JExprMath) return evalJExprMath(anOR, (JExprMath) anExpr);
-        if (anExpr instanceof JExprArrayIndex) return evalJExprArrayIndex(anOR, (JExprArrayIndex) anExpr);
-        if (anExpr instanceof JExprChain) return evalJExprChain(anOR, (JExprChain) anExpr);
-        throw new RuntimeException("EvalExpr.evalExpr: Unsupported expression " + anExpr.getClass());
+        if (anExpr instanceof JExprLiteral)
+            return evalJExprLiteral((JExprLiteral) anExpr);
+        if (anExpr instanceof JExprId)
+            return evalJExprId(anOR, (JExprId) anExpr);
+        if (anExpr instanceof JExprMethodCall)
+            return evalJExprMethodCall(anOR, (JExprMethodCall) anExpr);
+        if (anExpr instanceof JExprMath)
+            return evalJExprMath(anOR, (JExprMath) anExpr);
+        if (anExpr instanceof JExprArrayIndex)
+            return evalJExprArrayIndex(anOR, (JExprArrayIndex) anExpr);
+        if (anExpr instanceof JExprChain)
+            return evalJExprChain(anOR, (JExprChain) anExpr);
+        throw new RuntimeException("JSEvalExpr.evalExpr: Unsupported expression " + anExpr.getClass());
     
-    /*if(aExpr instanceof JExprAlloc) writeJExprAlloc((JExprAlloc)aExpr);
-    else if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
-    else if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
-    else if(aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr)aExpr);
-    else if(aExpr instanceof JExprLambda) writeJExprLambda((JExprLambda)aExpr);
-    else if(aExpr instanceof JExprMethodRef) writeJExprMethodRef((JExprMethodRef)aExpr);
-    else if(aExpr instanceof JExprType) writeJExprType((JExprType)aExpr); */
+        /*if(aExpr instanceof JExprAlloc) writeJExprAlloc((JExprAlloc)aExpr);
+        else if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
+        else if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
+        else if(aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr)aExpr);
+        else if(aExpr instanceof JExprLambda) writeJExprLambda((JExprLambda)aExpr);
+        else if(aExpr instanceof JExprMethodRef) writeJExprMethodRef((JExprMethodRef)aExpr);
+        else if(aExpr instanceof JExprType) writeJExprType((JExprType)aExpr); */
     }
 
     /**
@@ -74,24 +90,15 @@ public class EvalExpr {
     Object evalJExprLiteral(JExprLiteral aLiteral) throws Exception
     {
         switch (aLiteral.getLiteralType()) {
-            case Boolean:
-                return (Boolean) aLiteral.getValue();
-            case Integer:
-                return (Integer) aLiteral.getValue();
-            case Long:
-                return (Long) aLiteral.getValue();
-            case Float:
-                return (Float) aLiteral.getValue();
-            case Double:
-                return (Double) aLiteral.getValue();
-            case Character:
-                return (Character) aLiteral.getValue();
-            case String:
-                return (String) aLiteral.getValue();
-            case Null:
-                return null;
-            default:
-                throw new RuntimeException("No Literal Type");
+            case Boolean: return (Boolean) aLiteral.getValue();
+            case Integer: return (Integer) aLiteral.getValue();
+            case Long: return (Long) aLiteral.getValue();
+            case Float: return (Float) aLiteral.getValue();
+            case Double: return (Double) aLiteral.getValue();
+            case Character: return (Character) aLiteral.getValue();
+            case String: return (String) aLiteral.getValue();
+            case Null: return null;
+            default: throw new RuntimeException("No Literal Type");
         }
     }
 
@@ -157,19 +164,21 @@ public class EvalExpr {
     {
         // Get Array
         JExpr arrayExpr = anExpr.getArrayExpr();
-        Object val = evalExpr(anOR, arrayExpr);
-        if (!isArray(val)) return null;
-        Object aref[] = (Object[]) val;
+        Object arrayObj = evalExpr(anOR, arrayExpr);
+        if (!isArray(arrayObj))
+            return null;
+        Object[] array = (Object[]) arrayObj;
 
         // Get Index
         JExpr indexExpr = anExpr.getIndexExpr();
         Object thisObj = thisObject();
-        val = evalExpr(thisObj, indexExpr);
-        if (!isPrimitive(val)) return null;
-        int index = intValue(val);
+        arrayObj = evalExpr(thisObj, indexExpr);
+        if (!isPrimitive(arrayObj))
+            return null;
+        int index = intValue(arrayObj);
 
         // Return ArrayReference value at index
-        return arrayValue(aref, index);
+        return arrayValue(array, index);
     }
 
     /**
@@ -205,6 +214,7 @@ public class EvalExpr {
 
         // Handle Unary
         if (opCount == 1) {
+
             if (op == JExprMath.Op.Not) {
                 if (isBoolean(val1)) {
                     boolean val = boolValue(val1);
@@ -212,17 +222,19 @@ public class EvalExpr {
                 }
                 throw new RuntimeException("Logical Not MathExpr not boolean: " + anExpr.toString());
             }
+
             if (op == JExprMath.Op.Negate) { // Need to not promote everything to double
                 if (isPrimitive(val1)) {
                     double val = doubleValue(val1);
                     return mirrorOf(-val);
                 }
                 throw new RuntimeException("Numeric Negate MathExpr not numeric: " + anExpr.toString());
-            } else switch (op) {
+            }
+
+            else switch (op) {
                 case Not:
-                default:
-                    throw new RuntimeException("Operator not supported " + anExpr.getOp());
-                    //PreIncrement, PreDecrement, BitComp, PostIncrement, PostDecrement
+                default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
+                // PreIncrement, PreDecrement, BitComp, PostIncrement, PostDecrement
             }
         }
 
@@ -231,29 +243,21 @@ public class EvalExpr {
             JExpr expr2 = anExpr.getOperand(1);
             Object val2 = evalExpr(anOR, expr2);
             switch (op) {
-                case Add:
-                    return add(val1, val2);
-                case Subtract:
-                    return subtract(val1, val2);
-                case Multiply:
-                    return multiply(val1, val2);
-                case Divide:
-                    return divide(val1, val2);
-                case Mod:
-                    return mod(val1, val2);
+                case Add: return add(val1, val2);
+                case Subtract: return subtract(val1, val2);
+                case Multiply: return multiply(val1, val2);
+                case Divide: return divide(val1, val2);
+                case Mod: return mod(val1, val2);
                 case Equal:
                 case NotEqual:
                 case LessThan:
                 case GreaterThan:
                 case LessThanOrEqual:
-                case GreaterThanOrEqual:
-                    return compareNumeric(val1, val2, op);
+                case GreaterThanOrEqual: return compareNumeric(val1, val2, op);
                 case Or:
-                case And:
-                    return compareLogical(val1, val2, op);
-                default:
-                    throw new RuntimeException("Operator not supported " + anExpr.getOp());
-                    // BitOr, BitXOr, BitAnd, InstanceOf, ShiftLeft, ShiftRight, ShiftRightUnsigned,
+                case And: return compareLogical(val1, val2, op);
+                default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
+                // BitOr, BitXOr, BitAnd, InstanceOf, ShiftLeft, ShiftRight, ShiftRightUnsigned,
             }
         }
 
@@ -378,20 +382,13 @@ public class EvalExpr {
     boolean compareNumeric(double aVal1, double aVal2, JExprMath.Op anOp)
     {
         switch (anOp) {
-            case Equal:
-                return aVal1 == aVal2;
-            case NotEqual:
-                return aVal1 != aVal2;
-            case LessThan:
-                return aVal1 < aVal2;
-            case GreaterThan:
-                return aVal1 > aVal2;
-            case LessThanOrEqual:
-                return aVal1 <= aVal2;
-            case GreaterThanOrEqual:
-                return aVal1 >= aVal2;
-            default:
-                throw new RuntimeException("Not a compare op " + anOp);
+            case Equal: return aVal1 == aVal2;
+            case NotEqual: return aVal1 != aVal2;
+            case LessThan: return aVal1 < aVal2;
+            case GreaterThan: return aVal1 > aVal2;
+            case LessThanOrEqual: return aVal1 <= aVal2;
+            case GreaterThanOrEqual: return aVal1 >= aVal2;
+            default: throw new RuntimeException("Not a compare op " + anOp);
         }
     }
 
@@ -570,12 +567,10 @@ public class EvalExpr {
     public Object getLocalVarValue(String aName)
     {
         return _locals.get(aName);
+        // StackFrame frame = anApp.getCurrentFrame();
+        // LocalVariable lvar = frame.visibleVariableByName(name);
+        // if (lvar != null) return frame.getValue(lvar);
     }
-/*{
-    //StackFrame frame = anApp.getCurrentFrame();
-    //LocalVariable lvar = frame.visibleVariableByName(name);
-    //if(lvar!=null) return frame.getValue(lvar);
-}*/
 
     /**
      * Sets a local variable value by name.
@@ -615,20 +610,28 @@ public class EvalExpr {
     /**
      * Invoke method.
      */
-    public Object invokeMethod(Object anObj, String aName, Object theArgs[])
+    public Object invokeMethod(Object anObj, String aName, Object[] theArgs)
     {
-        Class cls = anObj.getClass(); //anObj instanceof Class? (Class)anObj : anObj.getClass();
-        Class classes[] = new Class[theArgs.length];
+        // Get object class
+        Class objClass = anObj.getClass(); // anObj instanceof Class? (Class)anObj : anObj.getClass();
+
+        // Get parameter classes
+        Class[] paramClasses = new Class[theArgs.length];
         for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
             Object arg = theArgs[i];
-            classes[i] = arg != null ? arg.getClass() : null;
+            paramClasses[i] = arg != null ? arg.getClass() : null;
         }
-        Method meth = MethodUtils.getMethodBest(cls, aName, classes);
+
+        // Get method
+        Method meth = MethodUtils.getMethodBest(objClass, aName, paramClasses);
+
+        // Invoke method
         try {
             return meth.invoke(anObj, theArgs);
-        } catch (Exception e) {
-            return null;
         }
+
+        // Handle exceptions
+        catch (Exception e) { return null; }
     }
 
     /**
@@ -676,11 +679,10 @@ public class EvalExpr {
     /**
      * Returns a new evaluator for given object.
      */
-    public static EvalExpr get(Object anObj)
+    public static JSEvalExpr get(Object anObj)
     {
-        EvalExpr eval = new EvalExpr();
+        JSEvalExpr eval = new JSEvalExpr();
         eval._thisObj = anObj;
         return eval;
     }
-
 }
