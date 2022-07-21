@@ -60,7 +60,7 @@ public class JavaDeclClass extends JavaDecl {
         _interface = aClass.isInterface();
         _primitive = aClass.isPrimitive();
         _evalType = this;
-        _sdecl = null; // Set by owner
+        _superDecl = null; // Set by owner
 
         // Add to Owner.Decls map
         _resolver._decls.put(_id, this);
@@ -70,7 +70,7 @@ public class JavaDeclClass extends JavaDecl {
         Type superType = superAType != null ? superAType.getType() : null;
         if (superType != null) {
             _stype = getJavaDecl(superType);
-            _sdecl = _superClassDecl = _stype.getClassType();
+            _superDecl = _superClassDecl = _stype.getClassType();
         }
 
         // Handle Array

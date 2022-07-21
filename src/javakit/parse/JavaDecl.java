@@ -3,7 +3,7 @@
  */
 package javakit.parse;
 import java.lang.reflect.*;
-import java.util.Arrays;
+
 import javakit.resolver.Resolver;
 import javakit.resolver.ResolverUtils;
 import snap.util.*;
@@ -49,14 +49,11 @@ public class JavaDecl implements Comparable<JavaDecl> {
     // The JavaDecls for TypeVars for Class, Method
     protected JavaDecl[]  _typeVars = EMPTY_DECLS;
 
-    // The VariableDecl
-    protected JVarDecl  _vdecl;
-
     // The super implementation of this type (Class, Method, Constructor)
-    protected JavaDecl  _sdecl = NULL_DECL;
+    protected JavaDecl  _superDecl = NULL_DECL;
 
     // Constants for type
-    public enum DeclType {Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar}
+    public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar }
 
     // Shared empty TypeVar array
     private static JavaDecl NULL_DECL = new JavaDecl(null, null, "NULL_DECL");
@@ -85,16 +82,16 @@ public class JavaDecl implements Comparable<JavaDecl> {
         if (anObj instanceof Type)
             initType((Type) anObj);
 
-            // Handle Member (Field, Method, Constructor)
+        // Handle Member (Field, Method, Constructor)
         else if (anObj instanceof Member)
             initMember((Member) anObj);
 
-            // Handle VarDecl
+        // Handle VarDecl
         else if (anObj instanceof JVarDecl) {
-            _vdecl = (JVarDecl) anObj;
+            JVarDecl jvarDecl = (JVarDecl) anObj;
             _type = DeclType.VarDecl;
-            _name = _simpleName = _vdecl.getName();
-            JType jt = _vdecl.getType();
+            _name = _simpleName = jvarDecl.getName();
+            JType jt = jvarDecl.getType();
             _evalType = jt != null ? jt.getDecl() : getJavaDecl(Object.class); // Can happen for Lambdas
         }
 
@@ -102,7 +99,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
         else if (anObj instanceof JavaDecl[])
             initParamType((JavaDecl[]) anObj);
 
-            // Handle Package
+        // Handle Package
         else if (anObj instanceof String) {
             String str = (String) anObj;
             _type = DeclType.Package;
@@ -149,200 +146,176 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Initialize member (Field, Method, Constructor).
      */
-    private void initMember(Member aMmbr)
+    private void initMember(Member aMember)
     {
         // Set mods, name, simple name
-        _mods = aMmbr.getModifiers();
-        _name = _simpleName = aMmbr.getName();
+        _mods = aMember.getModifiers();
+        _name = _simpleName = aMember.getName();
 
         // Handle Field
-        if (aMmbr instanceof Field) {
-            Field field = (Field) aMmbr;
+        if (aMember instanceof Field) {
+            Field field = (Field) aMember;
             _type = DeclType.Field;
             _evalType = _resolver.getTypeDecl(field.getGenericType());
         }
 
-        // Handle Executable (Method, Constructor)
-        else {
-            Executable exec = (Executable) aMmbr;
+        // Handle Method
+        else if (aMember instanceof Method) {
 
-            // Set type and reset name for constructor
-            _type = exec instanceof Method ? DeclType.Method : DeclType.Constructor;
-            if (exec instanceof Constructor)
-                _name = _simpleName = exec.getDeclaringClass().getSimpleName();
+            // Set type
+            Method method = (Method) aMember;
+            _type = DeclType.Method;
 
             // Get TypeVars
-            TypeVariable[] typeVars = exec.getTypeParameters();
+            TypeVariable[] typeVars = method.getTypeParameters();
             _typeVars = new JavaDecl[typeVars.length];
             for (int i = 0, iMax = typeVars.length; i < iMax; i++)
                 _typeVars[i] = new JavaDecl(_resolver, this, typeVars[i]);
-            _varArgs = exec.isVarArgs();
+            _varArgs = method.isVarArgs();
 
             // Get Return Type
-            Type rtype = exec.getAnnotatedReturnType().getType();
-            _evalType = _resolver.getTypeDecl(rtype);
+            Type returnType = method.getReturnType();
+            _evalType = _resolver.getTypeDecl(returnType);
 
             // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
-            Type[] paramTypes = exec.getGenericParameterTypes();
-            if (paramTypes.length < exec.getParameterCount())
-                paramTypes = exec.getParameterTypes();
+            Type[] paramTypes = method.getGenericParameterTypes();
+            if (paramTypes.length < method.getParameterCount())
+                paramTypes = method.getParameterTypes();
             _paramTypes = new JavaDecl[paramTypes.length];
             for (int i = 0, iMax = paramTypes.length; i < iMax; i++)
                 _paramTypes[i] = _resolver.getTypeDecl(paramTypes[i]);
 
             // Set default
-            if (exec instanceof Method)
-                _default = ((Method) exec).isDefault();
+            _default = method.isDefault();
+        }
+
+        // Handle Constructor
+        else {
+
+            // Set type
+            Constructor constructor = (Constructor) aMember;
+            _type = DeclType.Constructor;
+
+            // Reset name for constructor
+            Class<?> declaringClass = constructor.getDeclaringClass();
+            _name = _simpleName = declaringClass.getSimpleName();
+
+            // Get TypeVars
+            TypeVariable[] typeVars = constructor.getTypeParameters();
+            _typeVars = new JavaDecl[typeVars.length];
+            for (int i = 0, iMax = typeVars.length; i < iMax; i++)
+                _typeVars[i] = new JavaDecl(_resolver, this, typeVars[i]);
+            _varArgs = constructor.isVarArgs();
+
+            // Get Return Type
+            _evalType = _resolver.getTypeDecl(declaringClass);
+
+            // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
+            Type[] paramTypes = constructor.getGenericParameterTypes();
+            if (paramTypes.length < constructor.getParameterCount())
+                paramTypes = constructor.getParameterTypes();
+            _paramTypes = new JavaDecl[paramTypes.length];
+            for (int i = 0, iMax = paramTypes.length; i < iMax; i++)
+                _paramTypes[i] = _resolver.getTypeDecl(paramTypes[i]);
         }
     }
 
     /**
      * Initialize ParamType from array of type decls.
      */
-    private void initParamType(JavaDecl theTypeDecls[])
+    private void initParamType(JavaDecl[] theTypeDecls)
     {
         _type = DeclType.ParamType;
         _name = _id;
         _evalType = this;
-        _paramTypes = Arrays.copyOf(theTypeDecls, theTypeDecls.length);
+        _paramTypes = theTypeDecls.clone();
         _simpleName = _parent.getSimpleName() + '<' + StringUtils.join(getParamTypeSimpleNames(), ",") + '>';
     }
 
     /**
      * Returns the id.
      */
-    public String getId()
-    {
-        return _id;
-    }
+    public String getId()  { return _id; }
 
     /**
      * Returns the type.
      */
-    public DeclType getType()
-    {
-        return _type;
-    }
+    public DeclType getType()  { return _type; }
 
     /**
      * Returns whether is a class reference.
      */
-    public boolean isClass()
-    {
-        return false;
-    }
+    public boolean isClass()  { return false; }
 
     /**
      * Returns whether is a enum reference.
      */
-    public boolean isEnum()
-    {
-        return false;
-    }
+    public boolean isEnum()  { return false; }
 
     /**
      * Returns whether is a interface reference.
      */
-    public boolean isInterface()
-    {
-        return false;
-    }
+    public boolean isInterface()  { return false; }
 
     /**
      * Returns whether is an array.
      */
-    public boolean isArray()
-    {
-        return false;
-    }
+    public boolean isArray()  { return false; }
 
     /**
      * Returns the Array item type (if Array).
      */
-    public JavaDecl getArrayItemType()
-    {
-        return null;
-    }
+    public JavaDecl getArrayItemType()  { return null; }
 
     /**
      * Returns whether is primitive.
      */
-    public boolean isPrimitive()
-    {
-        return false;
-    }
+    public boolean isPrimitive()  { return false; }
 
     /**
      * Returns the primitive counter part, if available.
      */
-    public JavaDeclClass getPrimitive()
-    {
-        return null;
-    }
+    public JavaDeclClass getPrimitive()  { return null; }
 
     /**
      * Returns the primitive counter part, if available.
      */
-    public JavaDeclClass getPrimitiveAlt()
-    {
-        return null;
-    }
+    public JavaDeclClass getPrimitiveAlt()  { return null; }
 
     /**
      * Returns whether is a field reference.
      */
-    public boolean isField()
-    {
-        return _type == DeclType.Field;
-    }
+    public boolean isField()  { return _type == DeclType.Field; }
 
     /**
      * Returns whether is a constructor reference.
      */
-    public boolean isConstructor()
-    {
-        return _type == DeclType.Constructor;
-    }
+    public boolean isConstructor()  { return _type == DeclType.Constructor; }
 
     /**
      * Returns whether is a method reference.
      */
-    public boolean isMethod()
-    {
-        return _type == DeclType.Method;
-    }
+    public boolean isMethod()  { return _type == DeclType.Method; }
 
     /**
      * Returns whether is a package reference.
      */
-    public boolean isPackage()
-    {
-        return _type == DeclType.Package;
-    }
+    public boolean isPackage()  { return _type == DeclType.Package; }
 
     /**
      * Returns whether is a variable declaration reference.
      */
-    public boolean isVarDecl()
-    {
-        return _type == DeclType.VarDecl;
-    }
+    public boolean isVarDecl()  { return _type == DeclType.VarDecl; }
 
     /**
      * Returns whether is a parameterized class.
      */
-    public boolean isParamType()
-    {
-        return _type == DeclType.ParamType;
-    }
+    public boolean isParamType()  { return _type == DeclType.ParamType; }
 
     /**
      * Returns whether is a TypeVar.
      */
-    public boolean isTypeVar()
-    {
-        return _type == DeclType.TypeVar;
-    }
+    public boolean isTypeVar()  { return _type == DeclType.TypeVar; }
 
     /**
      * Returns whether is a Type (Class, ParamType, TypeVar).
@@ -355,10 +328,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the modifiers.
      */
-    public int getModifiers()
-    {
-        return _mods;
-    }
+    public int getModifiers()  { return _mods; }
 
     /**
      * Returns whether decl is static.
@@ -371,18 +341,12 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the name.
      */
-    public String getName()
-    {
-        return _name;
-    }
+    public String getName()  { return _name; }
 
     /**
      * Returns the simple name.
      */
-    public String getSimpleName()
-    {
-        return _simpleName;
-    }
+    public String getSimpleName()  { return _simpleName; }
 
     /**
      * Returns the type of the most basic class associated with this type:
@@ -437,7 +401,8 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String getRootClassName()
     {
-        if (_parent != null && _parent.isClass()) return _parent.getRootClassName();
+        if (_parent != null && _parent.isClass())
+            return _parent.getRootClassName();
         return getClassName();
     }
 
@@ -452,10 +417,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the JavaDecl for class this decl evaluates to when referenced.
      */
-    public JavaDecl getEvalType()
-    {
-        return _evalType;
-    }
+    public JavaDecl getEvalType()  { return _evalType; }
 
     /**
      * Returns the type name for class this decl evaluates to when referenced.
@@ -502,17 +464,14 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the parameter types.
      */
-    public JavaDecl[] getParamTypes()
-    {
-        return _paramTypes;
-    }
+    public JavaDecl[] getParamTypes()  { return _paramTypes; }
 
     /**
      * Returns the parameter type names.
      */
     public String[] getParamTypeNames()
     {
-        String names[] = new String[_paramTypes.length];
+        String[] names = new String[_paramTypes.length];
         for (int i = 0; i < names.length; i++) names[i] = _paramTypes[i].getName();
         return names;
     }
@@ -522,7 +481,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String[] getParamTypeSimpleNames()
     {
-        String names[] = new String[_paramTypes.length];
+        String[] names = new String[_paramTypes.length];
         for (int i = 0; i < names.length; i++) names[i] = _paramTypes[i].getSimpleName();
         return names;
     }
@@ -538,18 +497,12 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns whether Method is default type.
      */
-    public boolean isDefault()
-    {
-        return _default;
-    }
+    public boolean isDefault()  { return _default; }
 
     /**
      * Returns the TypeVars.
      */
-    public JavaDecl[] getTypeVars()
-    {
-        return _typeVars;
-    }
+    public JavaDecl[] getTypeVars()  { return _typeVars; }
 
     /**
      * Returns the TypeVar with given name.
@@ -595,20 +548,12 @@ public class JavaDecl implements Comparable<JavaDecl> {
     }
 
     /**
-     * Returns the variable declaration name.
-     */
-    public JVarDecl getVarDecl()
-    {
-        return _vdecl;
-    }
-
-    /**
      * Returns the super decl of this JavaDecl (Class, Method, Constructor).
      */
     public JavaDecl getSuper()
     {
         // If already set, just return
-        if (_sdecl != NULL_DECL) return _sdecl;
+        if (_superDecl != NULL_DECL) return _superDecl;
 
         // Get superclass and helper
         JavaDeclClass cdecl = getClassType();
@@ -616,19 +561,19 @@ public class JavaDecl implements Comparable<JavaDecl> {
 
         // Handle Method
         if (isMethod())
-            return _sdecl = scdecl != null ? scdecl.getMethodDeclDeep(getName(), getParamTypes()) : null;
+            return _superDecl = scdecl != null ? scdecl.getMethodDeclDeep(getName(), getParamTypes()) : null;
 
         // Handle Constructor
         if (isConstructor())
-            return _sdecl = scdecl != null ? scdecl.getConstructorDeclDeep(getParamTypes()) : null;
+            return _superDecl = scdecl != null ? scdecl.getConstructorDeclDeep(getParamTypes()) : null;
 
         // Handle ParamType
         if (isParamType())
-            return _sdecl = _parent;
+            return _superDecl = _parent;
 
         // Complain and return
         System.err.println("JavaDecl.getSuper: Invalid type " + this);
-        return _sdecl = null;
+        return _superDecl = null;
     }
 
     /**

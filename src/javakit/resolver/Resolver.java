@@ -14,7 +14,7 @@ public class Resolver {
     private static Resolver  _current;
 
     // A map of class/package names to JavaDecls to provide JavaDecls for project
-    public Map<String, JavaDecl> _decls = new HashMap();
+    public Map<String, JavaDecl> _decls = new HashMap<>();
 
     /**
      * Constructor.
@@ -39,23 +39,23 @@ public class Resolver {
             if (jd != null) return jd;
 
             // If class exists, forward to getClassDecl()
-            Class cls = getClassForName(id);
+            Class<?> cls = getClassForName(id);
             if (cls != null)
                 return getClassDecl(cls);
             return null;
         }
 
         // Handle Class
-        JavaDecl jd = null;
+        JavaDecl jd;
         if (anObj instanceof Class) {
-            Class cls = (Class) anObj;
+            Class<?> cls = (Class<?>) anObj;
             jd = getClassDecl(cls);
         }
 
         // Handle Field
         else if (anObj instanceof Field) {
             Field field = (Field) anObj;
-            Class cls = field.getDeclaringClass();
+            Class<?> cls = field.getDeclaringClass();
             JavaDeclClass decl = getClassDecl(cls);
             jd = decl.getField(field);
         }
@@ -63,7 +63,7 @@ public class Resolver {
         // Handle Method
         else if (anObj instanceof Method) {
             Method meth = (Method) anObj;
-            Class cls = meth.getDeclaringClass();
+            Class<?> cls = meth.getDeclaringClass();
             JavaDeclClass decl = getClassDecl(cls);
             jd = decl.getMethodDecl(meth);
         }
@@ -71,7 +71,7 @@ public class Resolver {
         // Handle Constructor
         else if (anObj instanceof Constructor) {
             Constructor constr = (Constructor) anObj;
-            Class cls = constr.getDeclaringClass();
+            Class<?> cls = constr.getDeclaringClass();
             JavaDeclClass decl = getClassDecl(cls);
             jd = decl.getConstructorDecl(constr);
         }
@@ -84,7 +84,7 @@ public class Resolver {
             jd = new JavaDecl(this, decl, vd);
         }
 
-        // Handle Java.lang.refelect.Type
+        // Handle Java.lang.reflect.Type
         else if (anObj instanceof Type) {
             Type type = (Type) anObj; //Class cls = getClass(type);
             jd = getTypeDecl(type);
@@ -95,6 +95,8 @@ public class Resolver {
 
         if (jd == null)
             System.out.println("Resolver.getJavaDecl: Decl not found for " + anObj);
+
+        // Return
         return jd;
     }
 
@@ -145,7 +147,8 @@ public class Resolver {
         // Lookup class decl by name and return if already set
         String cname = aClass.getName();
         JavaDeclClass decl = (JavaDeclClass) _decls.get(cname);
-        if (decl != null) return decl;
+        if (decl != null)
+            return decl;
 
         // Create decl and return
         JavaDecl parDecl = getParentDecl(aClass);
@@ -165,9 +168,11 @@ public class Resolver {
 
         // Get parent decl
         Package pkg = aClass.getPackage();
-        String pname = pkg != null ? pkg.getName() : null;
-        if (pname != null && pname.length() > 0)
-            return getPackageDecl(pname);
+        String pkgName = pkg != null ? pkg.getName() : null;
+        if (pkgName != null && pkgName.length() > 0)
+            return getPackageDecl(pkgName);
+
+        // Return null since no declaring class or package
         return null;
     }
 
@@ -178,7 +183,8 @@ public class Resolver {
     {
         if (aName == null || aName.length() == 0) return null;  // If bogus package name, just return
         JavaDecl pdecl = _decls.get(aName);
-        if (pdecl == null) _decls.put(aName, pdecl = createPackageDecl(aName));
+        if (pdecl == null)
+            _decls.put(aName, pdecl = createPackageDecl(aName));
         return pdecl;
     }
 
@@ -207,7 +213,8 @@ public class Resolver {
         // Get id and decl for id (just return if found)
         String id = ResolverUtils.getParamTypeId(aDecl, theTypeDecls);
         JavaDecl jd = _decls.get(id);
-        if (jd != null) return jd;
+        if (jd != null)
+            return jd;
 
         // Create new decl, add to map and return
         _decls.put(id, jd = new JavaDecl(this, aDecl, theTypeDecls, id));
