@@ -94,9 +94,10 @@ public class JavaShell extends ViewOwner {
      */
     public static void main(String[] args)
     {
-        JavaShell pg = new JavaShell();
-        pg.getWindow().setTitle("Java Playground");
-        pg.setWindowVisible(true);
+        JavaShell javaShell = new JavaShell();
+        javaShell.getWindow().setTitle("Java Playground");
+        javaShell.getWindow().setMaximized(true);
+        javaShell.setWindowVisible(true);
     }
 
 }

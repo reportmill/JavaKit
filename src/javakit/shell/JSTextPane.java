@@ -73,12 +73,12 @@ public class JSTextPane extends TextPane {
         ui.setGrowHeight(true);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("// \n");
-        sb.append("// Playground: Enter Java statements and expressions\n");
-        sb.append("//\n\n");
+        //sb.append("// \n");
+        //sb.append("// Playground: Enter Java statements and expressions\n");
+        //sb.append("//\n\n");
         //sb.append("System.out.println(\"Hello World!\");").append("\n\n");
-        sb.append("int x = 1").append("\n\n");
-        sb.append("y = x + 1").append("\n\n");
+        sb.append("1 + 1").append("\n\n");
+        sb.append("2 + 2").append("\n\n");
         //sb.append("\"Hello\" + \" Again\"").append("\n\n");
         //sb.append("getClass().getName()").append("\n\n");
 
