@@ -2,10 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.lang.reflect.*;
 import java.util.*;
-
 import snap.parse.*;
 
 /**
@@ -22,6 +20,15 @@ public class JavaParser extends Parser {
 
     // The shared parser
     static JavaParser _shared = new JavaParser();
+
+    /**
+     * Constructor.
+     */
+    public JavaParser()
+    {
+        super();
+        installHandlers();
+    }
 
     /**
      * Returns the shared parser.
@@ -59,17 +66,26 @@ public class JavaParser extends Parser {
     }
 
     /**
-     * Creates the rule.
+     * Installs handlers.
+     */
+    protected void installHandlers()
+    {
+        // Get Main rule
+        ParseRule mainRule = getRule();
+
+        // Install handlers from list
+        for (Class<? extends ParseHandler<?>> handlerClass : _handlerClasses)
+            ParseUtils.installHandlerForClass(handlerClass, mainRule);
+    }
+
+    /**
+     * Override so subclasses will find grammar file.
      */
     protected ParseRule createRule()
     {
-        if (_sharedRule != null) return _sharedRule;
         ParseRule rule = ParseUtils.loadRule(JavaParser.class, null);
-        ParseUtils.installHandlers(JavaParser.class, rule);
-        return _sharedRule = rule.getRule("JavaFile");
+        return rule;
     }
-
-    static ParseRule _sharedRule;
 
     /**
      * Returns a JavaFile for input Java.
@@ -173,6 +189,8 @@ public class JavaParser extends Parser {
                     getPart().addClassDecl(aNode.getCustomNode(JClassDecl.class));
             }
         }
+
+        protected Class<JFile> getPartClass()  { return JFile.class; }
     }
 
     /**
@@ -193,6 +211,8 @@ public class JavaParser extends Parser {
             else if (anId == "ImportDecl")
                 getPart().addImportDecl(aNode.getCustomNode(JImportDecl.class));
         }
+
+        protected Class<JFile> getPartClass()  { return JFile.class; }
     }
 
     /**
@@ -215,6 +235,8 @@ public class JavaParser extends Parser {
                 // Otherwise ensure part is available
             else getPart();
         }
+
+        protected Class<JPackageDecl> getPartClass()  { return JPackageDecl.class; }
     }
 
     /**
@@ -242,6 +264,8 @@ public class JavaParser extends Parser {
                 // Otherwise ensure part is available
             else getPart();
         }
+
+        protected Class<JImportDecl> getPartClass()  { return JImportDecl.class; }
     }
 
     /**
@@ -268,6 +292,8 @@ public class JavaParser extends Parser {
                 _mods = null;
             }
         }
+
+        protected Class<JClassDecl> getPartClass()  { return JClassDecl.class; }
     }
 
     /**
@@ -310,12 +336,15 @@ public class JavaParser extends Parser {
                 _part.setMemberDecls(body.getMemberDecls());
             }
         }
+
+        protected Class<JClassDecl> getPartClass()  { return JClassDecl.class; }
     }
 
     /**
      * ClassBody Handler.
      */
     public static class ClassBodyHandler extends JNodeParseHandler<JClassDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -329,12 +358,15 @@ public class JavaParser extends Parser {
             if (aNode.getCustomNode() instanceof JMemberDecl)
                 getPart().addMemberDecl(aNode.getCustomNode(JMemberDecl.class));
         }
+
+        protected Class<JClassDecl> getPartClass()  { return JClassDecl.class; }
     }
 
     /**
      * ClassBodyDecl Handler.
      */
     public static class ClassBodyDeclHandler extends JNodeParseHandler<JMemberDecl> {
+
         // Modifiers
         JModifiers _mods;
 
@@ -354,6 +386,8 @@ public class JavaParser extends Parser {
                 _mods = null;
             }
         }
+
+        protected Class<JMemberDecl> getPartClass()  { return JMemberDecl.class; }
     }
 
     /**
@@ -373,12 +407,15 @@ public class JavaParser extends Parser {
             else if (anId == "Block")
                 getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
         }
+
+        protected Class<JClassStaticDecl> getPartClass()  { return JClassStaticDecl.class; }
     }
 
     /**
      * EnumDecl Handler.
      */
     public static class EnumDeclHandler extends JNodeParseHandler<JClassDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -416,6 +453,7 @@ public class JavaParser extends Parser {
      * EnumConstant Handler.
      */
     public static class EnumConstantHandler extends JNodeParseHandler<JEnumConst> {
+
         /**
          * ParseHandler method.
          */
@@ -437,12 +475,15 @@ public class JavaParser extends Parser {
             else if (anId == "ClassBody")
                 getPart().setClassBody(aNode.getString());
         }
+
+        protected Class<JEnumConst> getPartClass()  { return JEnumConst.class; }
     }
 
     /**
      * TypeParam Handler.
      */
     public static class TypeParamHandler extends JNodeParseHandler<JTypeVar> {
+
         /**
          * ParseHandler method.
          */
@@ -456,12 +497,15 @@ public class JavaParser extends Parser {
             else if (anId == "ClassType")
                 getPart().addType(aNode.getCustomNode(JType.class));
         }
+
+        protected Class<JTypeVar> getPartClass()  { return JTypeVar.class; }
     }
 
     /**
      * TypeParams Handler.
      */
     public static class TypeParamsHandler extends ParseHandler<ArrayList<JTypeVar>> {
+
         /**
          * ParseHandler method.
          */
@@ -483,6 +527,7 @@ public class JavaParser extends Parser {
      * FieldDecl Handler.
      */
     public static class FieldDeclHandler extends JNodeParseHandler<JFieldDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -498,12 +543,15 @@ public class JavaParser extends Parser {
                 getPart().addVarDecl(vd);
             }
         }
+
+        protected Class<JFieldDecl> getPartClass()  { return JFieldDecl.class; }
     }
 
     /**
      * MethodDecl Handler.
      */
     public static class MethodDeclHandler extends JNodeParseHandler<JMethodDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -533,12 +581,15 @@ public class JavaParser extends Parser {
             else if (anId == "Block")
                 getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
         }
+
+        protected Class<JMethodDecl> getPartClass()  { return JMethodDecl.class; }
     }
 
     /**
      * ConstrDecl Handler.
      */
     public static class ConstrDeclHandler extends JNodeParseHandler<JConstrDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -580,12 +631,15 @@ public class JavaParser extends Parser {
             else if (aNode.getPattern() == "}")
                 getPart().getBlock().setEndToken(aNode.getEndToken());
         }
+
+        protected Class<JConstrDecl> getPartClass()  { return JConstrDecl.class; }
     }
 
     /**
      * ThrowsList Handler.
      */
     public static class ThrowsListHandler extends ParseHandler<ArrayList<JExpr>> {
+
         /**
          * ParseHandler method.
          */
@@ -596,16 +650,14 @@ public class JavaParser extends Parser {
         }
 
         @Override
-        protected Class getPartClass()
-        {
-            return ArrayList.class;
-        }
+        protected Class getPartClass()  { return ArrayList.class; }
     }
 
     /**
      * ConstrCall Handler.
      */
     public static class ConstrCallHandler extends JNodeParseHandler<JStmtConstrCall> {
+
         /**
          * ParseHandler method.
          */
@@ -627,12 +679,15 @@ public class JavaParser extends Parser {
             else if (anId == "Arguments")
                 getPart().setArgs(aNode.getCustomNode(List.class));
         }
+
+        protected Class<JStmtConstrCall> getPartClass()  { return JStmtConstrCall.class; }
     }
 
     /**
      * Statement Handler.
      */
     public static class StatementHandler extends JNodeParseHandler<JStmt> {
+
         /**
          * ParseHandler method.
          */
@@ -642,6 +697,8 @@ public class JavaParser extends Parser {
             if (aNode.getCustomNode() instanceof JStmt)
                 _part = aNode.getCustomNode(JStmt.class);
         }
+
+        protected Class<JStmt> getPartClass()  { return JStmt.class; }
     }
 
     /**
@@ -658,51 +715,30 @@ public class JavaParser extends Parser {
         {
             JModifiers part = getPart();
             switch (anId) {
-                case "public":
-                    part.addValue(Modifier.PUBLIC);
-                    break;
-                case "static":
-                    part.addValue(Modifier.STATIC);
-                    break;
-                case "protected":
-                    part.addValue(Modifier.PROTECTED);
-                    break;
-                case "private":
-                    part.addValue(Modifier.PRIVATE);
-                    break;
-                case "final":
-                    part.addValue(Modifier.FINAL);
-                    break;
-                case "abstract":
-                    part.addValue(Modifier.ABSTRACT);
-                    break;
-                case "synchronized":
-                    part.addValue(Modifier.SYNCHRONIZED);
-                    break;
-                case "native":
-                    part.addValue(Modifier.NATIVE);
-                    break;
-                case "transient":
-                    part.addValue(Modifier.TRANSIENT);
-                    break;
-                case "volatile":
-                    part.addValue(Modifier.VOLATILE);
-                    break;
-                case "strictfp":
-                    part.addValue(Modifier.STRICT);
-                    break;
-                case "default":
-                    break; // Should we really treat as modifier? No support in java.lang.reflect.Modifier.
-                default:
-                    break; // "Modifer" or Annotation
+                case "public": part.addValue(Modifier.PUBLIC); break;
+                case "static": part.addValue(Modifier.STATIC); break;
+                case "protected": part.addValue(Modifier.PROTECTED); break;
+                case "private": part.addValue(Modifier.PRIVATE); break;
+                case "final": part.addValue(Modifier.FINAL); break;
+                case "abstract": part.addValue(Modifier.ABSTRACT); break;
+                case "synchronized": part.addValue(Modifier.SYNCHRONIZED); break;
+                case "native": part.addValue(Modifier.NATIVE); break;
+                case "transient": part.addValue(Modifier.TRANSIENT); break;
+                case "volatile": part.addValue(Modifier.VOLATILE); break;
+                case "strictfp": part.addValue(Modifier.STRICT); break;
+                case "default": break; // Should we really treat as modifier? No support in java.lang.reflect.Modifier.
+                default: break; // "Modifer" or Annotation
             }
         }
+
+        protected Class<JModifiers> getPartClass()  { return JModifiers.class; }
     }
 
     /**
      * AssertStatement Handler.
      */
     public static class AssertStatementHandler extends JNodeParseHandler<JStmtAssert> {
+
         /**
          * ParseHandler method.
          */
@@ -713,12 +749,15 @@ public class JavaParser extends Parser {
                 getPart().setConditional(aNode.getCustomNode(JExpr.class));
             else getPart().setExpr(aNode.getCustomNode(JExpr.class));
         }
+
+        protected Class<JStmtAssert> getPartClass()  { return JStmtAssert.class; }
     }
 
     /**
      * LabeledStatement Handler.
      */
     public static class LabeledStatementHandler extends JNodeParseHandler<JStmtLabeled> {
+
         /**
          * ParseHandler method.
          */
@@ -732,12 +771,15 @@ public class JavaParser extends Parser {
             else if (anId == "Statement")
                 getPart().setStmt(aNode.getCustomNode(JStmt.class));
         }
+
+        protected Class<JStmtLabeled> getPartClass()  { return JStmtLabeled.class; }
     }
 
     /**
      * Block (Statement) Handler.
      */
     public static class BlockHandler extends JNodeParseHandler<JStmtBlock> {
+
         /**
          * ParseHandler method.
          */
@@ -748,12 +790,15 @@ public class JavaParser extends Parser {
             if (aNode.getCustomNode() instanceof JStmt)
                 block.addStatement(aNode.getCustomNode(JStmt.class));
         }
+
+        protected Class<JStmtBlock> getPartClass()  { return JStmtBlock.class; }
     }
 
     /**
      * BlockStatement Handler - translates VarDeclStmt and ClassDecl to JavaStatements.
      */
     public static class BlockStatementHandler extends JNodeParseHandler<JStmt> {
+
         /**
          * ParseHandler method.
          */
@@ -774,12 +819,15 @@ public class JavaParser extends Parser {
                 _part = scd;
             }
         }
+
+        protected Class<JStmt> getPartClass()  { return JStmt.class; }
     }
 
     /**
      * FormalParam Handler.
      */
     public static class FormalParamHandler extends JNodeParseHandler<JVarDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -801,12 +849,15 @@ public class JavaParser extends Parser {
             else if (anId == "[")
                 getPart().getType().setArrayCount(getPart().getArrayCount() + 1);
         }
+
+        protected Class<JVarDecl> getPartClass()  { return JVarDecl.class; }
     }
 
     /**
      * VarDecl Handler.
      */
     public static class VarDeclHandler extends JNodeParseHandler<JVarDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -828,12 +879,15 @@ public class JavaParser extends Parser {
             else if (anId == "Expression")
                 getPart().setInitializer(aNode.getCustomNode(JExpr.class));
         }
+
+        protected Class<JVarDecl> getPartClass()  { return JVarDecl.class; }
     }
 
     /**
      * VarDeclStmt Handler.
      */
     public static class VarDeclStmtHandler extends JNodeParseHandler<JStmtVarDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -853,12 +907,15 @@ public class JavaParser extends Parser {
                 getPart().addVarDecl(vd);
             }
         }
+
+        protected Class<JStmtVarDecl> getPartClass()  { return JStmtVarDecl.class; }
     }
 
     /**
      * EmptyStatement Handler.
      */
     public static class EmptyStatementHandler extends JNodeParseHandler<JStmtEmpty> {
+
         /**
          * ParseHandler method.
          */
@@ -866,12 +923,15 @@ public class JavaParser extends Parser {
         {
             getPart();
         }
+
+        protected Class<JStmtEmpty> getPartClass()  { return JStmtEmpty.class; }
     }
 
     /**
      * ExprStatement Handler.
      */
     public static class ExprStatementHandler extends JNodeParseHandler<JStmtExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -893,12 +953,15 @@ public class JavaParser extends Parser {
                 getPart().setExpr(new JExprMath(JExprMath.Op.Assign, getPart().getExpr(), expr));
             }
         }
+
+        protected Class<JStmtExpr> getPartClass()  { return JStmtExpr.class; }
     }
 
     /**
      * SwitchStatement Handler: { "switch" "(" Expression ")" "{" (SwitchLabel BlockStatement*)* "}" }
      */
     public static class SwitchStatementHandler extends JNodeParseHandler<JStmtSwitch> {
+
         /**
          * ParseHandler method.
          */
@@ -924,12 +987,15 @@ public class JavaParser extends Parser {
             // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtSwitch> getPartClass()  { return JStmtSwitch.class; }
     }
 
     /**
      * SwitchLabel Handler.
      */
     public static class SwitchLabelHandler extends JNodeParseHandler<JStmtSwitch.SwitchLabel> {
+
         /**
          * ParseHandler method.
          */
@@ -946,12 +1012,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtSwitch.SwitchLabel> getPartClass()  { return JStmtSwitch.SwitchLabel.class; }
     }
 
     /**
      * IfStatement Handler.
      */
     public static class IfStatementHandler extends JNodeParseHandler<JStmtIf> {
+
         /**
          * ParseHandler method.
          */
@@ -971,12 +1040,15 @@ public class JavaParser extends Parser {
             // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtIf> getPartClass()  { return JStmtIf.class; }
     }
 
     /**
      * WhileStatement Handler.
      */
     public static class WhileStatementHandler extends JNodeParseHandler<JStmtWhile> {
+
         /**
          * ParseHandler method.
          */
@@ -993,12 +1065,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtWhile> getPartClass()  { return JStmtWhile.class; }
     }
 
     /**
      * DoStatement Handler.
      */
     public static class DoStatementHandler extends JNodeParseHandler<JStmtDo> {
+
         /**
          * ParseHandler method.
          */
@@ -1015,12 +1090,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtDo> getPartClass()  { return JStmtDo.class; }
     }
 
     /**
      * ForStatement Handler.
      */
     public static class ForStatementHandler extends JNodeParseHandler<JStmtFor> {
+
         // The current part index (0=init, 1=conditional, 2=update)
         int partIndex = 0;
 
@@ -1081,12 +1159,15 @@ public class JavaParser extends Parser {
             partIndex = 0;
             return super.parsedAll();
         }
+
+        protected Class<JStmtFor> getPartClass()  { return JStmtFor.class; }
     }
 
     /**
      * BreakStatement Handler.
      */
     public static class BreakStatementHandler extends JNodeParseHandler<JStmtBreak> {
+
         /**
          * ParseHandler method.
          */
@@ -1099,12 +1180,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtBreak> getPartClass()  { return JStmtBreak.class; }
     }
 
     /**
      * ContinueStatement Handler.
      */
     public static class ContinueStatementHandler extends JNodeParseHandler<JStmtContinue> {
+
         /**
          * ParseHandler method.
          */
@@ -1117,12 +1201,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtContinue> getPartClass()  { return JStmtContinue.class; }
     }
 
     /**
      * ReturnStatement Handler.
      */
     public static class ReturnStatementHandler extends JNodeParseHandler<JStmtReturn> {
+
         /**
          * ParseHandler method.
          */
@@ -1135,12 +1222,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtReturn> getPartClass()  { return JStmtReturn.class; }
     }
 
     /**
      * ThrowStatement Handler.
      */
     public static class ThrowStatementHandler extends JNodeParseHandler<JStmtThrow> {
+
         /**
          * ParseHandler method.
          */
@@ -1153,12 +1243,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtThrow> getPartClass()  { return JStmtThrow.class; }
     }
 
     /**
      * SynchronizedStatement Handler.
      */
     public static class SynchronizedStatementHandler extends JNodeParseHandler<JStmtSynchronized> {
+
         /**
          * ParseHandler method.
          */
@@ -1175,12 +1268,15 @@ public class JavaParser extends Parser {
                 // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtSynchronized> getPartClass()  { return JStmtSynchronized.class; }
     }
 
     /**
      * TryStatement Handler.
      */
     public static class TryStatementHandler extends JNodeParseHandler<JStmtTry> {
+
         /**
          * ParseHandler method.
          */
@@ -1202,12 +1298,15 @@ public class JavaParser extends Parser {
             // Handle anything else
             else getPart();
         }
+
+        protected Class<JStmtTry> getPartClass()  { return JStmtTry.class; }
     }
 
     /**
      * Expression Handler.
      */
     public static class ExpressionHandler extends JNodeParseHandler<JExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1225,6 +1324,8 @@ public class JavaParser extends Parser {
             else if (anId == "Expression")
                 ((JExprMath) _part).setOperand(aNode.getCustomNode(JExpr.class), 1);
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
@@ -1239,6 +1340,8 @@ public class JavaParser extends Parser {
         {
             getPart().setName(aNode.getString());
         }
+
+        protected Class<JExprId> getPartClass()  { return JExprId.class; }
     }
 
     /**
@@ -1254,12 +1357,15 @@ public class JavaParser extends Parser {
             if (anId == "Identifier")
                 _part = JExpr.join(_part, aNode.getCustomNode(JExprId.class));
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * Type Handler.
      */
     public static class TypeHandler extends JNodeParseHandler<JType> {
+
         /**
          * ParseHandler method.
          */
@@ -1277,12 +1383,15 @@ public class JavaParser extends Parser {
             else if (anId == "ClassType")
                 _part = aNode.getCustomNode(JType.class);
         }
+
+        protected Class<JType> getPartClass()  { return JType.class; }
     }
 
     /**
      * ClassType Handler.
      */
     public static class ClassTypeHandler extends JNodeParseHandler<JType> {
+
         /**
          * ParseHandler method.
          */
@@ -1299,12 +1408,15 @@ public class JavaParser extends Parser {
                 getPart().addTypeArg(type);
             }
         }
+
+        protected Class<JType> getPartClass()  { return JType.class; }
     }
 
     /**
      * PrimitiveType Handler.
      */
     public static class PrimitiveTypeHandler extends JNodeParseHandler<JType> {
+
         /**
          * ParseHandler method.
          */
@@ -1316,12 +1428,15 @@ public class JavaParser extends Parser {
                 getPart().setName(anId);
             getPart().setPrimitive(true);
         }
+
+        protected Class<JType> getPartClass()  { return JType.class; }
     }
 
     /**
      * ResultType Handler.
      */
     public static class ResultTypeHandler extends JNodeParseHandler<JType> {
+
         /**
          * ParseHandler method.
          */
@@ -1337,12 +1452,15 @@ public class JavaParser extends Parser {
                 getPart().setPrimitive(true);
             }
         }
+
+        protected Class<JType> getPartClass()  { return JType.class; }
     }
 
     /**
      * ConditionalExpr Handler.
      */
     public static class ConditionalExprHandler extends JNodeParseHandler<JExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1361,6 +1479,8 @@ public class JavaParser extends Parser {
                 else opExpr.setOperand(part, 2);
             }
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
@@ -1479,6 +1599,7 @@ public class JavaParser extends Parser {
      * UnaryExpr Handler.
      */
     public static class UnaryExprHandler extends JNodeParseHandler<JExpr> {
+
         // The current op
         JExprMath.Op _op;
 
@@ -1513,12 +1634,15 @@ public class JavaParser extends Parser {
             _op = null;
             return super.parsedAll();
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * PreIncrementExpr Handler.
      */
     public static class PreIncrementExprHandler extends JNodeParseHandler<JExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1527,12 +1651,15 @@ public class JavaParser extends Parser {
             if (anId == "PrimaryExpr")
                 _part = new JExprMath(JExprMath.Op.PreIncrement, aNode.getCustomNode(JExpr.class));
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * PreDecrementExpr Handler.
      */
     public static class PreDecrementExprHandler extends JNodeParseHandler<JExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1541,12 +1668,15 @@ public class JavaParser extends Parser {
             if (anId == "PrimaryExpr")
                 _part = new JExprMath(JExprMath.Op.PreDecrement, aNode.getCustomNode(JExpr.class));
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * CastExpr Handler.
      */
     public static class CastExprHandler extends JNodeParseHandler<JExpr.CastExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1560,12 +1690,15 @@ public class JavaParser extends Parser {
             else if (aNode.getCustomNode() != null)
                 getPart().setExpr(aNode.getCustomNode(JExpr.class));
         }
+
+        protected Class<JExpr.CastExpr> getPartClass()  { return JExpr.CastExpr.class; }
     }
 
     /**
      * InstanceOfExpr Handler.
      */
     public static class InstanceOfExprHandler extends JNodeParseHandler<JExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1583,12 +1716,15 @@ public class JavaParser extends Parser {
                 _part = ie;
             }
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * PrimaryExpr Handler.
      */
     public static class PrimaryExprHandler extends JNodeParseHandler<JExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1604,12 +1740,15 @@ public class JavaParser extends Parser {
                 _part = JExpr.join(_part, expr);
             }
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * PrimaryPrefix Handler.
      */
     public static class PrimaryPrefixHandler extends JNodeParseHandler<JExpr> {
+
         /**
          * ParseHandler method.
          */
@@ -1667,12 +1806,15 @@ public class JavaParser extends Parser {
                 } else _part = JExpr.join(_part, namePrime);
             }
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * PrimarySuffix Handler.
      */
     public static class PrimarySuffixHandler extends JNodeParseHandler<JExpr> {
+
         boolean _methodRef;
 
         /**
@@ -1711,12 +1853,15 @@ public class JavaParser extends Parser {
             else if (anId == "Arguments")
                 _part = new JExprMethodCall(null, aNode.getCustomNode(List.class));
         }
+
+        protected Class<JExpr> getPartClass()  { return JExpr.class; }
     }
 
     /**
      * Arguments Handler
      */
     public static class ArgumentsHandler extends ParseHandler<ArrayList<JExpr>> {
+
         /**
          * ParseHandler method.
          */
@@ -1739,6 +1884,7 @@ public class JavaParser extends Parser {
      * AllocExpr Handler.
      */
     public static class AllocExprHandler extends JNodeParseHandler<JExprAlloc> {
+
         /**
          * ParseHandler method.
          */
@@ -1775,12 +1921,15 @@ public class JavaParser extends Parser {
                 getPart().setClassDecl(cd);
             }
         }
+
+        protected Class<JExprAlloc> getPartClass()  { return JExprAlloc.class; }
     }
 
     /**
      * ArrayInit Handler
      */
     public static class ArrayInitHandler extends ParseHandler<ArrayList<JExpr>> {
+
         /**
          * ParseHandler method.
          */
@@ -1793,16 +1942,14 @@ public class JavaParser extends Parser {
         }
 
         @Override
-        protected Class getPartClass()
-        {
-            return ArrayList.class;
-        }
+        protected Class getPartClass()  { return ArrayList.class; }
     }
 
     /**
      * LambdaExpr Handler.
      */
     public static class LambdaExprHandler extends JNodeParseHandler<JExprLambda> {
+
         /**
          * ParseHandler method.
          */
@@ -1827,6 +1974,8 @@ public class JavaParser extends Parser {
             else if (anId == "Block")
                 getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
         }
+
+        protected Class<JExprLambda> getPartClass()  { return JExprLambda.class; }
     }
 
     /**
@@ -1873,6 +2022,8 @@ public class JavaParser extends Parser {
             // Set value string
             getPart().setValueString(s);
         }
+
+        protected Class<JExprLiteral> getPartClass()  { return JExprLiteral.class; }
     }
 
     /**
@@ -1880,6 +2031,7 @@ public class JavaParser extends Parser {
      * TODO
      */
     public static class AnnotationDeclHandler extends JNodeParseHandler<JClassDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -1934,35 +2086,38 @@ public class JavaParser extends Parser {
          */
         protected Class<T> getPartClass()
         {
-            return getTypeParameterClass(getClass());
+            throw new RuntimeException(getClass().getName() + ": getPartClass not implemented");
         }
     }
 
     /**
-     * Returns a type parameter class.
+     * Handler classes (from ParseUtils.printHandlerClassesForParentClass()).
      */
-    private static Class getTypeParameterClass(Class aClass)
-    {
-        Type type = aClass.getGenericSuperclass();
-        if (type instanceof ParameterizedType) {
-            ParameterizedType ptype = (ParameterizedType) type;
-            Type type2 = ptype.getActualTypeArguments()[0];
-            if (type2 instanceof Class)
-                return (Class) type2;
-            if (type2 instanceof ParameterizedType) {
-                ParameterizedType ptype2 = (ParameterizedType) type2;
-                if (ptype2.getRawType() instanceof Class)
-                    return (Class) ptype2.getRawType();
-            }
-        }
-
-        // Try superclass
-        Class scls = aClass.getSuperclass();
-        if (scls != null)
-            return getTypeParameterClass(scls);
-
-        // Complain and return null
-        System.err.println("ParseHandler.getTypeParameterClass: Type Parameter Not Found for " + aClass.getName());
-        return null;
-    }
+    private Class<? extends ParseHandler<?>>[]  _handlerClasses = new Class[] {
+        AnnotationDeclHandler.class, LiteralHandler.class, LambdaExprHandler.class,
+        ArrayInitHandler.class, AllocExprHandler.class, ArgumentsHandler.class,
+        PrimarySuffixHandler.class, PrimaryPrefixHandler.class, PrimaryExprHandler.class,
+        InstanceOfExprHandler.class, CastExprHandler.class, PreDecrementExprHandler.class,
+        PreIncrementExprHandler.class, UnaryExprHandler.class, MultiplicativeExprHandler.class,
+        AdditiveExprHandler.class, ShiftExprHandler.class, RelationalExprHandler.class,
+        EqualityExprHandler.class, AndExprHandler.class, ExclusiveOrExprHandler.class,
+        InclusiveOrExprHandler.class, ConditionalAndExprHandler.class, ConditionalOrExprHandler.class,
+        ConditionalExprHandler.class, ResultTypeHandler.class, PrimitiveTypeHandler.class,
+        ClassTypeHandler.class, TypeHandler.class, NameHandler.class,
+        IdentifierHandler.class, ExpressionHandler.class, TryStatementHandler.class,
+        SynchronizedStatementHandler.class, ThrowStatementHandler.class, ReturnStatementHandler.class,
+        ContinueStatementHandler.class, BreakStatementHandler.class, ForStatementHandler.class,
+        DoStatementHandler.class, WhileStatementHandler.class, IfStatementHandler.class,
+        SwitchLabelHandler.class, SwitchStatementHandler.class, ExprStatementHandler.class,
+        EmptyStatementHandler.class, VarDeclStmtHandler.class, VarDeclHandler.class,
+        FormalParamHandler.class, BlockStatementHandler.class, BlockHandler.class,
+        LabeledStatementHandler.class, AssertStatementHandler.class, ModifiersHandler.class,
+        StatementHandler.class, ConstrCallHandler.class, ThrowsListHandler.class,
+        ConstrDeclHandler.class, MethodDeclHandler.class, FieldDeclHandler.class,
+        TypeParamsHandler.class, TypeParamHandler.class, EnumConstantHandler.class,
+        EnumDeclHandler.class, InitializerHandler.class, ClassBodyDeclHandler.class,
+        ClassBodyHandler.class, ClassDeclHandler.class, TypeDeclHandler.class,
+        ImportDeclHandler.class, PackageDeclHandler.class, JavaFileImportsHandler.class,
+        JavaFileHandler.class
+    };
 }
