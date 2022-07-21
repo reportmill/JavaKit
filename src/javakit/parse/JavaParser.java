@@ -12,13 +12,19 @@ import snap.parse.*;
 public class JavaParser extends JavaParserStmt {
 
     // The exception, if one was hit
-    Exception _exception;
+    private Exception  _exception;
 
-    // The expression parser and statement parser
-    Parser _ep, _sp, _ip;
+    // An expression parser created from subset of JavaParser
+    private Parser  _exprParser;
+
+    // A statement parser created from subset of JavaParser
+    private Parser  _stmtParser;
+
+    // An imports parser created from subset of JavaParser
+    private Parser  _importsParser;
 
     // The shared parser
-    static JavaParser _shared = new JavaParser();
+    private static JavaParser _shared = new JavaParser();
 
     /**
      * Constructor.
@@ -42,8 +48,8 @@ public class JavaParser extends JavaParserStmt {
      */
     public Parser getExprParser()
     {
-        if (_ep != null) return _ep;
-        return _ep = new Parser(_shared.getRule("Expression"));
+        if (_exprParser != null) return _exprParser;
+        return _exprParser = new Parser(_shared.getRule("Expression"));
     }
 
     /**
@@ -51,8 +57,8 @@ public class JavaParser extends JavaParserStmt {
      */
     public Parser getStmtParser()
     {
-        if (_sp != null) return _sp;
-        return _sp = new Parser(_shared.getRule("Statement"));
+        if (_stmtParser != null) return _stmtParser;
+        return _stmtParser = new Parser(_shared.getRule("Statement"));
     }
 
     /**
@@ -60,10 +66,10 @@ public class JavaParser extends JavaParserStmt {
      */
     public Parser getImportsParser()
     {
-        if (_ip != null) return _ip;
+        if (_importsParser != null) return _importsParser;
         Parser ip = new JavaParser();
         ip.setRule(ip.getRule("JavaFileImports"));
-        return _ip = ip;
+        return _importsParser = ip;
     }
 
     /**
@@ -137,7 +143,7 @@ public class JavaParser extends JavaParserStmt {
     }
 
     /**
-     * Override to declare tokenizer as JavaTokenzier.
+     * Override to declare tokenizer as JavaTokenizer.
      */
     public JavaTokenizer getTokenizer()
     {
@@ -150,29 +156,6 @@ public class JavaParser extends JavaParserStmt {
     protected Tokenizer createTokenizerImpl()
     {
         return new JavaTokenizer();
-    }
-
-    /**
-     * A tokenizer for Java input.
-     */
-    public static class JavaTokenizer extends Tokenizer {
-
-        /**
-         * Creates a JavaTokenizer.
-         */
-        public JavaTokenizer()
-        {
-            setReadSingleLineComments(true);
-            setReadMultiLineComments(true);
-        }
-
-        /**
-         * Returns a token from the current char to multi-line comment termination or input end.
-         */
-        public Token getMultiLineCommentTokenMore(Token aSpclTkn)
-        {
-            return super.getMultiLineCommentTokenMore(aSpclTkn);
-        }
     }
 
     /**
@@ -691,6 +674,29 @@ public class JavaParser extends JavaParserStmt {
         }
 
         protected Class<JStmtConstrCall> getPartClass()  { return JStmtConstrCall.class; }
+    }
+
+    /**
+     * A tokenizer for Java input.
+     */
+    public static class JavaTokenizer extends Tokenizer {
+
+        /**
+         * Creates a JavaTokenizer.
+         */
+        public JavaTokenizer()
+        {
+            setReadSingleLineComments(true);
+            setReadMultiLineComments(true);
+        }
+
+        /**
+         * Override to make public for external use.
+         */
+        public Token getMultiLineCommentTokenMore(Token aSpclTkn)
+        {
+            return super.getMultiLineCommentTokenMore(aSpclTkn);
+        }
     }
 
     /**
