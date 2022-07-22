@@ -1,4 +1,4 @@
-package javakit.parse;
+package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
 import javakit.resolver.Resolver;
@@ -8,19 +8,19 @@ import snap.util.StringUtils;
 /**
  * A subclass of JavaDecl especially for Class declarations.
  */
-public class JavaDeclClass extends JavaDecl {
+public class JavaClass extends JavaDecl {
 
     // The SuperClass type
     private JavaDecl _stype;
 
     // The super class decl
-    private JavaDeclClass  _superClassDecl;
+    private JavaClass  _superClassDecl;
 
     // Whether class decl is enum, interface, primitive
-    private boolean _enum, _interface, _primitive;
+    private boolean  _enum, _interface, _primitive;
 
     // The array of interfaces
-    private JavaDeclClass[] _interfaces;
+    private JavaClass[]  _interfaces;
 
     // The field decls
     private List<JavaDecl>  _fieldDecls;
@@ -32,10 +32,10 @@ public class JavaDeclClass extends JavaDecl {
     private List<JavaDecl>  _constrDecls = new ArrayList<>();
 
     // The inner class decls
-    private List<JavaDeclClass> _innerClassDecls = new ArrayList<>();
+    private List<JavaClass> _innerClassDecls = new ArrayList<>();
 
     // The type var decls
-    private List<JavaDecl> _typeVarDecls = new ArrayList<>();
+    private List<JavaDecl>  _typeVarDecls = new ArrayList<>();
 
     // A cached list of all decls
     private List<JavaDecl> _allDecls;
@@ -46,7 +46,7 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Creates a new JavaDeclClass for given owner, parent and Class.
      */
-    public JavaDeclClass(Resolver anOwner, JavaDecl aPar, Class<?> aClass)
+    public JavaClass(Resolver anOwner, JavaDecl aPar, Class<?> aClass)
     {
         // Do normal version
         super(anOwner, aPar, aClass);
@@ -82,7 +82,7 @@ public class JavaDeclClass extends JavaDecl {
 
             // Set Decls from Object[] for efficiency
             if (aClass != Object[].class) {
-                JavaDeclClass aryDecl = (JavaDeclClass) getJavaDecl(Object[].class);
+                JavaClass aryDecl = (JavaClass) getJavaDecl(Object[].class);
                 _fieldDecls = aryDecl.getFields();
                 _interfaces = aryDecl._interfaces;
                 _methDecls = aryDecl._methDecls;
@@ -133,7 +133,7 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Returns the primitive counter part, if available.
      */
-    public JavaDeclClass getPrimitive()
+    public JavaClass getPrimitive()
     {
         if (isPrimitive()) return this;
         switch (_name) {
@@ -153,7 +153,7 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Returns the primitive counter part, if available.
      */
-    public JavaDeclClass getPrimitiveAlt()
+    public JavaClass getPrimitiveAlt()
     {
         if (!isPrimitive()) return this;
         switch (_name) {
@@ -184,7 +184,7 @@ public class JavaDeclClass extends JavaDecl {
             return true;
         if (getName().equals("java.lang.Object"))
             return true;
-        JavaDeclClass ctype1 = aDecl.getClassType();
+        JavaClass ctype1 = aDecl.getClassType();
         if (ctype1.isPrimitive())
             ctype1 = ctype1.getPrimitiveAlt();
 
@@ -196,7 +196,7 @@ public class JavaDeclClass extends JavaDecl {
         }
 
         // Iterate up given class superclasses and check class and interfaces
-        for (JavaDeclClass ct1 = ctype1; ct1 != null; ct1 = ct1.getSuper()) {
+        for (JavaClass ct1 = ctype1; ct1 != null; ct1 = ct1.getSuper()) {
 
             // If classes match, return true
             if (ct1 == this)
@@ -204,7 +204,7 @@ public class JavaDeclClass extends JavaDecl {
 
             // If any interface of this decl match, return true
             if (isInterface()) {
-                for (JavaDeclClass infc : ct1.getInterfaces())
+                for (JavaClass infc : ct1.getInterfaces())
                     if (isAssignable(infc))
                         return true;
             }
@@ -231,7 +231,7 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Override to return as Class type.
      */
-    public JavaDeclClass getSuper()
+    public JavaClass getSuper()
     {
         return _superClassDecl;
     }
@@ -287,7 +287,7 @@ public class JavaDeclClass extends JavaDecl {
 
         // Get interfaces
         Class[] interfaces = evalClass.getInterfaces();
-        _interfaces = new JavaDeclClass[interfaces.length];
+        _interfaces = new JavaClass[interfaces.length];
         for (int i = 0, iMax = interfaces.length; i < iMax; i++) {
             Class intrface = interfaces[i];
             _interfaces[i] = getClassDecl(intrface);
@@ -418,7 +418,7 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Returns the interfaces this class implments.
      */
-    public JavaDeclClass[] getInterfaces()
+    public JavaClass[] getInterfaces()
     {
         getFields();
         return _interfaces;
@@ -454,7 +454,7 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Returns the inner classes.
      */
-    public List<JavaDeclClass> getClasses()
+    public List<JavaClass> getClasses()
     {
         getFields();
         return _innerClassDecls;
@@ -596,7 +596,7 @@ public class JavaDeclClass extends JavaDecl {
         List<JavaDecl> pfields = new ArrayList();
 
         // Iterate over classes
-        for (JavaDeclClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
 
             // Get Class fields
             List<JavaDecl> fdecls = cls.getFields();
@@ -620,7 +620,7 @@ public class JavaDeclClass extends JavaDecl {
         List<JavaDecl> pmeths = new ArrayList();
 
         // Iterate over classes
-        for (JavaDeclClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
 
             // Get Class methods
             List<JavaDecl> mdecls = cls.getMethods();
@@ -630,7 +630,7 @@ public class JavaDeclClass extends JavaDecl {
 
             // If interface, iterate over class interfaces, too (should probably do this anyway to catch default methods).
             if (cls.isInterface()) {
-                for (JavaDeclClass c2 : cls.getInterfaces()) {
+                for (JavaClass c2 : cls.getInterfaces()) {
                     List<JavaDecl> pmeths2 = c2.getPrefixMethods(aPrefix);
                     pmeths.addAll(pmeths2);
                 }
@@ -684,7 +684,7 @@ public class JavaDeclClass extends JavaDecl {
     public JavaDecl getCompatibleMethodDeep(String aName, JavaDecl theTypes[])
     {
         // Search this class and superclasses for compatible method
-        for (JavaDeclClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
             JavaDecl decl = cls.getCompatibleMethod(aName, theTypes);
             if (decl != null)
                 return decl;
@@ -703,8 +703,8 @@ public class JavaDeclClass extends JavaDecl {
             return decl;
 
         // Search this class and superclasses for compatible interface
-        for (JavaDeclClass cls = this; cls != null; cls = cls.getSuper()) {
-            for (JavaDeclClass infc : cls.getInterfaces()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+            for (JavaClass infc : cls.getInterfaces()) {
                 decl = infc.getCompatibleMethodAll(aName, theTypes);
                 if (decl != null)
                     return decl;
@@ -713,7 +713,7 @@ public class JavaDeclClass extends JavaDecl {
 
         // If this class is Interface, check Object
         if (isInterface()) {
-            JavaDeclClass objDecl = getClassDecl(Object.class);
+            JavaClass objDecl = getClassDecl(Object.class);
             return objDecl.getCompatibleMethodDeep(aName, theTypes);
         }
 
@@ -746,7 +746,7 @@ public class JavaDeclClass extends JavaDecl {
     {
         // Search this class and superclasses for compatible method
         List<JavaDecl> matches = Collections.EMPTY_LIST;
-        for (JavaDeclClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
             List<JavaDecl> decls = cls.getCompatibleMethods(aName, theTypes);
             if (decls.size() > 0) {
                 if (matches == Collections.EMPTY_LIST) matches = decls;
@@ -770,8 +770,8 @@ public class JavaDeclClass extends JavaDecl {
         }
 
         // Search this class and superclasses for compatible interface
-        for (JavaDeclClass cls = this; cls != null; cls = cls.getSuper()) {
-            for (JavaDeclClass infc : cls.getInterfaces()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+            for (JavaClass infc : cls.getInterfaces()) {
                 decls = infc.getCompatibleMethodsAll(aName, theTypes);
                 if (decls.size() > 0) {
                     if (matches == Collections.EMPTY_LIST) matches = decls;
@@ -782,7 +782,7 @@ public class JavaDeclClass extends JavaDecl {
 
         // If this class is Interface, check Object
         if (isInterface()) {
-            JavaDeclClass objDecl = getClassDecl(Object.class);
+            JavaClass objDecl = getClassDecl(Object.class);
             decls = objDecl.getCompatibleMethodsDeep(aName, theTypes);
             if (decls.size() > 0) {
                 if (matches == Collections.EMPTY_LIST) matches = decls;
@@ -953,10 +953,10 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Returns a Class decl for inner class simple name.
      */
-    public JavaDeclClass getClassDecl(String aName)
+    public JavaClass getClassDecl(String aName)
     {
-        List<JavaDeclClass> icdecls = getClasses();
-        for (JavaDeclClass jd : icdecls)
+        List<JavaClass> icdecls = getClasses();
+        for (JavaClass jd : icdecls)
             if (jd.getSimpleName().equals(aName))
                 return jd;
         return null;
@@ -965,9 +965,9 @@ public class JavaDeclClass extends JavaDecl {
     /**
      * Returns a Class decl for inner class name.
      */
-    public JavaDeclClass getClassDeclDeep(String aName)
+    public JavaClass getClassDeclDeep(String aName)
     {
-        JavaDeclClass decl = getClassDecl(aName);
+        JavaClass decl = getClassDecl(aName);
         if (decl == null && _superClassDecl != null)
             decl = _superClassDecl.getClassDeclDeep(aName);
         return decl;
@@ -1009,7 +1009,7 @@ public class JavaDeclClass extends JavaDecl {
             case Field: _fieldDecls.add(aDecl); break;
             case Method: _methDecls.add(aDecl); break;
             case Constructor: _constrDecls.add(aDecl); break;
-            case Class: _innerClassDecls.add((JavaDeclClass) aDecl); break;
+            case Class: _innerClassDecls.add((JavaClass) aDecl); break;
             case TypeVar: _typeVarDecls.add(aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.addDecl: Invalid type " + type);
         }

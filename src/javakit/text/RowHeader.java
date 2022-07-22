@@ -7,7 +7,7 @@ import java.util.*;
 
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
-import javakit.parse.JavaDecl;
+import javakit.reflect.JavaDecl;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;

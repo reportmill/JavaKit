@@ -3,6 +3,8 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+
 import java.util.*;
 
 /**

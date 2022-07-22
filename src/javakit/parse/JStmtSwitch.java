@@ -3,6 +3,9 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
+
 import java.util.*;
 
 /**
@@ -122,7 +125,7 @@ public class JStmtSwitch extends JStmt {
                 JExpr swExpr = swStmt.getExpr();
                 JavaDecl sdecl = swExpr != null ? swExpr.getEvalType() : null;
                 if (sdecl != null && sdecl.isEnum()) {
-                    JavaDeclClass edecl = sdecl.getClassType();
+                    JavaClass edecl = sdecl.getClassType();
                     JavaDecl enumConst = edecl.getField(name);
                     if (enumConst != null)
                         return enumConst;

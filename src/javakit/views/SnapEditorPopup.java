@@ -1,6 +1,7 @@
 package javakit.views;
 
 import javakit.parse.*;
+import javakit.reflect.JavaDecl;
 import javakit.resolver.JavaCompleter;
 import snap.gfx.Font;
 import snap.parse.Parser;

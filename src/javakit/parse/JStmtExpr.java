@@ -3,6 +3,8 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+
 /**
  * A Java statement for statements that are just expressions.
  */

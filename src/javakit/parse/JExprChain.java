@@ -2,6 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.ClassUtils;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -141,7 +143,7 @@ public class JExprChain extends JExpr {
             if (pdecl.isParamType())
                 pdecl = pdecl.getParent();
             if (pdecl.isClass()) {
-                JavaDeclClass cdecl = (JavaDeclClass) pdecl;
+                JavaClass cdecl = (JavaClass) pdecl;
                 JavaDecl fd = cdecl.getFieldDeep(name);
                 if (fd != null)
                     return fd;

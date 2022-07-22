@@ -1,9 +1,11 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.parse;
+package javakit.reflect;
 import java.lang.reflect.*;
 
+import javakit.parse.JType;
+import javakit.parse.JVarDecl;
 import javakit.resolver.Resolver;
 import javakit.resolver.ResolverUtils;
 import snap.util.*;
@@ -275,12 +277,12 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the primitive counter part, if available.
      */
-    public JavaDeclClass getPrimitive()  { return null; }
+    public JavaClass getPrimitive()  { return null; }
 
     /**
      * Returns the primitive counter part, if available.
      */
-    public JavaDeclClass getPrimitiveAlt()  { return null; }
+    public JavaClass getPrimitiveAlt()  { return null; }
 
     /**
      * Returns whether is a field reference.
@@ -355,9 +357,9 @@ public class JavaDecl implements Comparable<JavaDecl> {
      * TypeVar: EvalType.ClassType
      * VarDecl, Package: null?
      */
-    public JavaDeclClass getClassType()
+    public JavaClass getClassType()
     {
-        if (isClass()) return (JavaDeclClass) this;
+        if (isClass()) return (JavaClass) this;
         if (isTypeVar()) return _evalType.getClassType();
         return _parent != null ? _parent.getClassType() : null;
     }
@@ -556,8 +558,8 @@ public class JavaDecl implements Comparable<JavaDecl> {
         if (_superDecl != NULL_DECL) return _superDecl;
 
         // Get superclass and helper
-        JavaDeclClass cdecl = getClassType();
-        JavaDeclClass scdecl = cdecl != null ? cdecl.getSuper() : null;
+        JavaClass cdecl = getClassType();
+        JavaClass scdecl = cdecl != null ? cdecl.getSuper() : null;
 
         // Handle Method
         if (isMethod())
@@ -661,7 +663,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
         // Handle ParamType:
         if (isParamType()) {
             String name = aDecl.getName();
-            JavaDeclClass cls = getClassType();
+            JavaClass cls = getClassType();
             int ind = cls.getTypeVarIndex(name);
             if (ind >= 0 && ind < _paramTypes.length)
                 return _paramTypes[ind];
@@ -772,7 +774,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns a JavaDecl for given object.
      */
-    public JavaDeclClass getClassDecl(Object anObj)
+    public JavaClass getClassDecl(Object anObj)
     {
         return _resolver.getJavaDeclClass(anObj);
     }

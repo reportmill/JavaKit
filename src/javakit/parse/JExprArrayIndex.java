@@ -1,5 +1,7 @@
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+
 /**
  * A JExpr subclass for ArrayIndex expressions.
  */

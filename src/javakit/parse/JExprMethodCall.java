@@ -1,5 +1,8 @@
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
+
 import java.util.List;
 
 /**
@@ -123,7 +126,7 @@ public class JExprMethodCall extends JExpr {
         if (scopeNode == null) return null;
         JavaDecl sndecl = scopeNode.getEvalType();
         if (sndecl == null) return null;
-        JavaDeclClass snct = sndecl.getClassType();
+        JavaClass snct = sndecl.getClassType();
         JavaDecl decl = snct.getCompatibleMethodAll(name, argTypes);
         if (decl != null)
             return decl;

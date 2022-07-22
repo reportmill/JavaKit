@@ -8,6 +8,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javakit.parse.*;
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.*;
 import snap.web.WebFile;
 
@@ -162,7 +164,7 @@ public class JavaCompleter {
 
                 // Get
                 JavaDecl parDecl = parExpr.getEvalType();
-                JavaDeclClass parDeclClass = parDecl.getClassType();
+                JavaClass parDeclClass = parDecl.getClassType();
 
                 // Get fields for prefix and add
                 List<JavaDecl> fieldsForPrefix = parDeclClass.getPrefixFields(prefix);

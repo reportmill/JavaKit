@@ -1,5 +1,8 @@
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -55,7 +58,7 @@ public class JEnumConst extends JMemberDecl {
         // Get enum name, enclosing JClassDecl and it's JavaDeclClass (can be null if enum hasn't been compiled yet)
         String name = getName();
         JClassDecl cdecl = (JClassDecl) getParent();
-        JavaDeclClass jdecl = cdecl.getDecl();
+        JavaClass jdecl = cdecl.getDecl();
         if (jdecl == null)
             return null;
 

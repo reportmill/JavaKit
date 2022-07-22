@@ -3,6 +3,9 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
+
 import java.util.*;
 
 /**
@@ -129,7 +132,7 @@ public class JImportDecl extends JNode {
      */
     public JavaDecl getImportMember(String aName, JavaDecl theParams[])
     {
-        JavaDeclClass cls = (JavaDeclClass) getEvalType();
+        JavaClass cls = (JavaClass) getEvalType();
         if (cls == null) return null;
         if (theParams == null)
             return cls.getField(aName);

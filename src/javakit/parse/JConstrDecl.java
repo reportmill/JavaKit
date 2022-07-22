@@ -3,6 +3,8 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.ArrayUtils;
 
 /**
@@ -22,7 +24,7 @@ public class JConstrDecl extends JMethodDecl {
         // Get parent JClassDecl and JavaDecl
         JClassDecl cd = getEnclosingClassDecl();
         if (cd == null) return null;
-        JavaDeclClass cdecl = cd.getDecl();
+        JavaClass cdecl = cd.getDecl();
         if (cdecl == null) return null;
 
         // If inner class and not static, add implied class type to arg types array

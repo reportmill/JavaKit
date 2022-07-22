@@ -3,6 +3,8 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+
 /**
  * The JNode base class for Java expressions.
  * See: JLiteral, JIdentifier, JMethodCall, JOpExpr, ArrayIndex, Allocation, Cast

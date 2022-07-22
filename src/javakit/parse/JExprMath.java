@@ -1,5 +1,7 @@
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+
 /**
  * An class to represent expressions that include an operator (math, logical, etc.).
  */

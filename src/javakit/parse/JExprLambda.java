@@ -2,6 +2,8 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.ListUtils;
 import snap.util.SnapUtils;
 
@@ -144,7 +146,7 @@ public class JExprLambda extends JExpr {
             if (ind < 0) return null;
             for (JavaDecl mdecl : meths) {
                 JavaDecl pdecl = mdecl.getParamType(ind);
-                JavaDeclClass pcdecl = pdecl.getClassType();
+                JavaClass pcdecl = pdecl.getClassType();
                 _meth = pcdecl.getLambdaMethod(argc);
                 if (_meth != null)
                     return pdecl;
@@ -158,7 +160,7 @@ public class JExprLambda extends JExpr {
 
         // If type is interface, get lambda type
         if (idecl != null) {
-            JavaDeclClass cdecl = idecl.getClassType();
+            JavaClass cdecl = idecl.getClassType();
             _meth = cdecl.getLambdaMethod(getParamCount());
             if (_meth != null)
                 return idecl;
@@ -206,14 +208,14 @@ public class JExprLambda extends JExpr {
         // Get scope node class type and search for compatible method for name and arg types
         JavaDecl sndecl = mc.getScopeNodeEvalType();
         if (sndecl == null) return null;
-        JavaDeclClass snct = sndecl.getClassType();
+        JavaClass snct = sndecl.getClassType();
         List<JavaDecl> decls = snct.getCompatibleMethodsAll(name, argTypes);
         if (decls.size() > 0)
             return decls;
 
         // If scope node class type is member class and not static, go up parent classes
         while (snct.isMemberClass() && !snct.isStatic()) {
-            snct = (JavaDeclClass) snct.getParent();
+            snct = (JavaClass) snct.getParent();
             decls = snct.getCompatibleMethodsAll(name, argTypes);
             if (decls.size() > 0)
                 return decls;

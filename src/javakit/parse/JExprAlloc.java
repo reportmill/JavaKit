@@ -5,6 +5,8 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.ArrayUtils;
 
 /**
@@ -138,7 +140,7 @@ public class JExprAlloc extends JExpr {
         // Get class decl and constructor call arg types
         JavaDecl tdecl = type.getDecl();
         if (tdecl == null) return null;
-        JavaDeclClass cdecl = tdecl.getClassType();
+        JavaClass cdecl = tdecl.getClassType();
         JavaDecl argTypes[] = getArgEvalTypes();
 
         // If inner class and not static, add implied class type to arg types array

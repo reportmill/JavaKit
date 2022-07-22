@@ -5,6 +5,8 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.ListUtils;
 
 /**
@@ -197,7 +199,7 @@ public class JVarDecl extends JNode {
         if (par instanceof JFieldDecl) {
             JClassDecl cd = getEnclosingClassDecl();
             if (cd == null) return null;
-            JavaDeclClass cdecl = cd.getDecl();
+            JavaClass cdecl = cd.getDecl();
             if (cdecl == null) return null;
             JavaDecl fdecl = cdecl.getField(name);
             return fdecl;

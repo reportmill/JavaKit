@@ -3,6 +3,8 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import javakit.parse.*;
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.ClassUtils;
 
 /**
@@ -56,7 +58,7 @@ public class Resolver {
         else if (anObj instanceof Field) {
             Field field = (Field) anObj;
             Class<?> cls = field.getDeclaringClass();
-            JavaDeclClass decl = getClassDecl(cls);
+            JavaClass decl = getClassDecl(cls);
             jd = decl.getField(field);
         }
 
@@ -64,7 +66,7 @@ public class Resolver {
         else if (anObj instanceof Method) {
             Method meth = (Method) anObj;
             Class<?> cls = meth.getDeclaringClass();
-            JavaDeclClass decl = getClassDecl(cls);
+            JavaClass decl = getClassDecl(cls);
             jd = decl.getMethodDecl(meth);
         }
 
@@ -72,7 +74,7 @@ public class Resolver {
         else if (anObj instanceof Constructor) {
             Constructor constr = (Constructor) anObj;
             Class<?> cls = constr.getDeclaringClass();
-            JavaDeclClass decl = getClassDecl(cls);
+            JavaClass decl = getClassDecl(cls);
             jd = decl.getConstructorDecl(constr);
         }
 
@@ -103,10 +105,10 @@ public class Resolver {
     /**
      * Returns a JavaDeclClass for object.
      */
-    public JavaDeclClass getJavaDeclClass(Object anObj)
+    public JavaClass getJavaDeclClass(Object anObj)
     {
         JavaDecl cd = getJavaDecl(anObj);
-        return cd instanceof JavaDeclClass ? (JavaDeclClass) cd : null;
+        return cd instanceof JavaClass ? (JavaClass) cd : null;
     }
 
     /**
@@ -142,17 +144,17 @@ public class Resolver {
     /**
      * Returns a class decl.
      */
-    private JavaDeclClass getClassDecl(Class aClass)
+    private JavaClass getClassDecl(Class aClass)
     {
         // Lookup class decl by name and return if already set
         String cname = aClass.getName();
-        JavaDeclClass decl = (JavaDeclClass) _decls.get(cname);
+        JavaClass decl = (JavaClass) _decls.get(cname);
         if (decl != null)
             return decl;
 
         // Create decl and return
         JavaDecl parDecl = getParentDecl(aClass);
-        decl = new JavaDeclClass(this, parDecl, aClass);
+        decl = new JavaClass(this, parDecl, aClass);
         return decl;
     }
 

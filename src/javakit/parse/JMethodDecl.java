@@ -5,6 +5,8 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.*;
 
 /**
@@ -162,7 +164,7 @@ public class JMethodDecl extends JMemberDecl {
         // Get parent JClassDecl and JavaDecl
         JClassDecl cd = getEnclosingClassDecl();
         if (cd == null) return null;
-        JavaDeclClass cdecl = cd.getDecl();
+        JavaClass cdecl = cd.getDecl();
         if (cdecl == null) return null;
 
         // Return method for name and param types

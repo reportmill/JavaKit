@@ -1,5 +1,6 @@
 package javakit.resolver;
 import javakit.parse.*;
+import javakit.reflect.JavaDecl;
 
 import java.lang.reflect.*;
 

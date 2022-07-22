@@ -8,7 +8,7 @@ import java.util.List;
 import javakit.parse.JFile;
 import javakit.parse.JImportDecl;
 import javakit.parse.JNode;
-import javakit.parse.JavaDecl;
+import javakit.reflect.JavaDecl;
 import snap.gfx.*;
 import snap.props.PropChange;
 import snap.props.PropChangeListener;

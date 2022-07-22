@@ -1,5 +1,7 @@
 package javakit.parse;
 
+import javakit.reflect.JavaDecl;
+
 /**
  * An expression subclass for a Type (JType), as in MyClass.class or MyClass.super.myMethod().
  */

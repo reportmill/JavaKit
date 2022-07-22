@@ -4,6 +4,9 @@
 package javakit.parse;
 import java.lang.reflect.Field;
 import java.util.*;
+
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import snap.util.*;
 
 /**
@@ -351,9 +354,9 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the class declaration.
      */
-    public JavaDeclClass getDecl()
+    public JavaClass getDecl()
     {
-        return (JavaDeclClass) super.getDecl();
+        return (JavaClass) super.getDecl();
     }
 
     /**

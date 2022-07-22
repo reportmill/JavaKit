@@ -3,6 +3,9 @@
  */
 package javakit.parse;
 import java.util.*;
+
+import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaClass;
 import javakit.resolver.*;
 import snap.web.WebFile;
 
@@ -254,7 +257,7 @@ public class JFile extends JNode {
             String names[] = aName.split("\\.");
             String cname = getImportClassName(names[0]);
             if (cname == null) return null;
-            JavaDeclClass cdecl = (JavaDeclClass) getJavaDecl(cname);
+            JavaClass cdecl = (JavaClass) getJavaDecl(cname);
             for (int i = 1; cdecl != null && i < names.length; i++)
                 cdecl = cdecl.getClassDecl(names[i]);
             return cdecl != null ? cdecl.getName() : null;

@@ -5,6 +5,7 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaDecl;
 import snap.parse.Token;
 import snap.util.*;
 
