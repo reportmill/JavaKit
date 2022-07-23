@@ -4,6 +4,7 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 import snap.util.ListUtils;
 
 /**
@@ -56,15 +57,17 @@ public class JStmtConstrCall extends JStmt {
     /**
      * Returns the arg eval types.
      */
-    public JavaDecl[] getArgEvalTypes()
+    public JavaType[] getArgEvalTypes()
     {
         List<JExpr> args = getArgs();
-        JavaDecl etypes[] = new JavaDecl[args.size()];
+        JavaType[] argTypes = new JavaType[args.size()];
+
         for (int i = 0, iMax = args.size(); i < iMax; i++) {
             JExpr arg = args.get(i);
-            etypes[i] = arg != null ? arg.getEvalType() : null;
+            argTypes[i] = arg != null ? arg.getEvalType() : null;
         }
-        return etypes;
+
+        return argTypes;
     }
 
     /**
@@ -76,7 +79,7 @@ public class JStmtConstrCall extends JStmt {
         JClassDecl cd = getEnclosingClassDecl();
         JavaClass cdecl = cd.getDecl();
         if (cdecl == null) return null;
-        JavaDecl argTypes[] = getArgEvalTypes();
+        JavaType[] argTypes = getArgEvalTypes();
 
         // If Super, switch to super class
         String name = getIds().get(0).getName();

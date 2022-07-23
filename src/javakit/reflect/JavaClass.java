@@ -8,10 +8,10 @@ import snap.util.StringUtils;
 /**
  * A subclass of JavaDecl especially for Class declarations.
  */
-public class JavaClass extends JavaDecl {
+public class JavaClass extends JavaType {
 
     // The SuperClass type
-    private JavaDecl _stype;
+    private JavaDecl  _stype;
 
     // The super class decl
     private JavaClass  _superClassDecl;
@@ -23,25 +23,25 @@ public class JavaClass extends JavaDecl {
     private JavaClass[]  _interfaces;
 
     // The field decls
-    private List<JavaDecl>  _fieldDecls;
+    private List<JavaField>  _fieldDecls;
 
     // The method decls
-    private List<JavaDecl>  _methDecls = new ArrayList<>();
+    private List<JavaMethod>  _methDecls = new ArrayList<>();
 
     // The constructor decls
-    private List<JavaDecl>  _constrDecls = new ArrayList<>();
+    private List<JavaContructor>  _constrDecls = new ArrayList<>();
 
     // The inner class decls
-    private List<JavaClass> _innerClassDecls = new ArrayList<>();
+    private List<JavaClass>  _innerClassDecls = new ArrayList<>();
 
     // The type var decls
-    private List<JavaDecl>  _typeVarDecls = new ArrayList<>();
+    private List<JavaTypeVariable>  _typeVarDecls = new ArrayList<>();
 
     // A cached list of all decls
     private List<JavaDecl> _allDecls;
 
     // The Array item type (if Array)
-    private JavaDecl  _arrayItemType;
+    private JavaType  _arrayItemType;
 
     /**
      * Creates a new JavaDeclClass for given owner, parent and Class.
@@ -77,7 +77,7 @@ public class JavaClass extends JavaDecl {
         if (aClass.isArray()) {
 
             // Set ArrayItemType and add alternate name to Owner.Decls map
-            _arrayItemType = getJavaDecl(aClass.getComponentType());
+            _arrayItemType = getJavaType(aClass.getComponentType());
             _resolver._decls.put(aClass.getName(), this);
 
             // Set Decls from Object[] for efficiency
@@ -93,6 +93,11 @@ public class JavaClass extends JavaDecl {
             }
         }
     }
+
+    /**
+     * Init object.
+     */
+    protected void initObject(Object anObj)  { }
 
     /**
      * Returns whether is a class reference.
@@ -117,7 +122,7 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns the Array item type (if Array).
      */
-    public JavaDecl getArrayItemType()
+    public JavaType getArrayItemType()
     {
         return _arrayItemType;
     }
@@ -239,15 +244,15 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
      */
-    public JavaDecl getResolvedType(JavaDecl aDecl)
+    public JavaType getResolvedType(JavaDecl aDecl)
     {
         // Handle ParamType and anything not a TypeVar
         if (aDecl.isParamType()) {
             System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
-            return aDecl;
+            return (JavaParameterizedType) aDecl;
         }
         if (!aDecl.isTypeVar())
-            return aDecl;
+            return (JavaType) aDecl;
 
         // If has type var, return bounds type
         String name = aDecl.getName();
@@ -314,7 +319,7 @@ public class JavaClass extends JavaDecl {
             String name = typeVariable.getName();
             JavaDecl decl = getTypeVar(name);
             if (decl == null) {
-                decl = new JavaDecl(_resolver, this, typeVariable);
+                decl = new JavaTypeVariable(_resolver, this, typeVariable);
                 addDecl(decl);
                 addedDecls++;
             } else removedDecls.remove(decl);
@@ -427,7 +432,7 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns the fields.
      */
-    public List<JavaDecl> getFields()
+    public List<JavaField> getFields()
     {
         if (_fieldDecls == null) updateDecls();
         return _fieldDecls;
@@ -436,7 +441,7 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns the methods.
      */
-    public List<JavaDecl> getMethods()
+    public List<JavaMethod> getMethods()
     {
         getFields();
         return _methDecls;
@@ -445,7 +450,7 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns the Constructors.
      */
-    public List<JavaDecl> getConstructors()
+    public List<JavaContructor> getConstructors()
     {
         getFields();
         return _constrDecls;
@@ -463,7 +468,7 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns the inner classes.
      */
-    public List<JavaDecl> getTypeVars2()
+    public List<JavaTypeVariable> getTypeVars2()
     {
         getFields();
         return _typeVarDecls;
@@ -478,7 +483,7 @@ public class JavaClass extends JavaDecl {
         if (_allDecls != null) return _allDecls;
 
         // Create new AllDecls cached list with decls for fields, methods, constructors, inner classes and this class
-        List<JavaDecl> fdecls = getFields();
+        List<JavaField> fdecls = getFields();
         List<JavaDecl> decls = new ArrayList(fdecls.size() + _methDecls.size() + _constrDecls.size() + _innerClassDecls.size() + 1);
         decls.add(this);
         decls.addAll(_fieldDecls);
@@ -516,8 +521,8 @@ public class JavaClass extends JavaDecl {
      */
     public JavaDecl getField(String aName)
     {
-        List<JavaDecl> fdecls = getFields();
-        for (JavaDecl jd : fdecls)
+        List<JavaField> fdecls = getFields();
+        for (JavaField jd : fdecls)
             if (jd.getName().equals(aName))
                 return jd;
         return null;
@@ -557,7 +562,7 @@ public class JavaClass extends JavaDecl {
      */
     public JavaDecl getMethodDecl(String anId)
     {
-        List<JavaDecl> mdecls = getMethods();
+        List<JavaMethod> mdecls = getMethods();
         for (JavaDecl jd : mdecls)
             if (jd.getId().equals(anId))
                 return jd;
@@ -567,125 +572,134 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns a method decl for method name and parameter types.
      */
-    public JavaDecl getMethodDecl(String aName, JavaDecl theTypes[])
+    public JavaMethod getMethodDecl(String aName, JavaType[] theTypes)
     {
-        List<JavaDecl> mdecls = getMethods();
-        for (JavaDecl jd : mdecls)
-            if (jd.getName().equals(aName) && isClassTypesEqual(jd.getParamTypes(), theTypes))
-                return jd;
+        List<JavaMethod> methods = getMethods();
+        for (JavaMethod method : methods)
+            if (method.getName().equals(aName) && isClassTypesEqual(method.getParamTypes(), theTypes))
+                return method;
         return null;
     }
 
     /**
      * Returns a method decl for method name and parameter types.
      */
-    public JavaDecl getMethodDeclDeep(String aName, JavaDecl theTypes[])
+    public JavaMethod getMethodDeclDeep(String aName, JavaType[] theTypes)
     {
-        JavaDecl decl = getMethodDecl(aName, theTypes);
-        if (decl == null && _superClassDecl != null)
-            decl = _superClassDecl.getMethodDeclDeep(aName, theTypes);
-        return decl;
+        JavaMethod method = getMethodDecl(aName, theTypes);
+        if (method == null && _superClassDecl != null)
+            method = _superClassDecl.getMethodDeclDeep(aName, theTypes);
+        return method;
     }
 
     /**
      * Returns a compatibile method for given name and param types.
      */
-    public List<JavaDecl> getPrefixFields(String aPrefix)
+    public List<JavaField> getPrefixFields(String aPrefix)
     {
         // Create return list of prefix fields
-        List<JavaDecl> pfields = new ArrayList();
+        List<JavaField> fieldsWithPrefix = new ArrayList<>();
 
         // Iterate over classes
         for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
 
             // Get Class fields
-            List<JavaDecl> fdecls = cls.getFields();
-            for (JavaDecl fd : fdecls)
-                if (StringUtils.startsWithIC(fd.getName(), aPrefix))
-                    pfields.add(fd);
+            List<JavaField> fields = cls.getFields();
+            for (JavaField field : fields)
+                if (StringUtils.startsWithIC(field.getName(), aPrefix))
+                    fieldsWithPrefix.add(field);
 
             // Should iterate over class interfaces, too
         }
 
         // Return list of prefix fields
-        return pfields;
+        return fieldsWithPrefix;
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns methods that match given prefix.
      */
-    public List<JavaDecl> getPrefixMethods(String aPrefix)
+    public List<JavaMethod> getPrefixMethods(String aPrefix)
     {
         // Create return list of prefix methods
-        List<JavaDecl> pmeths = new ArrayList();
+        List<JavaMethod> methodsWithPrefix = new ArrayList();
 
         // Iterate over classes
         for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
 
             // Get Class methods
-            List<JavaDecl> mdecls = cls.getMethods();
-            for (JavaDecl md : mdecls)
-                if (StringUtils.startsWithIC(md.getName(), aPrefix))
-                    pmeths.add(md);
+            List<JavaMethod> methods = cls.getMethods();
+            for (JavaMethod method : methods)
+                if (StringUtils.startsWithIC(method.getName(), aPrefix))
+                    methodsWithPrefix.add(method);
 
             // If interface, iterate over class interfaces, too (should probably do this anyway to catch default methods).
             if (cls.isInterface()) {
                 for (JavaClass c2 : cls.getInterfaces()) {
-                    List<JavaDecl> pmeths2 = c2.getPrefixMethods(aPrefix);
-                    pmeths.addAll(pmeths2);
+                    List<JavaMethod> pmeths2 = c2.getPrefixMethods(aPrefix);
+                    methodsWithPrefix.addAll(pmeths2);
                 }
             }
         }
 
         // Return list of prefix methods
-        return pmeths;
+        return methodsWithPrefix;
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible constructor for given name and param types.
      */
-    public JavaDecl getCompatibleConstructor(JavaDecl theTypes[])
+    public JavaContructor getCompatibleConstructor(JavaType[] theTypes)
     {
-        List<JavaDecl> cdecls = getConstructors();
-        JavaDecl constr = null;
+        List<JavaContructor> constructors = getConstructors();
+        JavaContructor constructor = null;
         int rating = 0;
-        for (JavaDecl cd : cdecls) {
-            int rtg = getMethodRating(cd, theTypes);
+
+        // Iterate over constructors to find highest rating
+        for (JavaContructor constr : constructors) {
+            int rtg = getMethodRating(constr, theTypes);
             if (rtg > rating) {
-                constr = cd;
+                constructor = constr;
                 rating = rtg;
             }
         }
-        return constr;
+
+        // Return
+        return constructor;
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible method for given name and param types.
      */
-    public JavaDecl getCompatibleMethod(String aName, JavaDecl theTypes[])
+    public JavaMethod getCompatibleMethod(String aName, JavaType[] theTypes)
     {
-        List<JavaDecl> mdecls = getMethods();
-        JavaDecl meth = null;
+        List<JavaMethod> methods = getMethods();
+        JavaMethod method = null;
         int rating = 0;
-        for (JavaDecl md : mdecls)
-            if (md.getName().equals(aName)) {
-                int rtg = getMethodRating(md, theTypes);
+
+        // Iterate over methods to find highest rating
+        for (JavaMethod meth : methods) {
+            if (meth.getName().equals(aName)) {
+                int rtg = getMethodRating(meth, theTypes);
                 if (rtg > rating) {
-                    meth = md;
+                    method = meth;
                     rating = rtg;
                 }
             }
-        return meth;
+        }
+
+        // Return
+        return method;
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible method for given name and param types.
      */
-    public JavaDecl getCompatibleMethodDeep(String aName, JavaDecl theTypes[])
+    public JavaMethod getCompatibleMethodDeep(String aName, JavaType[] theTypes)
     {
         // Search this class and superclasses for compatible method
         for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
-            JavaDecl decl = cls.getCompatibleMethod(aName, theTypes);
+            JavaMethod decl = cls.getCompatibleMethod(aName, theTypes);
             if (decl != null)
                 return decl;
         }
@@ -693,12 +707,12 @@ public class JavaClass extends JavaDecl {
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible method for given name and param types.
      */
-    public JavaDecl getCompatibleMethodAll(String aName, JavaDecl theTypes[])
+    public JavaMethod getCompatibleMethodAll(String aName, JavaType[] theTypes)
     {
         // Search this class and superclasses for compatible method
-        JavaDecl decl = getCompatibleMethodDeep(aName, theTypes);
+        JavaMethod decl = getCompatibleMethodDeep(aName, theTypes);
         if (decl != null)
             return decl;
 
@@ -722,60 +736,71 @@ public class JavaClass extends JavaDecl {
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible methods for given name and param types.
      */
-    public List<JavaDecl> getCompatibleMethods(String aName, JavaDecl theTypes[])
+    public List<JavaMethod> getCompatibleMethods(String aName, JavaType[] theTypes)
     {
-        List<JavaDecl> matches = Collections.EMPTY_LIST;
-        List<JavaDecl> mdecls = getMethods();
-        for (JavaDecl md : mdecls)
-            if (md.getName().equals(aName)) {
-                int rtg = getMethodRating(md, theTypes);
+        List<JavaMethod> matches = Collections.EMPTY_LIST;
+        List<JavaMethod> methods = getMethods();
+
+        // Iterate over methods to find highest rating
+        for (JavaMethod method : methods) {
+            if (method.getName().equals(aName)) {
+                int rtg = getMethodRating(method, theTypes);
                 if (rtg > 0) {
-                    if (matches == Collections.EMPTY_LIST) matches = new ArrayList();
-                    matches.add(md);
+                    if (matches == Collections.EMPTY_LIST)
+                        matches = new ArrayList<>();
+                    matches.add(method);
                 }
             }
+        }
+
+        // Return
         return matches;
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible method for given name and param types.
      */
-    public List<JavaDecl> getCompatibleMethodsDeep(String aName, JavaDecl theTypes[])
+    public List<JavaMethod> getCompatibleMethodsDeep(String aName, JavaType[] theTypes)
     {
         // Search this class and superclasses for compatible method
-        List<JavaDecl> matches = Collections.EMPTY_LIST;
+        List<JavaMethod> matches = Collections.EMPTY_LIST;
+
+        // Iterate over this class and parents
         for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
-            List<JavaDecl> decls = cls.getCompatibleMethods(aName, theTypes);
+            List<JavaMethod> decls = cls.getCompatibleMethods(aName, theTypes);
             if (decls.size() > 0) {
-                if (matches == Collections.EMPTY_LIST) matches = decls;
+                if (matches == Collections.EMPTY_LIST)
+                    matches = decls;
                 else matches.addAll(decls);
             }
         }
+
+        // Return
         return matches;
     }
 
     /**
      * Returns a compatibile method for given name and param types.
      */
-    public List<JavaDecl> getCompatibleMethodsAll(String aName, JavaDecl theTypes[])
+    public List<JavaMethod> getCompatibleMethodsAll(String aName, JavaType[] theTypes)
     {
         // Search this class and superclasses for compatible method
-        List<JavaDecl> matches = Collections.EMPTY_LIST;
-        List<JavaDecl> decls = getCompatibleMethodsDeep(aName, theTypes);
-        if (decls.size() > 0) {
-            if (matches == Collections.EMPTY_LIST) matches = decls;
-            else matches.addAll(decls);
+        List<JavaMethod> matches = Collections.EMPTY_LIST;
+        List<JavaMethod> methods = getCompatibleMethodsDeep(aName, theTypes);
+        if (methods.size() > 0) {
+            if (matches == Collections.EMPTY_LIST) matches = methods;
+            else matches.addAll(methods);
         }
 
         // Search this class and superclasses for compatible interface
         for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
             for (JavaClass infc : cls.getInterfaces()) {
-                decls = infc.getCompatibleMethodsAll(aName, theTypes);
-                if (decls.size() > 0) {
-                    if (matches == Collections.EMPTY_LIST) matches = decls;
-                    else matches.addAll(decls);
+                methods = infc.getCompatibleMethodsAll(aName, theTypes);
+                if (methods.size() > 0) {
+                    if (matches == Collections.EMPTY_LIST) matches = methods;
+                    else matches.addAll(methods);
                 }
             }
         }
@@ -783,18 +808,21 @@ public class JavaClass extends JavaDecl {
         // If this class is Interface, check Object
         if (isInterface()) {
             JavaClass objDecl = getClassDecl(Object.class);
-            decls = objDecl.getCompatibleMethodsDeep(aName, theTypes);
-            if (decls.size() > 0) {
-                if (matches == Collections.EMPTY_LIST) matches = decls;
-                else matches.addAll(decls);
+            methods = objDecl.getCompatibleMethodsDeep(aName, theTypes);
+            if (methods.size() > 0) {
+                if (matches == Collections.EMPTY_LIST) matches = methods;
+                else matches.addAll(methods);
             }
         }
 
         // Remove supers and duplicates
         for (int i = 0; i < matches.size(); i++) {
             JavaDecl decl = matches.get(i);
-            for (JavaDecl sd = decl.getSuper(); sd != null; sd = sd.getSuper()) matches.remove(sd);
-            for (int j = i + 1; j < matches.size(); j++) if (matches.get(j) == decl) matches.remove(j);
+            for (JavaDecl sd = decl.getSuper(); sd != null; sd = sd.getSuper())
+                matches.remove(sd);
+            for (int j = i + 1; j < matches.size(); j++)
+                if (matches.get(j) == decl)
+                    matches.remove(j);
         }
 
         // Return null since compatible method not found
@@ -822,13 +850,14 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns a rating of a method for given possible arg classes.
      */
-    private int getMethodRating(JavaDecl aMeth, JavaDecl theTypes[])
+    private int getMethodRating(JavaExecutable aMeth, JavaType[] theTypes)
     {
         // Handle VarArg methods special
-        if (aMeth.isVarArgs()) return getMethodRatingVarArgs(aMeth, theTypes);
+        if (aMeth.isVarArgs())
+            return getMethodRatingVarArgs(aMeth, theTypes);
 
         // Get method param types and length (just return if given arg count doesn't match)
-        JavaDecl paramTypes[] = aMeth.getParamTypes();
+        JavaType[] paramTypes = aMeth.getParamTypes();
         int plen = paramTypes.length, rating = 0;
         if (theTypes.length != plen)
             return 0;
@@ -838,8 +867,10 @@ public class JavaClass extends JavaDecl {
         // Iterate over classes and add score based on matching classes
         // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
         for (int i = 0, iMax = plen; i < iMax; i++) {
-            JavaDecl cls1 = paramTypes[i].getClassType(), cls2 = theTypes[i];
-            if (cls2 != null) cls2 = cls2.getClassType();
+            JavaType cls1 = paramTypes[i].getClassType();
+            JavaType cls2 = theTypes[i];
+            if (cls2 != null)
+                cls2 = cls2.getClassType();
             if (!cls1.isAssignable(cls2))
                 return 0;
             rating += cls1 == cls2 ? 1000 : cls2 != null ? 100 : 10;
@@ -852,10 +883,10 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns a rating of a method for given possible arg classes.
      */
-    private int getMethodRatingVarArgs(JavaDecl aMeth, JavaDecl theTypes[])
+    private int getMethodRatingVarArgs(JavaExecutable aMeth, JavaType[] theTypes)
     {
         // Get method param types and length (just return if given arg count is insufficient)
-        JavaDecl paramTypes[] = aMeth.getParamTypes();
+        JavaType[] paramTypes = aMeth.getParamTypes();
         int plen = paramTypes.length, vind = plen - 1, rating = 0;
         if (theTypes.length < vind)
             return 0;
@@ -873,11 +904,11 @@ public class JavaClass extends JavaDecl {
         }
 
         // Get VarArg type
-        JavaDecl varArgArrayType = paramTypes[vind];
-        JavaDecl varArgType = varArgArrayType.getArrayItemType();
+        JavaType varArgArrayType = paramTypes[vind];
+        JavaType varArgType = varArgArrayType.getArrayItemType();
 
         // If only one arg and it is of array type, add 1000
-        JavaDecl argType = theTypes.length == plen ? theTypes[vind] : null;
+        JavaType argType = theTypes.length == plen ? theTypes[vind] : null;
         if (argType != null && argType.isArray() && varArgArrayType.isAssignable(argType))
             rating += 1000;
 
@@ -895,12 +926,12 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns the lambda method.
      */
-    public JavaDecl getLambdaMethod(int argCount)
+    public JavaMethod getLambdaMethod(int argCount)
     {
-        List<JavaDecl> mdecls = getMethods();
-        for (JavaDecl jd : mdecls)
-            if (jd.getParamCount() == argCount)
-                return jd;
+        List<JavaMethod> methods = getMethods();
+        for (JavaMethod method : methods)
+            if (method.getParamCount() == argCount)
+                return method;
         return null;
     }
 
@@ -920,29 +951,31 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns the Constructor decl for id string.
      */
-    public JavaDecl getConstructorDecl(String anId)
+    public JavaContructor getConstructorDecl(String anId)
     {
-        List<JavaDecl> cdecls = getConstructors();
-        for (JavaDecl jd : cdecls) if (jd.getId().equals(anId)) return jd;
+        List<JavaContructor> constructors = getConstructors();
+        for (JavaContructor constructor : constructors)
+            if (constructor.getId().equals(anId))
+                return constructor;
         return null;
     }
 
     /**
      * Returns a constructor decl for parameter types.
      */
-    public JavaDecl getConstructorDecl(JavaDecl theTypes[])
+    public JavaDecl getConstructorDecl(JavaType[] theTypes)
     {
-        List<JavaDecl> cdecls = getConstructors();
-        for (JavaDecl jd : cdecls)
-            if (isClassTypesEqual(jd.getParamTypes(), theTypes))
-                return jd;
+        List<JavaContructor> constructors = getConstructors();
+        for (JavaContructor contructor : constructors)
+            if (isClassTypesEqual(contructor.getParamTypes(), theTypes))
+                return contructor;
         return null;
     }
 
     /**
      * Returns a constructor decl for parameter types.
      */
-    public JavaDecl getConstructorDeclDeep(JavaDecl theTypes[])
+    public JavaDecl getConstructorDeclDeep(JavaType[] theTypes)
     {
         JavaDecl decl = getConstructorDecl(theTypes);
         if (decl == null && _superClassDecl != null)
@@ -976,10 +1009,10 @@ public class JavaClass extends JavaDecl {
     /**
      * Returns a TypeVar decl for inner class name.
      */
-    public JavaDecl getTypeVar(String aName)
+    public JavaTypeVariable getTypeVar(String aName)
     {
-        List<JavaDecl> tvdecls = getTypeVars2();
-        for (JavaDecl jd : tvdecls)
+        List<JavaTypeVariable> tvdecls = getTypeVars2();
+        for (JavaTypeVariable jd : tvdecls)
             if (jd.getName().equals(aName))
                 return jd;
         return null;
@@ -990,9 +1023,9 @@ public class JavaClass extends JavaDecl {
      */
     public int getTypeVarIndex(String aName)
     {
-        List<JavaDecl> tvdecls = getTypeVars2();
+        List<JavaTypeVariable> tvdecls = getTypeVars2();
         for (int i = 0, iMax = tvdecls.size(); i < iMax; i++) {
-            JavaDecl jd = tvdecls.get(i);
+            JavaTypeVariable jd = tvdecls.get(i);
             if (jd.getName().equals(aName))
                 return i;
         }
@@ -1006,11 +1039,11 @@ public class JavaClass extends JavaDecl {
     {
         DeclType type = aDecl.getType();
         switch (type) {
-            case Field: _fieldDecls.add(aDecl); break;
-            case Method: _methDecls.add(aDecl); break;
-            case Constructor: _constrDecls.add(aDecl); break;
+            case Field: _fieldDecls.add((JavaField) aDecl); break;
+            case Method: _methDecls.add((JavaMethod) aDecl); break;
+            case Constructor: _constrDecls.add((JavaContructor) aDecl); break;
             case Class: _innerClassDecls.add((JavaClass) aDecl); break;
-            case TypeVar: _typeVarDecls.add(aDecl); break;
+            case TypeVar: _typeVarDecls.add((JavaTypeVariable) aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.addDecl: Invalid type " + type);
         }
     }

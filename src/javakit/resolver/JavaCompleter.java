@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import javakit.parse.*;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaField;
+import javakit.reflect.JavaMethod;
 import snap.util.*;
 import snap.web.WebFile;
 
@@ -167,14 +169,14 @@ public class JavaCompleter {
                 JavaClass parDeclClass = parDecl.getClassType();
 
                 // Get fields for prefix and add
-                List<JavaDecl> fieldsForPrefix = parDeclClass.getPrefixFields(prefix);
-                for (JavaDecl fieldDecl : fieldsForPrefix)
+                List<JavaField> fieldsForPrefix = parDeclClass.getPrefixFields(prefix);
+                for (JavaField fieldDecl : fieldsForPrefix)
                     addDecl(fieldDecl);
 
                 // Get methods for prefix and add
-                List<JavaDecl> methodsForPrefix = parDeclClass.getPrefixMethods(prefix);
-                for (JavaDecl methodDecl : methodsForPrefix)
-                    addDecl(methodDecl);
+                List<JavaMethod> methodsForPrefix = parDeclClass.getPrefixMethods(prefix);
+                for (JavaMethod method : methodsForPrefix)
+                    addDecl(method);
             }
         }
 
@@ -182,7 +184,7 @@ public class JavaCompleter {
         else {
 
             // Get variables with prefix of name and add to suggestions
-            List<JVarDecl> varDecls = anId.getVarDecls(prefix, new ArrayList());
+            List<JVarDecl> varDecls = anId.getVarDecls(prefix, new ArrayList<>());
             for (JVarDecl varDecl : varDecls)
                 addDecl(varDecl.getDecl());
 

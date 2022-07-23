@@ -4,6 +4,7 @@
 package javakit.parse;
 
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaType;
 
 import java.util.*;
 
@@ -58,9 +59,9 @@ public class JTypeVar extends JNode {
     /**
      * Returns the bounds type.
      */
-    public JavaDecl getBoundsType()
+    public JavaType getBoundsType()
     {
-        return _types.size() > 0 ? _types.get(0).getDecl() : getJavaDecl(Object.class);
+        return _types.size() > 0 ? _types.get(0).getDecl() : getJavaClass(Object.class);
     }
 
     /**

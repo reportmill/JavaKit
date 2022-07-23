@@ -7,6 +7,7 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 import snap.util.*;
 
 /**
@@ -475,16 +476,16 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Override to resolve Decl.EvalType from ParentExpr.EvalType.
      */
-    protected JavaDecl getEvalTypeImpl(JNode aNode)
+    protected JavaType getEvalTypeImpl(JNode aNode)
     {
         // Handle JType: See if class decl can resolve
         if (aNode instanceof JType) {
 
             // If eval type is TypeVar, see if it corresponds to this class
-            JavaDecl etype = aNode.getDecl().getEvalType();
+            JavaType etype = aNode.getDecl().getEvalType();
             if (etype.isTypeVar()) {
-                JavaDecl cdecl = getDecl();
-                JavaDecl etype2 = cdecl.getResolvedType(etype);
+                JavaType cdecl = getDecl();
+                JavaType etype2 = cdecl.getResolvedType(etype);
                 if (etype2 != etype.getEvalType())
                     return etype2;
             }

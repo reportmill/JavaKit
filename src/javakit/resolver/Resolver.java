@@ -5,6 +5,8 @@ import java.util.*;
 import javakit.parse.*;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaParameterizedType;
+import javakit.reflect.JavaType;
 import snap.util.ClassUtils;
 
 /**
@@ -114,31 +116,36 @@ public class Resolver {
     /**
      * Returns a JavaDecl for type.
      */
-    public JavaDecl getTypeDecl(Type aType)
+    public JavaType getTypeDecl(Type aType)
     {
         String id = ResolverUtils.getId(aType);
-        JavaDecl decl = _decls.get(id);
-        if (decl != null) return decl;
+        JavaType decl = (JavaType) _decls.get(id);
+        if (decl != null)
+            return decl;
 
         // Handle ParameterizedType
         if (aType instanceof ParameterizedType) {
-            decl = new JavaDecl(this, null, aType);
+            decl = new JavaParameterizedType(this, null, (ParameterizedType) aType);
             return decl;
         }
 
         // Handle TypeVariable
         if (aType instanceof TypeVariable) {
-            TypeVariable tv = (TypeVariable) aType;
-            String name = tv.getName();
-            GenericDeclaration gdecl = tv.getGenericDeclaration();
+            TypeVariable typeVar = (TypeVariable) aType;
+            String name = typeVar.getName();
+            GenericDeclaration gdecl = typeVar.getGenericDeclaration();
             JavaDecl pdecl = getJavaDecl(gdecl);
             decl = pdecl.getTypeVar(name);
             return decl;
         }
 
         // Handle Class
-        Class cls = ResolverUtils.getClassForType(aType);
-        return getClassDecl(cls);
+        if (aType instanceof Class) {
+            Class cls = ResolverUtils.getClassForType(aType);
+            return getClassDecl(cls);
+        }
+
+        throw new RuntimeException("Resolver.getTypeDecl: Unsupported type " + aType);
     }
 
     /**
@@ -210,16 +217,19 @@ public class Resolver {
     /**
      * Returns the param type with given name.
      */
-    public JavaDecl getParamTypeDecl(JavaDecl aDecl, JavaDecl theTypeDecls[])
+    public JavaType getParamTypeDecl(JavaDecl aDecl, JavaType[] theTypeDecls)
     {
         // Get id and decl for id (just return if found)
         String id = ResolverUtils.getParamTypeId(aDecl, theTypeDecls);
-        JavaDecl jd = _decls.get(id);
+        JavaType jd = (JavaType) _decls.get(id);
         if (jd != null)
             return jd;
 
-        // Create new decl, add to map and return
-        _decls.put(id, jd = new JavaDecl(this, aDecl, theTypeDecls, id));
+        // Create new decl, add to map
+        jd = new JavaParameterizedType(this, aDecl, theTypeDecls);
+        _decls.put(id, jd);
+
+        // Return
         return jd;
     }
 
@@ -231,7 +241,7 @@ public class Resolver {
     /**
      * Returns a Class for given name.
      */
-    public Class getClassForName(String aName)
+    public Class<?> getClassForName(String aName)
     {
         // Check for ParamType (should never happen)
         if (aName.indexOf('<') > 0) {
@@ -242,7 +252,7 @@ public class Resolver {
 
         // Get Class loader, find class and return
         ClassLoader cldr = getClassLoader();
-        Class cls = ClassUtils.getClassForName(aName, cldr);
+        Class<?> cls = ClassUtils.getClassForName(aName, cldr);
         return cls;
     }
 

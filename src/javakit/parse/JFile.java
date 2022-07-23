@@ -6,6 +6,7 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 import javakit.resolver.*;
 import snap.web.WebFile;
 
@@ -195,6 +196,17 @@ public class JFile extends JNode {
     }
 
     /**
+     * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
+     */
+    @Override
+    public JavaClass getJavaClass(Class<?> aClass)
+    {
+        Resolver resolver = getResolver();
+        if (resolver == null) return null;
+        return (JavaClass) resolver.getTypeDecl(aClass);
+    }
+
+    /**
      * Returns an import that can be used to resolve the given name.
      */
     public JImportDecl getImport(String aName)
@@ -288,7 +300,7 @@ public class JFile extends JNode {
     /**
      * Returns a Class name for given name referenced in file.
      */
-    public JavaDecl getImportClassMember(String aName, JavaDecl theParams[])
+    public JavaDecl getImportClassMember(String aName, JavaType[] theParams)
     {
         JImportDecl imp = getStaticImport(aName, theParams);
         if (imp != null)
@@ -299,7 +311,7 @@ public class JFile extends JNode {
     /**
      * Returns an import that can be used to resolve the given name.
      */
-    private JImportDecl getStaticImport(String aName, JavaDecl theParams[])
+    private JImportDecl getStaticImport(String aName, JavaType[] theParams)
     {
         // Iterate over imports to see if any can resolve name
         for (int i = _importDecls.size() - 1; i >= 0; i--) {

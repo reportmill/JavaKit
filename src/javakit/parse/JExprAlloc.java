@@ -5,8 +5,10 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaContructor;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 import snap.util.ArrayUtils;
 
 /**
@@ -66,15 +68,18 @@ public class JExprAlloc extends JExpr {
     /**
      * Returns the arg eval types.
      */
-    public JavaDecl[] getArgEvalTypes()
+    public JavaType[] getArgEvalTypes()
     {
         List<JExpr> args = getArgs();
-        JavaDecl etypes[] = new JavaDecl[args.size()];
+        JavaType[] argTypes = new JavaType[args.size()];
+
         for (int i = 0, iMax = args.size(); i < iMax; i++) {
             JExpr arg = args.get(i);
-            etypes[i] = arg != null ? arg.getEvalType() : null;
+            argTypes[i] = arg != null ? arg.getEvalType() : null;
         }
-        return etypes;
+
+        // Return
+        return argTypes;
     }
 
     /**
@@ -138,19 +143,21 @@ public class JExprAlloc extends JExpr {
             return type.getDecl();
 
         // Get class decl and constructor call arg types
-        JavaDecl tdecl = type.getDecl();
-        if (tdecl == null) return null;
-        JavaClass cdecl = tdecl.getClassType();
-        JavaDecl argTypes[] = getArgEvalTypes();
+        JavaDecl javaType = type.getDecl();
+        if (javaType == null) return null;
+        JavaClass javaClass = javaType.getClassType();
+        JavaType[] argTypes = getArgEvalTypes();
 
         // If inner class and not static, add implied class type to arg types array
-        if (cdecl.isMemberClass() && !cdecl.isStatic())
-            argTypes = ArrayUtils.add(argTypes, cdecl.getParent(), 0);
+        if (javaClass.isMemberClass() && !javaClass.isStatic()) {
+            JavaType parentClass = (JavaType) javaClass.getParent();
+            argTypes = ArrayUtils.add(argTypes, parentClass, 0);
+        }
 
         // Get scope node class type and search for compatible method for name and arg types
-        JavaDecl decl = cdecl.getCompatibleConstructor(argTypes);
-        if (decl != null)
-            return decl;
+        JavaContructor constructor = javaClass.getCompatibleConstructor(argTypes);
+        if (constructor != null)
+            return constructor;
 
         // Return null since not found
         return null;

@@ -1,6 +1,8 @@
 package javakit.parse;
 
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaField;
+import javakit.reflect.JavaType;
 
 /**
  * A JExpr subclass for identifiers.
@@ -54,7 +56,7 @@ public class JExprId extends JExpr {
     public boolean isEnumId()
     {
         JavaDecl jd = getDecl();
-        JavaDecl evalType = jd != null ? jd.getEvalType() : null;
+        JavaType evalType = jd != null ? jd.getEvalType() : null;
         return evalType != null && evalType.isEnum();
     }
 
@@ -189,26 +191,22 @@ public class JExprId extends JExpr {
         JavaDecl decl = getDecl();
         if (decl == null) return "UnknownId";
         switch (decl.getType()) {
-            case Class:
-                return "ClassId";
-            case Constructor:
-                return "ConstrId";
+            case Class: return "ClassId";
+            case Constructor: return "ConstrId";
+
             case Field: {
-                JavaDecl pdecl = decl.getParent();
-                if (pdecl != null && pdecl.isEnum()) return "EnumId";
+                JavaField field = (JavaField) decl;
+                JavaType fieldClass = (JavaType) field.getParent();
+                if (fieldClass != null && fieldClass.isEnum())
+                    return "EnumId";
                 return "FieldId";
             }
-            case Method:
-                return "MethodId";
-            case Package:
-                return "PackageId";
-            case TypeVar:
-                return "TypeVarId";
-            case VarDecl:
-                return "VariableId";
-            default:
-                return "UnknownId";
+
+            case Method: return "MethodId";
+            case Package: return "PackageId";
+            case TypeVar: return "TypeVarId";
+            case VarDecl: return "VariableId";
+            default: return "UnknownId";
         }
     }
-
 }

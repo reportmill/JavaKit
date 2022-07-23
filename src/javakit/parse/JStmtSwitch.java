@@ -5,6 +5,7 @@ package javakit.parse;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 
 import java.util.*;
 
@@ -55,14 +56,15 @@ public class JStmtSwitch extends JStmt {
      * A class to represent individual labels in a switch statement.
      */
     public static class SwitchLabel extends JNode {
+
         // Whether label is default
-        boolean _default;
+        private boolean _default;
 
         // The expression
-        JExpr _expr;
+        private JExpr  _expr;
 
         // The block statements
-        List<JStmt> _stmts = new ArrayList();
+        private List<JStmt>  _stmts = new ArrayList<>();
 
         /**
          * Returns whether label is default.
@@ -123,7 +125,7 @@ public class JStmtSwitch extends JStmt {
                 String name = _expr.getName();
                 JStmtSwitch swStmt = getParent(JStmtSwitch.class);
                 JExpr swExpr = swStmt.getExpr();
-                JavaDecl sdecl = swExpr != null ? swExpr.getEvalType() : null;
+                JavaType sdecl = swExpr != null ? swExpr.getEvalType() : null;
                 if (sdecl != null && sdecl.isEnum()) {
                     JavaClass edecl = sdecl.getClassType();
                     JavaDecl enumConst = edecl.getField(name);

@@ -7,6 +7,7 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 import snap.util.*;
 
 /**
@@ -158,17 +159,17 @@ public class JMethodDecl extends JMemberDecl {
         // Get method name and param types
         String name = getName();
         if (name == null) return null;
-        JavaDecl ptypes[] = getParamClassTypesSafe();
+        JavaType[] ptypes = getParamClassTypesSafe();
         if (ptypes == null) return null; // Can happen if params are bogus
 
         // Get parent JClassDecl and JavaDecl
-        JClassDecl cd = getEnclosingClassDecl();
-        if (cd == null) return null;
-        JavaClass cdecl = cd.getDecl();
-        if (cdecl == null) return null;
+        JClassDecl enclosingClassDecl = getEnclosingClassDecl();
+        if (enclosingClassDecl == null) return null;
+        JavaClass javaClass = enclosingClassDecl.getDecl();
+        if (javaClass == null) return null;
 
         // Return method for name and param types
-        return cdecl.getMethodDecl(name, ptypes);
+        return javaClass.getMethodDecl(name, ptypes);
     }
 
     /**
@@ -199,10 +200,10 @@ public class JMethodDecl extends JMemberDecl {
     /**
      * Returns array of parameter class types suitable to resolve method.
      */
-    protected JavaDecl[] getParamClassTypesSafe()
+    protected JavaType[] getParamClassTypesSafe()
     {
         // Declare array for return types
-        JavaDecl ptypes[] = new JavaDecl[_params.size()];
+        JavaType[] ptypes = new JavaType[_params.size()];
 
         // Iterate over params to get types
         for (int i = 0, iMax = _params.size(); i < iMax; i++) {
@@ -210,20 +211,22 @@ public class JMethodDecl extends JMemberDecl {
 
             // Get current type and TypeVar (if type is one)
             JType type = vd.getType();
-            JTypeVar tvar = getTypeVar(type.getName());
+            JTypeVar typeVar = getTypeVar(type.getName());
 
             // If type is TypeVar, set to TypeVar.BoundsType
-            if (tvar != null)
-                ptypes[i] = tvar.getBoundsType();
+            if (typeVar != null)
+                ptypes[i] = typeVar.getBoundsType();
             else ptypes[i] = type.getBaseDecl();
 
             // If param type is null, just return (can happen if params are bogus (being edited))
             if (ptypes[i] == null) return null;
 
             // If array, get array type instead
-            if (type.getArrayCount() > 0) for (int j = 0, jMax = type.getArrayCount(); j < jMax; j++)
-                ptypes[i] = ptypes[i].getArrayTypeDecl();
+            if (type.getArrayCount() > 0)
+                for (int j = 0, jMax = type.getArrayCount(); j < jMax; j++)
+                    ptypes[i] = ptypes[i].getArrayTypeDecl();
         }
+
         return ptypes;
     }
 

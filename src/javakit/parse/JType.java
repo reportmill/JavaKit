@@ -5,7 +5,9 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaType;
 import snap.util.ClassUtils;
 
 /**
@@ -14,16 +16,16 @@ import snap.util.ClassUtils;
 public class JType extends JNode {
 
     // Whether type is primitive type
-    boolean _primitive;
+    protected boolean  _primitive;
 
     // Whether is reference (array or class/interface type)
-    int _arrayCount;
+    protected int  _arrayCount;
 
     // The generic Types
-    List<JType> _typeArgs;
+    private List<JType>  _typeArgs;
 
     // The base type
-    JavaDecl _baseDecl;
+    private JavaClass  _baseDecl;
 
     /**
      * Returns whether type is primitive type.
@@ -102,10 +104,10 @@ public class JType extends JNode {
     /**
      * Returns the type arg decl at given index.
      */
-    public JavaDecl getTypeArgDecl(int anIndex)
+    public JavaType getTypeArgDecl(int anIndex)
     {
         JType targ = getTypeArg(anIndex);
-        JavaDecl jd = targ.getDecl();
+        JavaType jd = targ.getDecl();
         return jd;
     }
 
@@ -133,44 +135,54 @@ public class JType extends JNode {
     }
 
     /**
-     * Override to resolve type class name and create declaration from that.
+     * Override to return as JavaType.
      */
-    protected JavaDecl getBaseDecl()
+    @Override
+    public JavaType getDecl()
     {
-        // If already set, just return
-        if (_baseDecl != null) return _baseDecl;
-
-        // Handle primitive type
-        JavaDecl decl = null;
-        Class pclass = ClassUtils.getPrimitiveClass(_name);
-        if (pclass != null)
-            decl = getJavaDecl(pclass);
-
-        // If not primitive, try to resolve
-        if (decl == null)
-            decl = getDeclImpl(this);
-
-        // Return declaration
-        return _baseDecl = decl;
+        JavaType javaType = (JavaType) super.getDecl();
+        return javaType;
     }
 
     /**
      * Override to resolve type class name and create declaration from that.
      */
-    protected JavaDecl getDeclImpl()
+    protected JavaClass getBaseDecl()
+    {
+        // If already set, just return
+        if (_baseDecl != null) return _baseDecl;
+
+        // Handle primitive type
+        Class primitiveClass = ClassUtils.getPrimitiveClass(_name);
+        if (primitiveClass != null)
+            return _baseDecl = getJavaClass(primitiveClass);
+
+
+        // If not primitive, try to resolve class
+        JavaClass javaClass = (JavaClass) getDeclImpl(this);
+
+        // Set/return
+        return _baseDecl = javaClass;
+    }
+
+    /**
+     * Override to resolve type class name and create declaration from that.
+     */
+    protected JavaType getDeclImpl()
     {
         // Get base decl
-        JavaDecl decl = getBaseDecl();
+        JavaType decl = getBaseDecl();
         if (decl == null) {
             System.err.println("JType.getDeclImpl: Can't find base decl: " + getName());
-            return getJavaDecl(Object.class);
+            return getJavaClass(Object.class);
         }
 
         // If type args, build array and get decl for ParamType
         if (_typeArgs != null) {
             int len = _typeArgs.size();
-            JavaDecl decls[] = new JavaDecl[len];
-            for (int i = 0; i < len; i++) decls[i] = getTypeArgDecl(i);
+            JavaType[] decls = new JavaType[len];
+            for (int i = 0; i < len; i++)
+                decls[i] = getTypeArgDecl(i);
             decl = decl.getParamTypeDecl(decls);
         }
 
@@ -179,7 +191,8 @@ public class JType extends JNode {
             decl = decl.getArrayTypeDecl();
 
         // Return declaration
-        if (decl == null) System.err.println("JType.getDeclImpl: Shouldn't happen: decl not found for " + getName());
+        if (decl == null)
+            System.err.println("JType.getDeclImpl: Shouldn't happen: decl not found for " + getName());
         return decl;
     }
 

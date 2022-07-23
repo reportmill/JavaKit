@@ -4,6 +4,7 @@
 package javakit.parse;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 import snap.util.ClassUtils;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -121,7 +122,7 @@ public class JExprChain extends JExpr {
             // Handle Class.class: Return ParamType for Class<T>
             if (name.equals("class")) {
                 JavaDecl cdecl = getJavaDecl(Class.class);
-                return cdecl.getParamTypeDecl(parDecl);
+                return cdecl.getParamTypeDecl((JavaType) parDecl);
             }
 
             // Handle inner class
@@ -137,11 +138,14 @@ public class JExprChain extends JExpr {
 
         // Handle any parent with class: Look for field
         else if (parExpr.getEvalType() != null) {
-            JavaDecl pdecl = parExpr.getEvalType();
+            JavaType pdecl = parExpr.getEvalType();
+
             if (pdecl.isArray() && name.equals("length"))
                 return getJavaDecl(int.class); // was FieldName;
+
             if (pdecl.isParamType())
-                pdecl = pdecl.getParent();
+                pdecl = (JavaType) pdecl.getParent();
+
             if (pdecl.isClass()) {
                 JavaClass cdecl = (JavaClass) pdecl;
                 JavaDecl fd = cdecl.getFieldDeep(name);
@@ -157,7 +161,7 @@ public class JExprChain extends JExpr {
     /**
      * Returns the resolved eval type for child node, if this ancestor can.
      */
-    protected JavaDecl getEvalTypeImpl()
+    protected JavaType getEvalTypeImpl()
     {
         JExpr p = getExprLast();
         return p != null ? p.getEvalType() : null;

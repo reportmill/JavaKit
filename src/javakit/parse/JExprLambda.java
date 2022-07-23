@@ -4,6 +4,8 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaMethod;
+import javakit.reflect.JavaType;
 import snap.util.ListUtils;
 import snap.util.SnapUtils;
 
@@ -13,7 +15,7 @@ import snap.util.SnapUtils;
 public class JExprLambda extends JExpr {
 
     // The parameters
-    List<JVarDecl> _params = new ArrayList();
+    List<JVarDecl> _params = new ArrayList<>();
 
     // The expression, if lambda has expression
     JExpr _expr;
@@ -139,11 +141,16 @@ public class JExprLambda extends JExpr {
         // Handle parent is method call: Get lambda interface from method call decl param
         JavaDecl idecl = null;
         if (par instanceof JExprMethodCall) {
+
             JExprMethodCall mcall = (JExprMethodCall) par;
-            List<JavaDecl> meths = getCompatibleMethods();
-            if (meths == null || meths.size() == 0) return null;
+            List<JavaMethod> meths = getCompatibleMethods();
+            if (meths == null || meths.size() == 0)
+                return null;
+
             int ind = ListUtils.indexOfId(mcall.getArgs(), this), argc = getParamCount();
-            if (ind < 0) return null;
+            if (ind < 0)
+                return null;
+
             for (JavaDecl mdecl : meths) {
                 JavaDecl pdecl = mdecl.getParamType(ind);
                 JavaClass pcdecl = pdecl.getClassType();
@@ -151,6 +158,7 @@ public class JExprLambda extends JExpr {
                 if (_meth != null)
                     return pdecl;
             }
+
             return null;
         }
 
@@ -190,7 +198,7 @@ public class JExprLambda extends JExpr {
     /**
      * Returns the method decl for the parent method call (assumes this lambda is an arg).
      */
-    protected List<JavaDecl> getCompatibleMethods()
+    protected List<JavaMethod> getCompatibleMethods()
     {
         // Get method call, method name and args
         JExprMethodCall mc = (JExprMethodCall) getParent();
@@ -199,7 +207,7 @@ public class JExprLambda extends JExpr {
         int argc = args.size();
 
         // Get arg types
-        JavaDecl argTypes[] = new JavaDecl[argc];
+        JavaType[] argTypes = new JavaType[argc];
         for (int i = 0; i < argc; i++) {
             JExpr arg = args.get(i);
             argTypes[i] = arg instanceof JExprLambda ? null : arg.getEvalType();
@@ -209,7 +217,7 @@ public class JExprLambda extends JExpr {
         JavaDecl sndecl = mc.getScopeNodeEvalType();
         if (sndecl == null) return null;
         JavaClass snct = sndecl.getClassType();
-        List<JavaDecl> decls = snct.getCompatibleMethodsAll(name, argTypes);
+        List<JavaMethod> decls = snct.getCompatibleMethodsAll(name, argTypes);
         if (decls.size() > 0)
             return decls;
 

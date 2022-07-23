@@ -5,7 +5,9 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaType;
 import snap.parse.Token;
 import snap.util.*;
 
@@ -27,10 +29,10 @@ public class JNode {
     List<JNode> _children = Collections.EMPTY_LIST;
 
     // The declaration most closely associated with this node
-    JavaDecl _decl;
+    JavaDecl  _decl;
 
     // The type this node evaluates to (resolved, if TypeVar)
-    JavaDecl _evalType;
+    JavaType  _evalType;
 
     /**
      * Returns the parent file node (root).
@@ -102,7 +104,7 @@ public class JNode {
     /**
      * Returns the JavaDecl that this nodes evaluates to (resolved, if TypeVar).
      */
-    public JavaDecl getEvalType()
+    public JavaType getEvalType()
     {
         return _evalType != null ? _evalType : (_evalType = getEvalTypeImpl());
     }
@@ -110,13 +112,13 @@ public class JNode {
     /**
      * Returns the JavaDecl that this nodes evaluates to (resolved, if TypeVar).
      */
-    protected JavaDecl getEvalTypeImpl()
+    protected JavaType getEvalTypeImpl()
     {
         JavaDecl decl = getDecl();
         if (decl == null) return null;
-        JavaDecl etype = decl.getEvalType();
+        JavaType etype = decl.getEvalType();
         if (etype != null && !etype.isResolvedType()) {
-            JavaDecl etype2 = getEvalTypeImpl(this);
+            JavaType etype2 = getEvalTypeImpl(this);
             etype = etype2 != null ? etype2 : etype.getEvalType();
         }
         return etype;
@@ -125,7 +127,7 @@ public class JNode {
     /**
      * Returns the resolved eval type for child node, if this ancestor can.
      */
-    protected JavaDecl getEvalTypeImpl(JNode aNode)
+    protected JavaType getEvalTypeImpl(JNode aNode)
     {
         return _parent != null ? _parent.getEvalTypeImpl(aNode) : null;
     }
@@ -448,7 +450,19 @@ public class JNode {
      */
     public JavaDecl getJavaDecl(Object anObj)
     {
-        return getFile().getJavaDecl(anObj);
+        JFile jfile = getFile();
+        JavaDecl javaDecl = jfile.getJavaDecl(anObj);
+        return javaDecl;
+    }
+
+    /**
+     * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
+     */
+    public JavaClass getJavaClass(Class<?> aClass)
+    {
+        JFile jfile = getFile();
+        JavaClass javaClass = jfile.getJavaClass(aClass);
+        return javaClass;
     }
 
     /**

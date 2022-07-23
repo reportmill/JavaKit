@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 
 import java.util.List;
@@ -89,11 +90,13 @@ public class JMemberDecl extends JNode {
      */
     public boolean isSuperDeclInterface()
     {
-        JavaDecl sdecl = getSuperDecl();
-        if (sdecl == null) return false;
-        JavaDecl cdecl = sdecl.getClassType();
-        if (cdecl == null) return false;
-        return cdecl.isInterface();
+        JavaDecl superDecl = getSuperDecl();
+        if (superDecl == null) return false;
+
+        JavaClass javaClass = superDecl.getClassType();
+        if (javaClass == null) return false;
+
+        return javaClass.isInterface();
     }
 
 }
