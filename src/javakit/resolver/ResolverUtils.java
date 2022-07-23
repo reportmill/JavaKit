@@ -1,6 +1,7 @@
 package javakit.resolver;
 import javakit.parse.*;
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaType;
 
 import java.lang.reflect.*;
 
@@ -33,34 +34,36 @@ public class ResolverUtils {
         // Handle Method: DeclClassName.Name(<ParamType>,...)
         else if (anObj instanceof Method) {
             Method meth = (Method) anObj;
-            Class ptypes[] = meth.getParameterTypes();
+            Class[] paramTypes = meth.getParameterTypes();
             sb.append(getId(meth.getDeclaringClass())).append('.').append(meth.getName()).append('(');
-            if (ptypes.length > 0) sb.append(getId(ptypes));
+            if (paramTypes.length > 0)
+                sb.append(getId(paramTypes));
             sb.append(')');
         }
 
         // Handle Constructor: DeclClassName(<ParamType>,...)
         else if (anObj instanceof Constructor) {
             Constructor constr = (Constructor) anObj;
-            Class ptypes[] = constr.getParameterTypes();
+            Class[] paramTypes = constr.getParameterTypes();
             sb.append(getId(constr.getDeclaringClass())).append('(');
-            if (ptypes.length > 0) sb.append(getId(ptypes));
+            if (paramTypes.length > 0)
+                sb.append(getId(paramTypes));
             sb.append(')');
         }
 
         // Handle ParameterizedType: RawType<TypeArg,...>
         else if (anObj instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) anObj;
-            Type ptypes[] = pt.getActualTypeArguments();
-            sb.append(getId(pt.getRawType())).append('<');
-            if (ptypes.length > 0) sb.append(getId(ptypes));
+            ParameterizedType parameterizedType = (ParameterizedType) anObj;
+            Type[] typeArgs = parameterizedType.getActualTypeArguments();
+            sb.append(getId(parameterizedType.getRawType())).append('<');
+            if (typeArgs.length > 0) sb.append(getId(typeArgs));
             sb.append('>');
         }
 
         // Handle TypeVariable: DeclType.Name
         else if (anObj instanceof TypeVariable) {
-            TypeVariable tv = (TypeVariable) anObj;
-            sb.append(getId(tv.getGenericDeclaration())).append('.').append(tv.getName());
+            TypeVariable typeVariable = (TypeVariable) anObj;
+            sb.append(getId(typeVariable.getGenericDeclaration())).append('.').append(typeVariable.getName());
         }
 
         // Handle GenericArrayType: CompType[]
@@ -79,20 +82,21 @@ public class ResolverUtils {
 
         // Handle JVarDecl
         else if (anObj instanceof JVarDecl) {
-            JVarDecl vd = (JVarDecl) anObj;
-            JType type = vd.getType();
-            JavaDecl tdecl = type != null ? type.getDecl() : null;
-            if (tdecl != null) sb.append(tdecl.getId()).append(' ');
-            sb.append(vd.getName());
+            JVarDecl varDecl = (JVarDecl) anObj;
+            JType varDeclType = varDecl.getType();
+            JavaType varType = varDeclType != null ? varDeclType.getDecl() : null;
+            if (varType != null)
+                sb.append(varType.getId()).append(' ');
+            sb.append(varDecl.getName());
         }
 
         // Handle String (package name)
         else if (anObj instanceof String)
             sb.append(anObj);
 
-            // Handle array of types
+        // Handle array of types
         else if (anObj instanceof Object[]) {
-            Object types[] = (Object[]) anObj;
+            Object[] types = (Object[]) anObj;
             for (int i = 0, iMax = types.length, last = iMax - 1; i < iMax; i++) {
                 Object type = types[i];
                 sb.append(getId(type));
@@ -101,7 +105,7 @@ public class ResolverUtils {
         }
 
         // Complain about anything else
-        else throw new RuntimeException("JavaKitUtils.getId: Unsupported type: " + anObj);
+        else throw new RuntimeException("ResolverUtils.getId: Unsupported type: " + anObj);
 
         // Return string
         return sb.toString();
@@ -110,7 +114,7 @@ public class ResolverUtils {
     /**
      * Returns an id string for given Java part.
      */
-    public static String getParamTypeId(JavaDecl aDecl, JavaDecl theTypeDecls[])
+    public static String getParamTypeId(JavaDecl aDecl, JavaDecl[] theTypeDecls)
     {
         StringBuilder sb = new StringBuilder(aDecl.getId());
         sb.append('<').append(theTypeDecls[0].getId());

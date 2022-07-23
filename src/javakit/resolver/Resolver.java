@@ -3,10 +3,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import javakit.parse.*;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaParameterizedType;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 import snap.util.ClassUtils;
 
 /**
@@ -82,10 +79,10 @@ public class Resolver {
 
         // Handle JVarDecl
         else if (anObj instanceof JVarDecl) {
-            JVarDecl vd = (JVarDecl) anObj;
-            JClassDecl cd = vd.getParent(JClassDecl.class);
-            JavaDecl decl = cd.getDecl();
-            jd = new JavaDecl(this, decl, vd);
+            JVarDecl varDecl = (JVarDecl) anObj;
+            JClassDecl varDeclClassDecl = varDecl.getParent(JClassDecl.class);
+            JavaDecl varDeclClass = varDeclClassDecl.getDecl();
+            jd = new JavaLocalVar(this, varDeclClass, varDecl);
         }
 
         // Handle Java.lang.reflect.Type
@@ -198,18 +195,14 @@ public class Resolver {
      */
     private JavaDecl getPackageDecl(String aName)
     {
-        if (aName == null || aName.length() == 0) return null;  // If bogus package name, just return
-        JavaDecl pdecl = _decls.get(aName);
-        if (pdecl == null)
-            _decls.put(aName, pdecl = createPackageDecl(aName));
-        return pdecl;
-    }
+        // If bogus package name, just return
+        if (aName == null || aName.length() == 0) return null;
 
-    /**
-     * Creates a package decl.
-     */
-    private JavaDecl createPackageDecl(String aName)
-    {
+        // Get from Decls map and just return if found
+        JavaPackage pkg = (JavaPackage) _decls.get(aName);
+        if (pkg != null)
+            return pkg;
+
         // Get parent decl
         JavaDecl parDecl = null;
         int ind = aName.lastIndexOf('.');
@@ -219,7 +212,11 @@ public class Resolver {
         }
 
         // Create new decl and return
-        return new JavaDecl(this, parDecl, aName);
+        pkg = new JavaPackage(this, parDecl, aName);
+        _decls.put(aName, pkg);
+
+        // Return
+        return pkg;
     }
 
     /**

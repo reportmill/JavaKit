@@ -3,8 +3,6 @@
  */
 package javakit.reflect;
 import java.lang.reflect.*;
-import javakit.parse.JType;
-import javakit.parse.JVarDecl;
 import javakit.resolver.Resolver;
 import javakit.resolver.ResolverUtils;
 import snap.util.*;
@@ -51,57 +49,31 @@ public class JavaDecl implements Comparable<JavaDecl> {
     public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar }
 
     // Shared empty TypeVar array
-    private static JavaDecl NULL_DECL = new JavaDecl(null, null, "NULL_DECL");
-    private static JavaDecl[] EMPTY_DECLS = new JavaDecl[0];
+    private static JavaDecl NULL_DECL = new JavaDecl();
     private static JavaTypeVariable[] EMPTY_TYPE_VARS = new JavaTypeVariable[0];
 
     /**
-     * Creates a new JavaDecl for Class, Field, Constructor, Method, VarDecl or package name string.
+     * Constructor.
      */
     public JavaDecl(Resolver anOwner, JavaDecl aPar, Object anObj)
     {
-        this(anOwner, aPar, anObj, ResolverUtils.getId(anObj));
-    }
+        assert (anOwner != null);
 
-    /**
-     * Creates a new JavaDecl for Class, Field, Constructor, Method, VarDecl or package name string.
-     */
-    public JavaDecl(Resolver anOwner, JavaDecl aPar, Object anObj, String anId)
-    {
-        // Set JavaDecls
+        // Set ivars
         _resolver = anOwner;
         _parent = aPar;
-        assert (_resolver != null || anObj instanceof String);
-        _id = anId;
 
-        initObject(anObj);
-
+        // Set id
+        _id = ResolverUtils.getId(anObj);
     }
 
     /**
-     * Init object.
+     * For NULL_DECL.
      */
-    protected void initObject(Object anObj)
+    private JavaDecl()
     {
-        // Handle VarDecl
-        if (anObj instanceof JVarDecl) {
-            JVarDecl jvarDecl = (JVarDecl) anObj;
-            _type = DeclType.VarDecl;
-            _name = _simpleName = jvarDecl.getName();
-            JType jt = jvarDecl.getType();
-            _evalType = jt != null ? (JavaType) jt.getDecl() : getClassDecl(Object.class); // Can happen for Lambdas
-        }
-
-        // Handle Package
-        else if (anObj instanceof String) {
-            String str = (String) anObj;
-            _type = DeclType.Package;
-            _name = str;
-            _simpleName = Resolver.getSimpleName(str);
-        }
-
-        // Throw exception for unknown type
-        else throw new RuntimeException("JavaDecl.init: Unsupported type: " + anObj.getClass());
+        _id = _name = _simpleName = "NULL_DECL";
+        _type = DeclType.Package;
     }
 
     /**
@@ -172,10 +144,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns whether is a Type (Class, ParamType, TypeVar).
      */
-    public boolean isType()
-    {
-        return isClass() || isParamType() || isTypeVar();
-    }
+    public boolean isType()  { return false; }
 
     /**
      * Returns the modifiers.
@@ -290,7 +259,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the class this decl evaluates to when referenced.
      */
-    public Class getEvalClass()
+    public Class<?> getEvalClass()
     {
         String cname = getEvalClassName();
         if (cname == null) return null;

@@ -31,9 +31,4 @@ public class JavaTypeVariable extends JavaType {
         _evalType = getClassDecl(ecls);
         _resolver._decls.put(_id, this);
     }
-
-    /**
-     * Init object.
-     */
-    protected void initObject(Object anObj)  { }
 }

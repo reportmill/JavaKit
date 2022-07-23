@@ -98,11 +98,6 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Init object.
-     */
-    protected void initObject(Object anObj)  { }
-
-    /**
      * Returns whether is a class reference.
      */
     public boolean isClass()  { return true; }

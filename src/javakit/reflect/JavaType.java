@@ -20,9 +20,10 @@ public class JavaType extends JavaDecl {
     }
 
     /**
-     * Init object.
+     * Returns whether is a Type (Class, ParamType, TypeVar).
      */
-    protected void initObject(Object anObj)  { }
+    @Override
+    public boolean isType()  { return true; }
 
     /**
      * Returns whether is a enum reference.

@@ -23,9 +23,4 @@ public class JavaGenericArrayType extends JavaType {
         _evalType = getClassDecl(Object[].class);
         _resolver._decls.put(_id, this);
     }
-
-    /**
-     * Init object.
-     */
-    protected void initObject(Object anObj)  { }
 }

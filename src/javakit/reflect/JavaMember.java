@@ -21,7 +21,4 @@ public class JavaMember extends JavaDecl {
         _mods = aMember.getModifiers();
         _name = _simpleName = aMember.getName();
     }
-
-    @Override
-    protected void initObject(Object anObj)  { }
 }
