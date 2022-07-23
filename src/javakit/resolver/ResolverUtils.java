@@ -16,98 +16,171 @@ public class ResolverUtils {
     public static String getId(Object anObj)
     {
         // Handle Class: <Name>
-        if (anObj instanceof Class) {
-            Class cls = (Class) anObj;
-            if (cls.isArray()) return getId(cls.getComponentType()) + "[]";
-            return cls.getName();
-        }
+        if (anObj instanceof Class)
+            return getIdForClass((Class<?>) anObj);
 
-        // Create StringBuffer
-        StringBuffer sb = new StringBuffer();
+        // Handle java.lang.reflect.Member (Field, Method, Constructor)
+        if (anObj instanceof Member)
+            return getIdForMember((Member) anObj);
+
+        // Handle java.lang.reflect.Type (ParameterizedType, TypeVariable, GenericArrayType, WildcardType)
+        else if (anObj instanceof Type)
+            return getIdForType((Type) anObj);
+
+        // Handle JVarDecl
+        else if (anObj instanceof JVarDecl)
+            return getIdForJVarDecl((JVarDecl) anObj);
+
+        // Handle String (package name)
+        else if (anObj instanceof String)
+            return (String) anObj;
+
+        // Handle array of types
+        else if (anObj instanceof Object[])
+            return getIdForTypeArray((Object[]) anObj);
+
+        // Complain about anything else
+        else throw new RuntimeException("ResolverUtils.getId: Unsupported type: " + anObj);
+    }
+
+    /**
+     * Returns an Id for a Java.lang.Class.
+     */
+    private static String getIdForClass(Class<?> aClass)
+    {
+        if (aClass.isArray())
+            return getIdForClass(aClass.getComponentType()) + "[]";
+        return aClass.getName();
+    }
+
+    /**
+     * Returns an Id for a Java.lang.reflect.Member.
+     */
+    private static String getIdForMember(Member aMember)
+    {
+        // Get id for Member.DeclaringClass
+        Class<?> declaringClass = aMember.getDeclaringClass();
+        String classId = getId(declaringClass);
+
+        // Start StringBuffer
+        StringBuffer sb = new StringBuffer(classId);
 
         // Handle Field: DeclClassName.<Name>
-        if (anObj instanceof Field) {
-            Field field = (Field) anObj;
-            sb.append(field.getDeclaringClass()).append('.').append(field.getName());
-        }
+        if (aMember instanceof Field)
+            sb.append('.').append(aMember.getName());
 
         // Handle Method: DeclClassName.Name(<ParamType>,...)
-        else if (anObj instanceof Method) {
-            Method meth = (Method) anObj;
-            Class[] paramTypes = meth.getParameterTypes();
-            sb.append(getId(meth.getDeclaringClass())).append('.').append(meth.getName()).append('(');
-            if (paramTypes.length > 0)
-                sb.append(getId(paramTypes));
+        else if (aMember instanceof Method) {
+            Method meth = (Method) aMember;
+            sb.append('.').append(meth.getName()).append('(');
+            Class<?>[] paramTypes = meth.getParameterTypes();
+            if (paramTypes.length > 0) {
+                String paramTypesId = getIdForTypeArray(paramTypes);
+                sb.append(paramTypesId);
+            }
             sb.append(')');
         }
 
         // Handle Constructor: DeclClassName(<ParamType>,...)
-        else if (anObj instanceof Constructor) {
-            Constructor constr = (Constructor) anObj;
-            Class[] paramTypes = constr.getParameterTypes();
-            sb.append(getId(constr.getDeclaringClass())).append('(');
-            if (paramTypes.length > 0)
-                sb.append(getId(paramTypes));
+        else if (aMember instanceof Constructor) {
+            Constructor constr = (Constructor) aMember;
+            Class<?>[] paramTypes = constr.getParameterTypes();
+            sb.append('(');
+            if (paramTypes.length > 0) {
+                String paramTypesId = getIdForTypeArray(paramTypes);
+                sb.append(paramTypesId);
+            }
             sb.append(')');
         }
 
+        // Return
+        return sb.toString();
+    }
+
+    /**
+     * Returns an Id for Java.lang.reflect.Type.
+     */
+    private static String getIdForType(Type aType)
+    {
+        // Create StringBuffer
+        StringBuffer sb = new StringBuffer();
+
         // Handle ParameterizedType: RawType<TypeArg,...>
-        else if (anObj instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) anObj;
+        if (aType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) aType;
+            Type rawType = parameterizedType.getRawType();
+            String rawTypeId = getId(rawType);
+            sb.append(rawTypeId);
+
+            // Append TypeArgs
             Type[] typeArgs = parameterizedType.getActualTypeArguments();
-            sb.append(getId(parameterizedType.getRawType())).append('<');
-            if (typeArgs.length > 0) sb.append(getId(typeArgs));
+            sb.append('<');
+            if (typeArgs.length > 0) {
+                String typeArgsId = getIdForTypeArray(typeArgs);
+                sb.append(typeArgsId);
+            }
             sb.append('>');
         }
 
         // Handle TypeVariable: DeclType.Name
-        else if (anObj instanceof TypeVariable) {
-            TypeVariable typeVariable = (TypeVariable) anObj;
-            sb.append(getId(typeVariable.getGenericDeclaration())).append('.').append(typeVariable.getName());
+        else if (aType instanceof TypeVariable) {
+            TypeVariable typeVariable = (TypeVariable) aType;
+            GenericDeclaration genericDecl = typeVariable.getGenericDeclaration();
+            String genericDeclId = getId(genericDecl);
+            sb.append(genericDeclId).append('.').append(typeVariable.getName());
         }
 
         // Handle GenericArrayType: CompType[]
-        else if (anObj instanceof GenericArrayType) {
-            GenericArrayType gat = (GenericArrayType) anObj;
-            sb.append(getId(gat.getGenericComponentType())).append("[]");
+        else if (aType instanceof GenericArrayType) {
+            GenericArrayType genericArrayType = (GenericArrayType) aType;
+            Type compType = genericArrayType.getGenericComponentType();
+            String compTypeStr = getIdForType(compType);
+            sb.append(compTypeStr).append("[]");
         }
 
-        // Handle WildcardType
-        else if (anObj instanceof WildcardType) {
-            WildcardType wc = (WildcardType) anObj;
-            if (wc.getLowerBounds().length > 0)
-                sb.append(getId(wc.getLowerBounds()[0]));
-            else sb.append(getId(wc.getUpperBounds()[0]));
+        // Handle WildcardType: Need to fix for
+        else if (aType instanceof WildcardType) {
+            WildcardType wc = (WildcardType) aType;
+            Type[] bounds = wc.getLowerBounds().length > 0 ? wc.getLowerBounds() : wc.getUpperBounds();
+            Type bound = bounds[0];
+            String boundStr = getIdForType(bound);
+            sb.append(boundStr);
         }
 
-        // Handle JVarDecl
-        else if (anObj instanceof JVarDecl) {
-            JVarDecl varDecl = (JVarDecl) anObj;
-            JType varDeclType = varDecl.getType();
-            JavaType varType = varDeclType != null ? varDeclType.getDecl() : null;
-            if (varType != null)
-                sb.append(varType.getId()).append(' ');
-            sb.append(varDecl.getName());
+        // Return
+        return sb.toString();
+    }
+
+    /**
+     * Returns an Id string for a Type array.
+     */
+    private static String getIdForTypeArray(Object[] typeArray)
+    {
+        StringBuffer sb = new StringBuffer();
+
+        for (int i = 0, iMax = typeArray.length, last = iMax - 1; i < iMax; i++) {
+            Object type = typeArray[i];
+            String typeStr = getId(type);
+            sb.append(typeStr);
+            if (i != last)
+                sb.append(',');
         }
 
-        // Handle String (package name)
-        else if (anObj instanceof String)
-            sb.append(anObj);
+        // Return
+        return sb.toString();
+    }
 
-        // Handle array of types
-        else if (anObj instanceof Object[]) {
-            Object[] types = (Object[]) anObj;
-            for (int i = 0, iMax = types.length, last = iMax - 1; i < iMax; i++) {
-                Object type = types[i];
-                sb.append(getId(type));
-                if (i != last) sb.append(',');
-            }
-        }
-
-        // Complain about anything else
-        else throw new RuntimeException("ResolverUtils.getId: Unsupported type: " + anObj);
-
-        // Return string
+    /**
+     * Returns an Id for JVarDecl.
+     */
+    private static String getIdForJVarDecl(JVarDecl varDecl)
+    {
+        StringBuffer sb = new StringBuffer();
+        JType varDeclType = varDecl.getType();
+        JavaType varType = varDeclType != null ? varDeclType.getDecl() : null;
+        if (varType != null)
+            sb.append(varType.getId()).append(' ');
+        sb.append(varDecl.getName());
         return sb.toString();
     }
 
@@ -118,7 +191,8 @@ public class ResolverUtils {
     {
         StringBuilder sb = new StringBuilder(aDecl.getId());
         sb.append('<').append(theTypeDecls[0].getId());
-        for (int i = 1; i < theTypeDecls.length; i++) sb.append(',').append(theTypeDecls[i].getId());
+        for (int i = 1; i < theTypeDecls.length; i++)
+            sb.append(',').append(theTypeDecls[i].getId());
         sb.append('>');
         return sb.toString();
     }

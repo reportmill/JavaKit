@@ -2,11 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.util.*;
-
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaType;
 import snap.util.ClassUtils;
 
@@ -25,7 +21,7 @@ public class JType extends JNode {
     private List<JType>  _typeArgs;
 
     // The base type
-    private JavaClass  _baseDecl;
+    private JavaType  _baseDecl;
 
     /**
      * Returns whether type is primitive type.
@@ -125,7 +121,7 @@ public class JType extends JNode {
      */
     public boolean isNumberType()
     {
-        JavaDecl decl = getBaseDecl();
+        JavaType decl = getBaseDecl();
         String tp = decl != null ? decl.getClassName() : null;
         if (tp == null) return false;
         tp = tp.intern();
@@ -147,7 +143,7 @@ public class JType extends JNode {
     /**
      * Override to resolve type class name and create declaration from that.
      */
-    protected JavaClass getBaseDecl()
+    protected JavaType getBaseDecl()
     {
         // If already set, just return
         if (_baseDecl != null) return _baseDecl;
@@ -159,7 +155,7 @@ public class JType extends JNode {
 
 
         // If not primitive, try to resolve class
-        JavaClass javaClass = (JavaClass) getDeclImpl(this);
+        JavaType javaClass = (JavaType) getDeclImpl(this);
 
         // Set/return
         return _baseDecl = javaClass;

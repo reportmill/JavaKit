@@ -405,9 +405,10 @@ public class JClassDecl extends JMemberDecl {
                 // Check for TypeVar
                 if (typ.getParent() instanceof JType) {
                     JType par = (JType) typ.getParent();
-                    JavaDecl btype = par.getBaseDecl();
-                    JavaDecl tvtype = btype != null ? btype.getTypeVar(typ.getName()) : null;
-                    if (tvtype != null) return tvtype;
+                    JavaType baseType = par.getBaseDecl();
+                    JavaDecl typeVarType = baseType != null ? baseType.getTypeVar(typ.getName()) : null;
+                    if (typeVarType != null)
+                        return typeVarType;
                 }
 
                 // Forward to file
