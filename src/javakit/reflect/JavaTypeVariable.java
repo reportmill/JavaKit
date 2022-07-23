@@ -1,5 +1,7 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.reflect;
-
 import javakit.resolver.Resolver;
 import javakit.resolver.ResolverUtils;
 import snap.util.StringUtils;
@@ -34,25 +36,4 @@ public class JavaTypeVariable extends JavaType {
      * Init object.
      */
     protected void initObject(Object anObj)  { }
-
-    /**
-     * Returns whether is a enum reference.
-     */
-    public boolean isEnum()  { return false; }
-
-    /**
-     * Returns whether is a interface reference.
-     */
-    public boolean isInterface()  { return false; }
-
-    /**
-     * Returns whether is an array.
-     */
-    public boolean isArray()  { return false; }
-
-    /**
-     * Returns the Array item type (if Array).
-     */
-    public JavaType getArrayItemType()  { return null; }
-
 }

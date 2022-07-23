@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
@@ -280,7 +283,7 @@ public class JavaClass extends JavaType {
     {
         // If first time, set decls
         if (_fieldDecls == null)
-            _fieldDecls = new ArrayList();
+            _fieldDecls = new ArrayList<>();
 
         // Get eval class
         Class evalClass = getEvalClass();
@@ -355,7 +358,7 @@ public class JavaClass extends JavaType {
         for (Field field : fields) {
             JavaDecl decl = getField(field);
             if (decl == null) {
-                decl = new JavaDecl(_resolver, this, field);
+                decl = new JavaField(_resolver, this, field);
                 addDecl(decl);
                 addedDecls++;
             } else removedDecls.remove(decl);
@@ -374,7 +377,7 @@ public class JavaClass extends JavaType {
             if (meth.isSynthetic()) continue;
             JavaDecl decl = getMethodDecl(meth);
             if (decl == null) {
-                decl = new JavaDecl(_resolver, this, meth);
+                decl = new JavaMethod(_resolver, this, meth);
                 addDecl(decl);
                 addedDecls++;
             } else removedDecls.remove(decl);
@@ -393,7 +396,7 @@ public class JavaClass extends JavaType {
             if (constr.isSynthetic()) continue;
             JavaDecl decl = getConstructorDecl(constr);
             if (decl == null) {
-                decl = new JavaDecl(_resolver, this, constr);
+                decl = new JavaContructor(_resolver, this, constr);
                 addDecl(decl);
                 addedDecls++;
             } else removedDecls.remove(decl);
@@ -402,7 +405,7 @@ public class JavaClass extends JavaType {
         // Array.length: Handle this special for Object[]
         if (isArray() && getField("length") == null) {
             Field lenField = getLenField();
-            JavaDecl decl = new JavaDecl(_resolver, this, lenField);
+            JavaDecl decl = new JavaField(_resolver, this, lenField);
             addDecl(decl);
             addedDecls++;
         }

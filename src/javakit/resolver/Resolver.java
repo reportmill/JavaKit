@@ -139,13 +139,21 @@ public class Resolver {
             return decl;
         }
 
+        // Handle GenericArrayType
+        //if (aType instanceof GenericArrayType) {
+        //    GenericArrayType genericArrayType = (GenericArrayType) aType;
+        //}
+
         // Handle Class
         if (aType instanceof Class) {
-            Class cls = ResolverUtils.getClassForType(aType);
+            Class cls = (Class) aType;
             return getClassDecl(cls);
         }
 
-        throw new RuntimeException("Resolver.getTypeDecl: Unsupported type " + aType);
+        // This is lame
+        Class cls = ResolverUtils.getClassForType(aType);
+        return getClassDecl(cls);
+        //throw new RuntimeException("Resolver.getTypeDecl: Unsupported type " + aType);
     }
 
     /**

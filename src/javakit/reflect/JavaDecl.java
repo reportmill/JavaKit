@@ -101,7 +101,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
         }
 
         // Throw exception for unknown type
-        else throw new RuntimeException("JavaDecl.init: Unsupported type " + anObj);
+        else throw new RuntimeException("JavaDecl.init: Unsupported type: " + anObj.getClass());
     }
 
     /**

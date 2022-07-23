@@ -1,6 +1,8 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.reflect;
 import javakit.resolver.Resolver;
-import java.lang.reflect.Type;
 
 /**
  * This class represents a generic Java Type: Class, ParameterizedType, TypeVariable, GenericArrayType.
