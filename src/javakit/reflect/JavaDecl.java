@@ -54,15 +54,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     }
 
     /**
-     * For NULL_DECL.
-     */
-    private JavaDecl()
-    {
-        _id = _name = _simpleName = "NULL_DECL";
-        _type = DeclType.Package;
-    }
-
-    /**
      * Returns the id.
      */
     public String getId()  { return _id; }
@@ -126,11 +117,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
      * Returns whether is a TypeVar.
      */
     public boolean isTypeVar()  { return _type == DeclType.TypeVar; }
-
-    /**
-     * Returns whether is a Type (Class, ParamType, TypeVar).
-     */
-    public boolean isType()  { return false; }
 
     /**
      * Returns the modifiers.
@@ -358,23 +344,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     public JavaType getParamTypeDecl(JavaType ... theTypeDecls)
     {
         return _resolver.getParamTypeDecl(this, theTypeDecls);
-    }
-
-    /**
-     * Returns the Array decl for this base class.
-     */
-    public JavaType getArrayTypeDecl()
-    {
-        // Handle ParamType or unexpected type: Return ClassType.getArrayTypeDecl()
-        if (!isClass()) {
-            if (!isParamType() && !isTypeVar())
-                System.err.println("JavaDecl.getArrayTypeDecl: Unexpected type: " + this);
-            return getClassType().getArrayTypeDecl();
-        }
-
-        // Append array chars to class name and get decl
-        String className = getName() + "[]";
-        return (JavaType) getJavaDecl(className);
     }
 
     /**

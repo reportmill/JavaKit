@@ -184,7 +184,7 @@ public class JType extends JNode {
 
         // If ArrayCount, get decl for array
         for (int i = 0; i < _arrayCount; i++)
-            decl = decl.getArrayTypeDecl();
+            decl = decl.getArrayType();
 
         // Return declaration
         if (decl == null)

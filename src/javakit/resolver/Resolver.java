@@ -358,10 +358,12 @@ public class Resolver {
     private static boolean isPossibleMatch(JNode aNode, JavaDecl aDecl)
     {
         // If Node is type and Decl is type and Decl.SimpleName contains Node.SimpleName
-        if (aNode instanceof JType && aDecl.isType()) {
+        if (aNode instanceof JType && aDecl instanceof JavaType) {
             JType type = (JType) aNode;
-            String sname = type.getSimpleName();
-            return aDecl.getSimpleName().contains(sname);
+            String typeName = type.getSimpleName();
+            JavaType javaType = (JavaType) aDecl;
+            String javaTypeName = javaType.getSimpleName();
+            return javaTypeName.contains(typeName);
         }
 
         // If Node is identifier and Decl.Name contains Node.Name

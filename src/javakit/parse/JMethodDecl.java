@@ -203,31 +203,32 @@ public class JMethodDecl extends JMemberDecl {
     protected JavaType[] getParamClassTypesSafe()
     {
         // Declare array for return types
-        JavaType[] ptypes = new JavaType[_params.size()];
+        JavaType[] paramTypes = new JavaType[_params.size()];
 
         // Iterate over params to get types
         for (int i = 0, iMax = _params.size(); i < iMax; i++) {
-            JVarDecl vd = _params.get(i);
+            JVarDecl varDecl = _params.get(i);
 
             // Get current type and TypeVar (if type is one)
-            JType type = vd.getType();
-            JTypeVar typeVar = getTypeVar(type.getName());
+            JType varDeclType = varDecl.getType();
+            JTypeVar typeVar = getTypeVar(varDeclType.getName());
 
             // If type is TypeVar, set to TypeVar.BoundsType
             if (typeVar != null)
-                ptypes[i] = typeVar.getBoundsType();
-            else ptypes[i] = type.getBaseDecl();
+                paramTypes[i] = typeVar.getBoundsType();
+            else paramTypes[i] = varDeclType.getBaseDecl();
 
             // If param type is null, just return (can happen if params are bogus (being edited))
-            if (ptypes[i] == null) return null;
+            if (paramTypes[i] == null) return null;
 
             // If array, get array type instead
-            if (type.getArrayCount() > 0)
-                for (int j = 0, jMax = type.getArrayCount(); j < jMax; j++)
-                    ptypes[i] = ptypes[i].getArrayTypeDecl();
+            if (varDeclType.getArrayCount() > 0)
+                for (int j = 0, jMax = varDeclType.getArrayCount(); j < jMax; j++)
+                    paramTypes[i] = paramTypes[i].getArrayType();
         }
 
-        return ptypes;
+        // Return
+        return paramTypes;
     }
 
     /**

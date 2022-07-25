@@ -23,12 +23,6 @@ public class JavaType extends JavaDecl {
     }
 
     /**
-     * Returns whether is a Type (Class, ParamType, TypeVar).
-     */
-    @Override
-    public boolean isType()  { return true; }
-
-    /**
      * Returns whether is a enum reference.
      */
     public boolean isEnum()  { return false; }
@@ -122,6 +116,24 @@ public class JavaType extends JavaDecl {
 
         // If not resolve, just return bounds type
         return aDecl.getEvalType();
+    }
+
+    /**
+     * Returns the Array decl for this base class.
+     */
+    public JavaType getArrayType()
+    {
+        // Handle ParamType or unexpected type: Return ClassType.getArrayTypeDecl()
+        if (!isClass()) {
+            if (!isParamType() && !isTypeVar())
+                System.err.println("JavaType.getArrayTypeDecl: Unexpected type: " + this);
+            JavaClass javaClass = getClassType();
+            return javaClass.getArrayType();
+        }
+
+        // Append array chars to class name and get decl
+        String className = getName() + "[]";
+        return (JavaType) getJavaDecl(className);
     }
 
     /**
