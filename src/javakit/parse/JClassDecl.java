@@ -460,12 +460,14 @@ public class JClassDecl extends JMemberDecl {
         }
 
         // See if it's a field reference from superclass
-        Class sclass = getSuperClass();
-        Field field = sclass != null ? ClassUtils.getFieldForName(sclass, name) : null;
-        if (field != null)
-            return getJavaDecl(field);
+        Class superClass = getSuperClass();
+        if (superClass != null) {
+            Field field = ClassUtils.getFieldForName(superClass, name);
+            if (field != null)
+                return getJavaDecl(field);
+        }
 
-        // Check interfaces
+        // Check interfaces:  Not sure what's going on here
         if (isId) {
             List<JType> implementsTypes = getImplementsTypes();
             for (JType implementsType : implementsTypes) {
@@ -501,13 +503,17 @@ public class JClassDecl extends JMemberDecl {
         // Handle JType: See if class decl can resolve
         if (aNode instanceof JType) {
 
+            // Get type
+            JType type = (JType) aNode;
+            JavaType typeType = type.getDecl();
+            JavaType evalType = typeType.getEvalType();
+
             // If eval type is TypeVar, see if it corresponds to this class
-            JavaType etype = aNode.getDecl().getEvalType();
-            if (etype.isTypeVar()) {
-                JavaType cdecl = getDecl();
-                JavaType etype2 = cdecl.getResolvedType(etype);
-                if (etype2 != etype.getEvalType())
-                    return etype2;
+            if (evalType.isTypeVar()) {
+                JavaClass javaClass = getDecl();
+                JavaType evalType2 = javaClass.getResolvedType(evalType);
+                if (evalType2 != evalType.getEvalType())
+                    return evalType2;
             }
         }
 
@@ -521,12 +527,13 @@ public class JClassDecl extends JMemberDecl {
     public List<JVarDecl> getVarDecls(String aPrefix, List<JVarDecl> theVDs)
     {
         // Iterate over statements and see if any JStmtVarDecl contains variable with that name
-        for (JMemberDecl m : _members) {
-            if (m instanceof JFieldDecl) {
-                JFieldDecl field = (JFieldDecl) m;
-                for (JVarDecl v : field.getVarDecls())
-                    if (StringUtils.startsWithIC(v.getName(), aPrefix))
-                        theVDs.add(v);
+        for (JMemberDecl memberDecl : _members) {
+            if (memberDecl instanceof JFieldDecl) {
+                JFieldDecl field = (JFieldDecl) memberDecl;
+                List<JVarDecl> fieldVarDecls = field.getVarDecls();
+                for (JVarDecl fieldVarDecl : fieldVarDecls)
+                    if (StringUtils.startsWithIC(fieldVarDecl.getName(), aPrefix))
+                        theVDs.add(fieldVarDecl);
             }
         }
 
@@ -540,15 +547,10 @@ public class JClassDecl extends JMemberDecl {
     public String getNodeString()
     {
         switch (getClassType()) {
-            case Interface:
-                return "InterfaceDecl";
-            case Enum:
-                return "EnumDecl";
-            case Annotation:
-                return "AnnotationDecl";
-            default:
-                return "ClassDecl";
+            case Interface: return "InterfaceDecl";
+            case Enum: return "EnumDecl";
+            case Annotation: return "AnnotationDecl";
+            default: return "ClassDecl";
         }
     }
-
 }
