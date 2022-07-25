@@ -13,11 +13,8 @@ import snap.util.StringUtils;
  */
 public class JavaClass extends JavaType {
 
-    // The SuperClass type
-    private JavaType  _stype;
-
     // The super class decl
-    private JavaClass  _superClassDecl;
+    private JavaClass  _superClass;
 
     // Whether class decl is enum, interface, primitive
     private boolean  _enum, _interface, _primitive;
@@ -71,8 +68,8 @@ public class JavaClass extends JavaType {
         AnnotatedType superAType = aClass.getAnnotatedSuperclass();
         Type superType = superAType != null ? superAType.getType() : null;
         if (superType != null) {
-            _stype = getJavaType(superType);
-            _superDecl = _superClassDecl = _stype.getClassType();
+            _superType = getJavaType(superType);
+            _superClass = _superType.getClassType();
         }
 
         // Handle Array
@@ -235,7 +232,7 @@ public class JavaClass extends JavaType {
      */
     public JavaClass getSuper()
     {
-        return _superClassDecl;
+        return _superClass;
     }
 
     /**
@@ -262,10 +259,13 @@ public class JavaClass extends JavaType {
             int ind = sdecl.getHpr().getTypeVarDeclIndex(name);
             if(ind>=0 && ind<_paramTypes.length) return _paramTypes[ind]; }*/
 
-        if (_stype != null && _stype.isParamType())
-            return _stype.getResolvedType(aDecl);
+        // If SuerType is ParameterizedType, let it try to resolve
+        if (_superType instanceof JavaParameterizedType)
+            return _superType.getResolvedType(aDecl);
 
-        return aDecl.getEvalType();
+        // Otherwise just return EvalType
+        JavaType evalType = aDecl.getEvalType();
+        return evalType;
     }
 
     /**
@@ -495,74 +495,80 @@ public class JavaClass extends JavaType {
     /**
      * Returns the field decl for field.
      */
-    public JavaDecl getField(Field aField)
+    public JavaField getField(Field aField)
     {
         String name = aField.getName();
-        JavaDecl decl = getField(name);
-        if (decl == null)
+        JavaField field = getField(name);
+        if (field == null)
             return null;
 
         int mods = aField.getModifiers();
-        if (mods != decl.getModifiers())
+        if (mods != field.getModifiers())
             return null;
 
         //JavaDecl type = _cdecl._owner.getTypeDecl(aField.getGenericType(), _cdecl);
         //if(type!=decl.getEvalType()) return null;
 
         // Return
-        return decl;
+        return field;
     }
 
     /**
      * Returns a field decl for field name.
      */
-    public JavaDecl getField(String aName)
+    public JavaField getField(String aName)
     {
-        List<JavaField> fdecls = getFields();
-        for (JavaField jd : fdecls)
-            if (jd.getName().equals(aName))
-                return jd;
+        List<JavaField> fields = getFields();
+        for (JavaField field : fields)
+            if (field.getName().equals(aName))
+                return field;
+
+        // Return
         return null;
     }
 
     /**
      * Returns a field decl for field name.
      */
-    public JavaDecl getFieldDeep(String aName)
+    public JavaField getFieldDeep(String aName)
     {
-        JavaDecl decl = getField(aName);
-        if (decl == null && _superClassDecl != null)
-            decl = _superClassDecl.getFieldDeep(aName);
-        return decl;
+        JavaField field = getField(aName);
+        if (field == null && _superClass != null)
+            field = _superClass.getFieldDeep(aName);
+
+        // Return
+        return field;
     }
 
     /**
      * Returns the method decl for method.
      */
-    public JavaDecl getMethodDecl(Method aMeth)
+    public JavaMethod getMethodDecl(Method aMeth)
     {
         String id = ResolverUtils.getId(aMeth);
-        JavaDecl decl = getMethodDecl(id);
-        if (decl == null)
+        JavaMethod method = getMethodDecl(id);
+        if (method == null)
             return null;
 
         int mods = aMeth.getModifiers();
-        if (mods != decl.getModifiers())
+        if (mods != method.getModifiers())
             return null;
 
         // Check return type?
-        return decl;
+        return method;
     }
 
     /**
      * Returns the method decl for id string.
      */
-    public JavaDecl getMethodDecl(String anId)
+    public JavaMethod getMethodDecl(String anId)
     {
-        List<JavaMethod> mdecls = getMethods();
-        for (JavaDecl jd : mdecls)
-            if (jd.getId().equals(anId))
-                return jd;
+        List<JavaMethod> methods = getMethods();
+        for (JavaMethod method : methods)
+            if (method.getId().equals(anId))
+                return method;
+
+        // Return
         return null;
     }
 
@@ -572,9 +578,15 @@ public class JavaClass extends JavaType {
     public JavaMethod getMethodDecl(String aName, JavaType[] theTypes)
     {
         List<JavaMethod> methods = getMethods();
-        for (JavaMethod method : methods)
-            if (method.getName().equals(aName) && isClassTypesEqual(method.getParamTypes(), theTypes))
-                return method;
+        for (JavaMethod method : methods) {
+            if (method.getName().equals(aName)) {
+                JavaType[] methodParamTypes = method.getParamTypes();
+                if (isClassTypesEqual(methodParamTypes, theTypes))
+                    return method;
+            }
+        }
+
+        // Return
         return null;
     }
 
@@ -584,8 +596,8 @@ public class JavaClass extends JavaType {
     public JavaMethod getMethodDeclDeep(String aName, JavaType[] theTypes)
     {
         JavaMethod method = getMethodDecl(aName, theTypes);
-        if (method == null && _superClassDecl != null)
-            method = _superClassDecl.getMethodDeclDeep(aName, theTypes);
+        if (method == null && _superClass != null)
+            method = _superClass.getMethodDeclDeep(aName, theTypes);
         return method;
     }
 
@@ -847,14 +859,14 @@ public class JavaClass extends JavaType {
     /**
      * Returns a rating of a method for given possible arg classes.
      */
-    private int getMethodRating(JavaExecutable aMeth, JavaType[] theTypes)
+    private int getMethodRating(JavaExecutable aMethod, JavaType[] theTypes)
     {
         // Handle VarArg methods special
-        if (aMeth.isVarArgs())
-            return getMethodRatingVarArgs(aMeth, theTypes);
+        if (aMethod.isVarArgs())
+            return getMethodRatingVarArgs(aMethod, theTypes);
 
         // Get method param types and length (just return if given arg count doesn't match)
-        JavaType[] paramTypes = aMeth.getParamTypes();
+        JavaType[] paramTypes = aMethod.getParamTypes();
         int plen = paramTypes.length, rating = 0;
         if (theTypes.length != plen)
             return 0;
@@ -880,10 +892,10 @@ public class JavaClass extends JavaType {
     /**
      * Returns a rating of a method for given possible arg classes.
      */
-    private int getMethodRatingVarArgs(JavaExecutable aMeth, JavaType[] theTypes)
+    private int getMethodRatingVarArgs(JavaExecutable aMethod, JavaType[] theTypes)
     {
         // Get method param types and length (just return if given arg count is insufficient)
-        JavaType[] paramTypes = aMeth.getParamTypes();
+        JavaType[] paramTypes = aMethod.getParamTypes();
         int plen = paramTypes.length, vind = plen - 1, rating = 0;
         if (theTypes.length < vind)
             return 0;
@@ -963,9 +975,11 @@ public class JavaClass extends JavaType {
     public JavaContructor getConstructorDecl(JavaType[] theTypes)
     {
         List<JavaContructor> constructors = getConstructors();
-        for (JavaContructor contructor : constructors)
-            if (isClassTypesEqual(contructor.getParamTypes(), theTypes))
+        for (JavaContructor contructor : constructors) {
+            JavaType[] constrParamTypes = contructor.getParamTypes();
+            if (isClassTypesEqual(constrParamTypes, theTypes))
                 return contructor;
+        }
         return null;
     }
 
@@ -975,8 +989,8 @@ public class JavaClass extends JavaType {
     public JavaContructor getConstructorDeclDeep(JavaType[] theTypes)
     {
         JavaContructor decl = getConstructorDecl(theTypes);
-        if (decl == null && _superClassDecl != null)
-            decl = _superClassDecl.getConstructorDeclDeep(theTypes);
+        if (decl == null && _superClass != null)
+            decl = _superClass.getConstructorDeclDeep(theTypes);
         return decl;
     }
 
@@ -998,8 +1012,8 @@ public class JavaClass extends JavaType {
     public JavaClass getClassDeclDeep(String aName)
     {
         JavaClass decl = getClassDecl(aName);
-        if (decl == null && _superClassDecl != null)
-            decl = _superClassDecl.getClassDeclDeep(aName);
+        if (decl == null && _superClass != null)
+            decl = _superClass.getClassDeclDeep(aName);
         return decl;
     }
 

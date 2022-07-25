@@ -3,12 +3,16 @@
  */
 package javakit.reflect;
 import javakit.resolver.Resolver;
+import snap.util.StringUtils;
 import java.lang.reflect.*;
 
 /**
  * This class represents a Java Method or Constructor.
  */
 public class JavaExecutable extends JavaMember {
+
+    // The JavaDecls for parameter types for Constructor, Method
+    protected JavaType[]  _paramTypes;
 
     // Whether method has VarArgs
     protected boolean  _varArgs;
@@ -39,8 +43,50 @@ public class JavaExecutable extends JavaMember {
     public JavaExecutable getSuper()  { return null; }
 
     /**
+     * Returns the number of Method/ParamType parameters.
+     */
+    public int getParamCount()
+    {
+        return _paramTypes.length;
+    }
+
+    /**
+     * Returns the individual Method parameter type at index.
+     */
+    public JavaType getParamType(int anIndex)
+    {
+        return _paramTypes[anIndex];
+    }
+
+    /**
+     * Returns the parameter types.
+     */
+    public JavaType[] getParamTypes()  { return _paramTypes; }
+
+    /**
+     * Returns the parameter type names.
+     */
+    public String[] getParamTypeNames()
+    {
+        String[] names = new String[_paramTypes.length];
+        for (int i = 0; i < names.length; i++) names[i] = _paramTypes[i].getName();
+        return names;
+    }
+
+    /**
+     * Returns the parameter type simple names.
+     */
+    public String[] getParamTypeSimpleNames()
+    {
+        String[] names = new String[_paramTypes.length];
+        for (int i = 0; i < names.length; i++) names[i] = _paramTypes[i].getSimpleName();
+        return names;
+    }
+
+    /**
      * Returns whether given declaration collides with this declaration.
      */
+    @Override
     public boolean matches(JavaDecl aDecl)
     {
         // Check identity
@@ -58,5 +104,56 @@ public class JavaExecutable extends JavaMember {
 
         // Return false, since no match
         return false;
+    }
+
+    /**
+     * Returns a string representation of suggestion.
+     */
+    @Override
+    public String getSuggestionString()
+    {
+        StringBuffer sb = new StringBuffer(getSimpleName());
+        String[] paramTypeNames = getParamTypeSimpleNames();
+        sb.append('(').append(StringUtils.join(paramTypeNames, ",")).append(')');
+        return sb.toString();
+    }
+
+    /**
+     * Returns the string to use when inserting this suggestion into code.
+     */
+    @Override
+    public String getReplaceString()
+    {
+        String name = getName();
+        String[] paramTypeNames = getParamTypeSimpleNames();
+        return name + '(' + StringUtils.join(getParamTypeSimpleNames(), ",") + ')';
+    }
+
+    /**
+     * Returns a name suitable to describe declaration.
+     */
+    @Override
+    public String getPrettyName()
+    {
+        String className = getClassName();
+        String memberName = className;
+        if (this instanceof JavaMethod)
+            memberName = className + '.' + getName();
+        String[] paramTypeNames = getParamTypeSimpleNames();
+        return memberName + '(' + StringUtils.join(paramTypeNames, ",") + ')';
+    }
+
+    /**
+     * Returns a name unique for matching declarations.
+     */
+    @Override
+    public String getMatchName()
+    {
+        String className = getClassName();
+        String memberName = className;
+        if (this instanceof JavaMethod)
+            memberName = className + '.' + getName();
+        String[] paramTypeNames = getParamTypeNames();
+        return memberName + '(' + StringUtils.join(paramTypeNames, ",") + ')';
     }
 }

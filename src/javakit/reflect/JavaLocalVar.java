@@ -23,4 +23,23 @@ public class JavaLocalVar extends JavaDecl {
         JType varDeclType = aVarDecl.getType();
         _evalType = varDeclType != null ? varDeclType.getDecl() : getClassDecl(Object.class); // Can happen for Lambdas
     }
+
+    /**
+     * Returns a string representation of suggestion.
+     */
+    @Override
+    public String getSuggestionString()
+    {
+        StringBuffer sb = new StringBuffer(getSimpleName());
+
+        JavaType evalType = getEvalType();
+        if (evalType != null)
+            sb.append(" : ").append(evalType.getSimpleName());
+        String className = getClassSimpleName();
+        if (className != null)
+            sb.append(" - ").append(className);
+
+        // Return string
+        return sb.toString();
+    }
 }

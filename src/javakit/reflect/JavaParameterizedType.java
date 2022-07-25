@@ -14,6 +14,9 @@ import java.lang.reflect.Type;
  */
 public class JavaParameterizedType extends JavaType {
 
+    // The JavaDecls for parameter types for Constructor, Method
+    protected JavaType[]  _paramTypes;
+
     /**
      * Constructor.
      */
@@ -27,7 +30,7 @@ public class JavaParameterizedType extends JavaType {
 
         Type rawType = parameterizedType.getRawType();
         _parent = _resolver.getTypeDecl(rawType);
-        _superDecl = (JavaType) _parent;
+        _superType = (JavaType) _parent;
 
         Type[] typArgs = parameterizedType.getActualTypeArguments();
         _paramTypes = new JavaType[typArgs.length];
@@ -58,5 +61,37 @@ public class JavaParameterizedType extends JavaType {
         _simpleName = _parent.getSimpleName() + '<' + StringUtils.join(getParamTypeSimpleNames(), ",") + '>';
 
         _resolver._decls.put(_id, this);
+    }
+
+    /**
+     * Returns the parameter types.
+     */
+    public JavaType[] getParamTypes()  { return _paramTypes; }
+
+    /**
+     * Returns the parameter type simple names.
+     */
+    public String[] getParamTypeSimpleNames()
+    {
+        String[] names = new String[_paramTypes.length];
+        for (int i = 0; i < names.length; i++) names[i] = _paramTypes[i].getSimpleName();
+        return names;
+    }
+
+    /**
+     * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
+     */
+    @Override
+    public JavaType getResolvedType(JavaDecl aDecl)
+    {
+        // Search for TypeVar name in ParamTypes
+        String typeVarName = aDecl.getName();
+        JavaClass javaClass = getClassType();
+        int ind = javaClass.getTypeVarIndex(typeVarName);
+        if (ind >= 0 && ind < _paramTypes.length)
+            return _paramTypes[ind];
+
+        // Do normal version
+        return super.getResolvedType(aDecl);
     }
 }

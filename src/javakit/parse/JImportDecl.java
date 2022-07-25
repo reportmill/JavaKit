@@ -5,6 +5,7 @@ package javakit.parse;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaMember;
 import javakit.reflect.JavaType;
 
 import java.util.*;
@@ -131,12 +132,17 @@ public class JImportDecl extends JNode {
     /**
      * Returns the member for given name and parameter types (if method) for static import.
      */
-    public JavaDecl getImportMember(String aName, JavaType[] theParams)
+    public JavaMember getImportMember(String aName, JavaType[] theParams)
     {
         JavaClass cls = (JavaClass) getEvalType();
-        if (cls == null) return null;
+        if (cls == null)
+            return null;
+
+        // If no params, try for field
         if (theParams == null)
             return cls.getField(aName);
+
+        // Otherwise, look for method
         return cls.getCompatibleMethodAll(aName, theParams);
     }
 

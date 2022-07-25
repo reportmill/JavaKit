@@ -10,7 +10,7 @@ import javakit.resolver.Resolver;
 public class JavaType extends JavaDecl {
 
     // The super implementation of this type (Class, Method, Constructor)
-    protected JavaType  _superDecl;
+    protected JavaType  _superType;
 
     /**
      * Constructor.
@@ -51,7 +51,7 @@ public class JavaType extends JavaDecl {
     /**
      * Returns the super decl of this JavaDecl (Class, Method, Constructor).
      */
-    public JavaType getSuper()  { return _superDecl; }
+    public JavaType getSuper()  { return _superType; }
 
     /**
      * Returns common ancestor of this decl and given decls.
@@ -105,13 +105,20 @@ public class JavaType extends JavaDecl {
      */
     public boolean isResolvedType()
     {
-        if (isTypeVar()) return false;
+        // TypeVars are not resolved
+        if (isTypeVar())
+            return false;
+
+        // ParamType might subclass or include TypeVars
         if (isParamType()) {
-            if (getParent().isTypeVar()) return false;
-            for (JavaDecl tv : getTypeVars())
-                if (tv.isTypeVar())
+            if (getParent().isTypeVar())
+                return false;
+            for (JavaDecl typeVar : getTypeVars())
+                if (typeVar.isTypeVar())
                     return false;
         }
+
+        // Return
         return true;
     }
 
@@ -125,17 +132,10 @@ public class JavaType extends JavaDecl {
             System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
             return (JavaParameterizedType) aDecl;
         }
+
+        // Should always be a TypeVar I think
         if (!aDecl.isTypeVar())
             return (JavaType) aDecl;
-
-        // Handle ParamType:
-        if (isParamType()) {
-            String name = aDecl.getName();
-            JavaClass cls = getClassType();
-            int ind = cls.getTypeVarIndex(name);
-            if (ind >= 0 && ind < _paramTypes.length)
-                return _paramTypes[ind];
-        }
 
         // If not resolve, just return bounds type
         return aDecl.getEvalType();
@@ -157,5 +157,25 @@ public class JavaType extends JavaDecl {
 
         // Return false, since no match
         return false;
+    }
+
+    /**
+     * Returns a string representation of suggestion.
+     */
+    @Override
+    public String getSuggestionString()
+    {
+        String simpleName = getSimpleName();
+        String parentName = getParentName();
+        return simpleName + " - " + parentName;
+    }
+
+    /**
+     * Returns the string to use when inserting this suggestion into code.
+     */
+    @Override
+    public String getReplaceString()
+    {
+        return getSimpleName();
     }
 }

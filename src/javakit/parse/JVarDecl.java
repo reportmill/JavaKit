@@ -7,6 +7,7 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaMethod;
 import javakit.reflect.JavaType;
 import snap.util.ListUtils;
 
@@ -87,19 +88,20 @@ public class JVarDecl extends JNode {
         if (par instanceof JExprLambda) {
 
             // Get decl for this param (resolve if needed)
-            JExprLambda lmda = (JExprLambda) par;
-            JavaDecl meth = lmda.getMethod();
-            if (meth == null)
+            JExprLambda lambda = (JExprLambda) par;
+            JavaMethod lambdaMethod = lambda.getMethod();
+            if (lambdaMethod == null)
                 return null;
 
             // Get index
-            int ind = ListUtils.indexOfId(lmda.getParams(), this);
-            if (ind < 0 || ind >= meth.getParamCount()) return null;
+            int ind = ListUtils.indexOfId(lambda.getParams(), this);
+            if (ind < 0 || ind >= lambdaMethod.getParamCount())
+                return null;
 
             //
-            JavaType paramType = meth.getParamType(ind);
+            JavaType paramType = lambdaMethod.getParamType(ind);
             if (!paramType.isResolvedType()) {
-                JavaType lambdaType = lmda.getDecl();
+                JavaType lambdaType = lambda.getDecl();
                 paramType = lambdaType.getResolvedType(paramType);
             }
 

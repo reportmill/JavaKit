@@ -5,7 +5,6 @@ package javakit.reflect;
 import java.lang.reflect.*;
 import javakit.resolver.Resolver;
 import javakit.resolver.ResolverUtils;
-import snap.util.*;
 
 /**
  * A class to represent a declaration of a Java Class, Method, Field or Constructor.
@@ -35,9 +34,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
 
     // The type this decl evaluates to when referenced
     protected JavaType  _evalType;
-
-    // The JavaDecls for parameter types for Constructor, Method
-    protected JavaType[]  _paramTypes;
 
     // The JavaDecls for TypeVars for Class, Method
     protected JavaTypeVariable[]  _typeVars = EMPTY_TYPE_VARS;
@@ -263,47 +259,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     }
 
     /**
-     * Returns the number of Method/ParamType parameters.
-     */
-    public int getParamCount()
-    {
-        return _paramTypes.length;
-    }
-
-    /**
-     * Returns the individual Method parameter type at index.
-     */
-    public JavaType getParamType(int anIndex)
-    {
-        return _paramTypes[anIndex];
-    }
-
-    /**
-     * Returns the parameter types.
-     */
-    public JavaType[] getParamTypes()  { return _paramTypes; }
-
-    /**
-     * Returns the parameter type names.
-     */
-    public String[] getParamTypeNames()
-    {
-        String[] names = new String[_paramTypes.length];
-        for (int i = 0; i < names.length; i++) names[i] = _paramTypes[i].getName();
-        return names;
-    }
-
-    /**
-     * Returns the parameter type simple names.
-     */
-    public String[] getParamTypeSimpleNames()
-    {
-        String[] names = new String[_paramTypes.length];
-        for (int i = 0; i < names.length; i++) names[i] = _paramTypes[i].getSimpleName();
-        return names;
-    }
-
-    /**
      * Returns the TypeVars.
      */
     public JavaDecl[] getTypeVars()  { return _typeVars; }
@@ -364,12 +319,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String getPrettyName()
     {
-        String name = getClassName();
-        if (isMethod() || isField()) name += '.' + _name;
-        if (isMethod() || isConstructor()) name += '(' + StringUtils.join(getParamTypeSimpleNames(), ",") + ')';
-        if (isPackage()) return _name;
-        if (isVarDecl()) return _name;
-        return name;
+        return getName();
     }
 
     /**
@@ -377,12 +327,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String getMatchName()
     {
-        String name = getClassName();
-        if (isMethod() || isField()) name += '.' + _name;
-        if (isMethod() || isConstructor()) name += '(' + StringUtils.join(getParamTypeNames(), ",") + ')';
-        if (isPackage()) return _name;
-        if (isVarDecl()) return _name;
-        return name;
+        return getName();
     }
 
     /**
@@ -405,27 +350,8 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String getSuggestionString()
     {
-        StringBuffer sb = new StringBuffer(getSimpleName());
-        switch (getType()) {
-            case Constructor:
-            case Method:
-                sb.append('(').append(StringUtils.join(getParamTypeSimpleNames(), ",")).append(')');
-            case VarDecl:
-            case Field:
-                if (getEvalType() != null) sb.append(" : ").append(getEvalType().getSimpleName());
-                if (getClassName() != null) sb.append(" - ").append(getClassSimpleName());
-                break;
-            case Class:
-                sb.append(" - ").append(getParentName());
-                break;
-            case Package:
-                break;
-            default:
-                throw new RuntimeException("Unsupported Type " + getType());
-        }
-
-        // Return string
-        return sb.toString();
+        String simpleName = getSimpleName();
+        return simpleName;
     }
 
     /**
@@ -433,20 +359,8 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String getReplaceString()
     {
-        switch (getType()) {
-            case Class:
-                return getSimpleName();
-            case Constructor:
-            case Method:
-                return getName() + '(' + StringUtils.join(getParamTypeSimpleNames(), ",") + ')';
-            case Package: {
-                String name = getPackageName();
-                int index = name.lastIndexOf('.');
-                return index > 0 ? name.substring(index + 1) : name;
-            }
-            default:
-                return getName();
-        }
+        String simpleName = getSimpleName();
+        return simpleName;
     }
 
     /**

@@ -8,10 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javakit.parse.*;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaField;
-import javakit.reflect.JavaMethod;
+import javakit.reflect.*;
 import snap.util.*;
 import snap.web.WebFile;
 
@@ -278,13 +275,24 @@ public class JavaCompleter {
      */
     private static JavaDecl getMethodCallArgType(JNode aNode)
     {
+        // Get methodc all
         JExprMethodCall methodCall = getMethodCall(aNode);
-        if (methodCall == null) return null;
+        if (methodCall == null)
+            return null;
+
+        // Get Arg index for node
         int argIndex = getMethodCallArgIndex(methodCall, aNode);
-        if (argIndex < 0) return null;
-        JavaDecl mdecl = methodCall.getDecl();
-        if (mdecl == null) return null;
-        return argIndex < mdecl.getParamCount() ? mdecl.getParamType(argIndex) : null;
+        if (argIndex < 0)
+            return null;
+
+        // Get method
+        JavaMethod method = methodCall.getDecl();
+        if (method == null)
+            return null;
+
+        // Get arg type and return
+        JavaType argType = argIndex < method.getParamCount() ? method.getParamType(argIndex) : null;
+        return argType;
     }
 
     /**

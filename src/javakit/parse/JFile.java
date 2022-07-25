@@ -6,6 +6,7 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaMember;
 import javakit.reflect.JavaType;
 import javakit.resolver.*;
 import snap.web.WebFile;
@@ -300,7 +301,7 @@ public class JFile extends JNode {
     /**
      * Returns a Class name for given name referenced in file.
      */
-    public JavaDecl getImportClassMember(String aName, JavaType[] theParams)
+    public JavaMember getImportClassMember(String aName, JavaType[] theParams)
     {
         JImportDecl imp = getStaticImport(aName, theParams);
         if (imp != null)

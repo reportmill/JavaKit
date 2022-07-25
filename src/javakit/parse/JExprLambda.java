@@ -1,5 +1,4 @@
 package javakit.parse;
-
 import java.util.*;
 
 import javakit.reflect.JavaDecl;
@@ -24,7 +23,7 @@ public class JExprLambda extends JExpr {
     JStmtBlock _block;
 
     // The declaration for the actual method for the interface this lambda represents
-    JavaDecl _meth;
+    protected JavaMethod  _meth;
 
     /**
      * Returns the list of formal parameters.
@@ -124,7 +123,7 @@ public class JExprLambda extends JExpr {
     /**
      * Returns the specific method in the lambda class interface that is to be called.
      */
-    public JavaDecl getMethod()
+    public JavaMethod getMethod()
     {
         getDecl();
         return _meth;
