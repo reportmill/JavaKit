@@ -23,4 +23,10 @@ public class JavaGenericArrayType extends JavaType {
         _evalType = getJavaClass(Object[].class);
         _resolver._decls.put(_id, this);
     }
+
+    /**
+     * Override to return false.
+     */
+    @Override
+    public boolean isResolvedType()  { return false; }
 }

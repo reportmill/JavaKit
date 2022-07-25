@@ -147,9 +147,23 @@ public class Resolver {
 
             // Get class or method
             GenericDeclaration classOrMethod = typeVar.getGenericDeclaration();
-            JavaDecl pdecl = getJavaDecl(classOrMethod);
-            decl = pdecl.getTypeVar(name);
-            return decl;
+            JavaDecl parentDecl = getJavaDecl(classOrMethod);
+
+            // Handle class
+            if (parentDecl instanceof JavaClass) {
+                JavaClass javaClass = (JavaClass) parentDecl;
+                return javaClass.getTypeVar(name);
+            }
+
+            // Handle Method/Constructor
+            else if (parentDecl instanceof JavaExecutable) {
+                JavaExecutable javaMethod = (JavaExecutable) parentDecl;
+                return javaMethod.getTypeVar(name);
+            }
+
+            // Can't resolve
+            System.out.println("Resolver.getTypeDecl: Can't resolve TypeVariable: " + name + " for " + parentDecl);
+            return null;
         }
 
         // Handle GenericArrayType

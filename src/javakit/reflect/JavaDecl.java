@@ -35,14 +35,8 @@ public class JavaDecl implements Comparable<JavaDecl> {
     // The type this decl evaluates to when referenced
     protected JavaType  _evalType;
 
-    // The JavaDecls for TypeVars for Class, Method
-    protected JavaTypeVariable[]  _typeVars = EMPTY_TYPE_VARS;
-
     // Constants for type
     public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar }
-
-    // Shared empty TypeVar array
-    private static JavaTypeVariable[] EMPTY_TYPE_VARS = new JavaTypeVariable[0];
 
     /**
      * Constructor.
@@ -256,35 +250,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
         String cname = getEvalClassName();
         if (cname == null) return null;
         return _resolver.getClassForName(cname);
-    }
-
-    /**
-     * Returns the TypeVars.
-     */
-    public JavaDecl[] getTypeVars()  { return _typeVars; }
-
-    /**
-     * Returns the TypeVar with given name.
-     */
-    public JavaTypeVariable getTypeVar(String aName)
-    {
-        // Handle Method, Constructor: Get type for name from TypeVars
-        if (isMethod() || isConstructor()) {
-
-            // Check Method, Constructor TypeVars
-            for (JavaTypeVariable tvar : _typeVars)
-                if (tvar.getName().equals(aName))
-                    return tvar;
-
-            // Forward to class
-            return _parent.getTypeVar(aName);
-        }
-
-        // Handle any other type: Complain
-        else System.err.println("JavaDecl.getTypeVar: request for typevar from wrong type " + this);
-
-        // Return null since named type var not found
-        return null;
     }
 
     /**

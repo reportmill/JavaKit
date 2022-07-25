@@ -366,23 +366,26 @@ public class JClassDecl extends JMemberDecl {
     protected JavaDecl getDeclImpl()
     {
         // If enclosing class declaration, return ThatClassName$ThisName, otherwise return JFile.Name
-        String cname = getName();
+        String className = getName();
 
         // If enclosing class, get name from it
-        JClassDecl ecd = getEnclosingClassDecl();
-        if (ecd != null) {
-            String ecname = ecd.getEvalClassName();
-            if (ecname != null) cname = ecname + '$' + cname;
+        JClassDecl enclosingClassDecl = getEnclosingClassDecl();
+        if (enclosingClassDecl != null) {
+            String enclosingClassName = enclosingClassDecl.getEvalClassName();
+            if (enclosingClassName != null)
+                className = enclosingClassName + '$' + className;
         }
 
         // Otherwise get full name from file
         else {
-            String pname = getFile().getPackageName();
-            if (pname != null && pname.length() > 0) cname = pname + '.' + cname;
+            JFile jfile = getFile();
+            String packageName = jfile.getPackageName();
+            if (packageName != null && packageName.length() > 0)
+                className = packageName + '.' + className;
         }
 
         // Return class name
-        return cname != null ? getJavaDecl(cname) : null;
+        return className != null ? getJavaDecl(className) : null;
     }
 
     /**
@@ -391,7 +394,8 @@ public class JClassDecl extends JMemberDecl {
     protected JavaDecl getDeclImpl(JNode aNode)
     {
         // If class id, return class declaration
-        if (aNode == _id) return getDecl();
+        if (aNode == _id)
+            return getDecl();
 
         // Handle JType in Extends or Implements lists: forward on
         if (aNode instanceof JType) {
@@ -409,9 +413,13 @@ public class JClassDecl extends JMemberDecl {
                 if (type.getParent() instanceof JType) {
                     JType par = (JType) type.getParent();
                     JavaType baseType = par.getBaseDecl();
-                    JavaDecl typeVarType = baseType != null ? baseType.getTypeVar(type.getName()) : null;
-                    if (typeVarType != null)
-                        return typeVarType;
+                    if (baseType instanceof JavaClass) {
+                        JavaClass baseClass = (JavaClass) baseType;
+                        String typeName = type.getName();
+                        JavaDecl typeVarType = baseClass.getTypeVar(typeName);
+                        if (typeVarType != null)
+                            return typeVarType;
+                    }
                 }
 
                 // Forward to file
@@ -427,21 +435,28 @@ public class JClassDecl extends JMemberDecl {
 
         // If it's "super", set class and return ClassField
         if (name.equals("super")) {
-            Class sclass = getSuperClass();
-            return sclass != null ? getJavaDecl(sclass) : null;
+            Class<?> superClass = getSuperClass();
+            return superClass != null ? getJavaDecl(superClass) : null;
         }
 
         // Iterate over fields and return declaration if found
-        if (isId) for (JFieldDecl fd : getFieldDecls()) {
-            for (JVarDecl vd : fd.getVarDecls())
-                if (SnapUtils.equals(vd.getName(), name))
-                    return vd.getDecl();
+        if (isId) {
+            JFieldDecl[] fieldDecls = getFieldDecls();
+            for (JFieldDecl fieldDecl : fieldDecls) {
+                List<JVarDecl> fieldVarDecls = fieldDecl.getVarDecls();
+                for (JVarDecl fieldVarDecl : fieldVarDecls)
+                    if (SnapUtils.equals(fieldVarDecl.getName(), name))
+                        return fieldVarDecl.getDecl();
+            }
         }
 
         // Iterate over enum constants
-        if (isId && isEnum()) for (JEnumConst ec : getEnumConstants()) {
-            if (name.equals(ec.getName()))
-                return ec.getDecl();
+        if (isId && isEnum()) {
+            List<JEnumConst> enumConstants = getEnumConstants();
+            for (JEnumConst enumConst : enumConstants) {
+                if (name.equals(enumConst.getName()))
+                    return enumConst.getDecl();
+            }
         }
 
         // See if it's a field reference from superclass
@@ -451,27 +466,28 @@ public class JClassDecl extends JMemberDecl {
             return getJavaDecl(field);
 
         // Check interfaces
-        if (isId) for (JType tp : getImplementsTypes()) {
-            Class cls = tp.getEvalClass();
-            Field fd = cls != null ? ClassUtils.getFieldForName(cls, name) : null;
-            if (fd != null)
-                return getJavaDecl(fd);
+        if (isId) {
+            List<JType> implementsTypes = getImplementsTypes();
+            for (JType implementsType : implementsTypes) {
+                Class interf = implementsType.getEvalClass();
+                Field field2 = interf != null ? ClassUtils.getFieldForName(interf, name) : null;
+                if (field2 != null)
+                    return getJavaDecl(field2);
+            }
         }
 
         // Look for JTypeVar for given name
-        JTypeVar tvar = getTypeVar(name);
-        if (tvar != null)
-            return tvar.getDecl();
+        JTypeVar typeVar = getTypeVar(name);
+        if (typeVar != null)
+            return typeVar.getDecl();
 
         // Look for InnerClass of given name
-        Class cdClass = getEvalClass();
-        Class cls = null;
-        try {
-            cls = cdClass != null ? ClassUtils.getInnerClassForName(cdClass, name) : null;
-        } catch (Throwable t) {
+        Class evalClass = getEvalClass();
+        if (evalClass != null) {
+            Class innerClass = ClassUtils.getInnerClassForName(evalClass, name);
+            if (innerClass != null)
+                return getJavaDecl(innerClass);
         }
-        if (cls != null)
-            return getJavaDecl(cls);
 
         // Do normal version
         return super.getDeclImpl(aNode);

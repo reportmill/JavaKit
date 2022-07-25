@@ -103,24 +103,7 @@ public class JavaType extends JavaDecl {
     /**
      * Returns whether is Type is explicit (doesn't contain any type variables).
      */
-    public boolean isResolvedType()
-    {
-        // TypeVars are not resolved
-        if (isTypeVar())
-            return false;
-
-        // ParamType might subclass or include TypeVars
-        if (isParamType()) {
-            if (getParent().isTypeVar())
-                return false;
-            for (JavaDecl typeVar : getTypeVars())
-                if (typeVar.isTypeVar())
-                    return false;
-        }
-
-        // Return
-        return true;
-    }
+    public boolean isResolvedType()  { return true; }
 
     /**
      * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.

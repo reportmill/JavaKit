@@ -1018,6 +1018,16 @@ public class JavaClass extends JavaType {
     }
 
     /**
+     * Returns the TypeVars.
+     */
+    public JavaDecl[] getTypeVars()
+    {
+        List<JavaTypeVariable> typeVarsList = getTypeVars2();
+        JavaTypeVariable[] typeVars = typeVarsList.toArray(new JavaTypeVariable[0]);
+        return typeVars;
+    }
+
+    /**
      * Returns a TypeVar decl for inner class name.
      */
     public JavaTypeVariable getTypeVar(String aName)

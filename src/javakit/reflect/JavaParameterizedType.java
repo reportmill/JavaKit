@@ -79,6 +79,26 @@ public class JavaParameterizedType extends JavaType {
     }
 
     /**
+     * Returns whether is Type is explicit (doesn't contain any type variables).
+     */
+    public boolean isResolvedType()
+    {
+        // ParamType might subclass TypeVars
+        JavaDecl parent = getParent();
+        if (parent instanceof JavaTypeVariable)
+            return false;
+
+        // Or types might include TypeVars
+        JavaType[] paramTypes = getParamTypes();
+        for (JavaType paramType : paramTypes)
+            if (paramType instanceof JavaTypeVariable)
+                return false;
+
+        // Return
+        return true;
+    }
+
+    /**
      * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
      */
     @Override

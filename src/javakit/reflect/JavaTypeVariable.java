@@ -31,4 +31,10 @@ public class JavaTypeVariable extends JavaType {
 
         _resolver._decls.put(_id, this);
     }
+
+    /**
+     * Override to return false.
+     */
+    @Override
+    public boolean isResolvedType()  { return false; }
 }

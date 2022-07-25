@@ -11,6 +11,9 @@ import java.lang.reflect.*;
  */
 public class JavaExecutable extends JavaMember {
 
+    // The JavaDecls for TypeVars for Method/Constructor
+    protected JavaTypeVariable[]  _typeVars;
+
     // The JavaDecls for parameter types for Constructor, Method
     protected JavaType[]  _paramTypes;
 
@@ -30,17 +33,29 @@ public class JavaExecutable extends JavaMember {
     }
 
     /**
-     * Returns whether Method/Constructor is VarArgs type.
-     */
-    public boolean isVarArgs()
-    {
-        return _varArgs;
-    }
-
-    /**
      * Returns the super decl of this JavaDecl (Class, Method, Constructor).
      */
     public JavaExecutable getSuper()  { return null; }
+
+    /**
+     * Returns the TypeVars.
+     */
+    public JavaTypeVariable[] getTypeVars()  { return _typeVars; }
+
+    /**
+     * Returns the TypeVar with given name.
+     */
+    public JavaTypeVariable getTypeVar(String aName)
+    {
+        // Check Method, Constructor TypeVars
+        for (JavaTypeVariable tvar : _typeVars)
+            if (tvar.getName().equals(aName))
+                return tvar;
+
+        // Forward to class
+        JavaClass parentClass = getClassType();
+        return parentClass.getTypeVar(aName);
+    }
 
     /**
      * Returns the number of Method/ParamType parameters.
@@ -62,6 +77,14 @@ public class JavaExecutable extends JavaMember {
      * Returns the parameter types.
      */
     public JavaType[] getParamTypes()  { return _paramTypes; }
+
+    /**
+     * Returns whether Method/Constructor is VarArgs type.
+     */
+    public boolean isVarArgs()
+    {
+        return _varArgs;
+    }
 
     /**
      * Returns the parameter type names.

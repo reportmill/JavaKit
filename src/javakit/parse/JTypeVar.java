@@ -3,8 +3,7 @@
  */
 package javakit.parse;
 
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 
 import java.util.*;
 
@@ -69,11 +68,30 @@ public class JTypeVar extends JNode {
      */
     protected JavaDecl getDeclImpl()
     {
-        JavaDecl pdecl = getParent().getDecl();
-        if (pdecl == null) return null;
+        // Get Parent declaration
+        JNode parent = getParent();
+        JavaDecl parentDecl = parent.getDecl();
+        if (parentDecl == null)
+            return null;
+
+        // Handle Class
         String name = getName();
-        JavaDecl tvar = pdecl.getTypeVar(name);
-        return tvar;
+        if (parentDecl instanceof JavaClass) {
+            JavaClass parentClass = (JavaClass) parentDecl;
+            JavaTypeVariable typeVar = parentClass.getTypeVar(name);
+            return typeVar;
+        }
+
+        // Handle Executable (Method/Constructor)
+        if (parentDecl instanceof JavaExecutable) {
+            JavaExecutable parentMethod = (JavaExecutable) parentDecl;
+            JavaTypeVariable typeVar = parentMethod.getTypeVar(name);
+            return typeVar;
+        }
+
+        // Return
+        System.out.println("JTypeVar.getDeclImpl: Unsupported parent type: " + parentDecl);
+        return null;
     }
 
     /**
