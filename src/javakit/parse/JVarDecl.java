@@ -7,6 +7,7 @@ import java.util.*;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaType;
 import snap.util.ListUtils;
 
 /**
@@ -84,25 +85,30 @@ public class JVarDecl extends JNode {
 
         // Handle parent is JExprLambda: Get decl for this param and create new type
         if (par instanceof JExprLambda) {
-            JExprLambda lmda = (JExprLambda) par;
 
             // Get decl for this param (resolve if needed)
+            JExprLambda lmda = (JExprLambda) par;
             JavaDecl meth = lmda.getMethod();
-            if (meth == null) return null;
+            if (meth == null)
+                return null;
+
+            // Get index
             int ind = ListUtils.indexOfId(lmda.getParams(), this);
             if (ind < 0 || ind >= meth.getParamCount()) return null;
-            JavaDecl tdecl = meth.getParamType(ind);
-            if (!tdecl.isResolvedType()) {
-                JavaDecl ltype = lmda.getDecl();
-                tdecl = ltype.getResolvedType(tdecl);
+
+            //
+            JavaType paramType = meth.getParamType(ind);
+            if (!paramType.isResolvedType()) {
+                JavaType lambdaType = lmda.getDecl();
+                paramType = lambdaType.getResolvedType(paramType);
             }
 
             // Create type for type decl and return
             JType type = new JType();
-            type._name = tdecl.getSimpleName();
+            type._name = paramType.getSimpleName();
             type._startToken = type._endToken = _startToken;
-            type._decl = tdecl;
-            type._primitive = tdecl.isPrimitive();
+            type._decl = paramType;
+            type._primitive = paramType.isPrimitive();
             type._parent = this;
             return type;
         }

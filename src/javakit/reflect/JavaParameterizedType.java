@@ -24,7 +24,10 @@ public class JavaParameterizedType extends JavaType {
 
         _type = DeclType.ParamType;
         _name = ResolverUtils.getTypeName(parameterizedType);
-        _parent = _resolver.getTypeDecl(parameterizedType.getRawType());
+
+        Type rawType = parameterizedType.getRawType();
+        _parent = _resolver.getTypeDecl(rawType);
+        _superDecl = (JavaType) _parent;
 
         Type[] typArgs = parameterizedType.getActualTypeArguments();
         _paramTypes = new JavaType[typArgs.length];

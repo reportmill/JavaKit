@@ -4,6 +4,7 @@
 package javakit.parse;
 
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaType;
 
 /**
  * The JNode base class for Java expressions.
@@ -28,10 +29,11 @@ public abstract class JExpr extends JNode {
     /**
      * Returns the ScopeNode EvalType.
      */
-    public JavaDecl getScopeNodeEvalType()
+    public JavaType getScopeNodeEvalType()
     {
-        JNode sn = getScopeNode();
-        return sn != null ? sn.getEvalType() : null;
+        JNode scopeNode = getScopeNode();
+        JavaType scopeType = scopeNode != null ? scopeNode.getEvalType() : null;
+        return scopeType;
     }
 
     /**

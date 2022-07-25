@@ -131,47 +131,61 @@ public class JExprLambda extends JExpr {
     }
 
     /**
+     * Override to return as type.
+     */
+    @Override
+    public JavaType getDecl()
+    {
+        return (JavaType) super.getDecl();
+    }
+
+    /**
      * Override to try to resolve decl from parent.
      */
-    protected JavaDecl getDeclImpl()
+    protected JavaType getDeclImpl()
     {
+        // Get Parent (just return if null)
         JNode par = getParent();
-        if (par == null) return null;
+        if (par == null)
+            return null;
 
         // Handle parent is method call: Get lambda interface from method call decl param
-        JavaDecl idecl = null;
         if (par instanceof JExprMethodCall) {
 
-            JExprMethodCall mcall = (JExprMethodCall) par;
-            List<JavaMethod> meths = getCompatibleMethods();
-            if (meths == null || meths.size() == 0)
+            JExprMethodCall methodCall = (JExprMethodCall) par;
+            List<JavaMethod> methods = getCompatibleMethods();
+            if (methods == null || methods.size() == 0)
                 return null;
 
-            int ind = ListUtils.indexOfId(mcall.getArgs(), this), argc = getParamCount();
+            List<JExpr> argExpressions = methodCall.getArgs();
+            int ind = ListUtils.indexOfId(argExpressions, this);
+            int argc = getParamCount();
             if (ind < 0)
                 return null;
 
-            for (JavaDecl mdecl : meths) {
-                JavaDecl pdecl = mdecl.getParamType(ind);
-                JavaClass pcdecl = pdecl.getClassType();
-                _meth = pcdecl.getLambdaMethod(argc);
+            for (JavaMethod method : methods) {
+                JavaType paramType = method.getParamType(ind);
+                JavaClass paramClass = paramType.getClassType();
+                _meth = paramClass.getLambdaMethod(argc);
                 if (_meth != null)
-                    return pdecl;
+                    return paramType;
             }
 
+            // Return
             return null;
         }
 
         // Handle parent anything else (JVarDecl, JStmtExpr): Get lambda interface from eval type
-        else if (par != null && par._decl != null)
-            idecl = par.getEvalType();
+        else if (par != null && par._decl != null) {
 
-        // If type is interface, get lambda type
-        if (idecl != null) {
-            JavaClass cdecl = idecl.getClassType();
-            _meth = cdecl.getLambdaMethod(getParamCount());
-            if (_meth != null)
-                return idecl;
+            // If type is interface, get lambda type
+            JavaType parentType = par.getEvalType();
+            if (parentType != null) {
+                JavaClass parentClass = parentType.getClassType();
+                _meth = parentClass.getLambdaMethod(getParamCount());
+                if (_meth != null)
+                    return parentType;
+            }
         }
 
         // Return null since not found

@@ -114,14 +114,20 @@ public class JNode {
      */
     protected JavaType getEvalTypeImpl()
     {
+        // Get decl (just return if null)
         JavaDecl decl = getDecl();
-        if (decl == null) return null;
-        JavaType etype = decl.getEvalType();
-        if (etype != null && !etype.isResolvedType()) {
+        if (decl == null)
+            return null;
+
+        // Get EvalType
+        JavaType evalType = decl.getEvalType();
+        if (evalType != null && !evalType.isResolvedType()) {
             JavaType etype2 = getEvalTypeImpl(this);
-            etype = etype2 != null ? etype2 : etype.getEvalType();
+            evalType = etype2 != null ? etype2 : evalType.getEvalType();
         }
-        return etype;
+
+        // Return
+        return evalType;
     }
 
     /**

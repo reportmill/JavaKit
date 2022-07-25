@@ -178,12 +178,12 @@ public class JExprMethodCall extends JExpr {
         else if (aNode == this) {
             JavaDecl mdecl = aNode.getDecl();
             if (mdecl == null) return null;
-            JavaDecl etype = mdecl.getEvalType();
-            JavaDecl scopeType = getScopeNodeEvalType();
+            JavaType evalType = mdecl.getEvalType();
+            JavaType scopeType = getScopeNodeEvalType();
 
             // If eval type is TypeVar, try to resolve
-            if (etype.isTypeVar()) {
-                String name = etype.getName();
+            if (evalType.isTypeVar()) {
+                String name = evalType.getName();
 
                 // See if TypeVar can be resolved by method
                 JavaType resolvedDecl = getResolvedTypeVarForMethod(name, mdecl);
@@ -191,12 +191,12 @@ public class JExprMethodCall extends JExpr {
                     return resolvedDecl;
 
                 // See if TypeVar can be resolved by ScopeNode.Type
-                resolvedDecl = scopeType.getResolvedType(etype);
+                resolvedDecl = scopeType.getResolvedType(evalType);
                 if (resolvedDecl != null)
                     return resolvedDecl;
 
                 // Otherwise, just return TypeVar default
-                return etype.getEvalType();
+                return evalType.getEvalType();
             }
         }
 

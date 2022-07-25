@@ -1,6 +1,7 @@
 package javakit.parse;
 
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaType;
 
 /**
  * An class to represent expressions that include an operator (math, logical, etc.).
@@ -189,15 +190,28 @@ public class JExprMath extends JExpr {
     }
 
     /**
-     * Returns common ancestor of two decls.
+     * Returns common ancestor of conditional true/false expressions.
      */
-    private JavaDecl getEvalTypeConditional()
+    private JavaType getEvalTypeConditional()
     {
-        if (getChildCount() < 3) return getJavaDecl(Object.class);
-        JavaDecl d0 = getOperand(1).getEvalType(), d1 = getOperand(2).getEvalType();
-        if (d0 == null) return d1;
-        if (d1 == null) return d0;
-        return d0.getCommonAncestor(d1);
+        // If both true/false expressions not set, just bail
+        if (getChildCount() < 3)
+            return getJavaClass(Object.class);
+
+        // Get true/false expressions and eval types
+        JExpr trueExpr = getOperand(1);
+        JExpr falseExpr = getOperand(2);
+        JavaType trueExprType = trueExpr.getEvalType();
+        JavaType falseExprType = falseExpr.getEvalType();
+
+        // If either evals to null, use the other
+        if (trueExprType == null)
+            return falseExprType;
+        if (falseExprType == null)
+            return trueExprType;
+
+        // Return common type between true/false types
+        return trueExprType.getCommonAncestor(falseExprType);
     }
 
     /**

@@ -42,14 +42,10 @@ public class JavaDecl implements Comparable<JavaDecl> {
     // The JavaDecls for TypeVars for Class, Method
     protected JavaTypeVariable[]  _typeVars = EMPTY_TYPE_VARS;
 
-    // The super implementation of this type (Class, Method, Constructor)
-    protected JavaDecl  _superDecl = NULL_DECL;
-
     // Constants for type
     public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar }
 
     // Shared empty TypeVar array
-    private static JavaDecl NULL_DECL = new JavaDecl();
     private static JavaTypeVariable[] EMPTY_TYPE_VARS = new JavaTypeVariable[0];
 
     /**
@@ -356,127 +352,11 @@ public class JavaDecl implements Comparable<JavaDecl> {
     }
 
     /**
-     * Returns the super decl of this JavaDecl (Class, Method, Constructor).
-     */
-    public JavaDecl getSuper()
-    {
-        // If already set, just return
-        if (_superDecl != NULL_DECL) return _superDecl;
-
-        // Get superclass and helper
-        JavaClass cdecl = getClassType();
-        JavaClass scdecl = cdecl != null ? cdecl.getSuper() : null;
-
-        // Handle Method
-        if (isMethod())
-            return _superDecl = scdecl != null ? scdecl.getMethodDeclDeep(getName(), getParamTypes()) : null;
-
-        // Handle Constructor
-        if (isConstructor())
-            return _superDecl = scdecl != null ? scdecl.getConstructorDeclDeep(getParamTypes()) : null;
-
-        // Handle ParamType
-        if (isParamType())
-            return _superDecl = _parent;
-
-        // Complain and return
-        System.err.println("JavaDecl.getSuper: Invalid type " + this);
-        return _superDecl = null;
-    }
-
-    /**
-     * Returns common ancestor of this decl and given decls.
-     */
-    public JavaDecl getCommonAncestor(JavaDecl aDecl)
-    {
-        if (aDecl == this) return this;
-
-        // Handle primitive
-        if (isPrimitive() && aDecl.isPrimitive())
-            return getCommonAncestorPrimitive(aDecl);
-        else if (isPrimitive())
-            return getPrimitiveAlt().getCommonAncestor(aDecl);
-        else if (aDecl.isPrimitive())
-            return getCommonAncestor(aDecl.getPrimitiveAlt());
-
-        // Iterate up each super chain to check
-        for (JavaDecl d0 = this; d0 != null; d0 = d0.getSuper())
-            for (JavaDecl d1 = aDecl; d1 != null; d1 = d1.getSuper())
-                if (d0 == d1) return d0;
-
-        // Return Object (case where at least one was interface or ParamType of interface)
-        return getJavaDecl(Object.class);
-    }
-
-    /**
-     * Returns common ancestor of this decl and given decls.
-     */
-    protected JavaDecl getCommonAncestorPrimitive(JavaDecl aDecl)
-    {
-        String n0 = getName();
-        String n1 = aDecl.getName();
-        if (n0.equals("double")) return this;
-        if (n1.equals("double")) return aDecl;
-        if (n0.equals("float")) return this;
-        if (n1.equals("float")) return aDecl;
-        if (n0.equals("long")) return this;
-        if (n1.equals("long")) return aDecl;
-        if (n0.equals("int")) return this;
-        if (n1.equals("int")) return aDecl;
-        if (n0.equals("short")) return this;
-        if (n1.equals("short")) return aDecl;
-        if (n0.equals("char")) return this;
-        if (n1.equals("char")) return aDecl;
-        return this;
-    }
-
-    /**
      * Returns whether given type is assignable to this JavaDecl.
      */
     public boolean isAssignable(JavaDecl aDecl)
     {
         return false;
-    }
-
-    /**
-     * Returns whether is Type is explicit (doesn't contain any type variables).
-     */
-    public boolean isResolvedType()
-    {
-        if (isTypeVar()) return false;
-        if (isParamType()) {
-            if (getParent().isTypeVar()) return false;
-            for (JavaDecl tv : getTypeVars())
-                if (tv.isTypeVar())
-                    return false;
-        }
-        return true;
-    }
-
-    /**
-     * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
-     */
-    public JavaType getResolvedType(JavaDecl aDecl)
-    {
-        // Handle ParamType and anything not a TypeVar
-        if (aDecl.isParamType()) {
-            System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
-            return (JavaParameterizedType) aDecl;
-        }
-        if (!aDecl.isTypeVar())
-            return (JavaType) aDecl;
-
-        // Handle ParamType:
-        if (isParamType()) {
-            String name = aDecl.getName();
-            JavaClass cls = getClassType();
-            int ind = cls.getTypeVarIndex(name);
-            if (ind >= 0 && ind < _paramTypes.length)
-                return _paramTypes[ind];
-        }
-
-        // If not resolve, just return bounds type
-        return aDecl.getEvalType();
     }
 
     /**
@@ -623,24 +503,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public boolean matches(JavaDecl aDecl)
     {
-        // Check identity
-        if (aDecl == this) return true;
-
-        // Handle ParamTypes: Test against ClassType instead
-        if (isParamType()) return getClassType().matches(aDecl);
-        else if (aDecl.isParamType()) return matches(aDecl.getClassType());
-
-        // If Types don't match, just return
-        if (aDecl._type != _type) return false;
-
-        // For Method, Constructor: Check supers
-        if (isMethod() || isConstructor())
-            for (JavaDecl sup = aDecl.getSuper(); sup != null; sup = sup.getSuper())
-                if (sup == this)
-                    return true;
-
-        // Return false, since no match
-        return false;
+        return aDecl == this;
     }
 
     /**

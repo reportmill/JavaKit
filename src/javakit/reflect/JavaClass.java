@@ -14,7 +14,7 @@ import snap.util.StringUtils;
 public class JavaClass extends JavaType {
 
     // The SuperClass type
-    private JavaDecl  _stype;
+    private JavaType  _stype;
 
     // The super class decl
     private JavaClass  _superClassDecl;
@@ -63,7 +63,6 @@ public class JavaClass extends JavaType {
         _interface = aClass.isInterface();
         _primitive = aClass.isPrimitive();
         _evalType = this;
-        _superDecl = null; // Set by owner
 
         // Add to Owner.Decls map
         _resolver._decls.put(_id, this);
@@ -72,7 +71,7 @@ public class JavaClass extends JavaType {
         AnnotatedType superAType = aClass.getAnnotatedSuperclass();
         Type superType = superAType != null ? superAType.getType() : null;
         if (superType != null) {
-            _stype = getJavaDecl(superType);
+            _stype = getJavaType(superType);
             _superDecl = _superClassDecl = _stype.getClassType();
         }
 
@@ -223,8 +222,8 @@ public class JavaClass extends JavaType {
     private boolean isAssignablePrimitive(JavaDecl aDecl)
     {
         if (aDecl == null) return false;
-        JavaDecl ctype0 = getClassType();
-        JavaDecl ctype1 = aDecl.getClassType().getPrimitive();
+        JavaClass ctype0 = getClassType();
+        JavaClass ctype1 = aDecl.getClassType().getPrimitive();
         if (ctype1 == null)
             return false;
         JavaDecl common = getCommonAncestorPrimitive(ctype1);
@@ -780,7 +779,7 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible method for given name and param types.
      */
     public List<JavaMethod> getCompatibleMethodsAll(String aName, JavaType[] theTypes)
     {
@@ -815,11 +814,11 @@ public class JavaClass extends JavaType {
 
         // Remove supers and duplicates
         for (int i = 0; i < matches.size(); i++) {
-            JavaDecl decl = matches.get(i);
-            for (JavaDecl sd = decl.getSuper(); sd != null; sd = sd.getSuper())
-                matches.remove(sd);
+            JavaMethod method = matches.get(i);
+            for (JavaMethod superMethod = method.getSuper(); superMethod != null; superMethod = superMethod.getSuper())
+                matches.remove(superMethod);
             for (int j = i + 1; j < matches.size(); j++)
-                if (matches.get(j) == decl)
+                if (matches.get(j) == method)
                     matches.remove(j);
         }
 
@@ -961,7 +960,7 @@ public class JavaClass extends JavaType {
     /**
      * Returns a constructor decl for parameter types.
      */
-    public JavaDecl getConstructorDecl(JavaType[] theTypes)
+    public JavaContructor getConstructorDecl(JavaType[] theTypes)
     {
         List<JavaContructor> constructors = getConstructors();
         for (JavaContructor contructor : constructors)
@@ -973,9 +972,9 @@ public class JavaClass extends JavaType {
     /**
      * Returns a constructor decl for parameter types.
      */
-    public JavaDecl getConstructorDeclDeep(JavaType[] theTypes)
+    public JavaContructor getConstructorDeclDeep(JavaType[] theTypes)
     {
-        JavaDecl decl = getConstructorDecl(theTypes);
+        JavaContructor decl = getConstructorDecl(theTypes);
         if (decl == null && _superClassDecl != null)
             decl = _superClassDecl.getConstructorDeclDeep(theTypes);
         return decl;

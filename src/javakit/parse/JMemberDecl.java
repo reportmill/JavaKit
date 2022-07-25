@@ -3,8 +3,7 @@
  */
 package javakit.parse;
 
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaDecl;
+import javakit.reflect.*;
 
 import java.util.List;
 
@@ -79,10 +78,16 @@ public class JMemberDecl extends JNode {
     /**
      * Returns the member that this member overrides or implements, if available.
      */
-    public JavaDecl getSuperDecl()
+    public JavaExecutable getSuperDecl()
     {
         JavaDecl decl = getDecl();
-        return decl != null && (decl.isMethod() || decl.isConstructor()) ? decl.getSuper() : null;
+        if (decl instanceof JavaMethod)
+            return ((JavaMethod) decl).getSuper();
+        if (decl instanceof JavaContructor)
+            return ((JavaContructor) decl).getSuper();
+
+        // Return null
+        return null;
     }
 
     /**

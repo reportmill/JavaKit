@@ -9,6 +9,9 @@ import javakit.resolver.Resolver;
  */
 public class JavaType extends JavaDecl {
 
+    // The super implementation of this type (Class, Method, Constructor)
+    protected JavaType  _superDecl;
+
     /**
      * Constructor.
      */
@@ -45,4 +48,114 @@ public class JavaType extends JavaDecl {
      */
     public JavaType getArrayItemType()  { return null; }
 
+    /**
+     * Returns the super decl of this JavaDecl (Class, Method, Constructor).
+     */
+    public JavaType getSuper()  { return _superDecl; }
+
+    /**
+     * Returns common ancestor of this decl and given decls.
+     */
+    public JavaType getCommonAncestor(JavaType aDecl)
+    {
+        if (aDecl == this) return this;
+
+        // Handle primitive
+        if (isPrimitive() && aDecl.isPrimitive())
+            return getCommonAncestorPrimitive(aDecl);
+        else if (isPrimitive())
+            return getPrimitiveAlt().getCommonAncestor(aDecl);
+        else if (aDecl.isPrimitive())
+            return getCommonAncestor(aDecl.getPrimitiveAlt());
+
+        // Iterate up each super chain to check
+        for (JavaType d0 = this; d0 != null; d0 = d0.getSuper())
+            for (JavaType d1 = aDecl; d1 != null; d1 = d1.getSuper())
+                if (d0 == d1)
+                    return d0;
+
+        // Return Object (case where at least one was interface or ParamType of interface)
+        return getJavaType(Object.class);
+    }
+
+    /**
+     * Returns common ancestor of this decl and given decls.
+     */
+    protected JavaType getCommonAncestorPrimitive(JavaType aDecl)
+    {
+        String n0 = getName();
+        String n1 = aDecl.getName();
+        if (n0.equals("double")) return this;
+        if (n1.equals("double")) return aDecl;
+        if (n0.equals("float")) return this;
+        if (n1.equals("float")) return aDecl;
+        if (n0.equals("long")) return this;
+        if (n1.equals("long")) return aDecl;
+        if (n0.equals("int")) return this;
+        if (n1.equals("int")) return aDecl;
+        if (n0.equals("short")) return this;
+        if (n1.equals("short")) return aDecl;
+        if (n0.equals("char")) return this;
+        if (n1.equals("char")) return aDecl;
+        return this;
+    }
+
+    /**
+     * Returns whether is Type is explicit (doesn't contain any type variables).
+     */
+    public boolean isResolvedType()
+    {
+        if (isTypeVar()) return false;
+        if (isParamType()) {
+            if (getParent().isTypeVar()) return false;
+            for (JavaDecl tv : getTypeVars())
+                if (tv.isTypeVar())
+                    return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
+     */
+    public JavaType getResolvedType(JavaDecl aDecl)
+    {
+        // Handle ParamType and anything not a TypeVar
+        if (aDecl.isParamType()) {
+            System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
+            return (JavaParameterizedType) aDecl;
+        }
+        if (!aDecl.isTypeVar())
+            return (JavaType) aDecl;
+
+        // Handle ParamType:
+        if (isParamType()) {
+            String name = aDecl.getName();
+            JavaClass cls = getClassType();
+            int ind = cls.getTypeVarIndex(name);
+            if (ind >= 0 && ind < _paramTypes.length)
+                return _paramTypes[ind];
+        }
+
+        // If not resolve, just return bounds type
+        return aDecl.getEvalType();
+    }
+
+    /**
+     * Returns whether given declaration collides with this declaration.
+     */
+    public boolean matches(JavaDecl aDecl)
+    {
+        // Check identity
+        if (aDecl == this) return true;
+
+        // Handle ParamTypes: Test against ClassType instead
+        if (isParamType())
+            return getClassType().matches(aDecl);
+        else if (aDecl.isParamType())
+            return matches(aDecl.getClassType());
+
+        // Return false, since no match
+        return false;
+    }
 }
