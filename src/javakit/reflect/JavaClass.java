@@ -136,15 +136,15 @@ public class JavaClass extends JavaType {
     {
         if (isPrimitive()) return this;
         switch (_name) {
-            case "java.lang.Boolean": return getClassDecl(boolean.class);
-            case "java.lang.Byte": return getClassDecl(byte.class);
-            case "java.lang.Character": return getClassDecl(char.class);
-            case "java.lang.Short": return getClassDecl(short.class);
-            case "java.lang.Integer": return getClassDecl(int.class);
-            case "java.lang.Long": return getClassDecl(long.class);
-            case "java.lang.Float": return getClassDecl(float.class);
-            case "java.lang.Double": return getClassDecl(double.class);
-            case "java.lang.Void": return getClassDecl(void.class);
+            case "java.lang.Boolean": return getJavaClass(boolean.class);
+            case "java.lang.Byte": return getJavaClass(byte.class);
+            case "java.lang.Character": return getJavaClass(char.class);
+            case "java.lang.Short": return getJavaClass(short.class);
+            case "java.lang.Integer": return getJavaClass(int.class);
+            case "java.lang.Long": return getJavaClass(long.class);
+            case "java.lang.Float": return getJavaClass(float.class);
+            case "java.lang.Double": return getJavaClass(double.class);
+            case "java.lang.Void": return getJavaClass(void.class);
             default: return null;
         }
     }
@@ -156,15 +156,15 @@ public class JavaClass extends JavaType {
     {
         if (!isPrimitive()) return this;
         switch (_name) {
-            case "boolean": return getClassDecl(Boolean.class);
-            case "byte": return getClassDecl(Byte.class);
-            case "char": return getClassDecl(Character.class);
-            case "short": return getClassDecl(Short.class);
-            case "int": return getClassDecl(Integer.class);
-            case "long": return getClassDecl(Long.class);
-            case "float": return getClassDecl(Float.class);
-            case "double": return getClassDecl(Double.class);
-            case "void": return getClassDecl(Void.class);
+            case "boolean": return getJavaClass(Boolean.class);
+            case "byte": return getJavaClass(Byte.class);
+            case "char": return getJavaClass(Character.class);
+            case "short": return getJavaClass(Short.class);
+            case "int": return getJavaClass(Integer.class);
+            case "long": return getJavaClass(Long.class);
+            case "float": return getJavaClass(Float.class);
+            case "double": return getJavaClass(Double.class);
+            case "void": return getJavaClass(Void.class);
             default: return null;
         }
     }
@@ -292,7 +292,7 @@ public class JavaClass extends JavaType {
         _interfaces = new JavaClass[interfaces.length];
         for (int i = 0, iMax = interfaces.length; i < iMax; i++) {
             Class intrface = interfaces[i];
-            _interfaces[i] = getClassDecl(intrface);
+            _interfaces[i] = getJavaClass(intrface);
         }
 
         // Create set for added/removed decls
@@ -736,7 +736,7 @@ public class JavaClass extends JavaType {
 
         // If this class is Interface, check Object
         if (isInterface()) {
-            JavaClass objDecl = getClassDecl(Object.class);
+            JavaClass objDecl = getJavaClass(Object.class);
             return objDecl.getCompatibleMethodDeep(aName, theTypes);
         }
 
@@ -816,7 +816,7 @@ public class JavaClass extends JavaType {
 
         // If this class is Interface, check Object
         if (isInterface()) {
-            JavaClass objDecl = getClassDecl(Object.class);
+            JavaClass objDecl = getJavaClass(Object.class);
             methods = objDecl.getCompatibleMethodsDeep(aName, theTypes);
             if (methods.size() > 0) {
                 if (matches == Collections.EMPTY_LIST) matches = methods;

@@ -4,9 +4,7 @@
 package javakit.reflect;
 import javakit.resolver.Resolver;
 import javakit.resolver.ResolverUtils;
-import snap.util.StringUtils;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
@@ -18,17 +16,19 @@ public class JavaTypeVariable extends JavaType {
     /**
      * Constructor.
      */
-    public JavaTypeVariable(Resolver anOwner, JavaDecl aPar, TypeVariable aType)
+    public JavaTypeVariable(Resolver anOwner, JavaDecl aPar, TypeVariable typeVar)
     {
         // Do normal version
-        super(anOwner, aPar, aType);
+        super(anOwner, aPar, typeVar);
 
-        TypeVariable typeVar = (TypeVariable) aType;
         _type = DeclType.TypeVar;
         _name = _simpleName = typeVar.getName();
-        Type[] etypes = typeVar.getBounds();
-        Class ecls = ResolverUtils.getClassForType(etypes[0]);
-        _evalType = getClassDecl(ecls);
+
+        Type[] typeVarTypes = typeVar.getBounds();
+        Type typeVarType = typeVarTypes[0];
+        Class typeVarClass = ResolverUtils.getClassForType(typeVarType);
+        _evalType = getJavaClass(typeVarClass);
+
         _resolver._decls.put(_id, this);
     }
 }

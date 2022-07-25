@@ -15,7 +15,7 @@ public class Resolver {
     private static Resolver  _current;
 
     // A map of class/package names to JavaDecls to provide JavaDecls for project
-    public Map<String, JavaDecl> _decls = new HashMap<>();
+    public Map<String, JavaDecl>  _decls = new HashMap<>();
 
     /**
      * Constructor.
@@ -36,13 +36,14 @@ public class Resolver {
             String id = (String) anObj;
 
             // If decl exists for name, just return
-            JavaDecl jd = _decls.get(id);
-            if (jd != null) return jd;
+            JavaDecl javaDecl = _decls.get(id);
+            if (javaDecl != null)
+                return javaDecl;
 
             // If class exists, forward to getClassDecl()
-            Class<?> cls = getClassForName(id);
-            if (cls != null)
-                return getClassDecl(cls);
+            Class<?> classForName = getClassForName(id);
+            if (classForName != null)
+                return getJavaClass(classForName);
             return null;
         }
 
@@ -50,14 +51,14 @@ public class Resolver {
         JavaDecl jd;
         if (anObj instanceof Class) {
             Class<?> cls = (Class<?>) anObj;
-            jd = getClassDecl(cls);
+            jd = getJavaClass(cls);
         }
 
         // Handle Field
         else if (anObj instanceof Field) {
             Field field = (Field) anObj;
             Class<?> cls = field.getDeclaringClass();
-            JavaClass decl = getClassDecl(cls);
+            JavaClass decl = getJavaClass(cls);
             jd = decl.getField(field);
         }
 
@@ -65,7 +66,7 @@ public class Resolver {
         else if (anObj instanceof Method) {
             Method meth = (Method) anObj;
             Class<?> cls = meth.getDeclaringClass();
-            JavaClass decl = getClassDecl(cls);
+            JavaClass decl = getJavaClass(cls);
             jd = decl.getMethodDecl(meth);
         }
 
@@ -73,7 +74,7 @@ public class Resolver {
         else if (anObj instanceof Constructor) {
             Constructor constr = (Constructor) anObj;
             Class<?> cls = constr.getDeclaringClass();
-            JavaClass decl = getClassDecl(cls);
+            JavaClass decl = getJavaClass(cls);
             jd = decl.getConstructorDecl(constr);
         }
 
@@ -102,12 +103,23 @@ public class Resolver {
     }
 
     /**
-     * Returns a JavaDeclClass for object.
+     * Returns a JavaClass for given Class.
      */
-    public JavaClass getJavaDeclClass(Object anObj)
+    public JavaClass getJavaClass(Class aClass)
     {
-        JavaDecl cd = getJavaDecl(anObj);
-        return cd instanceof JavaClass ? (JavaClass) cd : null;
+        // Lookup class decl by name and return if already set
+        String className = aClass.getName();
+        JavaClass javaClass = (JavaClass) _decls.get(className);
+        if (javaClass != null)
+            return javaClass;
+
+        // Create JavaClass and add to Decls map
+        JavaDecl parDecl = getParentDecl(aClass);
+        javaClass = new JavaClass(this, parDecl, aClass);
+        _decls.put(className, javaClass);
+
+        // Return
+        return javaClass;
     }
 
     /**
@@ -128,10 +140,14 @@ public class Resolver {
 
         // Handle TypeVariable
         if (aType instanceof TypeVariable) {
+
+            // Get TypeVar name
             TypeVariable typeVar = (TypeVariable) aType;
             String name = typeVar.getName();
-            GenericDeclaration gdecl = typeVar.getGenericDeclaration();
-            JavaDecl pdecl = getJavaDecl(gdecl);
+
+            // Get class or method
+            GenericDeclaration classOrMethod = typeVar.getGenericDeclaration();
+            JavaDecl pdecl = getJavaDecl(classOrMethod);
             decl = pdecl.getTypeVar(name);
             return decl;
         }
@@ -144,30 +160,13 @@ public class Resolver {
         // Handle Class
         if (aType instanceof Class) {
             Class cls = (Class) aType;
-            return getClassDecl(cls);
+            return getJavaClass(cls);
         }
 
         // This is lame
         Class cls = ResolverUtils.getClassForType(aType);
-        return getClassDecl(cls);
+        return getJavaClass(cls);
         //throw new RuntimeException("Resolver.getTypeDecl: Unsupported type " + aType);
-    }
-
-    /**
-     * Returns a class decl.
-     */
-    private JavaClass getClassDecl(Class aClass)
-    {
-        // Lookup class decl by name and return if already set
-        String cname = aClass.getName();
-        JavaClass decl = (JavaClass) _decls.get(cname);
-        if (decl != null)
-            return decl;
-
-        // Create decl and return
-        JavaDecl parDecl = getParentDecl(aClass);
-        decl = new JavaClass(this, parDecl, aClass);
-        return decl;
     }
 
     /**

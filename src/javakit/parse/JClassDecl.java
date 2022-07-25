@@ -395,18 +395,21 @@ public class JClassDecl extends JMemberDecl {
 
         // Handle JType in Extends or Implements lists: forward on
         if (aNode instanceof JType) {
-            JType typ = (JType) aNode;
+
+            // Get parent of nested type
+            JType type = (JType) aNode;
+            JType parentType = type;
+            while (parentType.getParent() instanceof JType)
+                parentType = (JType) parentType.getParent();
 
             // If parent of nested type is this JClassDecl, either check for TypeVar or forward to file
-            JType ptyp = typ;
-            while (ptyp.getParent() instanceof JType) ptyp = (JType) ptyp.getParent();
-            if (ptyp.getParent() == this) {
+            if (parentType.getParent() == this) {
 
                 // Check for TypeVar
-                if (typ.getParent() instanceof JType) {
-                    JType par = (JType) typ.getParent();
+                if (type.getParent() instanceof JType) {
+                    JType par = (JType) type.getParent();
                     JavaType baseType = par.getBaseDecl();
-                    JavaDecl typeVarType = baseType != null ? baseType.getTypeVar(typ.getName()) : null;
+                    JavaDecl typeVarType = baseType != null ? baseType.getTypeVar(type.getName()) : null;
                     if (typeVarType != null)
                         return typeVarType;
                 }

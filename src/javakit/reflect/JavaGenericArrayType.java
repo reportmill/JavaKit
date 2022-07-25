@@ -20,7 +20,7 @@ public class JavaGenericArrayType extends JavaType {
 
         _type = DeclType.TypeVar;
         _name = _simpleName = aGenArrayType.getTypeName();
-        _evalType = getClassDecl(Object[].class);
+        _evalType = getJavaClass(Object[].class);
         _resolver._decls.put(_id, this);
     }
 }
