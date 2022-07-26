@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
@@ -14,7 +13,7 @@ public class JavaTypeVariable extends JavaType {
     /**
      * Constructor.
      */
-    public JavaTypeVariable(Resolver anOwner, JavaDecl aPar, TypeVariable typeVar)
+    public JavaTypeVariable(Resolver anOwner, JavaDecl aPar, TypeVariable<?> typeVar)
     {
         // Do normal version
         super(anOwner, aPar, typeVar);
@@ -24,10 +23,8 @@ public class JavaTypeVariable extends JavaType {
 
         Type[] typeVarTypes = typeVar.getBounds();
         Type typeVarType = typeVarTypes[0];
-        Class typeVarClass = ResolverUtils.getClassForType(typeVarType);
+        Class<?> typeVarClass = ResolverUtils.getClassForType(typeVarType);
         _evalType = getJavaClass(typeVarClass);
-
-        _resolver._decls.put(_id, this);
     }
 
     /**

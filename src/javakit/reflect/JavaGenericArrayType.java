@@ -17,7 +17,8 @@ public class JavaGenericArrayType extends JavaType {
         // Do normal version
         super(anOwner, aPar, aGenArrayType);
 
-        _type = DeclType.TypeVar;
+        _type = DeclType.GenArrayType;
+        _id = ResolverUtils.getIdForGenericArrayType(aGenArrayType);
         _name = _simpleName = aGenArrayType.getTypeName();
         _evalType = getJavaClass(Object[].class);
         _resolver._decls.put(_id, this);

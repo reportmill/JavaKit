@@ -1,8 +1,6 @@
 package javakit.reflect;
-import javakit.parse.JExprId;
-import javakit.parse.JImportDecl;
-import javakit.parse.JNode;
-import javakit.parse.JType;
+import javakit.parse.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +50,7 @@ public class NodeMatcher {
      */
     public static JNode getDeclMatch(JNode aNode, JavaDecl aDecl)
     {
-        List<JNode> matches = new ArrayList();
+        List<JNode> matches = new ArrayList<>();
         getDeclMatches(aNode, aDecl, matches);
         return matches.size() > 0 ? matches.get(0) : null;
     }
@@ -93,5 +91,19 @@ public class NodeMatcher {
             return aDecl.getName().contains(aNode.getName());
 
         return false;
+    }
+
+    /**
+     * Returns whether a JavaDecl is expected.
+     */
+    public static boolean isDeclExpected(JNode aNode)
+    {
+        if(aNode instanceof JExprLiteral)
+            return !((JExprLiteral) aNode).isNull();
+
+        try {
+            return aNode.getClass().getDeclaredMethod("getDeclImpl") != null;
+        }
+        catch(Exception e) { return false; }
     }
 }

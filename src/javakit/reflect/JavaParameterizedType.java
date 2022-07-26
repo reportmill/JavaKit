@@ -51,7 +51,7 @@ public class JavaParameterizedType extends JavaType {
         super(anOwner, aPar, theTypes);
 
         _type = DeclType.ParamType;
-        _id = ResolverUtils.getParamTypeId(aPar, theTypes);
+        _id = ResolverUtils.getIdForParameterizedTypeParts(aPar, theTypes);
 
         _name = _id;
         _paramTypes = theTypes;

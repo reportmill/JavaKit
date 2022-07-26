@@ -34,7 +34,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     protected JavaType  _evalType;
 
     // Constants for type
-    public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar }
+    public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar, GenArrayType }
 
     /**
      * Constructor.
@@ -46,9 +46,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
         // Set ivars
         _resolver = anOwner;
         _parent = aPar;
-
-        // Set id
-        _id = ResolverUtils.getId(anObj);
     }
 
     /**
@@ -341,7 +338,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public JavaType getParamTypeDecl(JavaType ... theTypeDecls)
     {
-        return _resolver.getParamTypeDecl(this, theTypeDecls);
+        return _resolver.getParameterizedTypeDeclForParts(this, theTypeDecls);
     }
 
     /**

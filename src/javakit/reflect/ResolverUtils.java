@@ -80,7 +80,7 @@ public class ResolverUtils {
 
         // Handle Constructor: DeclClassName(<ParamType>,...)
         else if (aMember instanceof Constructor) {
-            Constructor constr = (Constructor) aMember;
+            Constructor<?> constr = (Constructor<?>) aMember;
             Class<?>[] paramTypes = constr.getParameterTypes();
             sb.append('(');
             if (paramTypes.length > 0) {
@@ -97,54 +97,75 @@ public class ResolverUtils {
     /**
      * Returns an Id for Java.lang.reflect.Type.
      */
-    private static String getIdForType(Type aType)
+    public static String getIdForType(Type aType)
     {
-        // Create StringBuffer
-        StringBuffer sb = new StringBuffer();
+        // Handle GenericArrayType: CompType[]
+        if (aType instanceof GenericArrayType)
+            return getIdForGenericArrayType((GenericArrayType) aType);
 
         // Handle ParameterizedType: RawType<TypeArg,...>
-        if (aType instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) aType;
-            Type rawType = parameterizedType.getRawType();
-            String rawTypeId = getId(rawType);
-            sb.append(rawTypeId);
-
-            // Append TypeArgs
-            Type[] typeArgs = parameterizedType.getActualTypeArguments();
-            sb.append('<');
-            if (typeArgs.length > 0) {
-                String typeArgsId = getIdForTypeArray(typeArgs);
-                sb.append(typeArgsId);
-            }
-            sb.append('>');
-        }
+        if (aType instanceof ParameterizedType)
+            return getIdForParameterizedType((ParameterizedType) aType);
 
         // Handle TypeVariable: DeclType.Name
-        else if (aType instanceof TypeVariable) {
-            TypeVariable typeVariable = (TypeVariable) aType;
-            GenericDeclaration genericDecl = typeVariable.getGenericDeclaration();
+        if (aType instanceof TypeVariable) {
+            TypeVariable typeVar = (TypeVariable) aType;
+            GenericDeclaration genericDecl = typeVar.getGenericDeclaration();
             String genericDeclId = getId(genericDecl);
-            sb.append(genericDeclId).append('.').append(typeVariable.getName());
-        }
-
-        // Handle GenericArrayType: CompType[]
-        else if (aType instanceof GenericArrayType) {
-            GenericArrayType genericArrayType = (GenericArrayType) aType;
-            Type compType = genericArrayType.getGenericComponentType();
-            String compTypeStr = getIdForType(compType);
-            sb.append(compTypeStr).append("[]");
+            String typeVarName = typeVar.getName();
+            return new StringBuffer(genericDeclId).append('.').append(typeVarName).toString();
         }
 
         // Handle WildcardType: Need to fix for
-        else if (aType instanceof WildcardType) {
-            WildcardType wc = (WildcardType) aType;
-            Type[] bounds = wc.getLowerBounds().length > 0 ? wc.getLowerBounds() : wc.getUpperBounds();
-            Type bound = bounds[0];
-            String boundStr = getIdForType(bound);
-            sb.append(boundStr);
+        WildcardType wc = (WildcardType) aType;
+        Type[] bounds = wc.getLowerBounds().length > 0 ? wc.getLowerBounds() : wc.getUpperBounds();
+        Type bound = bounds[0];
+        String boundStr = getIdForType(bound);
+        return boundStr;
+    }
+
+    /**
+     * Returns an Id for Java.lang.reflect.ParameterizedType.
+     */
+    public static String getIdForGenericArrayType(GenericArrayType genericArrayType)
+    {
+        Type compType = genericArrayType.getGenericComponentType();
+        String compTypeStr = getIdForType(compType);
+        return compTypeStr + "[]";
+    }
+
+    /**
+     * Returns an Id for Java.lang.reflect.ParameterizedType.
+     */
+    public static String getIdForParameterizedType(ParameterizedType parameterizedType)
+    {
+        // Append RawType
+        Type rawType = parameterizedType.getRawType();
+        String rawTypeId = getId(rawType);
+        StringBuffer sb = new StringBuffer(rawTypeId);
+
+        // Append TypeArgs
+        Type[] typeArgs = parameterizedType.getActualTypeArguments();
+        sb.append('<');
+        if (typeArgs.length > 0) {
+            String typeArgsId = getIdForTypeArray(typeArgs);
+            sb.append(typeArgsId);
         }
 
         // Return
+        return sb.append('>').toString();
+    }
+
+    /**
+     * Returns an id string for given Java part.
+     */
+    public static String getIdForParameterizedTypeParts(JavaDecl aDecl, JavaDecl[] theTypeDecls)
+    {
+        StringBuilder sb = new StringBuilder(aDecl.getId());
+        sb.append('<').append(theTypeDecls[0].getId());
+        for (int i = 1; i < theTypeDecls.length; i++)
+            sb.append(',').append(theTypeDecls[i].getId());
+        sb.append('>');
         return sb.toString();
     }
 
@@ -182,19 +203,6 @@ public class ResolverUtils {
     }
 
     /**
-     * Returns an id string for given Java part.
-     */
-    public static String getParamTypeId(JavaDecl aDecl, JavaDecl[] theTypeDecls)
-    {
-        StringBuilder sb = new StringBuilder(aDecl.getId());
-        sb.append('<').append(theTypeDecls[0].getId());
-        for (int i = 1; i < theTypeDecls.length; i++)
-            sb.append(',').append(theTypeDecls[i].getId());
-        sb.append('>');
-        return sb.toString();
-    }
-
-    /**
      * Returns the class name, converting primitive arrays to 'int[]' instead of '[I'.
      */
     public static String getTypeName(Type aType)
@@ -212,7 +220,8 @@ public class ResolverUtils {
         // Handle ParameterizedType (e.g., Class <T>, List <T>, Map <K,V>)
         if (aType instanceof ParameterizedType) {
             ParameterizedType pt = (ParameterizedType) aType;
-            Type base = pt.getRawType(), types[] = pt.getActualTypeArguments();
+            Type base = pt.getRawType();
+            Type[] types = pt.getActualTypeArguments();
             StringBuffer sb = new StringBuffer(getTypeName(base)).append('<');
             for (int i = 0, iMax = types.length, last = iMax - 1; i < iMax; i++) {
                 Type type = types[i];
@@ -244,7 +253,7 @@ public class ResolverUtils {
     /**
      * Returns the class name, converting primitive arrays to 'int[]' instead of '[I'.
      */
-    public static Class getClassForType(Type aType)
+    public static Class<?> getClassForType(Type aType)
     {
         // Handle Class
         if (aType instanceof Class)
@@ -268,22 +277,12 @@ public class ResolverUtils {
         // Handle WildcardType
         if (aType instanceof WildcardType) {
             WildcardType wc = (WildcardType) aType;
-            if (wc.getLowerBounds().length > 0)
-                return getClassForType(wc.getLowerBounds()[0]);
-            return getClassForType(wc.getUpperBounds()[0]);
+            Type[] boundsTypes = wc.getLowerBounds().length > 0 ? wc.getLowerBounds() : wc.getUpperBounds();
+            Type boundsType = boundsTypes.length > 0 ? boundsTypes[0] : Object.class;
+            return getClassForType(boundsType);
         }
 
         // Complain about anything else
         throw new RuntimeException("JavaKitUtils.getClass: Can't get class from type: " + aType);
-    }
-
-    /**
-     * Returns whether a JavaDecl is expected.
-     */
-    public static boolean isDeclExpected(JNode aNode)
-    {
-        if(aNode instanceof JExprLiteral) return !((JExprLiteral) aNode).isNull();
-        try { return aNode.getClass().getDeclaredMethod("getDeclImpl")!=null; }
-        catch(Exception e) { return false; }
     }
 }
