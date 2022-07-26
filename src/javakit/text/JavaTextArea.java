@@ -5,7 +5,7 @@ package javakit.text;
 import java.util.*;
 import javakit.parse.*;
 import javakit.reflect.JavaDecl;
-import javakit.reflect.Resolver;
+import javakit.reflect.NodeMatcher;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
@@ -265,7 +265,7 @@ public class JavaTextArea extends TextArea {
         JavaDecl decl = aNode != null ? aNode.getDecl() : null;
         if (decl != null) {
             List<JNode> others = new ArrayList();
-            Resolver.getMatches(aNode.getFile(), decl, others);
+            NodeMatcher.getMatches(aNode.getFile(), decl, others);
             for (JNode other : others) {
                 TextBoxToken tt = (TextBoxToken) other.getStartToken();
                 tokens.add(tt);

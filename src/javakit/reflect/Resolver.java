@@ -71,7 +71,7 @@ public class Resolver {
 
         // Handle Constructor
         else if (anObj instanceof Constructor) {
-            Constructor constr = (Constructor) anObj;
+            Constructor<?> constr = (Constructor<?>) anObj;
             Class<?> cls = constr.getDeclaringClass();
             JavaClass decl = getJavaClass(cls);
             jd = decl.getConstructorDecl(constr);
@@ -104,7 +104,7 @@ public class Resolver {
     /**
      * Returns a JavaClass for given Class.
      */
-    public JavaClass getJavaClass(Class aClass)
+    public JavaClass getJavaClass(Class<?> aClass)
     {
         // Lookup class decl by name and return if already set
         String className = aClass.getName();
@@ -141,7 +141,7 @@ public class Resolver {
         if (aType instanceof TypeVariable) {
 
             // Get TypeVar name
-            TypeVariable typeVar = (TypeVariable) aType;
+            TypeVariable<?> typeVar = (TypeVariable<?>) aType;
             String name = typeVar.getName();
 
             // Get class or method
@@ -172,12 +172,12 @@ public class Resolver {
 
         // Handle Class
         if (aType instanceof Class) {
-            Class cls = (Class) aType;
+            Class<?> cls = (Class<?>) aType;
             return getJavaClass(cls);
         }
 
         // This is lame
-        Class cls = ResolverUtils.getClassForType(aType);
+        Class<?> cls = ResolverUtils.getClassForType(aType);
         return getJavaClass(cls);
         //throw new RuntimeException("Resolver.getTypeDecl: Unsupported type " + aType);
     }
@@ -185,20 +185,20 @@ public class Resolver {
     /**
      * Returns the parent decl for a class.
      */
-    private JavaDecl getParentDecl(Class aClass)
+    private JavaDecl getParentDecl(Class<?> aClass)
     {
-        // If declaring class, get decl from parent decl
-        Class dcls = aClass.getDeclaringClass();
-        if (dcls != null)
-            return getJavaDecl(dcls);
+        // Get parent class, get decl from parent decl
+        Class<?> parentClass = aClass.getDeclaringClass();
+        if (parentClass != null)
+            return getJavaDecl(parentClass);
 
-        // Get parent decl
+        // Get parent package
         Package pkg = aClass.getPackage();
         String pkgName = pkg != null ? pkg.getName() : null;
         if (pkgName != null && pkgName.length() > 0)
             return getPackageDecl(pkgName);
 
-        // Return null since no declaring class or package
+        // Return null
         return null;
     }
 
@@ -287,101 +287,6 @@ public class Resolver {
      * Standard toStringProps implementation.
      */
     public String toStringProps()  { return ""; }
-
-    /**
-     * Returns reference nodes in given JNode that match given JavaDecl.
-     */
-    public static void getMatches(JNode aNode, JavaDecl aDecl, List<JNode> theMatches)
-    {
-        // If JType check name
-        if (aNode instanceof JType || aNode instanceof JExprId) {
-            JavaDecl decl = isPossibleMatch(aNode, aDecl) ? aNode.getDecl() : null;
-            if (decl != null && aDecl.matches(decl))
-                theMatches.add(aNode);
-        }
-
-        // Recurse
-        for (JNode child : aNode.getChildren())
-            getMatches(child, aDecl, theMatches);
-    }
-
-    /**
-     * Returns reference nodes in given JNode that match given JavaDecl.
-     */
-    public static void getRefMatches(JNode aNode, JavaDecl aDecl, List<JNode> theMatches)
-    {
-        // If JType check name
-        if (aNode instanceof JType || aNode instanceof JExprId) {
-            if (isPossibleMatch(aNode, aDecl) && !aNode.isDecl()) {
-                JavaDecl decl = aNode.getDecl();
-                if (decl != null && aDecl.matches(decl) && aNode.getParent(JImportDecl.class) == null)
-                    theMatches.add(aNode);
-            }
-        }
-
-        // Recurse
-        for (JNode child : aNode.getChildren())
-            getRefMatches(child, aDecl, theMatches);
-    }
-
-    /**
-     * Returns declaration nodes in given JNode that match given JavaDecl.
-     */
-    public static JNode getDeclMatch(JNode aNode, JavaDecl aDecl)
-    {
-        List<JNode> matches = new ArrayList();
-        getDeclMatches(aNode, aDecl, matches);
-        return matches.size() > 0 ? matches.get(0) : null;
-    }
-
-    /**
-     * Returns declaration nodes in given JNode that match given JavaDecl.
-     */
-    public static void getDeclMatches(JNode aNode, JavaDecl aDecl, List<JNode> theMatches)
-    {
-        // If JType check name
-        if (aNode instanceof JType || aNode instanceof JExprId) {
-            JavaDecl decl = aNode.isDecl() && isPossibleMatch(aNode, aDecl) ? aNode.getDecl() : null;
-            if (decl != null && aDecl.matches(decl))
-                theMatches.add(aNode);
-        }
-
-        // Recurse
-        for (JNode child : aNode.getChildren())
-            getDeclMatches(child, aDecl, theMatches);
-    }
-
-    /**
-     * Returns whether node is a possible match.
-     */
-    private static boolean isPossibleMatch(JNode aNode, JavaDecl aDecl)
-    {
-        // If Node is type and Decl is type and Decl.SimpleName contains Node.SimpleName
-        if (aNode instanceof JType && aDecl instanceof JavaType) {
-            JType type = (JType) aNode;
-            String typeName = type.getSimpleName();
-            JavaType javaType = (JavaType) aDecl;
-            String javaTypeName = javaType.getSimpleName();
-            return javaTypeName.contains(typeName);
-        }
-
-        // If Node is identifier and Decl.Name contains Node.Name
-        if (aNode instanceof JExprId)
-            return aDecl.getName().contains(aNode.getName());
-
-        return false;
-    }
-
-    /**
-     * Returns a simple class name.
-     */
-    public static String getSimpleName(String cname)
-    {
-        int i = cname.lastIndexOf('$');
-        if (i < 0) i = cname.lastIndexOf('.');
-        if (i > 0) cname = cname.substring(i + 1);
-        return cname;
-    }
 
     /**
      * Returns the current resolver.
