@@ -2,8 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-import javakit.resolver.Resolver;
-import javakit.resolver.ResolverUtils;
 import snap.util.StringUtils;
 
 import java.lang.reflect.ParameterizedType;

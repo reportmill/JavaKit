@@ -1,4 +1,5 @@
 package javakit.resolver;
+import javakit.reflect.Resolver;
 import snap.props.PropChange;
 import snap.web.WebFile;
 import snap.web.WebSite;

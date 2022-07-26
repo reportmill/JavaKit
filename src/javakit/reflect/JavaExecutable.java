@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-import javakit.resolver.Resolver;
 import snap.util.StringUtils;
 import java.lang.reflect.*;
 

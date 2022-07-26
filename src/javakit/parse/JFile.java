@@ -4,10 +4,7 @@
 package javakit.parse;
 import java.util.*;
 
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaMember;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 import javakit.resolver.*;
 import snap.web.WebFile;
 
@@ -20,7 +17,7 @@ public class JFile extends JNode {
     protected WebFile  _sourceFile;
 
     // The resolver for source file
-    protected Resolver  _resolver;
+    protected Resolver _resolver;
 
     // The package declaration
     protected JPackageDecl  _packageDecl;

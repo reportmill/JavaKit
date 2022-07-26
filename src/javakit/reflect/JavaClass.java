@@ -4,8 +4,7 @@
 package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
-import javakit.resolver.Resolver;
-import javakit.resolver.ResolverUtils;
+
 import snap.util.StringUtils;
 
 /**

@@ -1,9 +1,8 @@
-package javakit.resolver;
+package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
 
 import javakit.parse.*;
-import javakit.reflect.*;
 import snap.util.ClassUtils;
 
 /**

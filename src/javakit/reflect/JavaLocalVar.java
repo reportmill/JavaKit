@@ -4,7 +4,6 @@
 package javakit.reflect;
 import javakit.parse.JType;
 import javakit.parse.JVarDecl;
-import javakit.resolver.Resolver;
 
 /**
  * This class represents a local variable in a statement block, for-loop declaration or catch block.

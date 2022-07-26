@@ -3,8 +3,6 @@
  */
 package javakit.reflect;
 import java.lang.reflect.*;
-import javakit.resolver.Resolver;
-import javakit.resolver.ResolverUtils;
 
 /**
  * A class to represent a declaration of a Java Class, Method, Field or Constructor.
