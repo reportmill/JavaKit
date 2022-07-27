@@ -12,6 +12,9 @@ public class JavaMember extends JavaDecl {
     // The declaring class
     private JavaClass  _declaringClass;
 
+    // The modifiers
+    private int  _mods;
+
     /**
      * Constructor.
      */
@@ -39,4 +42,29 @@ public class JavaMember extends JavaDecl {
      * Returns the declaring class name.
      */
     public String getDeclaringClassName()  { return _declaringClass.getName(); }
+
+    /**
+     * Returns the modifiers.
+     */
+    public int getModifiers()  { return _mods; }
+
+    /**
+     * Returns the full name.
+     */
+    @Override
+    protected String getFullNameImpl()
+    {
+        // Get Match name
+        String name = getMatchName();
+        if (isMethod() || isField())
+            name = getEvalTypeName() + " " + name;
+
+        // Add mod string
+        String modifierStr = Modifier.toString(_mods);
+        if (modifierStr.length() > 0)
+            name = modifierStr + " " + name;
+
+        // Return
+        return name;
+    }
 }

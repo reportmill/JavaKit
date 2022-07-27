@@ -17,6 +17,9 @@ public class JavaClass extends JavaType {
     // The package
     private JavaPackage  _package;
 
+    // The modifiers
+    private int  _mods;
+
     // The super class decl
     private JavaClass  _superClass;
 
@@ -114,6 +117,19 @@ public class JavaClass extends JavaType {
      * Returns the class that contains this class (if inner class).
      */
     public JavaClass getDeclaringClass()  { return _declaringClass; }
+
+    /**
+     * Returns the modifiers.
+     */
+    public int getModifiers()  { return _mods; }
+
+    /**
+     * Returns whether decl is static.
+     */
+    public boolean isStatic()
+    {
+        return Modifier.isStatic(_mods);
+    }
 
     /**
      * Returns the package that declares this class.
@@ -1036,6 +1052,24 @@ public class JavaClass extends JavaType {
             case TypeVar: _typeVarDecls.remove(aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.removeDecl: Invalid type " + type);
         }
+    }
+
+    /**
+     * Returns the full name.
+     */
+    @Override
+    protected String getFullNameImpl()
+    {
+        // Get Match name
+        String name = getMatchName();
+
+        // Add mod string
+        String modifierStr = Modifier.toString(_mods);
+        if (modifierStr.length() > 0)
+            name = modifierStr + " " + name;
+
+        // Return
+        return name;
     }
 
     /**

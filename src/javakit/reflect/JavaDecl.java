@@ -18,13 +18,13 @@ public class JavaDecl implements Comparable<JavaDecl> {
     // The type
     protected DeclType  _type;
 
-    // The modifiers
-    protected int  _mods;
-
-    // The name of the declaration member
+    // The name of this declaration
     protected String  _name;
 
-    // The simple name of the declaration member
+    // The full name of this declaration
+    private String  _fullName;
+
+    // The simple name of this declaration
     protected String  _simpleName;
 
     // The type this decl evaluates to when referenced
@@ -93,19 +93,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     public boolean isTypeVar()  { return _type == DeclType.TypeVar; }
 
     /**
-     * Returns the modifiers.
-     */
-    public int getModifiers()  { return _mods; }
-
-    /**
-     * Returns whether decl is static.
-     */
-    public boolean isStatic()
-    {
-        return Modifier.isStatic(_mods);
-    }
-
-    /**
      * Returns the name.
      */
     public String getName()  { return _name; }
@@ -170,9 +157,9 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public Class<?> getEvalClass()
     {
-        String cname = getEvalClassName();
-        if (cname == null) return null;
-        return _resolver.getClassForName(cname);
+        String className = getEvalClassName();
+        if (className == null) return null;
+        return _resolver.getClassForName(className);
     }
 
     /**
@@ -204,15 +191,21 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String getFullName()
     {
-        if (_fname != null) return _fname;
-        String name = getMatchName();
-        if (isMethod() || isField()) name = getEvalTypeName() + " " + name;
-        String mstr = Modifier.toString(_mods);
-        if (mstr.length() > 0) name = mstr + " " + name;
-        return _fname = name;
+        // If already set, just return
+        if (_fullName != null) return _fullName;
+
+        // Get, set, return
+        String fullName = getFullNameImpl();
+        return _fullName = fullName;
     }
 
-    String _fname;
+    /**
+     * Returns the full name.
+     */
+    protected String getFullNameImpl()
+    {
+        return getMatchName();
+    }
 
     /**
      * Returns a string representation of suggestion.
@@ -290,5 +283,4 @@ public class JavaDecl implements Comparable<JavaDecl> {
     {
         return _type + ": " + getId();
     }
-
 }
