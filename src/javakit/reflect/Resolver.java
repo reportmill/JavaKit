@@ -213,30 +213,23 @@ public class Resolver {
      */
     public JavaType getTypeDecl(Type aType)
     {
+        // Handle Class
+        if (aType instanceof Class)
+            return getJavaClassForClass((Class<?>) aType);
+
         // Handle ParameterizedType
         if (aType instanceof ParameterizedType)
             return getParameterizedTypeDecl((ParameterizedType) aType);
 
         // Handle TypeVariable
         if (aType instanceof TypeVariable)
-            return getTypeVariableDecl((TypeVariable) aType);
+            return getTypeVariableDecl((TypeVariable<?>) aType);
 
         // Handle GenericArrayType
         if (aType instanceof GenericArrayType)
             return getGenericArrayTypeDecl((GenericArrayType) aType);
 
-        String id = ResolverUtils.getId(aType);
-        JavaType decl = (JavaType) _decls.get(id);
-        if (decl != null)
-            return decl;
-
-        // Handle Class
-        if (aType instanceof Class) {
-            Class<?> cls = (Class<?>) aType;
-            return getJavaClassForClass(cls);
-        }
-
-        // This is lame
+        // Handle WildCard
         Class<?> cls = ResolverUtils.getClassForType(aType);
         return getJavaClassForClass(cls);
         //throw new RuntimeException("Resolver.getTypeDecl: Unsupported type " + aType);
@@ -276,9 +269,7 @@ public class Resolver {
         Type rawType = aPT.getRawType();
         Type[] typArgs = aPT.getActualTypeArguments();
         JavaType rawTypeDecl = getTypeDecl(rawType);
-        JavaType[] typeArgDecls = new JavaType[typArgs.length];
-        for (int i = 0; i < typArgs.length; i++)
-            typeArgDecls[i] = getTypeDecl(typArgs[i]);
+        JavaType[] typeArgDecls = getJavaTypeArrayForTypes(typArgs);
 
         // Create and add to cache
         decl = new JavaParameterizedType(this, rawTypeDecl, typeArgDecls);
@@ -310,7 +301,7 @@ public class Resolver {
     /**
      * Returns a ParameterizedType Decl.
      */
-    public JavaTypeVariable getTypeVariableDecl(TypeVariable typeVar)
+    public JavaTypeVariable getTypeVariableDecl(TypeVariable<?> typeVar)
     {
         // Get class or method
         GenericDeclaration classOrMethod = typeVar.getGenericDeclaration();
@@ -352,6 +343,27 @@ public class Resolver {
 
         // Return null
         return null;
+    }
+
+    /**
+     * Returns a JavaType array for given java.lang.reflect.Type array.
+     */
+    public JavaType[] getJavaTypeArrayForTypes(Type[] theTypes)
+    {
+        // Create JavaTypes array
+        JavaType[] javaTypes = new JavaType[theTypes.length];
+
+        // Iterate over types and convert each to JavaType
+        for (int i = 0; i < theTypes.length; i++) {
+            Type type = theTypes[i];
+            JavaType javaType = getTypeDecl(type);
+            if (javaType == null)
+                System.err.println("Resolver.getJavaTypeArray: Couldn't resolve type: " + type);
+            else javaTypes[i] = javaType;
+        }
+
+        // Return
+        return javaTypes;
     }
 
     /**

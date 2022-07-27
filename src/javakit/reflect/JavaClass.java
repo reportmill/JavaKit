@@ -381,10 +381,11 @@ public class JavaClass extends JavaType {
         // Add JavaDecl for each declared method - also make sure return/parameter types are in refs
         for (Method meth : methods) {
             if (meth.isSynthetic()) continue;
-            JavaDecl decl = getMethodDecl(meth);
+            JavaMethod decl = getMethodDecl(meth);
             if (decl == null) {
                 decl = new JavaMethod(_resolver, this, meth);
                 addDecl(decl);
+                decl.initTypes(meth);
                 addedDecls++;
             } else removedDecls.remove(decl);
         }
@@ -908,7 +909,7 @@ public class JavaClass extends JavaType {
      */
     public JavaMethod getMethodDecl(Method aMeth)
     {
-        String id = ResolverUtils.getId(aMeth);
+        String id = ResolverUtils.getIdForMember(aMeth);
         JavaMethod method = getMethodForId(id);
         if (method == null)
             return null;
@@ -940,7 +941,7 @@ public class JavaClass extends JavaType {
      */
     public JavaContructor getConstructorDecl(Constructor aConstr)
     {
-        String id = ResolverUtils.getId(aConstr);
+        String id = ResolverUtils.getIdForMember(aConstr);
         JavaContructor constructor = getConstructorForId(id);
         if (constructor == null)
             return null;

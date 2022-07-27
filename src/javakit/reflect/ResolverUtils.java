@@ -33,8 +33,7 @@ public class ResolverUtils {
             return (String) anObj;
 
         // Handle array of types
-        else if (anObj instanceof Object[])
-            return getIdForTypeArray((Object[]) anObj);
+        //else if (anObj instanceof Object[]) return getIdForTypeArray((Object[]) anObj);
 
         // Complain about anything else
         else throw new RuntimeException("ResolverUtils.getId: Unsupported type: " + anObj);
@@ -68,13 +67,8 @@ public class ResolverUtils {
             return getIdForParameterizedType((ParameterizedType) aType);
 
         // Handle TypeVariable: DeclType.Name
-        if (aType instanceof TypeVariable) {
-            TypeVariable typeVar = (TypeVariable) aType;
-            GenericDeclaration genericDecl = typeVar.getGenericDeclaration();
-            String genericDeclId = getId(genericDecl);
-            String typeVarName = typeVar.getName();
-            return new StringBuffer(genericDeclId).append('.').append(typeVarName).toString();
-        }
+        if (aType instanceof TypeVariable)
+            return getIdForTypeVariable((TypeVariable<?>) aType);
 
         // Handle WildcardType: Need to fix for
         WildcardType wc = (WildcardType) aType;
@@ -99,46 +93,88 @@ public class ResolverUtils {
      */
     public static String getIdForParameterizedType(ParameterizedType parameterizedType)
     {
-        // Append RawType
+        // Get RawType id
         Type rawType = parameterizedType.getRawType();
-        String rawTypeId = getId(rawType);
-        StringBuffer sb = new StringBuffer(rawTypeId);
+        String rawTypeId = getIdForType(rawType);
 
-        // Append TypeArgs
+        // Get typeArgs id (just return rawType id if no args
         Type[] typeArgs = parameterizedType.getActualTypeArguments();
-        sb.append('<');
-        if (typeArgs.length > 0) {
-            String typeArgsId = getIdForTypeArray(typeArgs);
-            sb.append(typeArgsId);
-        }
+        if (typeArgs.length == 0)
+            return rawTypeId;
 
-        // Return
-        return sb.append('>').toString();
+        // Return RawType<TypeArgs>
+        String typeArgsId = getIdForTypeArray(typeArgs);
+        return rawTypeId + '<' + typeArgsId + '>';
     }
 
     /**
      * Returns an id string for given Java part.
      */
-    public static String getIdForParameterizedTypeParts(JavaDecl aDecl, JavaDecl[] theTypeDecls)
+    public static String getIdForParameterizedTypeParts(JavaDecl aRawType, JavaType[] theTypes)
     {
-        StringBuilder sb = new StringBuilder(aDecl.getId());
-        sb.append('<').append(theTypeDecls[0].getId());
-        for (int i = 1; i < theTypeDecls.length; i++)
-            sb.append(',').append(theTypeDecls[i].getId());
-        sb.append('>');
+        // Get RawType id (just return if no args)
+        String rawTypeId = aRawType.getId();
+        if (theTypes.length == 0)
+            return rawTypeId;
+
+        // Return RawType<TypeArgs>
+        String typeArgsId = getIdForJavaTypes(theTypes);
+        return rawTypeId + '<' + typeArgsId + '>';
+    }
+
+    /**
+     * Returns an Id for Java.lang.reflect.TypeVariable.
+     */
+    public static String getIdForTypeVariable(TypeVariable<?> typeVariable)
+    {
+        // Get GenericDecl and TypeVar.Name
+        GenericDeclaration genericDecl = typeVariable.getGenericDeclaration();
+        String genericDeclId = getId(genericDecl);
+        String typeVarName = typeVariable.getName();
+
+        // Return GenericDecl.TypeVarName
+        return new StringBuffer(genericDeclId).append('.').append(typeVarName).toString();
+    }
+
+    /**
+     * Returns an Id string for a Type array.
+     */
+    private static String getIdForTypeArray(Type[] theTypes)
+    {
+        // If empty, just return empty
+        if (theTypes.length == 0) return "";
+
+        // Create StringBuffer
+        StringBuffer sb = new StringBuffer();
+
+        // Iterate over types, get id and append for each
+        for (int i = 0, iMax = theTypes.length, last = iMax - 1; i < iMax; i++) {
+            Type type = theTypes[i];
+            String typeStr = getIdForType(type);
+            sb.append(typeStr);
+            if (i != last)
+                sb.append(',');
+        }
+
+        // Return
         return sb.toString();
     }
 
     /**
      * Returns an Id string for a Type array.
      */
-    private static String getIdForTypeArray(Object[] typeArray)
+    private static String getIdForJavaTypes(JavaType[] theTypes)
     {
+        // If empty, just return empty
+        if (theTypes.length == 0) return "";
+
+        // Create StringBuffer
         StringBuffer sb = new StringBuffer();
 
-        for (int i = 0, iMax = typeArray.length, last = iMax - 1; i < iMax; i++) {
-            Object type = typeArray[i];
-            String typeStr = getId(type);
+        // Iterate over types, get id and append for each
+        for (int i = 0, iMax = theTypes.length, last = iMax - 1; i < iMax; i++) {
+            JavaType type = theTypes[i];
+            String typeStr = type.getId();
             sb.append(typeStr);
             if (i != last)
                 sb.append(',');
@@ -155,7 +191,7 @@ public class ResolverUtils {
     {
         // Get id for Member.DeclaringClass
         Class<?> declaringClass = aMember.getDeclaringClass();
-        String classId = getId(declaringClass);
+        String classId = getIdForClass(declaringClass);
 
         // Start StringBuffer
         StringBuffer sb = new StringBuffer(classId);
@@ -209,54 +245,6 @@ public class ResolverUtils {
     /**
      * Returns the class name, converting primitive arrays to 'int[]' instead of '[I'.
      */
-    public static String getTypeName(Type aType)
-    {
-        // Handle Class
-        if (aType instanceof Class)
-            return getId(aType);
-
-        // Handle GenericArrayType
-        if (aType instanceof GenericArrayType) {
-            GenericArrayType gat = (GenericArrayType) aType;
-            return getTypeName(gat.getGenericComponentType()) + "[]";
-        }
-
-        // Handle ParameterizedType (e.g., Class <T>, List <T>, Map <K,V>)
-        if (aType instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) aType;
-            Type base = pt.getRawType();
-            Type[] types = pt.getActualTypeArguments();
-            StringBuffer sb = new StringBuffer(getTypeName(base)).append('<');
-            for (int i = 0, iMax = types.length, last = iMax - 1; i < iMax; i++) {
-                Type type = types[i];
-                sb.append(getTypeName(type));
-                if (i != last) sb.append(',');
-            }
-            return sb.append('>').toString();
-        }
-
-        // Handle TypeVariable
-        if (aType instanceof TypeVariable) {
-            TypeVariable tv = (TypeVariable) aType;
-            //Type typ = tv.getBounds()[0]; return getTypeName(typ);
-            return tv.getName();
-        }
-
-        // Handle WildcardType
-        if (aType instanceof WildcardType) {
-            WildcardType wc = (WildcardType) aType;
-            if (wc.getLowerBounds().length > 0)
-                return getTypeName(wc.getLowerBounds()[0]);
-            return getTypeName(wc.getUpperBounds()[0]);
-        }
-
-        // Complain about anything else
-        throw new RuntimeException("JavaKitUtils.getTypeName: Can't get name from type: " + aType);
-    }
-
-    /**
-     * Returns the class name, converting primitive arrays to 'int[]' instead of '[I'.
-     */
     public static Class<?> getClassForType(Type aType)
     {
         // Handle Class
@@ -266,17 +254,24 @@ public class ResolverUtils {
         // Handle GenericArrayType
         if (aType instanceof GenericArrayType) {
             GenericArrayType gat = (GenericArrayType) aType;
-            Class cls = getClassForType(gat.getGenericComponentType());
+            Class<?> cls = getClassForType(gat.getGenericComponentType());
             return Array.newInstance(cls, 0).getClass();
         }
 
         // Handle ParameterizedType (e.g., Class <T>, List <T>, Map <K,V>)
-        if (aType instanceof ParameterizedType)
-            return getClassForType(((ParameterizedType) aType).getRawType());
+        if (aType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) aType;
+            Type rawType = parameterizedType.getRawType();
+            return getClassForType(rawType);
+        }
 
         // Handle TypeVariable
-        if (aType instanceof TypeVariable)
-            return getClassForType(((TypeVariable) aType).getBounds()[0]);
+        if (aType instanceof TypeVariable) {
+            TypeVariable<?> typeVar = (TypeVariable<?>) aType;
+            Type[] boundsTypes = typeVar.getBounds();
+            Type bounds0 = boundsTypes.length > 0 ? boundsTypes[0] : Object.class;
+            return getClassForType(bounds0);
+        }
 
         // Handle WildcardType
         if (aType instanceof WildcardType) {

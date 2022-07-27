@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
 /**
@@ -21,9 +20,7 @@ public class JavaTypeVariable extends JavaType {
         _type = DeclType.TypeVar;
         _name = _simpleName = typeVar.getName();
 
-        Type[] typeVarTypes = typeVar.getBounds();
-        Type typeVarType = typeVarTypes[0];
-        Class<?> typeVarClass = ResolverUtils.getClassForType(typeVarType);
+        Class<?> typeVarClass = ResolverUtils.getClassForType(typeVar);
         _evalType = getJavaClassForClass(typeVarClass);
     }
 

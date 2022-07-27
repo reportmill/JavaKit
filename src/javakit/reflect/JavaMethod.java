@@ -31,6 +31,18 @@ public class JavaMethod extends JavaExecutable {
         for (int i = 0, iMax = typeVars.length; i < iMax; i++)
             _typeVars[i] = new JavaTypeVariable(_resolver, this, typeVars[i]);
 
+        // Get whether VarArgs
+        _varArgs = aMethod.isVarArgs();
+
+        // Get whether default
+        _default = aMethod.isDefault();
+    }
+
+    /**
+     * Resolves types.
+     */
+    protected void initTypes(Method aMethod)
+    {
         // Get Return Type
         Type returnType = aMethod.getReturnType();
         _evalType = _resolver.getTypeDecl(returnType);
@@ -42,12 +54,6 @@ public class JavaMethod extends JavaExecutable {
         _paramTypes = new JavaType[paramTypes.length];
         for (int i = 0, iMax = paramTypes.length; i < iMax; i++)
             _paramTypes[i] = _resolver.getTypeDecl(paramTypes[i]);
-
-        // Get whether VarArgs
-        _varArgs = aMethod.isVarArgs();
-
-        // Get whether default
-        _default = aMethod.isDefault();
     }
 
     /**
