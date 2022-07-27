@@ -173,26 +173,6 @@ public class JavaType extends JavaDecl {
     }
 
     /**
-     * Returns a string representation of suggestion.
-     */
-    @Override
-    public String getSuggestionString()
-    {
-        String simpleName = getSimpleName();
-        String parentName = getParentName();
-        return simpleName + " - " + parentName;
-    }
-
-    /**
-     * Returns the string to use when inserting this suggestion into code.
-     */
-    @Override
-    public String getReplaceString()
-    {
-        return getSimpleName();
-    }
-
-    /**
      * Returns whether JavaType arrays are equal.
      */
     public static boolean isTypesEqual(JavaType[] theTypes1, JavaType[] theTypes2)

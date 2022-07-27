@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-
 import java.lang.reflect.*;
 
 /**
@@ -13,9 +12,9 @@ public class JavaField extends JavaMember {
     /**
      * Constructor.
      */
-    public JavaField(Resolver anOwner, JavaDecl aPar, Field aField)
+    public JavaField(Resolver anOwner, JavaClass aDeclaringClass, Field aField)
     {
-        super(anOwner, aPar, aField);
+        super(anOwner, aDeclaringClass, aField);
 
         _type = DeclType.Field;
         _evalType = _resolver.getTypeDecl(aField.getGenericType());
@@ -27,16 +26,20 @@ public class JavaField extends JavaMember {
     @Override
     public String getSuggestionString()
     {
-        StringBuffer sb = new StringBuffer(getSimpleName());
-
+        // Get SimpleName, EvalType.SimpleName and DeclaringClass.SimpleName
+        String simpleName = getSimpleName();
         JavaType evalType = getEvalType();
-        if (evalType != null)
-            sb.append(" : ").append(evalType.getSimpleName());
-        String className = getClassSimpleName();
-        if (className != null)
-            sb.append(" - ").append(className);
+        String evalTypeName = evalType != null ? evalType.getSimpleName() : null;
+        JavaClass declaringClass = getDeclaringClass();
+        String declaringClassSimpleName = declaringClass.getSimpleName();
 
-        // Return string
+        // Construct string: SimpleName : EvalType.SimpleName - DeclaringCLass.SimpleName
+        StringBuffer sb = new StringBuffer(simpleName);
+        if (evalTypeName != null)
+            sb.append(" : ").append(evalTypeName);
+        sb.append(" - ").append(declaringClassSimpleName);
+
+        // Return
         return sb.toString();
     }
 

@@ -9,18 +9,34 @@ import java.lang.reflect.*;
  */
 public class JavaMember extends JavaDecl {
 
+    // The declaring class
+    private JavaClass  _declaringClass;
+
     /**
      * Constructor.
      */
-    public JavaMember(Resolver anOwner, JavaDecl aPar, Member aMember)
+    public JavaMember(Resolver anOwner, JavaClass aDeclaringClass, Member aMember)
     {
-        super(anOwner, aPar, aMember);
+        super(anOwner, aDeclaringClass, aMember);
 
         // Set id
         _id = ResolverUtils.getIdForMember(aMember);
 
-        // Set mods, name, simple name
+        // Set mods, declaring class
         _mods = aMember.getModifiers();
+        _declaringClass = aDeclaringClass;
+
+        // Set name/simple name
         _name = _simpleName = aMember.getName();
     }
+
+    /**
+     * Returns the declaring class.
+     */
+    public JavaClass getDeclaringClass()  { return _declaringClass; }
+
+    /**
+     * Returns the declaring class name.
+     */
+    public String getDeclaringClassName()  { return _declaringClass.getName(); }
 }

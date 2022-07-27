@@ -156,18 +156,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the enclosing class this decl.
      */
-    public JavaDecl getParent()
-    {
-        return _parent;
-    }
-
-    /**
-     * Returns the parent name.
-     */
-    public String getParentName()
-    {
-        return _parent != null ? _parent.getName() : "";
-    }
+    public JavaDecl getParent()  { return _parent; }
 
     /**
      * Returns the top level class name.

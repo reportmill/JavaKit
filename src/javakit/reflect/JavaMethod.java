@@ -18,21 +18,12 @@ public class JavaMethod extends JavaExecutable {
     /**
      * Constructor.
      */
-    public JavaMethod(Resolver anOwner, JavaDecl aPar, Method aMethod)
+    public JavaMethod(Resolver anOwner, JavaClass aDeclaringClass, Method aMethod)
     {
-        super(anOwner, aPar, aMethod);
+        super(anOwner, aDeclaringClass, aMethod);
 
         // Set type
         _type = DeclType.Method;
-
-        // Get TypeVars
-        TypeVariable<?>[] typeVars = aMethod.getTypeParameters();
-        _typeVars = new JavaTypeVariable[typeVars.length];
-        for (int i = 0, iMax = typeVars.length; i < iMax; i++)
-            _typeVars[i] = new JavaTypeVariable(_resolver, this, typeVars[i]);
-
-        // Get whether VarArgs
-        _varArgs = aMethod.isVarArgs();
 
         // Get whether default
         _default = aMethod.isDefault();
@@ -47,13 +38,8 @@ public class JavaMethod extends JavaExecutable {
         Type returnType = aMethod.getReturnType();
         _evalType = _resolver.getTypeDecl(returnType);
 
-        // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
-        Type[] paramTypes = aMethod.getGenericParameterTypes();
-        if (paramTypes.length < aMethod.getParameterCount())
-            paramTypes = aMethod.getParameterTypes();
-        _paramTypes = new JavaType[paramTypes.length];
-        for (int i = 0, iMax = paramTypes.length; i < iMax; i++)
-            _paramTypes[i] = _resolver.getTypeDecl(paramTypes[i]);
+        // Do normal version
+        super.initTypes(aMethod);
     }
 
     /**
@@ -71,8 +57,8 @@ public class JavaMethod extends JavaExecutable {
             return _super != this ? _super : null;
 
         // Get superclass and helper
-        JavaClass javaClass = getClassType();
-        JavaClass superClass = javaClass != null ? javaClass.getSuper() : null;
+        JavaClass declaringClass = getDeclaringClass();
+        JavaClass superClass = declaringClass != null ? declaringClass.getSuper() : null;
         if (superClass == null)
             return null;
 

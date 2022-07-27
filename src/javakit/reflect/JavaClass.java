@@ -4,13 +4,18 @@
 package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
-
 import snap.util.StringUtils;
 
 /**
  * A subclass of JavaDecl especially for Class declarations.
  */
 public class JavaClass extends JavaType {
+
+    // The Declaring class
+    private JavaClass  _declaringClass;
+
+    // The package
+    private JavaPackage  _package;
 
     // The super class decl
     private JavaClass  _superClass;
@@ -53,6 +58,12 @@ public class JavaClass extends JavaType {
         // Set type/id
         _type = DeclType.Class;
         _id = _name = ResolverUtils.getIdForClass(aClass);
+
+        // Set DeclaringClass or Package
+        if (aPar instanceof JavaClass)
+            _declaringClass = (JavaClass) aPar;
+        else if (aPar instanceof JavaPackage)
+            _package = (JavaPackage) aPar;
 
         // Add to decls
         anOwner._decls.put(_id, this);
@@ -98,6 +109,16 @@ public class JavaClass extends JavaType {
             }
         }
     }
+
+    /**
+     * Returns the class that contains this class (if inner class).
+     */
+    public JavaClass getDeclaringClass()  { return _declaringClass; }
+
+    /**
+     * Returns the package that declares this class.
+     */
+    public JavaPackage getPackage()  { return _package; }
 
     /**
      * Returns whether is a class reference.
@@ -401,10 +422,11 @@ public class JavaClass extends JavaType {
         // Add JavaDecl for each constructor - also make sure parameter types are in refs
         for (Constructor constr : constructors) {
             if (constr.isSynthetic()) continue;
-            JavaDecl decl = getConstructorDecl(constr);
+            JavaContructor decl = getConstructorDecl(constr);
             if (decl == null) {
                 decl = new JavaContructor(_resolver, this, constr);
                 addDecl(decl);
+                decl.initTypes(constr);
                 addedDecls++;
             } else removedDecls.remove(decl);
         }
@@ -999,6 +1021,20 @@ public class JavaClass extends JavaType {
             case TypeVar: _typeVarDecls.remove(aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.removeDecl: Invalid type " + type);
         }
+    }
+
+    /**
+     * Returns a string representation of suggestion.
+     */
+    @Override
+    public String getSuggestionString()
+    {
+        String simpleName = getSimpleName();
+        if (_declaringClass != null)
+            return simpleName + " - " + _declaringClass.getName();
+        if (_package != null)
+            return simpleName + " - " + _package.getName();
+        return simpleName;
     }
 
     /**

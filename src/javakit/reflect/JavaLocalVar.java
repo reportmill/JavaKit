@@ -29,16 +29,17 @@ public class JavaLocalVar extends JavaDecl {
     @Override
     public String getSuggestionString()
     {
-        StringBuffer sb = new StringBuffer(getSimpleName());
-
+        // Get SimpleName, EvalType.SimpleName
+        String simpleName = getSimpleName();
         JavaType evalType = getEvalType();
-        if (evalType != null)
-            sb.append(" : ").append(evalType.getSimpleName());
-        String className = getClassSimpleName();
-        if (className != null)
-            sb.append(" - ").append(className);
+        String evalTypeName = evalType != null ? evalType.getSimpleName() : null;
 
-        // Return string
+        // Construct string: SimpleName : EvalType.SimpleName
+        StringBuffer sb = new StringBuffer(simpleName);
+        if (evalTypeName != null)
+            sb.append(" : ").append(evalTypeName);
+
+        // Return
         return sb.toString();
     }
 }

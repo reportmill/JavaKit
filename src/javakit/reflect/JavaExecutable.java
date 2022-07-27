@@ -22,13 +22,28 @@ public class JavaExecutable extends JavaMember {
     /**
      * Constructor.
      */
-    public JavaExecutable(Resolver anOwner, JavaDecl aPar, Member aMember)
+    public JavaExecutable(Resolver anOwner, JavaClass aDeclaringClass, Member aMember)
     {
-        super(anOwner, aPar, aMember);
+        super(anOwner, aDeclaringClass, aMember);
 
-        // Set mods, name, simple name
-        _mods = aMember.getModifiers();
-        _name = _simpleName = aMember.getName();
+        // Get VarArgs
+        _varArgs = isVarArgs(aMember);
+
+        // Get TypeVariables
+        TypeVariable<?>[] typeVars = getTypeParameters(aMember);
+        _typeVars = new JavaTypeVariable[typeVars.length];
+        for (int i = 0, iMax = typeVars.length; i < iMax; i++)
+            _typeVars[i] = new JavaTypeVariable(_resolver, this, typeVars[i]);
+    }
+
+    /**
+     * Resolves types.
+     */
+    protected void initTypes(Member aMember)
+    {
+        // Get ParameterTypes
+        Type[] paramTypes = getGenericParameterTypes(aMember);
+        _paramTypes = _resolver.getJavaTypeArrayForTypes(paramTypes);
     }
 
     /**
@@ -134,10 +149,13 @@ public class JavaExecutable extends JavaMember {
     @Override
     public String getSuggestionString()
     {
-        StringBuffer sb = new StringBuffer(getSimpleName());
+        // Get SimpleName,
+        String simpleName = getSimpleName();
         String[] paramTypeNames = getParamTypeSimpleNames();
-        sb.append('(').append(StringUtils.join(paramTypeNames, ",")).append(')');
-        return sb.toString();
+        String paramTypeNamesStr = StringUtils.join(paramTypeNames, ",");
+
+        // Construct string SimpleName(ParamType.SimpleName, ...)
+        return simpleName + '(' + paramTypeNamesStr + ')';
     }
 
     /**
@@ -148,7 +166,8 @@ public class JavaExecutable extends JavaMember {
     {
         String name = getName();
         String[] paramTypeNames = getParamTypeSimpleNames();
-        return name + '(' + StringUtils.join(getParamTypeSimpleNames(), ",") + ')';
+        String paramTypeNamesStr = StringUtils.join(paramTypeNames, ",");
+        return name + '(' + paramTypeNamesStr + ')';
     }
 
     /**
@@ -157,12 +176,13 @@ public class JavaExecutable extends JavaMember {
     @Override
     public String getPrettyName()
     {
-        String className = getClassName();
+        String className = getDeclaringClassName();
         String memberName = className;
         if (this instanceof JavaMethod)
             memberName = className + '.' + getName();
         String[] paramTypeNames = getParamTypeSimpleNames();
-        return memberName + '(' + StringUtils.join(paramTypeNames, ",") + ')';
+        String paramTypeNamesStr = StringUtils.join(paramTypeNames, ",");
+        return memberName + '(' + paramTypeNamesStr + ')';
     }
 
     /**
@@ -171,12 +191,13 @@ public class JavaExecutable extends JavaMember {
     @Override
     public String getMatchName()
     {
-        String className = getClassName();
+        String className = getDeclaringClassName();
         String memberName = className;
         if (this instanceof JavaMethod)
             memberName = className + '.' + getName();
         String[] paramTypeNames = getParamTypeNames();
-        return memberName + '(' + StringUtils.join(paramTypeNames, ",") + ')';
+        String paramTypeNamesStr = StringUtils.join(paramTypeNames, ",");
+        return memberName + '(' + paramTypeNamesStr + ')';
     }
 
     /**
@@ -253,5 +274,47 @@ public class JavaExecutable extends JavaMember {
 
         // Return rating
         return rating;
+    }
+
+    /**
+     * Returns whether is VarArgs.
+     */
+    private static boolean isVarArgs(Member aMember)
+    {
+        if (aMember instanceof Method)
+            return ((Method) aMember).isVarArgs();
+        return ((Constructor<?>) aMember).isVarArgs();
+    }
+
+    /**
+     * Returns TypeVariables.
+     */
+    private static TypeVariable<?>[] getTypeParameters(Member aMember)
+    {
+        if (aMember instanceof Method)
+            return ((Method) aMember).getTypeParameters();
+        return ((Constructor<?>) aMember).getTypeParameters();
+    }
+
+    /**
+     * Returns ParameterTypes.
+     */
+    private static Type[] getGenericParameterTypes(Member aMember)
+    {
+        // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
+        if (aMember instanceof Method) {
+            Method method = (Method) aMember;
+            Type[] paramTypes = method.getGenericParameterTypes();
+            if (paramTypes.length < method.getParameterCount())
+                paramTypes = method.getParameterTypes();
+            return paramTypes;
+        }
+
+        // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
+        Constructor<?> constructor = (Constructor<?>) aMember;
+        Type[] paramTypes = constructor.getGenericParameterTypes();
+        if (paramTypes.length < constructor.getParameterCount())
+            paramTypes = constructor.getParameterTypes();
+        return paramTypes;
     }
 }
