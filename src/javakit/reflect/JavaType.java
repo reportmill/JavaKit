@@ -55,6 +55,11 @@ public class JavaType extends JavaDecl {
     public JavaClass getPrimitiveAlt()  { return null; }
 
     /**
+     * Returns whether given type is assignable to this JavaDecl.
+     */
+    public boolean isAssignable(JavaType aType)  { return false; }
+
+    /**
      * Returns common ancestor of this type and given type.
      */
     public JavaType getCommonAncestor(JavaType aType)

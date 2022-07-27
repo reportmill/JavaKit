@@ -163,14 +163,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     }
 
     /**
-     * Returns whether given type is assignable to this JavaDecl.
-     */
-    public boolean isAssignable(JavaDecl aDecl)
-    {
-        return false;
-    }
-
-    /**
      * Returns a name suitable to describe declaration.
      */
     public String getPrettyName()

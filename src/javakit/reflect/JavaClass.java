@@ -236,18 +236,19 @@ public class JavaClass extends JavaType {
     /**
      * Returns whether given type is assignable to this JavaDecl.
      */
-    public boolean isAssignable(JavaDecl aDecl)
+    @Override
+    public boolean isAssignable(JavaType aType)
     {
         // If this decl is primitive, forward to primitive version
         if (isPrimitive())
-            return isAssignablePrimitive(aDecl);
+            return isAssignablePrimitive(aType);
 
         // If given val is null or this decl is Object return true
-        if (aDecl == null)
+        if (aType == null)
             return true;
         if (getName().equals("java.lang.Object"))
             return true;
-        JavaClass ctype1 = aDecl.getClassType();
+        JavaClass ctype1 = aType.getClassType();
         if (ctype1.isPrimitive())
             ctype1 = ctype1.getPrimitiveAlt();
 

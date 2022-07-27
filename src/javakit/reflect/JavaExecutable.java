@@ -240,16 +240,19 @@ public class JavaExecutable extends JavaMember {
     {
         // Get method param types and length (just return if given arg count is insufficient)
         JavaType[] paramTypes = aMethod.getParamTypes();
-        int plen = paramTypes.length, vind = plen - 1, rating = 0;
-        if (theTypes.length < vind)
+        int argsLen = paramTypes.length;
+        int varArgIndex = argsLen - 1;
+        int rating = 0;
+        if (theTypes.length < varArgIndex)
             return 0;
-        if (plen == 1 && theTypes.length == 0)
+        if (argsLen == 1 && theTypes.length == 0)
             return 10;
 
         // Iterate over classes and add score based on matching classes
         // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
-        for (int i = 0, iMax = vind; i < iMax; i++) {
-            JavaDecl cls1 = paramTypes[i].getClassType(), cls2 = theTypes[i];
+        for (int i = 0, iMax = varArgIndex; i < iMax; i++) {
+            JavaType cls1 = paramTypes[i].getClassType();
+            JavaType cls2 = theTypes[i];
             if (cls2 != null) cls2 = cls2.getClassType();
             if (!cls1.isAssignable(cls2))
                 return 0;
@@ -257,17 +260,17 @@ public class JavaExecutable extends JavaMember {
         }
 
         // Get VarArg type
-        JavaType varArgArrayType = paramTypes[vind];
+        JavaType varArgArrayType = paramTypes[varArgIndex];
         JavaType varArgType = varArgArrayType.getArrayItemType();
 
         // If only one arg and it is of array type, add 1000
-        JavaType argType = theTypes.length == plen ? theTypes[vind] : null;
+        JavaType argType = theTypes.length == argsLen ? theTypes[varArgIndex] : null;
         if (argType != null && argType.isArray() && varArgArrayType.isAssignable(argType))
             rating += 1000;
 
             // If any var args match, add 1000
-        else for (int i = vind; i < theTypes.length; i++) {
-            JavaDecl type = theTypes[i];
+        else for (int i = varArgIndex; i < theTypes.length; i++) {
+            JavaType type = theTypes[i];
             if (varArgType.isAssignable(type))
                 rating += 1000;
         }
