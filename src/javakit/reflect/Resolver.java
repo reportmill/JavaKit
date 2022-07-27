@@ -282,16 +282,16 @@ public class Resolver {
     /**
      * Returns the param type with given name.
      */
-    public JavaType getParameterizedTypeDeclForParts(JavaType aType, JavaType[] theTypeArgs)
+    public JavaType getParameterizedTypeDeclForParts(JavaType aRawType, JavaType[] theTypeArgs)
     {
         // Get id and decl for id (just return if found)
-        String id = ResolverUtils.getIdForParameterizedTypeParts(aType, theTypeArgs);
+        String id = ResolverUtils.getIdForParameterizedTypeParts(aRawType, theTypeArgs);
         JavaParameterizedType decl = _paramTypes.get(id);
         if (decl != null)
             return decl;
 
         // Create new decl, add to map
-        decl = new JavaParameterizedType(this, aType, theTypeArgs);
+        decl = new JavaParameterizedType(this, aRawType, theTypeArgs);
         _paramTypes.put(id, decl);
 
         // Return

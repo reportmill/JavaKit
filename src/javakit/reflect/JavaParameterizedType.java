@@ -9,26 +9,41 @@ import snap.util.StringUtils;
  */
 public class JavaParameterizedType extends JavaType {
 
+    // The RawType
+    private JavaType  _rawType;
+
     // The JavaDecls for parameter types for Constructor, Method
     protected JavaType[]  _paramTypes;
 
     /**
      * Constructor.
      */
-    public JavaParameterizedType(Resolver anOwner, JavaDecl aPar, JavaType[] theTypes)
+    public JavaParameterizedType(Resolver anOwner, JavaType aRawType, JavaType[] theTypeArgs)
     {
         // Do normal version
-        super(anOwner, aPar, theTypes);
+        super(anOwner, aRawType, theTypeArgs);
 
         // Set type/id
         _type = DeclType.ParamType;
-        _id = _name = ResolverUtils.getIdForParameterizedTypeParts(aPar, theTypes);
+        _id = _name = ResolverUtils.getIdForParameterizedTypeParts(aRawType, theTypeArgs);
 
         // Set type info
-        _paramTypes = theTypes;
+        _rawType = aRawType;
+        _paramTypes = theTypeArgs;
         _evalType = this;
-        _simpleName = _parent.getSimpleName() + '<' + StringUtils.join(getParamTypeSimpleNames(), ",") + '>';
+
+        // Get/Set SimpleName
+        _simpleName = aRawType.getSimpleName();
+        if (theTypeArgs.length > 0) {
+            String typeArgsStr = StringUtils.join(getParamTypeSimpleNames(), ",");
+            _simpleName = _simpleName + '<' + typeArgsStr + '>';
+        }
     }
+
+    /**
+     * Returns the RawType.
+     */
+    public JavaType getRawType()  { return _rawType; }
 
     /**
      * Returns the parameter types.
@@ -51,8 +66,8 @@ public class JavaParameterizedType extends JavaType {
     public boolean isResolvedType()
     {
         // ParamType might subclass TypeVars
-        JavaDecl parent = getParent();
-        if (parent instanceof JavaTypeVariable)
+        JavaType rawType = getRawType();
+        if (rawType instanceof JavaTypeVariable)
             return false;
 
         // Or types might include TypeVars
