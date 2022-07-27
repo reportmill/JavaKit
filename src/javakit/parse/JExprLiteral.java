@@ -1,5 +1,6 @@
 package javakit.parse;
 
+import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 
 /**
@@ -148,7 +149,7 @@ public class JExprLiteral extends JExpr {
     /**
      * Returns the value class.
      */
-    public Class getValueClass()
+    public Class<?> getValueClass()
     {
         switch (getLiteralType()) {
             case Boolean: return boolean.class;
@@ -175,12 +176,18 @@ public class JExprLiteral extends JExpr {
      */
     protected JavaDecl getDeclImpl()
     {
-        Class cls = getValueClass();
-        if (cls == null) return null;
-        JavaDecl decl = getJavaDecl(cls);
-        JavaDecl declPrim = decl.getPrimitive();
-        if (declPrim != null) decl = declPrim;
-        return decl;
+        // Get value class (just return if null)
+        Class<?> valueClass = getValueClass();
+        if (valueClass == null)
+            return null;
+
+        JavaClass javaClass = getJavaClassForClass(valueClass);
+        JavaClass declPrim = javaClass.getPrimitive();
+        if (declPrim != null)
+            javaClass = declPrim;
+
+        // Return
+        return javaClass;
     }
 
     /**

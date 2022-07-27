@@ -196,7 +196,7 @@ public class JExprMath extends JExpr {
     {
         // If both true/false expressions not set, just bail
         if (getChildCount() < 3)
-            return getJavaClass(Object.class);
+            return getJavaClassForClass(Object.class);
 
         // Get true/false expressions and eval types
         JExpr trueExpr = getOperand(1);

@@ -24,7 +24,7 @@ public class JavaTypeVariable extends JavaType {
         Type[] typeVarTypes = typeVar.getBounds();
         Type typeVarType = typeVarTypes[0];
         Class<?> typeVarClass = ResolverUtils.getClassForType(typeVarType);
-        _evalType = getJavaClass(typeVarClass);
+        _evalType = getJavaClassForClass(typeVarClass);
     }
 
     /**

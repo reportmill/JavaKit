@@ -197,7 +197,7 @@ public class JFile extends JNode {
      * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
      */
     @Override
-    public JavaClass getJavaClass(Class<?> aClass)
+    public JavaClass getJavaClassForClass(Class<?> aClass)
     {
         Resolver resolver = getResolver();
         if (resolver == null) return null;
@@ -269,7 +269,7 @@ public class JFile extends JNode {
             if (cname == null) return null;
             JavaClass cdecl = (JavaClass) getJavaDecl(cname);
             for (int i = 1; cdecl != null && i < names.length; i++)
-                cdecl = cdecl.getClassDecl(names[i]);
+                cdecl = cdecl.getInnerClassForName(names[i]);
             return cdecl != null ? cdecl.getName() : null;
         }
 

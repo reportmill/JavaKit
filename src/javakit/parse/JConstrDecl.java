@@ -36,12 +36,12 @@ public class JConstrDecl extends JMethodDecl {
 
             // If enum, add implied args types for name (String) and ordinal (int)
         else if (javaClass.isEnum()) {
-            ptypes = ArrayUtils.add(ptypes, getJavaClass(String.class), 0);
-            ptypes = ArrayUtils.add(ptypes, getJavaClass(int.class), 1);
+            ptypes = ArrayUtils.add(ptypes, getJavaClassForClass(String.class), 0);
+            ptypes = ArrayUtils.add(ptypes, getJavaClassForClass(int.class), 1);
         }
 
         // Return Constructor for param types
-        return javaClass.getConstructorDecl(ptypes);
+        return javaClass.getConstructorForTypes(ptypes);
     }
 
     /**

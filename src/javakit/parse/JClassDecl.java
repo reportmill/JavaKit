@@ -416,7 +416,7 @@ public class JClassDecl extends JMemberDecl {
                     if (baseType instanceof JavaClass) {
                         JavaClass baseClass = (JavaClass) baseType;
                         String typeName = type.getName();
-                        JavaDecl typeVarType = baseClass.getTypeVar(typeName);
+                        JavaDecl typeVarType = baseClass.getTypeVarForName(typeName);
                         if (typeVarType != null)
                             return typeVarType;
                     }
@@ -436,7 +436,7 @@ public class JClassDecl extends JMemberDecl {
         // If it's "super", set class and return ClassField
         if (name.equals("super")) {
             Class<?> superClass = getSuperClass();
-            return superClass != null ? getJavaDecl(superClass) : null;
+            return superClass != null ? getJavaClassForClass(superClass) : null;
         }
 
         // Iterate over fields and return declaration if found

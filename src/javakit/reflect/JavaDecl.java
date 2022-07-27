@@ -64,21 +64,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     public boolean isClass()  { return false; }
 
     /**
-     * Returns whether is primitive.
-     */
-    public boolean isPrimitive()  { return false; }
-
-    /**
-     * Returns the primitive counter part, if available.
-     */
-    public JavaClass getPrimitive()  { return null; }
-
-    /**
-     * Returns the primitive counter part, if available.
-     */
-    public JavaClass getPrimitiveAlt()  { return null; }
-
-    /**
      * Returns whether is a field reference.
      */
     public boolean isField()  { return _type == DeclType.Field; }
@@ -328,17 +313,9 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns a JavaDecl for given object.
      */
-    public JavaClass getJavaClass(Class aClass)
+    public JavaClass getJavaClassForClass(Class aClass)
     {
-        return _resolver.getJavaClass(aClass);
-    }
-
-    /**
-     * Returns a ParamType decl for this base class and given types ( This<typ,type>).
-     */
-    public JavaType getParamTypeDecl(JavaType ... theTypeDecls)
-    {
-        return _resolver.getParameterizedTypeDeclForParts(this, theTypeDecls);
+        return _resolver.getJavaClassForClass(aClass);
     }
 
     /**

@@ -47,28 +47,39 @@ public class JavaType extends JavaDecl {
     public JavaType getSuper()  { return _superType; }
 
     /**
-     * Returns common ancestor of this decl and given decls.
+     * Returns whether is primitive.
      */
-    public JavaType getCommonAncestor(JavaType aDecl)
+    public boolean isPrimitive()  { return false; }
+
+    /**
+     * Returns the primitive counter part, if available.
+     */
+    public JavaClass getPrimitiveAlt()  { return null; }
+
+    /**
+     * Returns common ancestor of this type and given type.
+     */
+    public JavaType getCommonAncestor(JavaType aType)
     {
-        if (aDecl == this) return this;
+        if (aType == this)
+            return this;
 
         // Handle primitive
-        if (isPrimitive() && aDecl.isPrimitive())
-            return getCommonAncestorPrimitive(aDecl);
+        if (isPrimitive() && aType.isPrimitive())
+            return getCommonAncestorPrimitive(aType);
         else if (isPrimitive())
-            return getPrimitiveAlt().getCommonAncestor(aDecl);
-        else if (aDecl.isPrimitive())
-            return getCommonAncestor(aDecl.getPrimitiveAlt());
+            return getPrimitiveAlt().getCommonAncestor(aType);
+        else if (aType.isPrimitive())
+            return getCommonAncestor(aType.getPrimitiveAlt());
 
         // Iterate up each super chain to check
         for (JavaType d0 = this; d0 != null; d0 = d0.getSuper())
-            for (JavaType d1 = aDecl; d1 != null; d1 = d1.getSuper())
+            for (JavaType d1 = aType; d1 != null; d1 = d1.getSuper())
                 if (d0 == d1)
                     return d0;
 
         // Return Object (case where at least one was interface or ParamType of interface)
-        return getJavaType(Object.class);
+        return getJavaClassForClass(Object.class);
     }
 
     /**
@@ -136,6 +147,14 @@ public class JavaType extends JavaDecl {
     }
 
     /**
+     * Returns a ParamType decl for this base class and given types ( This<typ,type>).
+     */
+    public JavaType getParamTypeDecl(JavaType ... theTypes)
+    {
+        return _resolver.getParameterizedTypeDeclForParts(this, theTypes);
+    }
+
+    /**
      * Returns whether given declaration collides with this declaration.
      */
     public boolean matches(JavaDecl aDecl)
@@ -171,5 +190,31 @@ public class JavaType extends JavaDecl {
     public String getReplaceString()
     {
         return getSimpleName();
+    }
+
+    /**
+     * Returns whether JavaType arrays are equal.
+     */
+    public static boolean isTypesEqual(JavaType[] theTypes1, JavaType[] theTypes2)
+    {
+        // If length different, return false
+        int length = theTypes1.length;
+        if (theTypes2.length != length)
+            return false;
+
+        // Iterate over types
+        for (int i = 0; i < length; i++) {
+            JavaType type1 = theTypes1[i];
+            if (type1 != null)
+                type1 = type1.getClassType();
+            JavaType type2 = theTypes2[i];
+            if (type2 != null)
+                type2 = type2.getClassType();
+            if (type1 != type2)
+                return false;
+        }
+
+        // Return true since all types equal
+        return true;
     }
 }

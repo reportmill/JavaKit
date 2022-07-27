@@ -209,7 +209,7 @@ public class JVarDecl extends JNode {
             if (cd == null) return null;
             JavaClass cdecl = cd.getDecl();
             if (cdecl == null) return null;
-            JavaDecl fdecl = cdecl.getField(name);
+            JavaDecl fdecl = cdecl.getFieldForName(name);
             return fdecl;
         }
 

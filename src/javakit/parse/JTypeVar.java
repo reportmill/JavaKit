@@ -60,7 +60,7 @@ public class JTypeVar extends JNode {
      */
     public JavaType getBoundsType()
     {
-        return _types.size() > 0 ? _types.get(0).getDecl() : getJavaClass(Object.class);
+        return _types.size() > 0 ? _types.get(0).getDecl() : getJavaClassForClass(Object.class);
     }
 
     /**
@@ -78,14 +78,14 @@ public class JTypeVar extends JNode {
         String name = getName();
         if (parentDecl instanceof JavaClass) {
             JavaClass parentClass = (JavaClass) parentDecl;
-            JavaTypeVariable typeVar = parentClass.getTypeVar(name);
+            JavaTypeVariable typeVar = parentClass.getTypeVarForName(name);
             return typeVar;
         }
 
         // Handle Executable (Method/Constructor)
         if (parentDecl instanceof JavaExecutable) {
             JavaExecutable parentMethod = (JavaExecutable) parentDecl;
-            JavaTypeVariable typeVar = parentMethod.getTypeVar(name);
+            JavaTypeVariable typeVar = parentMethod.getTypeVarForName(name);
             return typeVar;
         }
 

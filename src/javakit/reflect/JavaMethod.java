@@ -73,7 +73,7 @@ public class JavaMethod extends JavaExecutable {
         // Get super method
         String name = getName();
         JavaType[] paramTypes = getParamTypes();
-        JavaMethod superMethod = superClass.getMethodDeclDeep(name, paramTypes);
+        JavaMethod superMethod = superClass.getMethodDeepForNameAndTypes(name, paramTypes);
         if (superMethod == null)
             superMethod = this;
 

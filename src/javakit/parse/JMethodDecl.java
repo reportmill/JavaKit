@@ -169,7 +169,7 @@ public class JMethodDecl extends JMemberDecl {
         if (javaClass == null) return null;
 
         // Return method for name and param types
-        return javaClass.getMethodDecl(name, ptypes);
+        return javaClass.getMethodForNameAndTypes(name, ptypes);
     }
 
     /**

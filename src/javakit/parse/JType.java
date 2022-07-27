@@ -151,7 +151,7 @@ public class JType extends JNode {
         // Handle primitive type
         Class primitiveClass = ClassUtils.getPrimitiveClass(_name);
         if (primitiveClass != null)
-            return _baseDecl = getJavaClass(primitiveClass);
+            return _baseDecl = getJavaClassForClass(primitiveClass);
 
 
         // If not primitive, try to resolve class
@@ -167,10 +167,10 @@ public class JType extends JNode {
     protected JavaType getDeclImpl()
     {
         // Get base decl
-        JavaType decl = getBaseDecl();
-        if (decl == null) {
+        JavaType javaType = getBaseDecl();
+        if (javaType == null) {
             System.err.println("JType.getDeclImpl: Can't find base decl: " + getName());
-            return getJavaClass(Object.class);
+            return getJavaClassForClass(Object.class);
         }
 
         // If type args, build array and get decl for ParamType
@@ -179,17 +179,17 @@ public class JType extends JNode {
             JavaType[] decls = new JavaType[len];
             for (int i = 0; i < len; i++)
                 decls[i] = getTypeArgDecl(i);
-            decl = decl.getParamTypeDecl(decls);
+            javaType = javaType.getParamTypeDecl(decls);
         }
 
         // If ArrayCount, get decl for array
         for (int i = 0; i < _arrayCount; i++)
-            decl = decl.getArrayType();
+            javaType = javaType.getArrayType();
 
         // Return declaration
-        if (decl == null)
+        if (javaType == null)
             System.err.println("JType.getDeclImpl: Shouldn't happen: decl not found for " + getName());
-        return decl;
+        return javaType;
     }
 
     /**

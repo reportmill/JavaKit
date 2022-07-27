@@ -43,7 +43,7 @@ public class ResolverUtils {
     /**
      * Returns an Id for a Java.lang.Class.
      */
-    private static String getIdForClass(Class<?> aClass)
+    public static String getIdForClass(Class<?> aClass)
     {
         if (aClass.isArray())
             return getIdForClass(aClass.getComponentType()) + "[]";
@@ -51,54 +51,14 @@ public class ResolverUtils {
     }
 
     /**
-     * Returns an Id for a Java.lang.reflect.Member.
-     */
-    private static String getIdForMember(Member aMember)
-    {
-        // Get id for Member.DeclaringClass
-        Class<?> declaringClass = aMember.getDeclaringClass();
-        String classId = getId(declaringClass);
-
-        // Start StringBuffer
-        StringBuffer sb = new StringBuffer(classId);
-
-        // Handle Field: DeclClassName.<Name>
-        if (aMember instanceof Field)
-            sb.append('.').append(aMember.getName());
-
-        // Handle Method: DeclClassName.Name(<ParamType>,...)
-        else if (aMember instanceof Method) {
-            Method meth = (Method) aMember;
-            sb.append('.').append(meth.getName()).append('(');
-            Class<?>[] paramTypes = meth.getParameterTypes();
-            if (paramTypes.length > 0) {
-                String paramTypesId = getIdForTypeArray(paramTypes);
-                sb.append(paramTypesId);
-            }
-            sb.append(')');
-        }
-
-        // Handle Constructor: DeclClassName(<ParamType>,...)
-        else if (aMember instanceof Constructor) {
-            Constructor<?> constr = (Constructor<?>) aMember;
-            Class<?>[] paramTypes = constr.getParameterTypes();
-            sb.append('(');
-            if (paramTypes.length > 0) {
-                String paramTypesId = getIdForTypeArray(paramTypes);
-                sb.append(paramTypesId);
-            }
-            sb.append(')');
-        }
-
-        // Return
-        return sb.toString();
-    }
-
-    /**
      * Returns an Id for Java.lang.reflect.Type.
      */
     public static String getIdForType(Type aType)
     {
+        // Handle Class
+        if (aType instanceof Class)
+            return getIdForClass((Class<?>) aType);
+
         // Handle GenericArrayType: CompType[]
         if (aType instanceof GenericArrayType)
             return getIdForGenericArrayType((GenericArrayType) aType);
@@ -182,6 +142,50 @@ public class ResolverUtils {
             sb.append(typeStr);
             if (i != last)
                 sb.append(',');
+        }
+
+        // Return
+        return sb.toString();
+    }
+
+    /**
+     * Returns an Id for a Java.lang.reflect.Member.
+     */
+    public static String getIdForMember(Member aMember)
+    {
+        // Get id for Member.DeclaringClass
+        Class<?> declaringClass = aMember.getDeclaringClass();
+        String classId = getId(declaringClass);
+
+        // Start StringBuffer
+        StringBuffer sb = new StringBuffer(classId);
+
+        // Handle Field: DeclClassName.<Name>
+        if (aMember instanceof Field)
+            sb.append('.').append(aMember.getName());
+
+            // Handle Method: DeclClassName.Name(<ParamType>,...)
+        else if (aMember instanceof Method) {
+            Method meth = (Method) aMember;
+            sb.append('.').append(meth.getName()).append('(');
+            Class<?>[] paramTypes = meth.getParameterTypes();
+            if (paramTypes.length > 0) {
+                String paramTypesId = getIdForTypeArray(paramTypes);
+                sb.append(paramTypesId);
+            }
+            sb.append(')');
+        }
+
+        // Handle Constructor: DeclClassName(<ParamType>,...)
+        else if (aMember instanceof Constructor) {
+            Constructor<?> constr = (Constructor<?>) aMember;
+            Class<?>[] paramTypes = constr.getParameterTypes();
+            sb.append('(');
+            if (paramTypes.length > 0) {
+                String paramTypesId = getIdForTypeArray(paramTypes);
+                sb.append(paramTypesId);
+            }
+            sb.append(')');
         }
 
         // Return

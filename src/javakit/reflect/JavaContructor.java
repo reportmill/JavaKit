@@ -66,7 +66,7 @@ public class JavaContructor extends JavaExecutable {
 
         // Get super method
         JavaType[] paramTypes = getParamTypes();
-        JavaContructor superMethod = superClass.getConstructorDeclDeep(paramTypes);
+        JavaContructor superMethod = superClass.getConstructorDeepForTypes(paramTypes);
         if (superMethod == null)
             superMethod = this;
 

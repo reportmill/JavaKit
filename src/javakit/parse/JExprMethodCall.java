@@ -241,7 +241,7 @@ public class JExprMethodCall extends JExpr {
     public JavaType getResolvedTypeVarForMethod(String aName, JavaMethod aMethod)
     {
         // If no type var for given name, just return
-        JavaTypeVariable typeVar = aMethod.getTypeVar(aName);
+        JavaTypeVariable typeVar = aMethod.getTypeVarForName(aName);
         if (typeVar == null)
             return null;
 

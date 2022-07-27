@@ -128,7 +128,7 @@ public class JStmtSwitch extends JStmt {
                 JavaType sdecl = swExpr != null ? swExpr.getEvalType() : null;
                 if (sdecl != null && sdecl.isEnum()) {
                     JavaClass edecl = sdecl.getClassType();
-                    JavaDecl enumConst = edecl.getField(name);
+                    JavaDecl enumConst = edecl.getFieldForName(name);
                     if (enumConst != null)
                         return enumConst;
                 }

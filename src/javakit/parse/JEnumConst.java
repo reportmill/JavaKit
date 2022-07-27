@@ -63,7 +63,7 @@ public class JEnumConst extends JMemberDecl {
             return null;
 
         // Get JavaDecl for enum constant, which is just a field of enum class
-        JavaDecl edecl = jdecl.getField(name);
+        JavaDecl edecl = jdecl.getFieldForName(name);
         return edecl;
     }
 

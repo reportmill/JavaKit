@@ -44,16 +44,16 @@ public class JavaExecutable extends JavaMember {
     /**
      * Returns the TypeVar with given name.
      */
-    public JavaTypeVariable getTypeVar(String aName)
+    public JavaTypeVariable getTypeVarForName(String aName)
     {
         // Check Method, Constructor TypeVars
-        for (JavaTypeVariable tvar : _typeVars)
-            if (tvar.getName().equals(aName))
-                return tvar;
+        for (JavaTypeVariable typeVar : _typeVars)
+            if (typeVar.getName().equals(aName))
+                return typeVar;
 
         // Forward to class
         JavaClass parentClass = getClassType();
-        return parentClass.getTypeVar(aName);
+        return parentClass.getTypeVarForName(aName);
     }
 
     /**
@@ -177,5 +177,81 @@ public class JavaExecutable extends JavaMember {
             memberName = className + '.' + getName();
         String[] paramTypeNames = getParamTypeNames();
         return memberName + '(' + StringUtils.join(paramTypeNames, ",") + ')';
+    }
+
+    /**
+     * Returns a rating of a method for given possible arg classes.
+     */
+    public static int getMatchRatingForTypes(JavaExecutable aMethod, JavaType[] theTypes)
+    {
+        // Handle VarArg methods special
+        if (aMethod.isVarArgs())
+            return getMatchRatingForTypesWidthVarArgs(aMethod, theTypes);
+
+        // Get method param types and length (just return if given arg count doesn't match)
+        JavaType[] paramTypes = aMethod.getParamTypes();
+        int plen = paramTypes.length, rating = 0;
+        if (theTypes.length != plen)
+            return 0;
+        if (plen == 0)
+            return 1000;
+
+        // Iterate over classes and add score based on matching classes
+        // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
+        for (int i = 0, iMax = plen; i < iMax; i++) {
+            JavaType cls1 = paramTypes[i].getClassType();
+            JavaType cls2 = theTypes[i];
+            if (cls2 != null)
+                cls2 = cls2.getClassType();
+            if (!cls1.isAssignable(cls2))
+                return 0;
+            rating += cls1 == cls2 ? 1000 : cls2 != null ? 100 : 10;
+        }
+
+        // Return rating
+        return rating;
+    }
+
+    /**
+     * Returns a rating of a method for given possible arg classes.
+     */
+    private static int getMatchRatingForTypesWidthVarArgs(JavaExecutable aMethod, JavaType[] theTypes)
+    {
+        // Get method param types and length (just return if given arg count is insufficient)
+        JavaType[] paramTypes = aMethod.getParamTypes();
+        int plen = paramTypes.length, vind = plen - 1, rating = 0;
+        if (theTypes.length < vind)
+            return 0;
+        if (plen == 1 && theTypes.length == 0)
+            return 10;
+
+        // Iterate over classes and add score based on matching classes
+        // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
+        for (int i = 0, iMax = vind; i < iMax; i++) {
+            JavaDecl cls1 = paramTypes[i].getClassType(), cls2 = theTypes[i];
+            if (cls2 != null) cls2 = cls2.getClassType();
+            if (!cls1.isAssignable(cls2))
+                return 0;
+            rating += cls1 == cls2 ? 1000 : cls2 != null ? 100 : 10;
+        }
+
+        // Get VarArg type
+        JavaType varArgArrayType = paramTypes[vind];
+        JavaType varArgType = varArgArrayType.getArrayItemType();
+
+        // If only one arg and it is of array type, add 1000
+        JavaType argType = theTypes.length == plen ? theTypes[vind] : null;
+        if (argType != null && argType.isArray() && varArgArrayType.isAssignable(argType))
+            rating += 1000;
+
+            // If any var args match, add 1000
+        else for (int i = vind; i < theTypes.length; i++) {
+            JavaDecl type = theTypes[i];
+            if (varArgType.isAssignable(type))
+                rating += 1000;
+        }
+
+        // Return rating
+        return rating;
     }
 }

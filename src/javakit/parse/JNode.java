@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.util.*;
 
 import javakit.reflect.JavaClass;
@@ -47,7 +46,12 @@ public class JNode {
      */
     public String getName()
     {
-        return _name != null ? _name : (_name = getNameImpl());
+        // If already set, just return
+        if (_name != null) return _name;
+
+        // Get, set, return
+        String name = getNameImpl();
+        return _name = name;
     }
 
     /**
@@ -72,7 +76,10 @@ public class JNode {
     public boolean isDecl()
     {
         JExprId id = this instanceof JExprId ? (JExprId) this : null;
-        if (id == null) return false;
+        if (id == null)
+            return false;
+
+        //
         JNode par = id.getParent();
         return par instanceof JMemberDecl || par instanceof JEnumConst || par instanceof JVarDecl;
     }
@@ -82,7 +89,12 @@ public class JNode {
      */
     public JavaDecl getDecl()
     {
-        return _decl != null ? _decl : (_decl = getDeclImpl());
+        // If already set, just return
+        if (_decl != null) return _decl;
+
+        // Get, set, return
+        JavaDecl decl = getDeclImpl();
+        return _decl = decl;
     }
 
     /**
@@ -106,7 +118,12 @@ public class JNode {
      */
     public JavaType getEvalType()
     {
-        return _evalType != null ? _evalType : (_evalType = getEvalTypeImpl());
+        // If already set, just return
+        if (_evalType != null) return _evalType;
+
+        // Get, set, return
+        JavaType evalType = getEvalTypeImpl();
+        return _evalType = evalType;
     }
 
     /**
@@ -135,16 +152,10 @@ public class JNode {
      */
     protected JavaType getEvalTypeImpl(JNode aNode)
     {
-        return _parent != null ? _parent.getEvalTypeImpl(aNode) : null;
-    }
+        if (_parent != null)
+            return _parent.getEvalTypeImpl(aNode);
 
-    /**
-     * Returns the JavaDecl that this nodes evaluates to.
-     */
-    public String getEvalTypeName()
-    {
-        JavaDecl etype = getEvalType();
-        return etype != null ? etype.getName() : null;
+        return null;
     }
 
     /**
@@ -152,8 +163,8 @@ public class JNode {
      */
     public Class getEvalClass()
     {
-        JavaDecl etype = getEvalType();
-        return etype != null ? etype.getEvalClass() : null;
+        JavaType evalType = getEvalType();
+        return evalType != null ? evalType.getEvalClass() : null;
     }
 
     /**
@@ -464,10 +475,10 @@ public class JNode {
     /**
      * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
      */
-    public JavaClass getJavaClass(Class<?> aClass)
+    public JavaClass getJavaClassForClass(Class<?> aClass)
     {
         JFile jfile = getFile();
-        JavaClass javaClass = jfile.getJavaClass(aClass);
+        JavaClass javaClass = jfile.getJavaClassForClass(aClass);
         return javaClass;
     }
 

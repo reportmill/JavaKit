@@ -16,6 +16,9 @@ public class JavaMember extends JavaDecl {
     {
         super(anOwner, aPar, aMember);
 
+        // Set id
+        _id = ResolverUtils.getIdForMember(aMember);
+
         // Set mods, name, simple name
         _mods = aMember.getModifiers();
         _name = _simpleName = aMember.getName();

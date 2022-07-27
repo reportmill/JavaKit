@@ -4,9 +4,9 @@
 package javakit.parse;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaField;
 import javakit.reflect.JavaType;
-import snap.util.ClassUtils;
-import java.lang.reflect.Field;
+
 import java.util.*;
 
 /**
@@ -105,35 +105,38 @@ public class JExprChain extends JExpr {
 
         // Handle Parent is Package: Look for package sub-package or package class
         if (parDecl.isPackage()) {
-            String pname = parDecl.getPackageName(), cpath = pname + '.' + name;
-            JavaDecl decl = getJavaDecl(cpath);
+            String packageName = parDecl.getPackageName();
+            String classPath = packageName + '.' + name;
+            JavaDecl decl = getJavaDecl(classPath);
             if (decl != null)
                 return decl;
         }
 
         // Handle Parent is Class: Look for ".this", ".class", static field or inner class
-        else if (parDecl.isClass()) {
-            Class pclass = parExpr.getEvalClass();
+        else if (parDecl instanceof JavaClass) {
+
+            // Get parent class
+            JavaClass parentClass = (JavaClass) parDecl;
 
             // Handle Class.this: Return parent declaration
             if (name.equals("this"))
-                return parDecl; // was FieldName
+                return parentClass; // was FieldName
 
             // Handle Class.class: Return ParamType for Class<T>
             if (name.equals("class")) {
-                JavaDecl cdecl = getJavaDecl(Class.class);
-                return cdecl.getParamTypeDecl((JavaType) parDecl);
+                JavaClass classClass = getJavaClassForClass(Class.class);
+                return classClass.getParamTypeDecl(parentClass);
             }
 
             // Handle inner class
-            Class cls = pclass != null ? ClassUtils.getInnerClassForName(pclass, name) : null;
-            if (cls != null)
-                return getJavaDecl(cls);
+            JavaClass innerClass = parentClass.getInnerClassDeepForName(name);
+            if (innerClass != null)
+                return innerClass;
 
             // Handle Field
-            Field field = pclass != null ? ClassUtils.getFieldForName(pclass, name) : null;
+            JavaField field = parentClass.getFieldDeepForName(name);
             if (field != null) // && Modifier.isStatic(field.getModifiers()))
-                return getJavaDecl(field); // was FieldName
+                return field;
         }
 
         // Handle any parent with class: Look for field
@@ -141,14 +144,14 @@ public class JExprChain extends JExpr {
             JavaType pdecl = parExpr.getEvalType();
 
             if (pdecl.isArray() && name.equals("length"))
-                return getJavaDecl(int.class); // was FieldName;
+                return getJavaClassForClass(int.class); // was FieldName;
 
             if (pdecl.isParamType())
                 pdecl = (JavaType) pdecl.getParent();
 
             if (pdecl.isClass()) {
                 JavaClass cdecl = (JavaClass) pdecl;
-                JavaDecl fd = cdecl.getFieldDeep(name);
+                JavaDecl fd = cdecl.getFieldDeepForName(name);
                 if (fd != null)
                     return fd;
             }

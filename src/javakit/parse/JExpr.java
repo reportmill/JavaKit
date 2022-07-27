@@ -235,7 +235,7 @@ public abstract class JExpr extends JNode {
          */
         protected JavaDecl getDeclImpl()
         {
-            return getJavaDecl(boolean.class);
+            return getJavaClassForClass(boolean.class);
         }
     }
 

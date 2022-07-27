@@ -31,7 +31,7 @@ public class JavaClass extends JavaType {
     private List<JavaContructor>  _constrDecls = new ArrayList<>();
 
     // The inner class decls
-    private List<JavaClass>  _innerClassDecls = new ArrayList<>();
+    private List<JavaClass>  _innerClasses = new ArrayList<>();
 
     // The type var decls
     private List<JavaTypeVariable>  _typeVarDecls = new ArrayList<>();
@@ -50,18 +50,25 @@ public class JavaClass extends JavaType {
         // Do normal version
         super(anOwner, aPar, aClass);
 
+        // Set type/id
+        _type = DeclType.Class;
+        _id = _name = ResolverUtils.getIdForClass(aClass);
+
+        // Add to decls
+        anOwner._decls.put(_id, this);
+        if (aClass.isArray()) {
+            String altName = aClass.getName();
+            if (!altName.equals(_id))
+                anOwner._decls.put(altName, this);
+        }
+
         // Set class attributes
         _mods = aClass.getModifiers();
-        _type = DeclType.Class;
-        _name = ResolverUtils.getId(aClass);
         _simpleName = aClass.getSimpleName();
         _enum = aClass.isEnum();
         _interface = aClass.isInterface();
         _primitive = aClass.isPrimitive();
         _evalType = this;
-
-        // Add to Owner.Decls map
-        _resolver._decls.put(_id, this);
 
         // Get type super type and set in decl
         AnnotatedType superAType = aClass.getAnnotatedSuperclass();
@@ -74,18 +81,18 @@ public class JavaClass extends JavaType {
         // Handle Array
         if (aClass.isArray()) {
 
-            // Set ArrayItemType and add alternate name to Owner.Decls map
-            _arrayItemType = getJavaType(aClass.getComponentType());
-            _resolver._decls.put(aClass.getName(), this);
+            // Set ArrayItemType
+            Class<?> compClass = aClass.getComponentType();
+            _arrayItemType = getJavaClassForClass(compClass);
 
             // Set Decls from Object[] for efficiency
             if (aClass != Object[].class) {
-                JavaClass aryDecl = (JavaClass) getJavaDecl(Object[].class);
+                JavaClass aryDecl = getJavaClassForClass(Object[].class);
                 _fieldDecls = aryDecl.getFields();
                 _interfaces = aryDecl._interfaces;
                 _methDecls = aryDecl._methDecls;
                 _constrDecls = aryDecl._constrDecls;
-                _innerClassDecls = aryDecl._innerClassDecls;
+                _innerClasses = aryDecl._innerClasses;
                 _typeVarDecls = aryDecl._typeVarDecls;
                 _allDecls = aryDecl.getAllDecls();
             }
@@ -133,17 +140,20 @@ public class JavaClass extends JavaType {
      */
     public JavaClass getPrimitive()
     {
-        if (isPrimitive()) return this;
+        if (isPrimitive())
+            return this;
+
+        // Handle primitive types
         switch (_name) {
-            case "java.lang.Boolean": return getJavaClass(boolean.class);
-            case "java.lang.Byte": return getJavaClass(byte.class);
-            case "java.lang.Character": return getJavaClass(char.class);
-            case "java.lang.Short": return getJavaClass(short.class);
-            case "java.lang.Integer": return getJavaClass(int.class);
-            case "java.lang.Long": return getJavaClass(long.class);
-            case "java.lang.Float": return getJavaClass(float.class);
-            case "java.lang.Double": return getJavaClass(double.class);
-            case "java.lang.Void": return getJavaClass(void.class);
+            case "java.lang.Boolean": return getJavaClassForClass(boolean.class);
+            case "java.lang.Byte": return getJavaClassForClass(byte.class);
+            case "java.lang.Character": return getJavaClassForClass(char.class);
+            case "java.lang.Short": return getJavaClassForClass(short.class);
+            case "java.lang.Integer": return getJavaClassForClass(int.class);
+            case "java.lang.Long": return getJavaClassForClass(long.class);
+            case "java.lang.Float": return getJavaClassForClass(float.class);
+            case "java.lang.Double": return getJavaClassForClass(double.class);
+            case "java.lang.Void": return getJavaClassForClass(void.class);
             default: return null;
         }
     }
@@ -153,17 +163,20 @@ public class JavaClass extends JavaType {
      */
     public JavaClass getPrimitiveAlt()
     {
-        if (!isPrimitive()) return this;
+        if (!isPrimitive())
+            return this;
+
+        // Handle primitive types
         switch (_name) {
-            case "boolean": return getJavaClass(Boolean.class);
-            case "byte": return getJavaClass(Byte.class);
-            case "char": return getJavaClass(Character.class);
-            case "short": return getJavaClass(Short.class);
-            case "int": return getJavaClass(Integer.class);
-            case "long": return getJavaClass(Long.class);
-            case "float": return getJavaClass(Float.class);
-            case "double": return getJavaClass(Double.class);
-            case "void": return getJavaClass(Void.class);
+            case "boolean": return getJavaClassForClass(Boolean.class);
+            case "byte": return getJavaClassForClass(Byte.class);
+            case "char": return getJavaClassForClass(Character.class);
+            case "short": return getJavaClassForClass(Short.class);
+            case "int": return getJavaClassForClass(Integer.class);
+            case "long": return getJavaClassForClass(Long.class);
+            case "float": return getJavaClassForClass(Float.class);
+            case "double": return getJavaClassForClass(Double.class);
+            case "void": return getJavaClassForClass(Void.class);
             default: return null;
         }
     }
@@ -249,7 +262,7 @@ public class JavaClass extends JavaType {
 
         // If has type var, return bounds type
         String name = aDecl.getName();
-        JavaDecl typeVar = getTypeVar(name);
+        JavaDecl typeVar = getTypeVarForName(name);
         if (typeVar != null)
             return typeVar.getEvalType();
 
@@ -291,7 +304,7 @@ public class JavaClass extends JavaType {
         _interfaces = new JavaClass[interfaces.length];
         for (int i = 0, iMax = interfaces.length; i < iMax; i++) {
             Class intrface = interfaces[i];
-            _interfaces[i] = getJavaClass(intrface);
+            _interfaces[i] = getJavaClassForClass(intrface);
         }
 
         // Create set for added/removed decls
@@ -313,7 +326,7 @@ public class JavaClass extends JavaType {
         // Add JavaDecl for each Type parameter
         for (TypeVariable typeVariable : typeVariables) {
             String name = typeVariable.getName();
-            JavaDecl decl = getTypeVar(name);
+            JavaDecl decl = getTypeVarForName(name);
             if (decl == null) {
                 decl = new JavaTypeVariable(_resolver, this, typeVariable);
                 addDecl(decl);
@@ -331,7 +344,7 @@ public class JavaClass extends JavaType {
 
         // Add JavaDecl for each inner class
         for (Class innerClass : innerClasses) {   //if(icls.isSynthetic()) continue;
-            JavaDecl decl = getClassDecl(innerClass.getSimpleName());
+            JavaDecl decl = getInnerClassForName(innerClass.getSimpleName());
             if (decl == null) {
                 decl = getJavaDecl(innerClass);
                 addDecl(decl);
@@ -396,7 +409,7 @@ public class JavaClass extends JavaType {
         }
 
         // Array.length: Handle this special for Object[]
-        if (isArray() && getField("length") == null) {
+        if (isArray() && getFieldForName("length") == null) {
             Field lenField = getLenField();
             JavaDecl decl = new JavaField(_resolver, this, lenField);
             addDecl(decl);
@@ -455,67 +468,25 @@ public class JavaClass extends JavaType {
     /**
      * Returns the inner classes.
      */
-    public List<JavaClass> getClasses()
+    public List<JavaClass> getInnerClasses()
     {
         getFields();
-        return _innerClassDecls;
+        return _innerClasses;
     }
 
     /**
      * Returns the inner classes.
      */
-    public List<JavaTypeVariable> getTypeVars2()
+    public List<JavaTypeVariable> getTypeVars()
     {
         getFields();
         return _typeVarDecls;
     }
 
     /**
-     * Returns the list of all decls.
-     */
-    public List<JavaDecl> getAllDecls()
-    {
-        // If already set, just return
-        if (_allDecls != null) return _allDecls;
-
-        // Create new AllDecls cached list with decls for fields, methods, constructors, inner classes and this class
-        List<JavaField> fdecls = getFields();
-        List<JavaDecl> decls = new ArrayList(fdecls.size() + _methDecls.size() + _constrDecls.size() + _innerClassDecls.size() + 1);
-        decls.add(this);
-        decls.addAll(_fieldDecls);
-        decls.addAll(_methDecls);
-        decls.addAll(_constrDecls);
-        decls.addAll(_innerClassDecls);
-
-        // Set/return
-        return _allDecls = decls;
-    }
-
-    /**
-     * Returns the field decl for field.
-     */
-    public JavaField getField(Field aField)
-    {
-        String name = aField.getName();
-        JavaField field = getField(name);
-        if (field == null)
-            return null;
-
-        int mods = aField.getModifiers();
-        if (mods != field.getModifiers())
-            return null;
-
-        //JavaDecl type = _cdecl._owner.getTypeDecl(aField.getGenericType(), _cdecl);
-        //if(type!=decl.getEvalType()) return null;
-
-        // Return
-        return field;
-    }
-
-    /**
      * Returns a field decl for field name.
      */
-    public JavaField getField(String aName)
+    public JavaField getFieldForName(String aName)
     {
         List<JavaField> fields = getFields();
         for (JavaField field : fields)
@@ -529,58 +500,53 @@ public class JavaClass extends JavaType {
     /**
      * Returns a field decl for field name.
      */
-    public JavaField getFieldDeep(String aName)
+    public JavaField getFieldDeepForName(String aName)
     {
-        JavaField field = getField(aName);
+        JavaField field = getFieldForName(aName);
         if (field == null && _superClass != null)
-            field = _superClass.getFieldDeep(aName);
+            field = _superClass.getFieldDeepForName(aName);
 
         // Return
         return field;
     }
 
     /**
-     * Returns the method decl for method.
+     * Returns a constructor decl for parameter types.
      */
-    public JavaMethod getMethodDecl(Method aMeth)
+    public JavaContructor getConstructorForTypes(JavaType[] theTypes)
     {
-        String id = ResolverUtils.getId(aMeth);
-        JavaMethod method = getMethodDecl(id);
-        if (method == null)
-            return null;
-
-        int mods = aMeth.getModifiers();
-        if (mods != method.getModifiers())
-            return null;
-
-        // Check return type?
-        return method;
-    }
-
-    /**
-     * Returns the method decl for id string.
-     */
-    public JavaMethod getMethodDecl(String anId)
-    {
-        List<JavaMethod> methods = getMethods();
-        for (JavaMethod method : methods)
-            if (method.getId().equals(anId))
-                return method;
+        List<JavaContructor> constructors = getConstructors();
+        for (JavaContructor contructor : constructors) {
+            JavaType[] constrParamTypes = contructor.getParamTypes();
+            if (isTypesEqual(constrParamTypes, theTypes))
+                return contructor;
+        }
 
         // Return
         return null;
     }
 
     /**
+     * Returns a constructor decl for parameter types.
+     */
+    public JavaContructor getConstructorDeepForTypes(JavaType[] theTypes)
+    {
+        JavaContructor decl = getConstructorForTypes(theTypes);
+        if (decl == null && _superClass != null)
+            decl = _superClass.getConstructorDeepForTypes(theTypes);
+        return decl;
+    }
+
+    /**
      * Returns a method decl for method name and parameter types.
      */
-    public JavaMethod getMethodDecl(String aName, JavaType[] theTypes)
+    public JavaMethod getMethodForNameAndTypes(String aName, JavaType[] theTypes)
     {
         List<JavaMethod> methods = getMethods();
         for (JavaMethod method : methods) {
             if (method.getName().equals(aName)) {
                 JavaType[] methodParamTypes = method.getParamTypes();
-                if (isClassTypesEqual(methodParamTypes, theTypes))
+                if (isTypesEqual(methodParamTypes, theTypes))
                     return method;
             }
         }
@@ -592,12 +558,82 @@ public class JavaClass extends JavaType {
     /**
      * Returns a method decl for method name and parameter types.
      */
-    public JavaMethod getMethodDeclDeep(String aName, JavaType[] theTypes)
+    public JavaMethod getMethodDeepForNameAndTypes(String aName, JavaType[] theTypes)
     {
-        JavaMethod method = getMethodDecl(aName, theTypes);
+        JavaMethod method = getMethodForNameAndTypes(aName, theTypes);
         if (method == null && _superClass != null)
-            method = _superClass.getMethodDeclDeep(aName, theTypes);
+            method = _superClass.getMethodDeepForNameAndTypes(aName, theTypes);
         return method;
+    }
+
+    /**
+     * Returns a Class decl for inner class simple name.
+     */
+    public JavaClass getInnerClassForName(String aName)
+    {
+        List<JavaClass> icdecls = getInnerClasses();
+        for (JavaClass jd : icdecls)
+            if (jd.getSimpleName().equals(aName))
+                return jd;
+        return null;
+    }
+
+    /**
+     * Returns a Class decl for inner class name.
+     */
+    public JavaClass getInnerClassDeepForName(String aName)
+    {
+        JavaClass decl = getInnerClassForName(aName);
+        if (decl == null && _superClass != null)
+            decl = _superClass.getInnerClassDeepForName(aName);
+        return decl;
+    }
+
+    /**
+     * Returns a TypeVar decl for inner class name.
+     */
+    public JavaTypeVariable getTypeVarForName(String aName)
+    {
+        List<JavaTypeVariable> tvdecls = getTypeVars();
+        for (JavaTypeVariable jd : tvdecls)
+            if (jd.getName().equals(aName))
+                return jd;
+        return null;
+    }
+
+    /**
+     * Returns a TypeVar decl for inner class name.
+     */
+    public int getTypeVarIndexForName(String aName)
+    {
+        List<JavaTypeVariable> tvdecls = getTypeVars();
+        for (int i = 0, iMax = tvdecls.size(); i < iMax; i++) {
+            JavaTypeVariable jd = tvdecls.get(i);
+            if (jd.getName().equals(aName))
+                return i;
+        }
+        return -1;
+    }
+
+    /**
+     * Returns the list of all decls.
+     */
+    public List<JavaDecl> getAllDecls()
+    {
+        // If already set, just return
+        if (_allDecls != null) return _allDecls;
+
+        // Create new AllDecls cached list with decls for fields, methods, constructors, inner classes and this class
+        List<JavaField> fdecls = getFields();
+        List<JavaDecl> decls = new ArrayList<>(fdecls.size() + _methDecls.size() + _constrDecls.size() + _innerClasses.size() + 1);
+        decls.add(this);
+        decls.addAll(_fieldDecls);
+        decls.addAll(_methDecls);
+        decls.addAll(_constrDecls);
+        decls.addAll(_innerClasses);
+
+        // Set/return
+        return _allDecls = decls;
     }
 
     /**
@@ -665,7 +701,7 @@ public class JavaClass extends JavaType {
 
         // Iterate over constructors to find highest rating
         for (JavaContructor constr : constructors) {
-            int rtg = getMethodRating(constr, theTypes);
+            int rtg = JavaExecutable.getMatchRatingForTypes(constr, theTypes);
             if (rtg > rating) {
                 constructor = constr;
                 rating = rtg;
@@ -688,7 +724,7 @@ public class JavaClass extends JavaType {
         // Iterate over methods to find highest rating
         for (JavaMethod meth : methods) {
             if (meth.getName().equals(aName)) {
-                int rtg = getMethodRating(meth, theTypes);
+                int rtg = JavaExecutable.getMatchRatingForTypes(meth, theTypes);
                 if (rtg > rating) {
                     method = meth;
                     rating = rtg;
@@ -735,7 +771,7 @@ public class JavaClass extends JavaType {
 
         // If this class is Interface, check Object
         if (isInterface()) {
-            JavaClass objDecl = getJavaClass(Object.class);
+            JavaClass objDecl = getJavaClassForClass(Object.class);
             return objDecl.getCompatibleMethodDeep(aName, theTypes);
         }
 
@@ -754,7 +790,7 @@ public class JavaClass extends JavaType {
         // Iterate over methods to find highest rating
         for (JavaMethod method : methods) {
             if (method.getName().equals(aName)) {
-                int rtg = getMethodRating(method, theTypes);
+                int rtg = JavaExecutable.getMatchRatingForTypes(method, theTypes);
                 if (rtg > 0) {
                     if (matches == Collections.EMPTY_LIST)
                         matches = new ArrayList<>();
@@ -815,7 +851,7 @@ public class JavaClass extends JavaType {
 
         // If this class is Interface, check Object
         if (isInterface()) {
-            JavaClass objDecl = getJavaClass(Object.class);
+            JavaClass objDecl = getJavaClassForClass(Object.class);
             methods = objDecl.getCompatibleMethodsDeep(aName, theTypes);
             if (methods.size() > 0) {
                 if (matches == Collections.EMPTY_LIST) matches = methods;
@@ -838,100 +874,6 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Returns whether decl class types are equal.
-     */
-    public boolean isClassTypesEqual(JavaDecl theTypes0[], JavaDecl theTypes1[])
-    {
-        int len = theTypes0.length;
-        if (theTypes1.length != len) return false;
-        for (int i = 0; i < len; i++) {
-            JavaDecl ct0 = theTypes0[i];
-            if (ct0 != null) ct0 = ct0.getClassType();
-            JavaDecl ct1 = theTypes1[i];
-            if (ct1 != null) ct1 = ct1.getClassType();
-            if (ct0 != ct1)
-                return false;
-        }
-        return true;
-    }
-
-    /**
-     * Returns a rating of a method for given possible arg classes.
-     */
-    private int getMethodRating(JavaExecutable aMethod, JavaType[] theTypes)
-    {
-        // Handle VarArg methods special
-        if (aMethod.isVarArgs())
-            return getMethodRatingVarArgs(aMethod, theTypes);
-
-        // Get method param types and length (just return if given arg count doesn't match)
-        JavaType[] paramTypes = aMethod.getParamTypes();
-        int plen = paramTypes.length, rating = 0;
-        if (theTypes.length != plen)
-            return 0;
-        if (plen == 0)
-            return 1000;
-
-        // Iterate over classes and add score based on matching classes
-        // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
-        for (int i = 0, iMax = plen; i < iMax; i++) {
-            JavaType cls1 = paramTypes[i].getClassType();
-            JavaType cls2 = theTypes[i];
-            if (cls2 != null)
-                cls2 = cls2.getClassType();
-            if (!cls1.isAssignable(cls2))
-                return 0;
-            rating += cls1 == cls2 ? 1000 : cls2 != null ? 100 : 10;
-        }
-
-        // Return rating
-        return rating;
-    }
-
-    /**
-     * Returns a rating of a method for given possible arg classes.
-     */
-    private int getMethodRatingVarArgs(JavaExecutable aMethod, JavaType[] theTypes)
-    {
-        // Get method param types and length (just return if given arg count is insufficient)
-        JavaType[] paramTypes = aMethod.getParamTypes();
-        int plen = paramTypes.length, vind = plen - 1, rating = 0;
-        if (theTypes.length < vind)
-            return 0;
-        if (plen == 1 && theTypes.length == 0)
-            return 10;
-
-        // Iterate over classes and add score based on matching classes
-        // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
-        for (int i = 0, iMax = vind; i < iMax; i++) {
-            JavaDecl cls1 = paramTypes[i].getClassType(), cls2 = theTypes[i];
-            if (cls2 != null) cls2 = cls2.getClassType();
-            if (!cls1.isAssignable(cls2))
-                return 0;
-            rating += cls1 == cls2 ? 1000 : cls2 != null ? 100 : 10;
-        }
-
-        // Get VarArg type
-        JavaType varArgArrayType = paramTypes[vind];
-        JavaType varArgType = varArgArrayType.getArrayItemType();
-
-        // If only one arg and it is of array type, add 1000
-        JavaType argType = theTypes.length == plen ? theTypes[vind] : null;
-        if (argType != null && argType.isArray() && varArgArrayType.isAssignable(argType))
-            rating += 1000;
-
-            // If any var args match, add 1000
-        else for (int i = vind; i < theTypes.length; i++) {
-            JavaDecl type = theTypes[i];
-            if (varArgType.isAssignable(type))
-                rating += 1000;
-        }
-
-        // Return rating
-        return rating;
-    }
-
-    /**
      * Returns the lambda method.
      */
     public JavaMethod getLambdaMethod(int argCount)
@@ -944,112 +886,86 @@ public class JavaClass extends JavaType {
     }
 
     /**
+     * Returns the field decl for field.
+     */
+    public JavaField getField(Field aField)
+    {
+        String name = aField.getName();
+        JavaField field = getFieldForName(name);
+        if (field == null)
+            return null;
+
+        int mods = aField.getModifiers();
+        if (mods != field.getModifiers())
+            return null;
+
+        // Return
+        return field;
+    }
+
+    /**
+     * Returns the method decl for method.
+     */
+    public JavaMethod getMethodDecl(Method aMeth)
+    {
+        String id = ResolverUtils.getId(aMeth);
+        JavaMethod method = getMethodForId(id);
+        if (method == null)
+            return null;
+
+        int mods = aMeth.getModifiers();
+        if (mods != method.getModifiers())
+            return null;
+
+        // Check return type?
+        return method;
+    }
+
+    /**
+     * Returns the method decl for id string.
+     */
+    private JavaMethod getMethodForId(String anId)
+    {
+        List<JavaMethod> methods = getMethods();
+        for (JavaMethod method : methods)
+            if (method.getId().equals(anId))
+                return method;
+
+        // Return
+        return null;
+    }
+
+    /**
      * Returns the decl for constructor.
      */
-    public JavaDecl getConstructorDecl(Constructor aConstr)
+    public JavaContructor getConstructorDecl(Constructor aConstr)
     {
         String id = ResolverUtils.getId(aConstr);
-        JavaDecl decl = getConstructorDecl(id);
-        if (decl == null) return null;
+        JavaContructor constructor = getConstructorForId(id);
+        if (constructor == null)
+            return null;
+
+        // Check mods
         int mods = aConstr.getModifiers();
-        if (mods != decl.getModifiers()) return null;
-        return decl;
+        if (mods != constructor.getModifiers())
+            return null;
+
+        // Return
+        return constructor;
     }
 
     /**
      * Returns the Constructor decl for id string.
      */
-    public JavaContructor getConstructorDecl(String anId)
+    public JavaContructor getConstructorForId(String anId)
     {
         List<JavaContructor> constructors = getConstructors();
         for (JavaContructor constructor : constructors)
             if (constructor.getId().equals(anId))
                 return constructor;
+
+        // Return
         return null;
-    }
-
-    /**
-     * Returns a constructor decl for parameter types.
-     */
-    public JavaContructor getConstructorDecl(JavaType[] theTypes)
-    {
-        List<JavaContructor> constructors = getConstructors();
-        for (JavaContructor contructor : constructors) {
-            JavaType[] constrParamTypes = contructor.getParamTypes();
-            if (isClassTypesEqual(constrParamTypes, theTypes))
-                return contructor;
-        }
-        return null;
-    }
-
-    /**
-     * Returns a constructor decl for parameter types.
-     */
-    public JavaContructor getConstructorDeclDeep(JavaType[] theTypes)
-    {
-        JavaContructor decl = getConstructorDecl(theTypes);
-        if (decl == null && _superClass != null)
-            decl = _superClass.getConstructorDeclDeep(theTypes);
-        return decl;
-    }
-
-    /**
-     * Returns a Class decl for inner class simple name.
-     */
-    public JavaClass getClassDecl(String aName)
-    {
-        List<JavaClass> icdecls = getClasses();
-        for (JavaClass jd : icdecls)
-            if (jd.getSimpleName().equals(aName))
-                return jd;
-        return null;
-    }
-
-    /**
-     * Returns a Class decl for inner class name.
-     */
-    public JavaClass getClassDeclDeep(String aName)
-    {
-        JavaClass decl = getClassDecl(aName);
-        if (decl == null && _superClass != null)
-            decl = _superClass.getClassDeclDeep(aName);
-        return decl;
-    }
-
-    /**
-     * Returns the TypeVars.
-     */
-    public JavaDecl[] getTypeVars()
-    {
-        List<JavaTypeVariable> typeVarsList = getTypeVars2();
-        JavaTypeVariable[] typeVars = typeVarsList.toArray(new JavaTypeVariable[0]);
-        return typeVars;
-    }
-
-    /**
-     * Returns a TypeVar decl for inner class name.
-     */
-    public JavaTypeVariable getTypeVar(String aName)
-    {
-        List<JavaTypeVariable> tvdecls = getTypeVars2();
-        for (JavaTypeVariable jd : tvdecls)
-            if (jd.getName().equals(aName))
-                return jd;
-        return null;
-    }
-
-    /**
-     * Returns a TypeVar decl for inner class name.
-     */
-    public int getTypeVarIndex(String aName)
-    {
-        List<JavaTypeVariable> tvdecls = getTypeVars2();
-        for (int i = 0, iMax = tvdecls.size(); i < iMax; i++) {
-            JavaTypeVariable jd = tvdecls.get(i);
-            if (jd.getName().equals(aName))
-                return i;
-        }
-        return -1;
     }
 
     /**
@@ -1062,7 +978,7 @@ public class JavaClass extends JavaType {
             case Field: _fieldDecls.add((JavaField) aDecl); break;
             case Method: _methDecls.add((JavaMethod) aDecl); break;
             case Constructor: _constrDecls.add((JavaContructor) aDecl); break;
-            case Class: _innerClassDecls.add((JavaClass) aDecl); break;
+            case Class: _innerClasses.add((JavaClass) aDecl); break;
             case TypeVar: _typeVarDecls.add((JavaTypeVariable) aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.addDecl: Invalid type " + type);
         }
@@ -1078,7 +994,7 @@ public class JavaClass extends JavaType {
             case Field: _fieldDecls.remove(aDecl); break;
             case Method: _methDecls.remove(aDecl); break;
             case Constructor: _constrDecls.remove(aDecl); break;
-            case Class: _innerClassDecls.remove(aDecl); break;
+            case Class: _innerClasses.remove(aDecl); break;
             case TypeVar: _typeVarDecls.remove(aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.removeDecl: Invalid type " + type);
         }
