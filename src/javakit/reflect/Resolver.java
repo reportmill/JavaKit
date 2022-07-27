@@ -187,9 +187,7 @@ public class Resolver {
         // Handle JVarDecl
         else if (anObj instanceof JVarDecl) {
             JVarDecl varDecl = (JVarDecl) anObj;
-            JClassDecl varDeclClassDecl = varDecl.getParent(JClassDecl.class);
-            JavaDecl varDeclClass = varDeclClassDecl.getDecl();
-            jd = new JavaLocalVar(this, varDeclClass, varDecl);
+            jd = new JavaLocalVar(this, varDecl);
         }
 
         // Handle Java.lang.reflect.Type
@@ -247,7 +245,7 @@ public class Resolver {
             return decl;
 
         // Create and add to cache
-        decl = new JavaGenericArrayType(this, null, aGAT);
+        decl = new JavaGenericArrayType(this, aGAT);
         _arrayTypes.put(id, decl);
 
         // Return

@@ -50,10 +50,10 @@ public class JavaClass extends JavaType {
     /**
      * Creates a new JavaDeclClass for given owner, parent and Class.
      */
-    public JavaClass(Resolver anOwner, JavaDecl aPar, Class<?> aClass)
+    public JavaClass(Resolver aResolver, JavaDecl aPar, Class<?> aClass)
     {
         // Do normal version
-        super(anOwner, aPar, aClass);
+        super(aResolver);
 
         // Set type/id
         _type = DeclType.Class;
@@ -66,11 +66,11 @@ public class JavaClass extends JavaType {
             _package = (JavaPackage) aPar;
 
         // Add to decls
-        anOwner._decls.put(_id, this);
+        aResolver._decls.put(_id, this);
         if (aClass.isArray()) {
             String altName = aClass.getName();
             if (!altName.equals(_id))
-                anOwner._decls.put(altName, this);
+                aResolver._decls.put(altName, this);
         }
 
         // Set class attributes
@@ -119,6 +119,21 @@ public class JavaClass extends JavaType {
      * Returns the package that declares this class.
      */
     public JavaPackage getPackage()  { return _package; }
+
+    /**
+     * Returns whether class is member.
+     */
+    public boolean isMemberClass()  { return _declaringClass != null; }
+
+    /**
+     * Returns the top level class name.
+     */
+    public String getRootClassName()
+    {
+        if (_declaringClass != null)
+            return _declaringClass.getRootClassName();
+        return getClassName();
+    }
 
     /**
      * Returns whether is a class reference.

@@ -1,8 +1,6 @@
 package javakit.parse;
 
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaField;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 
 /**
  * A JExpr subclass for identifiers.
@@ -171,8 +169,8 @@ public class JExprId extends JExpr {
      */
     public boolean isPackageName()
     {
-        JavaDecl jd = getDecl();
-        return jd != null && jd.isPackage();
+        JavaDecl decl = getDecl();
+        return decl instanceof JavaPackage;
     }
 
     /**
@@ -180,7 +178,9 @@ public class JExprId extends JExpr {
      */
     public String getPackageName()
     {
-        return getDecl().getPackageName();
+        JavaDecl decl = getDecl();
+        JavaPackage pkg = decl instanceof JavaPackage ? (JavaPackage) decl : null;
+        return pkg != null ? pkg.getName() : null;
     }
 
     /**
@@ -196,7 +196,7 @@ public class JExprId extends JExpr {
 
             case Field: {
                 JavaField field = (JavaField) decl;
-                JavaType fieldClass = (JavaType) field.getParent();
+                JavaClass fieldClass = field.getDeclaringClass();
                 if (fieldClass != null && fieldClass.isEnum())
                     return "EnumId";
                 return "FieldId";

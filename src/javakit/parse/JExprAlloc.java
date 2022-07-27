@@ -150,7 +150,7 @@ public class JExprAlloc extends JExpr {
 
         // If inner class and not static, add implied class type to arg types array
         if (javaClass.isMemberClass() && !javaClass.isStatic()) {
-            JavaType parentClass = (JavaType) javaClass.getParent();
+            JavaClass parentClass = javaClass.getDeclaringClass();
             argTypes = ArrayUtils.add(argTypes, parentClass, 0);
         }
 

@@ -18,9 +18,9 @@ public class JavaMethod extends JavaExecutable {
     /**
      * Constructor.
      */
-    public JavaMethod(Resolver anOwner, JavaClass aDeclaringClass, Method aMethod)
+    public JavaMethod(Resolver aResolver, JavaClass aDeclaringClass, Method aMethod)
     {
-        super(anOwner, aDeclaringClass, aMethod);
+        super(aResolver, aDeclaringClass, aMethod);
 
         // Set type
         _type = DeclType.Method;

@@ -18,10 +18,10 @@ public class JavaParameterizedType extends JavaType {
     /**
      * Constructor.
      */
-    public JavaParameterizedType(Resolver anOwner, JavaType aRawType, JavaType[] theTypeArgs)
+    public JavaParameterizedType(Resolver aResolver, JavaType aRawType, JavaType[] theTypeArgs)
     {
         // Do normal version
-        super(anOwner, aRawType, theTypeArgs);
+        super(aResolver);
 
         // Set type/id
         _type = DeclType.ParamType;
@@ -30,7 +30,7 @@ public class JavaParameterizedType extends JavaType {
         // Set type info
         _rawType = aRawType;
         _paramTypes = theTypeArgs;
-        _evalType = this;
+        _evalType = aRawType;
 
         // Get/Set SimpleName
         _simpleName = aRawType.getSimpleName();

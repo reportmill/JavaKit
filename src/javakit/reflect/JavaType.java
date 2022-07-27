@@ -14,11 +14,9 @@ public class JavaType extends JavaDecl {
     /**
      * Constructor.
      */
-    protected JavaType(Resolver anOwner, JavaDecl aPar, Object aType)
+    protected JavaType(Resolver aResolver)
     {
-        // Do normal version
-        super(anOwner, aPar, aType);
-
+        super(aResolver);
     }
 
     /**

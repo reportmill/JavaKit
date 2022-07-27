@@ -227,17 +227,17 @@ public class JExprLambda extends JExpr {
         }
 
         // Get scope node class type and search for compatible method for name and arg types
-        JavaDecl sndecl = mc.getScopeNodeEvalType();
-        if (sndecl == null) return null;
-        JavaClass snct = sndecl.getClassType();
-        List<JavaMethod> decls = snct.getCompatibleMethodsAll(name, argTypes);
+        JavaDecl scopeType = mc.getScopeNodeEvalType();
+        if (scopeType == null) return null;
+        JavaClass scopeClass = scopeType.getClassType();
+        List<JavaMethod> decls = scopeClass.getCompatibleMethodsAll(name, argTypes);
         if (decls.size() > 0)
             return decls;
 
         // If scope node class type is member class and not static, go up parent classes
-        while (snct.isMemberClass() && !snct.isStatic()) {
-            snct = (JavaClass) snct.getParent();
-            decls = snct.getCompatibleMethodsAll(name, argTypes);
+        while (scopeClass.isMemberClass() && !scopeClass.isStatic()) {
+            scopeClass = scopeClass.getDeclaringClass();
+            decls = scopeClass.getCompatibleMethodsAll(name, argTypes);
             if (decls.size() > 0)
                 return decls;
         }

@@ -12,9 +12,9 @@ public class JavaField extends JavaMember {
     /**
      * Constructor.
      */
-    public JavaField(Resolver anOwner, JavaClass aDeclaringClass, Field aField)
+    public JavaField(Resolver aResolver, JavaClass aDeclaringClass, Field aField)
     {
-        super(anOwner, aDeclaringClass, aField);
+        super(aResolver, aDeclaringClass, aField);
 
         _type = DeclType.Field;
         _evalType = _resolver.getTypeDecl(aField.getGenericType());

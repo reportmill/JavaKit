@@ -30,7 +30,7 @@ public class JConstrDecl extends JMethodDecl {
 
         // If inner class and not static, add implied class type to arg types array
         if (javaClass.isMemberClass() && !javaClass.isStatic()) {
-            JavaType parentClass = (JavaType) javaClass.getParent();
+            JavaClass parentClass = javaClass.getDeclaringClass();
             ptypes = ArrayUtils.add(ptypes, parentClass, 0);
         }
 

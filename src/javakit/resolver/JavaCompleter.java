@@ -405,17 +405,24 @@ public class JavaCompleter {
             if (rca1 != rca2) return rca1 > rca2 ? -1 : 1;
 
             // If Suggestion Types differ, return by type
-            if (o1.getType() != o2.getType()) return getOrder(o1.getType()) < getOrder(o2.getType()) ? -1 : 1;
+            if (o1.getType() != o2.getType())
+                return getOrder(o1.getType()) < getOrder(o2.getType()) ? -1 : 1;
 
-            // If either is member class, sort other first
-            if (o1.isMemberClass() != o2.isMemberClass()) return o2.isMemberClass() ? -1 : 1;
+            // Handle Class compare
+            if (o1 instanceof JavaClass) {
 
-            // Make certain packages get preference
-            if (o1.isClass()) {
-                String s1 = o1.getClassName(), s2 = o2.getClassName();
-                for (String pp : PREF_PACKAGES) {
-                    if (s1.startsWith(pp) && !s2.startsWith(pp)) return -1;
-                    if (s2.startsWith(pp) && !s1.startsWith(pp)) return 1;
+                // If either is member class, sort other first
+                JavaClass class1 = (JavaClass) o1;
+                JavaClass class2 = (JavaClass) o2;
+                if (class1.isMemberClass() != class2.isMemberClass())
+                    return class2.isMemberClass() ? -1 : 1;
+
+                // Make certain packages get preference
+                String className1 = class1.getClassName();
+                String className2 = class2.getClassName();
+                for (String prefPkg : PREF_PACKAGES) {
+                    if (className1.startsWith(prefPkg) && !className2.startsWith(prefPkg)) return -1;
+                    if (className2.startsWith(prefPkg) && !className1.startsWith(prefPkg)) return 1;
                 }
             }
 

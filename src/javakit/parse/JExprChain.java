@@ -2,10 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaField;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 
 import java.util.*;
 
@@ -104,8 +101,9 @@ public class JExprChain extends JExpr {
         }
 
         // Handle Parent is Package: Look for package sub-package or package class
-        if (parDecl.isPackage()) {
-            String packageName = parDecl.getPackageName();
+        if (parDecl instanceof JavaPackage) {
+            JavaPackage javaPkg = (JavaPackage) parDecl;
+            String packageName = javaPkg.getName();
             String classPath = packageName + '.' + name;
             JavaDecl decl = getJavaDecl(classPath);
             if (decl != null)
@@ -146,10 +144,10 @@ public class JExprChain extends JExpr {
             if (pdecl.isArray() && name.equals("length"))
                 return getJavaClassForClass(int.class); // was FieldName;
 
-            if (pdecl.isParamType())
-                pdecl = (JavaType) pdecl.getParent();
+            if (pdecl instanceof JavaParameterizedType)
+                pdecl = ((JavaParameterizedType) pdecl).getRawType();
 
-            if (pdecl.isClass()) {
+            if (pdecl instanceof JavaClass) {
                 JavaClass cdecl = (JavaClass) pdecl;
                 JavaDecl fd = cdecl.getFieldDeepForName(name);
                 if (fd != null)

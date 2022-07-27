@@ -12,10 +12,10 @@ public class JavaGenericArrayType extends JavaType {
     /**
      * Constructor.
      */
-    public JavaGenericArrayType(Resolver anOwner, JavaDecl aPar, GenericArrayType aGenArrayType)
+    public JavaGenericArrayType(Resolver anOwner, GenericArrayType aGenArrayType)
     {
         // Do normal version
-        super(anOwner, aPar, aGenArrayType);
+        super(anOwner);
 
         // Set type/id
         _type = DeclType.GenArrayType;

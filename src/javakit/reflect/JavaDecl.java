@@ -12,9 +12,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     // The Resolver that produced this decl
     protected Resolver  _resolver;
 
-    // The JavaDecl (class) that this decl was declared in
-    protected JavaDecl  _parent;
-
     // A unique identifier
     protected String  _id;
 
@@ -39,13 +36,10 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Constructor.
      */
-    public JavaDecl(Resolver anOwner, JavaDecl aPar, Object anObj)
+    protected JavaDecl(Resolver aResolver)
     {
-        assert (anOwner != null);
-
-        // Set ivars
-        _resolver = anOwner;
-        _parent = aPar;
+        assert (aResolver != null);
+        _resolver = aResolver;
     }
 
     /**
@@ -124,15 +118,21 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns the type of the most basic class associated with this type:
      * Class: itself
-     * Field, Method, Constructor, ParamType: Parent class
-     * TypeVar: EvalType.ClassType
-     * VarDecl, Package: null?
+     * Field, Method, Constructor: DeclaringClass
      */
     public JavaClass getClassType()
     {
-        if (isClass()) return (JavaClass) this;
-        if (isTypeVar()) return _evalType.getClassType();
-        return _parent != null ? _parent.getClassType() : null;
+        // Handle JavaClass
+        if (this instanceof JavaClass)
+            return (JavaClass) this;
+
+        // Handle JavaMember
+        if (this instanceof JavaMember)
+            return ((JavaMember) this).getDeclaringClass();
+
+        // Anything else: Try EvalType.ClassType?
+        JavaType evalType = getEvalType();
+        return evalType != null ? evalType.getClassType() : null;
     }
 
     /**
@@ -142,38 +142,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     {
         JavaDecl ct = getClassType();
         return ct != null ? ct.getName() : null;
-    }
-
-    /**
-     * Returns the class simple name.
-     */
-    public String getClassSimpleName()
-    {
-        JavaDecl ct = getClassType();
-        return ct != null ? ct.getSimpleName() : null;
-    }
-
-    /**
-     * Returns the enclosing class this decl.
-     */
-    public JavaDecl getParent()  { return _parent; }
-
-    /**
-     * Returns the top level class name.
-     */
-    public String getRootClassName()
-    {
-        if (_parent != null && _parent.isClass())
-            return _parent.getRootClassName();
-        return getClassName();
-    }
-
-    /**
-     * Returns whether class is member.
-     */
-    public boolean isMemberClass()
-    {
-        return isClass() && _parent != null && _parent.isClass();
     }
 
     /**
@@ -205,25 +173,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
         String cname = getEvalClassName();
         if (cname == null) return null;
         return _resolver.getClassForName(cname);
-    }
-
-    /**
-     * Returns the package decl.
-     */
-    public JavaDecl getPackageDecl()
-    {
-        if (isPackage()) return this;
-        if (_parent != null) return _parent.getPackageDecl();
-        return null;
-    }
-
-    /**
-     * Returns the package name.
-     */
-    public String getPackageName()
-    {
-        JavaDecl pd = getPackageDecl();
-        return pd != null ? pd.getName() : null;
     }
 
     /**
@@ -302,7 +251,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns a JavaDecl for given object.
      */
-    public JavaClass getJavaClassForClass(Class aClass)
+    public JavaClass getJavaClassForClass(Class<?> aClass)
     {
         return _resolver.getJavaClassForClass(aClass);
     }

@@ -8,17 +8,27 @@ package javakit.reflect;
  */
 public class JavaPackage extends JavaDecl {
 
+    // The package
+    private JavaPackage  _package;
+
     /**
      * Constructor.
      */
-    public JavaPackage(Resolver anOwner, JavaDecl aPar, String aPackageName)
+    public JavaPackage(Resolver aResolver, JavaPackage aParent, String aPackageName)
     {
-        super(anOwner, aPar, aPackageName);
+        super(aResolver);
 
         _type = DeclType.Package;
         _name = aPackageName;
         _simpleName = getSimpleName(aPackageName);
+
+        _package = aParent;
     }
+
+    /**
+     * Returns the parent package.
+     */
+    public JavaPackage getPackage()  { return _package; }
 
     /**
      * Returns a simple class name.

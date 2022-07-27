@@ -13,12 +13,14 @@ public class JavaLocalVar extends JavaDecl {
     /**
      * Constructor.
      */
-    public JavaLocalVar(Resolver anOwner, JavaDecl aPar, JVarDecl aVarDecl)
+    public JavaLocalVar(Resolver anOwner, JVarDecl aVarDecl)
     {
-        super(anOwner, aPar, aVarDecl);
+        super(anOwner);
 
         _type = DeclType.VarDecl;
         _name = _simpleName = aVarDecl.getName();
+
+        // Set EvalType
         JType varDeclType = aVarDecl.getType();
         _evalType = varDeclType != null ? varDeclType.getDecl() : getJavaClassForClass(Object.class); // Can happen for Lambdas
     }

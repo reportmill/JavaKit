@@ -22,9 +22,9 @@ public class JavaExecutable extends JavaMember {
     /**
      * Constructor.
      */
-    public JavaExecutable(Resolver anOwner, JavaClass aDeclaringClass, Member aMember)
+    public JavaExecutable(Resolver aResolver, JavaClass aDeclaringClass, Member aMember)
     {
-        super(anOwner, aDeclaringClass, aMember);
+        super(aResolver, aDeclaringClass, aMember);
 
         // Get VarArgs
         _varArgs = isVarArgs(aMember);
