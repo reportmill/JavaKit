@@ -222,9 +222,9 @@ public class JMethodDecl extends JMemberDecl {
             if (paramTypes[i] == null) return null;
 
             // If array, get array type instead
-            if (varDeclType.getArrayCount() > 0)
-                for (int j = 0, jMax = varDeclType.getArrayCount(); j < jMax; j++)
-                    paramTypes[i] = paramTypes[i].getArrayType();
+            int arrayCount = varDeclType.getArrayCount();
+            for (int j = 0; j < arrayCount; j++)
+                paramTypes[i] = paramTypes[i].getArrayType();
         }
 
         // Return

@@ -18,9 +18,9 @@ public class JavaMember extends JavaDecl {
     /**
      * Constructor.
      */
-    public JavaMember(Resolver aResolver, JavaClass aDeclaringClass, Member aMember)
+    public JavaMember(Resolver aResolver, DeclType aType, JavaClass aDeclaringClass, Member aMember)
     {
-        super(aResolver);
+        super(aResolver, aType);
 
         // Set id
         _id = ResolverUtils.getIdForMember(aMember);

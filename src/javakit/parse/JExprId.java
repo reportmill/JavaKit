@@ -35,8 +35,8 @@ public class JExprId extends JExpr {
      */
     public boolean isVarId()
     {
-        JavaDecl jd = getDecl();
-        return jd != null && jd.isVarDecl();
+        JavaDecl decl = getDecl();
+        return decl instanceof JavaLocalVar;
     }
 
     /**

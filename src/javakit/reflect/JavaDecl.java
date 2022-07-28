@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
+import snap.util.StringUtils;
 import java.lang.reflect.*;
 
 /**
@@ -36,10 +37,11 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Constructor.
      */
-    protected JavaDecl(Resolver aResolver)
+    protected JavaDecl(Resolver aResolver, DeclType aType)
     {
-        assert (aResolver != null);
-        _resolver = aResolver;
+        // Set Resolver, Type
+        _resolver = aResolver; assert (aResolver != null);
+        _type = aType; assert (aType != null);
     }
 
     /**
@@ -51,26 +53,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
      * Returns the type.
      */
     public DeclType getType()  { return _type; }
-
-    /**
-     * Returns whether is a package reference.
-     */
-    public boolean isPackage()  { return _type == DeclType.Package; }
-
-    /**
-     * Returns whether is a variable declaration reference.
-     */
-    public boolean isVarDecl()  { return _type == DeclType.VarDecl; }
-
-    /**
-     * Returns whether is a parameterized class.
-     */
-    public boolean isParamType()  { return _type == DeclType.ParamType; }
-
-    /**
-     * Returns whether is a TypeVar.
-     */
-    public boolean isTypeVar()  { return _type == DeclType.TypeVar; }
 
     /**
      * Returns the name.
@@ -234,10 +216,16 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public int compareTo(JavaDecl aDecl)
     {
-        int t1 = _type.ordinal(), t2 = aDecl._type.ordinal();
-        if (t1 < t2) return -1;
-        if (t2 < t1) return 1;
-        return getMatchName().compareTo(aDecl.getMatchName());
+        // Compare type order
+        int typeOrder1 = getType().ordinal();
+        int typeOrder2 = aDecl.getType().ordinal();
+        if (typeOrder1 != typeOrder2)
+            return typeOrder1 - typeOrder2;
+
+        // Compare match names
+        String matchName1 = getMatchName();
+        String matchName2 = aDecl.getMatchName();
+        return matchName1.compareTo(matchName2);
     }
 
     /**
@@ -253,6 +241,18 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public String toString()
     {
-        return _type + ": " + getId();
+        String className = getClass().getSimpleName();
+        String propStrings = toStringProps();
+        return className + " { " + propStrings + " }";
+    }
+
+    /**
+     * Standard toStringProps implementation.
+     */
+    public String toStringProps()
+    {
+        StringBuffer sb = new StringBuffer();
+        StringUtils.appendProp(sb,"Id", getId());
+        return sb.toString();
     }
 }

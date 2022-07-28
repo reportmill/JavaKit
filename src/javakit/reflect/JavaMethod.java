@@ -20,10 +20,7 @@ public class JavaMethod extends JavaExecutable {
      */
     public JavaMethod(Resolver aResolver, JavaClass aDeclaringClass, Method aMethod)
     {
-        super(aResolver, aDeclaringClass, aMethod);
-
-        // Set type
-        _type = DeclType.Method;
+        super(aResolver, DeclType.Method, aDeclaringClass, aMethod);
 
         // Get whether default
         _default = aMethod.isDefault();

@@ -14,9 +14,9 @@ public class JavaType extends JavaDecl {
     /**
      * Constructor.
      */
-    protected JavaType(Resolver aResolver)
+    protected JavaType(Resolver aResolver, DeclType aType)
     {
-        super(aResolver);
+        super(aResolver, aType);
     }
 
     /**
@@ -118,13 +118,13 @@ public class JavaType extends JavaDecl {
     public JavaType getResolvedType(JavaDecl aDecl)
     {
         // Handle ParamType and anything not a TypeVar
-        if (aDecl.isParamType()) {
+        if (aDecl instanceof JavaParameterizedType) {
             System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
             return (JavaParameterizedType) aDecl;
         }
 
         // Should always be a TypeVar I think
-        if (!aDecl.isTypeVar())
+        if (!(aDecl instanceof JavaTypeVariable))
             return (JavaType) aDecl;
 
         // If not resolve, just return bounds type
@@ -143,7 +143,7 @@ public class JavaType extends JavaDecl {
         }
 
         // Handle ParamType or unexpected type: Return ClassType.getArrayTypeDecl()
-        if (!isParamType() && !isTypeVar())
+        if (this instanceof JavaGenericArrayType)
             System.err.println("JavaType.getArrayTypeDecl: Unexpected type: " + this);
 
         // Forward to ClassType
@@ -168,9 +168,9 @@ public class JavaType extends JavaDecl {
         if (aDecl == this) return true;
 
         // Handle ParamTypes: Test against ClassType instead
-        if (isParamType())
+        if (this instanceof JavaParameterizedType)
             return getClassType().matches(aDecl);
-        else if (aDecl.isParamType())
+        else if (aDecl instanceof JavaParameterizedType)
             return matches(aDecl.getClassType());
 
         // Return false, since no match

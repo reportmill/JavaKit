@@ -8,6 +8,7 @@ import java.util.*;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaType;
+import javakit.reflect.JavaTypeVariable;
 import snap.util.*;
 
 /**
@@ -509,7 +510,7 @@ public class JClassDecl extends JMemberDecl {
             JavaType evalType = typeType.getEvalType();
 
             // If eval type is TypeVar, see if it corresponds to this class
-            if (evalType.isTypeVar()) {
+            if (evalType instanceof JavaTypeVariable) {
                 JavaClass javaClass = getDecl();
                 JavaType evalType2 = javaClass.getResolvedType(evalType);
                 if (evalType2 != evalType.getEvalType())

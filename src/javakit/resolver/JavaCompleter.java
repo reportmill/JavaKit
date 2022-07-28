@@ -370,11 +370,13 @@ public class JavaCompleter {
     /**
      * Returns whether suggestion is receiving class.
      */
-    private static final int getReceivingClassAssignableScore(JavaDecl aJD, Class aRC)
+    private static final int getReceivingClassAssignableScore(JavaDecl aJD, Class<?> aRC)
     {
-        if (aRC == null || aJD.isPackage()) return 0;
-        Class dcls = aJD.getEvalClass();
-        if (dcls == null) return 0;
+        if (aRC == null || aJD instanceof JavaPackage)
+            return 0;
+        Class<?> dcls = aJD.getEvalClass();
+        if (dcls == null)
+            return 0;
         return aRC == dcls ? 2 : ClassUtils.isAssignable(aRC, dcls) ? 1 : 0;
     }
 

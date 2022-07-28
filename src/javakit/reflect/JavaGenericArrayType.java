@@ -15,10 +15,9 @@ public class JavaGenericArrayType extends JavaType {
     public JavaGenericArrayType(Resolver anOwner, GenericArrayType aGenArrayType)
     {
         // Do normal version
-        super(anOwner);
+        super(anOwner, DeclType.GenArrayType);
 
-        // Set type/id
-        _type = DeclType.GenArrayType;
+        // Set id
         _id = ResolverUtils.getIdForGenericArrayType(aGenArrayType);
 
         // Set type info

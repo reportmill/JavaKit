@@ -6,6 +6,7 @@ import java.util.*;
 
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaPackage;
 import javakit.reflect.JavaType;
 import snap.parse.Token;
 import snap.util.*;
@@ -496,8 +497,8 @@ public class JNode {
      */
     public boolean isKnownPackageName(String aName)
     {
-        JavaDecl jd = getJavaDecl(aName);
-        return jd != null && jd.isPackage();
+        JavaDecl decl = getJavaDecl(aName);
+        return decl instanceof JavaPackage;
     }
 
     /**

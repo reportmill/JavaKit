@@ -16,13 +16,14 @@ public class JavaPackage extends JavaDecl {
      */
     public JavaPackage(Resolver aResolver, JavaPackage aParent, String aPackageName)
     {
-        super(aResolver);
+        super(aResolver, DeclType.Package);
 
-        _type = DeclType.Package;
+        // Set parent package
+        _package = aParent;
+
+        // Set Name, SimpleName
         _name = aPackageName;
         _simpleName = getSimpleName(aPackageName);
-
-        _package = aParent;
     }
 
     /**

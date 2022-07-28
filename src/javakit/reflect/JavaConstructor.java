@@ -17,10 +17,7 @@ public class JavaConstructor extends JavaExecutable {
      */
     public JavaConstructor(Resolver aResolver, JavaClass aDeclaringClass, Constructor<?> constructor)
     {
-        super(aResolver, aDeclaringClass, constructor);
-
-        // Set type
-        _type = DeclType.Constructor;
+        super(aResolver, DeclType.Constructor, aDeclaringClass, constructor);
 
         // Get Return Type
         _evalType = aDeclaringClass;

@@ -18,15 +18,15 @@ public class JavaTypeVariable extends JavaType {
     public JavaTypeVariable(Resolver aResolver, JavaDecl anOwner, TypeVariable<?> typeVar)
     {
         // Do normal version
-        super(aResolver);
+        super(aResolver, DeclType.TypeVar);
 
-        // Set type, name
-        _type = DeclType.TypeVar;
-        _name = _simpleName = typeVar.getName();
-
-        // Set owner
+        // Set Owner: Class or Method/Constructor
         _owner = anOwner;
 
+        // Set Name, SimpleName
+        _name = _simpleName = typeVar.getName();
+
+        // Set EvalType
         Class<?> typeVarClass = ResolverUtils.getClassForType(typeVar);
         _evalType = getJavaClassForClass(typeVarClass);
     }

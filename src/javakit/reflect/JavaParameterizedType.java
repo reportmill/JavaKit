@@ -21,10 +21,9 @@ public class JavaParameterizedType extends JavaType {
     public JavaParameterizedType(Resolver aResolver, JavaType aRawType, JavaType[] theTypeArgs)
     {
         // Do normal version
-        super(aResolver);
+        super(aResolver, DeclType.ParamType);
 
-        // Set type/id
-        _type = DeclType.ParamType;
+        // Set Id, Name
         _id = _name = ResolverUtils.getIdForParameterizedTypeParts(aRawType, theTypeArgs);
 
         // Set type info

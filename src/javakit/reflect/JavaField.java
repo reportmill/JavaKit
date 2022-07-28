@@ -14,9 +14,8 @@ public class JavaField extends JavaMember {
      */
     public JavaField(Resolver aResolver, JavaClass aDeclaringClass, Field aField)
     {
-        super(aResolver, aDeclaringClass, aField);
+        super(aResolver, DeclType.Field, aDeclaringClass, aField);
 
-        _type = DeclType.Field;
         _evalType = _resolver.getTypeDecl(aField.getGenericType());
     }
 

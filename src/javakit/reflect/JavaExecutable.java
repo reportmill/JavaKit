@@ -22,9 +22,9 @@ public class JavaExecutable extends JavaMember {
     /**
      * Constructor.
      */
-    public JavaExecutable(Resolver aResolver, JavaClass aDeclaringClass, Member aMember)
+    public JavaExecutable(Resolver aResolver, DeclType aType, JavaClass aDeclaringClass, Member aMember)
     {
-        super(aResolver, aDeclaringClass, aMember);
+        super(aResolver, aType, aDeclaringClass, aMember);
 
         // Get VarArgs
         _varArgs = isVarArgs(aMember);
@@ -130,7 +130,7 @@ public class JavaExecutable extends JavaMember {
         if (aDecl == this) return true;
 
         // If Types don't match, just return
-        if (aDecl._type != _type)
+        if (aDecl.getClass() != getClass())
             return false;
 
         // For Method, Constructor: Check supers
@@ -176,12 +176,17 @@ public class JavaExecutable extends JavaMember {
     @Override
     public String getPrettyName()
     {
+        // Get full MemberName for Constructor or Method
         String className = getDeclaringClassName();
         String memberName = className;
         if (this instanceof JavaMethod)
             memberName = className + '.' + getName();
+
+        // Get simple parameter names
         String[] paramTypeNames = getParamTypeSimpleNames();
         String paramTypeNamesStr = StringUtils.join(paramTypeNames, ",");
+
+        // Return ClassName(param1, ...) or ClassName.MethodName(param1, ...)
         return memberName + '(' + paramTypeNamesStr + ')';
     }
 
@@ -191,12 +196,17 @@ public class JavaExecutable extends JavaMember {
     @Override
     public String getMatchName()
     {
+        // Get full MemberName for Constructor or Method
         String className = getDeclaringClassName();
         String memberName = className;
         if (this instanceof JavaMethod)
             memberName = className + '.' + getName();
+
+        // Get parameter names
         String[] paramTypeNames = getParamTypeNames();
         String paramTypeNamesStr = StringUtils.join(paramTypeNames, ",");
+
+        // Return ClassName(param1, ...) or ClassName.MethodName(param1, ...)
         return memberName + '(' + paramTypeNamesStr + ')';
     }
 

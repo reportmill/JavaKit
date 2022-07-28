@@ -15,9 +15,8 @@ public class JavaLocalVar extends JavaDecl {
      */
     public JavaLocalVar(Resolver anOwner, JVarDecl aVarDecl)
     {
-        super(anOwner);
+        super(anOwner, DeclType.VarDecl);
 
-        _type = DeclType.VarDecl;
         _name = _simpleName = aVarDecl.getName();
 
         // Set EvalType

@@ -56,10 +56,9 @@ public class JavaClass extends JavaType {
     public JavaClass(Resolver aResolver, JavaDecl aPar, Class<?> aClass)
     {
         // Do normal version
-        super(aResolver);
+        super(aResolver, DeclType.Class);
 
-        // Set type/id
-        _type = DeclType.Class;
+        // Set id
         _id = _name = ResolverUtils.getIdForClass(aClass);
 
         // Set DeclaringClass or Package
@@ -301,11 +300,13 @@ public class JavaClass extends JavaType {
     public JavaType getResolvedType(JavaDecl aDecl)
     {
         // Handle ParamType and anything not a TypeVar
-        if (aDecl.isParamType()) {
+        if (aDecl instanceof JavaParameterizedType) {
             System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
             return (JavaParameterizedType) aDecl;
         }
-        if (!aDecl.isTypeVar())
+
+        // If not TypeVariable, we shouldn't be here
+        if (!(aDecl instanceof JavaTypeVariable))
             return (JavaType) aDecl;
 
         // If has type var, return bounds type
@@ -1080,14 +1081,6 @@ public class JavaClass extends JavaType {
         if (_package != null)
             return simpleName + " - " + _package.getName();
         return simpleName;
-    }
-
-    /**
-     * Standard toString implementation.
-     */
-    public String toString()
-    {
-        return "ClassDecl { ClassName=" + getClassName() + " }";
     }
 
     // Bogus class to get length

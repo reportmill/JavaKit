@@ -213,7 +213,7 @@ public class JExprMethodCall extends JExpr {
             JavaType scopeType = getScopeNodeEvalType();
 
             // If eval type is TypeVar, try to resolve
-            if (evalType.isTypeVar()) {
+            if (evalType instanceof JavaTypeVariable) {
                 String name = evalType.getName();
 
                 // See if TypeVar can be resolved by method
@@ -251,7 +251,7 @@ public class JExprMethodCall extends JExpr {
             JavaDecl arg = argTypes[i];
 
             // If method arg is TypeVar with same name, return arg expr eval type (if not null)
-            if (arg.isTypeVar() && arg.getName().equals(aName)) {
+            if (arg instanceof JavaTypeVariable && arg.getName().equals(aName)) {
                 JExpr argExpr = getArg(i);
                 if (argExpr == null)
                     continue;
@@ -268,7 +268,7 @@ public class JExprMethodCall extends JExpr {
                 for (JavaType paramType : paramTypes) {
 
                     // If TypeVar with matching name, see if arg eval type can resolve
-                    if (paramType.isTypeVar() && paramType.getName().equals(aName)) {
+                    if (paramType instanceof JavaTypeVariable && paramType.getName().equals(aName)) {
 
                         // Get arg expr and eval type
                         JExpr argExpr = getArg(i);
