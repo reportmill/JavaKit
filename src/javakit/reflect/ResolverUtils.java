@@ -231,15 +231,29 @@ public class ResolverUtils {
     /**
      * Returns an Id for JVarDecl.
      */
-    private static String getIdForJVarDecl(JVarDecl varDecl)
+    public static String getIdForJVarDecl(JVarDecl varDecl)
     {
-        StringBuffer sb = new StringBuffer();
+        // Get Type.Id
         JType varDeclType = varDecl.getType();
         JavaType varType = varDeclType != null ? varDeclType.getDecl() : null;
-        if (varType != null)
-            sb.append(varType.getId()).append(' ');
-        sb.append(varDecl.getName());
-        return sb.toString();
+        String varTypeId = varType != null ? varType.getId() : "Unknown";
+        String varName = varDecl.getName();
+
+        // Get enclosing Method/Constructor
+        JMemberDecl enclosingExec = varDecl.getEnclosingMemberDecl();
+
+        // Get enclosing Class
+        JClassDecl enclosingClass = varDecl.getEnclosingClassDecl();
+
+        // Get Enclosing path string
+        String enclosingPathStr = "";
+        if (enclosingClass != null)
+            enclosingPathStr = enclosingClass.getName() + '.';
+        if (enclosingExec != null)
+            enclosingPathStr += enclosingExec.getName() + '.';
+
+        // Return TypeId.VarName
+        return enclosingPathStr + varTypeId + ' ' + varName;
     }
 
     /**

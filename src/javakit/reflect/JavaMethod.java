@@ -32,7 +32,7 @@ public class JavaMethod extends JavaExecutable {
     protected void initTypes(Method aMethod)
     {
         // Get/set EvalType to method return Type
-        Type returnType = aMethod.getReturnType();
+        Type returnType = aMethod.getGenericReturnType();
         _evalType = _resolver.getTypeDecl(returnType);
 
         // Do normal version

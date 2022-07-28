@@ -647,10 +647,13 @@ public class JavaClass extends JavaType {
      */
     public JavaTypeVariable getTypeVarForName(String aName)
     {
-        List<JavaTypeVariable> tvdecls = getTypeVars();
-        for (JavaTypeVariable jd : tvdecls)
-            if (jd.getName().equals(aName))
-                return jd;
+        // Iterate to find TypeVar for name
+        List<JavaTypeVariable> typeVars = getTypeVars();
+        for (JavaTypeVariable typeVar : typeVars)
+            if (typeVar.getName().equals(aName))
+                return typeVar;
+
+        // Return not found
         return null;
     }
 
@@ -659,12 +662,15 @@ public class JavaClass extends JavaType {
      */
     public int getTypeVarIndexForName(String aName)
     {
-        List<JavaTypeVariable> tvdecls = getTypeVars();
-        for (int i = 0, iMax = tvdecls.size(); i < iMax; i++) {
-            JavaTypeVariable jd = tvdecls.get(i);
-            if (jd.getName().equals(aName))
+        // Iterate to find TypeVar index for name
+        List<JavaTypeVariable> typeVars = getTypeVars();
+        for (int i = 0, iMax = typeVars.size(); i < iMax; i++) {
+            JavaTypeVariable typeVar = typeVars.get(i);
+            if (typeVar.getName().equals(aName))
                 return i;
         }
+
+        // Return not found
         return -1;
     }
 

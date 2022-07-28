@@ -17,6 +17,10 @@ public class JavaLocalVar extends JavaDecl {
     {
         super(anOwner, DeclType.VarDecl);
 
+        // Set Id
+        _id = ResolverUtils.getIdForJVarDecl(aVarDecl);
+
+        // Set Name, SimpleName
         _name = _simpleName = aVarDecl.getName();
 
         // Set EvalType

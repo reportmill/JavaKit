@@ -20,6 +20,9 @@ public class JavaTypeVariable extends JavaType {
         // Do normal version
         super(aResolver, DeclType.TypeVar);
 
+        // Set Id
+        _id = ResolverUtils.getIdForTypeVariable(typeVar);
+
         // Set Owner: Class or Method/Constructor
         _owner = anOwner;
 

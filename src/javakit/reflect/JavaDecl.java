@@ -233,7 +233,10 @@ public class JavaDecl implements Comparable<JavaDecl> {
      */
     public int hashCode()
     {
-        return getId().hashCode();
+        String id = getId();
+        if (id == null)
+            return System.identityHashCode(this);
+        return id.hashCode();
     }
 
     /**
