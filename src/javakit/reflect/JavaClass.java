@@ -7,7 +7,7 @@ import java.util.*;
 import snap.util.StringUtils;
 
 /**
- * A subclass of JavaDecl especially for Class declarations.
+ * This JavaType subclass represents a java.lang.Class.
  */
 public class JavaClass extends JavaType {
 
@@ -24,34 +24,34 @@ public class JavaClass extends JavaType {
     private JavaClass  _superClass;
 
     // The modifiers
-    private int  _mods;
+    protected int  _mods;
 
     // Whether class decl is enum, interface, primitive
     private boolean  _enum, _interface, _primitive;
 
     // The array of interfaces
-    private JavaClass[]  _interfaces;
+    protected JavaClass[]  _interfaces;
 
     // The field decls
-    private List<JavaField>  _fieldDecls;
+    protected List<JavaField>  _fieldDecls;
 
     // The method decls
-    private List<JavaMethod>  _methDecls = new ArrayList<>();
+    protected List<JavaMethod>  _methDecls = new ArrayList<>();
 
     // The constructor decls
-    private List<JavaConstructor>  _constrDecls = new ArrayList<>();
+    protected List<JavaConstructor>  _constrDecls = new ArrayList<>();
 
     // The inner class decls
-    private List<JavaClass>  _innerClasses = new ArrayList<>();
+    protected List<JavaClass>  _innerClasses = new ArrayList<>();
 
     // The type var decls
-    private List<JavaTypeVariable>  _typeVarDecls = new ArrayList<>();
-
-    // A cached list of all decls
-    private List<JavaDecl>  _allDecls;
+    protected List<JavaTypeVariable>  _typeVarDecls = new ArrayList<>();
 
     // The Array item type (if Array)
     private JavaType  _arrayItemType;
+
+    // The updater
+    private JavaClassUpdater  _updater;
 
     /**
      * Constructor.
@@ -88,6 +88,9 @@ public class JavaClass extends JavaType {
         // Set EvalType to this
         _evalType = this;
 
+        // Create/set updater
+        _updater = new JavaClassUpdater(this);
+
         // Get type super type and set in decl
         Type superType = aClass.getGenericSuperclass();
         if (superType != null) {
@@ -111,7 +114,6 @@ public class JavaClass extends JavaType {
                 _constrDecls = aryDecl._constrDecls;
                 _innerClasses = aryDecl._innerClasses;
                 _typeVarDecls = aryDecl._typeVarDecls;
-                _allDecls = aryDecl.getAllDecls();
             }
         }
     }
@@ -217,306 +219,6 @@ public class JavaClass extends JavaType {
     public boolean isPrimitive()
     {
         return _primitive;
-    }
-
-    /**
-     * Returns the primitive counter part, if available.
-     */
-    public JavaClass getPrimitive()
-    {
-        if (isPrimitive())
-            return this;
-
-        // Handle primitive types
-        switch (_name) {
-            case "java.lang.Boolean": return getJavaClassForClass(boolean.class);
-            case "java.lang.Byte": return getJavaClassForClass(byte.class);
-            case "java.lang.Character": return getJavaClassForClass(char.class);
-            case "java.lang.Short": return getJavaClassForClass(short.class);
-            case "java.lang.Integer": return getJavaClassForClass(int.class);
-            case "java.lang.Long": return getJavaClassForClass(long.class);
-            case "java.lang.Float": return getJavaClassForClass(float.class);
-            case "java.lang.Double": return getJavaClassForClass(double.class);
-            case "java.lang.Void": return getJavaClassForClass(void.class);
-            default: return null;
-        }
-    }
-
-    /**
-     * Returns the primitive counter part, if available.
-     */
-    public JavaClass getPrimitiveAlt()
-    {
-        if (!isPrimitive())
-            return this;
-
-        // Handle primitive types
-        switch (_name) {
-            case "boolean": return getJavaClassForClass(Boolean.class);
-            case "byte": return getJavaClassForClass(Byte.class);
-            case "char": return getJavaClassForClass(Character.class);
-            case "short": return getJavaClassForClass(Short.class);
-            case "int": return getJavaClassForClass(Integer.class);
-            case "long": return getJavaClassForClass(Long.class);
-            case "float": return getJavaClassForClass(Float.class);
-            case "double": return getJavaClassForClass(Double.class);
-            case "void": return getJavaClassForClass(Void.class);
-            default: return null;
-        }
-    }
-
-    /**
-     * Returns whether given type is assignable to this JavaDecl.
-     */
-    @Override
-    public boolean isAssignable(JavaType aType)
-    {
-        // If this decl is primitive, forward to primitive version
-        if (isPrimitive() && aType instanceof JavaClass)
-            return isAssignablePrimitive((JavaClass) aType);
-
-        // If given val is null or this decl is Object return true
-        if (aType == null)
-            return true;
-        if (getName().equals("java.lang.Object"))
-            return true;
-        JavaClass otherClass = aType.getEvalClass();
-        if (otherClass.isPrimitive())
-            otherClass = otherClass.getPrimitiveAlt();
-
-        // If either are array type, check ArrayItemTypes if both are (otherwise return false)
-        if (isArray() || otherClass.isArray()) {
-            if (isArray() && otherClass.isArray())
-                return getArrayItemType().isAssignable(otherClass.getArrayItemType());
-            return false;
-        }
-
-        // Iterate up given class superclasses and check class and interfaces
-        for (JavaClass cls = otherClass; cls != null; cls = cls.getSuperClass()) {
-
-            // If classes match, return true
-            if (cls == this)
-                return true;
-
-            // If any interface of this decl match, return true
-            if (isInterface()) {
-                for (JavaClass infc : cls.getInterfaces())
-                    if (isAssignable(infc))
-                        return true;
-            }
-        }
-
-        // Return false since no match found
-        return false;
-    }
-
-    /**
-     * Returns whether given type is assignable to this JavaDecl.
-     */
-    private boolean isAssignablePrimitive(JavaType otherType)
-    {
-        if (otherType == null)
-            return false;
-        JavaClass otherClass = otherType.getEvalClass();
-        JavaClass otherPrimitive = otherClass.getPrimitive();
-        if (otherPrimitive == null)
-            return false;
-        JavaDecl common = getCommonAncestorPrimitive(otherPrimitive);
-        return common == this;
-    }
-
-    /**
-     * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
-     */
-    @Override
-    public JavaType getResolvedType(JavaType aType)
-    {
-        // Handle ParamType and anything not a TypeVar
-        if (aType instanceof JavaParameterizedType) {
-            System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
-            return aType;
-        }
-
-        // If not TypeVariable, we shouldn't be here
-        if (!(aType instanceof JavaTypeVariable))
-            return aType;
-
-        // If has type var, return bounds type
-        String name = aType.getName();
-        JavaDecl typeVar = getTypeVarForName(name);
-        if (typeVar != null)
-            return typeVar.getEvalType();
-
-        // If super has type var, return mapped type //JavaDecl sdecl = getSuper();
-        /*if(sdecl!=null && sdecl.getTypeVar(name)!=null) {
-            int ind = sdecl.getHpr().getTypeVarDeclIndex(name);
-            if(ind>=0 && ind<_paramTypes.length) return _paramTypes[ind]; }*/
-
-        // If SuerType is ParameterizedType, let it try to resolve
-        if (_superType instanceof JavaParameterizedType)
-            return _superType.getResolvedType(aType);
-
-        // Otherwise just return EvalType
-        JavaType evalType = aType.getEvalType();
-        return evalType;
-    }
-
-    /**
-     * Updates JavaDecls.
-     *
-     * @return whether the decls changed since last update.
-     */
-    public boolean updateDecls()
-    {
-        // If first time, set decls
-        if (_fieldDecls == null)
-            _fieldDecls = new ArrayList<>();
-
-        // Get ClassName
-        String className = getClassName();
-
-        // Get real class
-        Class<?> realClass = getRealClass();
-        if (realClass == null) {
-            System.err.println("JavaClass: Failed to load class: " + className);
-            return false;
-        }
-
-        // Get interfaces
-        Class[] interfaces = realClass.getInterfaces();
-        _interfaces = new JavaClass[interfaces.length];
-        for (int i = 0, iMax = interfaces.length; i < iMax; i++) {
-            Class intrface = interfaces[i];
-            _interfaces[i] = getJavaClassForClass(intrface);
-        }
-
-        // Create set for added/removed decls
-        int addedDecls = 0;
-        HashSet<JavaDecl> removedDecls = new HashSet<>(getAllDecls());
-
-        // Make sure class decl is up to date
-        if (getModifiers() != realClass.getModifiers())
-            _mods = realClass.getModifiers();
-
-        // Get TypeVariables
-        TypeVariable[] typeVariables;
-        try { typeVariables = realClass.getTypeParameters(); }
-        catch (Throwable e) {
-            System.err.println(e + " in " + className);
-            return false;
-        }
-
-        // Add JavaDecl for each Type parameter
-        for (TypeVariable typeVariable : typeVariables) {
-            String name = typeVariable.getName();
-            JavaDecl decl = getTypeVarForName(name);
-            if (decl == null) {
-                decl = new JavaTypeVariable(_resolver, this, typeVariable);
-                addDecl(decl);
-                addedDecls++;
-            }
-            else removedDecls.remove(decl);
-        }
-
-        // Get Inner Classes
-        Class<?>[] innerClasses;
-        try { innerClasses = realClass.getDeclaredClasses(); }
-        catch (Throwable e) {
-            System.err.println(e + " in " + className);
-            return false;
-        }
-
-        // Add JavaDecl for each inner class
-        for (Class innerClass : innerClasses) {   //if(icls.isSynthetic()) continue;
-            JavaDecl decl = getInnerClassForName(innerClass.getSimpleName());
-            if (decl == null) {
-                decl = getJavaDecl(innerClass);
-                addDecl(decl);
-                addedDecls++;
-            }
-            else removedDecls.remove(decl);
-        }
-
-        // Get Fields
-        Field[] fields;
-        try { fields = realClass.getDeclaredFields(); }
-        catch (Throwable e) {
-            System.err.println(e + " in " + className);
-            return false;
-        }
-
-        // Add JavaDecl for each declared field - also make sure field type is in refs
-        for (Field field : fields) {
-            JavaDecl decl = getField(field);
-            if (decl == null) {
-                decl = new JavaField(_resolver, this, field);
-                addDecl(decl);
-                addedDecls++;
-            }
-            else removedDecls.remove(decl);
-        }
-
-        // Get Methods
-        Method[] methods;
-        try { methods = realClass.getDeclaredMethods(); }
-        catch (Throwable e) {
-            System.err.println(e + " in " + className);
-            return false;
-        }
-
-        // Add JavaDecl for each declared method - also make sure return/parameter types are in refs
-        for (Method meth : methods) {
-            if (meth.isSynthetic()) continue;
-            JavaMethod decl = getMethodDecl(meth);
-            if (decl == null) {
-                decl = new JavaMethod(_resolver, this, meth);
-                addDecl(decl);
-                decl.initTypes(meth);
-                addedDecls++;
-            }
-            else removedDecls.remove(decl);
-        }
-
-        // Get Constructors
-        Constructor[] constructors;
-        try { constructors = realClass.getDeclaredConstructors(); }
-        catch (Throwable e) {
-            System.err.println(e + " in " + className);
-            return false;
-        }
-
-        // Add JavaDecl for each constructor - also make sure parameter types are in refs
-        for (Constructor constr : constructors) {
-            if (constr.isSynthetic()) continue;
-            JavaConstructor decl = getConstructorDecl(constr);
-            if (decl == null) {
-                decl = new JavaConstructor(_resolver, this, constr);
-                addDecl(decl);
-                decl.initTypes(constr);
-                addedDecls++;
-            }
-            else removedDecls.remove(decl);
-        }
-
-        // Array.length: Handle this special for Object[]
-        if (isArray() && getFieldForName("length") == null) {
-            Field lenField = getLenField();
-            JavaDecl decl = new JavaField(_resolver, this, lenField);
-            addDecl(decl);
-            addedDecls++;
-        }
-
-        // Remove unused decls
-        for (JavaDecl jd : removedDecls)
-            removeDecl(jd);
-
-        // Return whether decls were changed
-        boolean changed = addedDecls > 0 || removedDecls.size() > 0;
-        if (changed)
-            _allDecls = null;
-
-        // Return
-        return changed;
     }
 
     /**
@@ -712,27 +414,6 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Returns the list of all decls.
-     */
-    public List<JavaDecl> getAllDecls()
-    {
-        // If already set, just return
-        if (_allDecls != null) return _allDecls;
-
-        // Create new AllDecls cached list with decls for fields, methods, constructors, inner classes and this class
-        List<JavaField> fdecls = getFields();
-        List<JavaDecl> decls = new ArrayList<>(fdecls.size() + _methDecls.size() + _constrDecls.size() + _innerClasses.size() + 1);
-        decls.add(this);
-        decls.addAll(_fieldDecls);
-        decls.addAll(_methDecls);
-        decls.addAll(_constrDecls);
-        decls.addAll(_innerClasses);
-
-        // Set/return
-        return _allDecls = decls;
-    }
-
-    /**
      * Returns a compatible method for given name and param types.
      */
     public List<JavaField> getPrefixFields(String aPrefix)
@@ -762,7 +443,7 @@ public class JavaClass extends JavaType {
     public List<JavaMethod> getPrefixMethods(String aPrefix)
     {
         // Create return list of prefix methods
-        List<JavaMethod> methodsWithPrefix = new ArrayList();
+        List<JavaMethod> methodsWithPrefix = new ArrayList<>();
 
         // Iterate over classes
         for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
@@ -929,10 +610,8 @@ public class JavaClass extends JavaType {
         // Search this class and superclasses for compatible method
         List<JavaMethod> matches = Collections.EMPTY_LIST;
         List<JavaMethod> methods = getCompatibleMethodsDeep(aName, theTypes);
-        if (methods.size() > 0) {
-            if (matches == Collections.EMPTY_LIST) matches = methods;
-            else matches.addAll(methods);
-        }
+        if (methods.size() > 0)
+            matches = methods;
 
         // Search this class and superclasses for compatible interface
         for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
@@ -982,118 +661,145 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Returns the field decl for field.
+     * Returns the primitive counter part, if available.
      */
-    public JavaField getField(Field aField)
+    public JavaClass getPrimitive()
     {
-        String name = aField.getName();
-        JavaField field = getFieldForName(name);
-        if (field == null)
-            return null;
+        if (isPrimitive())
+            return this;
 
-        int mods = aField.getModifiers();
-        if (mods != field.getModifiers())
-            return null;
-
-        // Return
-        return field;
-    }
-
-    /**
-     * Returns the method decl for method.
-     */
-    public JavaMethod getMethodDecl(Method aMeth)
-    {
-        String id = ResolverUtils.getIdForMember(aMeth);
-        JavaMethod method = getMethodForId(id);
-        if (method == null)
-            return null;
-
-        int mods = aMeth.getModifiers();
-        if (mods != method.getModifiers())
-            return null;
-
-        // Check return type?
-        return method;
-    }
-
-    /**
-     * Returns the method decl for id string.
-     */
-    private JavaMethod getMethodForId(String anId)
-    {
-        List<JavaMethod> methods = getMethods();
-        for (JavaMethod method : methods)
-            if (method.getId().equals(anId))
-                return method;
-
-        // Return
-        return null;
-    }
-
-    /**
-     * Returns the decl for constructor.
-     */
-    public JavaConstructor getConstructorDecl(Constructor aConstr)
-    {
-        String id = ResolverUtils.getIdForMember(aConstr);
-        JavaConstructor constructor = getConstructorForId(id);
-        if (constructor == null)
-            return null;
-
-        // Check mods
-        int mods = aConstr.getModifiers();
-        if (mods != constructor.getModifiers())
-            return null;
-
-        // Return
-        return constructor;
-    }
-
-    /**
-     * Returns the Constructor decl for id string.
-     */
-    public JavaConstructor getConstructorForId(String anId)
-    {
-        List<JavaConstructor> constructors = getConstructors();
-        for (JavaConstructor constructor : constructors)
-            if (constructor.getId().equals(anId))
-                return constructor;
-
-        // Return
-        return null;
-    }
-
-    /**
-     * Adds a decl.
-     */
-    public void addDecl(JavaDecl aDecl)
-    {
-        DeclType type = aDecl.getType();
-        switch (type) {
-            case Field: _fieldDecls.add((JavaField) aDecl); break;
-            case Method: _methDecls.add((JavaMethod) aDecl); break;
-            case Constructor: _constrDecls.add((JavaConstructor) aDecl); break;
-            case Class: _innerClasses.add((JavaClass) aDecl); break;
-            case TypeVar: _typeVarDecls.add((JavaTypeVariable) aDecl); break;
-            default: throw new RuntimeException("JavaDeclHpr.addDecl: Invalid type " + type);
+        // Handle primitive types
+        switch (_name) {
+            case "java.lang.Boolean": return getJavaClassForClass(boolean.class);
+            case "java.lang.Byte": return getJavaClassForClass(byte.class);
+            case "java.lang.Character": return getJavaClassForClass(char.class);
+            case "java.lang.Short": return getJavaClassForClass(short.class);
+            case "java.lang.Integer": return getJavaClassForClass(int.class);
+            case "java.lang.Long": return getJavaClassForClass(long.class);
+            case "java.lang.Float": return getJavaClassForClass(float.class);
+            case "java.lang.Double": return getJavaClassForClass(double.class);
+            case "java.lang.Void": return getJavaClassForClass(void.class);
+            default: return null;
         }
     }
 
     /**
-     * Removes a decl.
+     * Returns the primitive counter part, if available.
      */
-    public void removeDecl(JavaDecl aDecl)
+    public JavaClass getPrimitiveAlt()
     {
-        DeclType type = aDecl.getType();
-        switch (type) {
-            case Field: _fieldDecls.remove(aDecl); break;
-            case Method: _methDecls.remove(aDecl); break;
-            case Constructor: _constrDecls.remove(aDecl); break;
-            case Class: _innerClasses.remove(aDecl); break;
-            case TypeVar: _typeVarDecls.remove(aDecl); break;
-            default: throw new RuntimeException("JavaDeclHpr.removeDecl: Invalid type " + type);
+        if (!isPrimitive())
+            return this;
+
+        // Handle primitive types
+        switch (_name) {
+            case "boolean": return getJavaClassForClass(Boolean.class);
+            case "byte": return getJavaClassForClass(Byte.class);
+            case "char": return getJavaClassForClass(Character.class);
+            case "short": return getJavaClassForClass(Short.class);
+            case "int": return getJavaClassForClass(Integer.class);
+            case "long": return getJavaClassForClass(Long.class);
+            case "float": return getJavaClassForClass(Float.class);
+            case "double": return getJavaClassForClass(Double.class);
+            case "void": return getJavaClassForClass(Void.class);
+            default: return null;
         }
+    }
+
+    /**
+     * Returns whether given type is assignable to this JavaDecl.
+     */
+    @Override
+    public boolean isAssignable(JavaType aType)
+    {
+        // If this decl is primitive, forward to primitive version
+        if (isPrimitive() && aType instanceof JavaClass)
+            return isAssignablePrimitive(aType);
+
+        // If given val is null or this decl is Object return true
+        if (aType == null)
+            return true;
+        if (getName().equals("java.lang.Object"))
+            return true;
+        JavaClass otherClass = aType.getEvalClass();
+        if (otherClass.isPrimitive())
+            otherClass = otherClass.getPrimitiveAlt();
+
+        // If either are array type, check ArrayItemTypes if both are (otherwise return false)
+        if (isArray() || otherClass.isArray()) {
+            if (isArray() && otherClass.isArray())
+                return getArrayItemType().isAssignable(otherClass.getArrayItemType());
+            return false;
+        }
+
+        // Iterate up given class superclasses and check class and interfaces
+        for (JavaClass cls = otherClass; cls != null; cls = cls.getSuperClass()) {
+
+            // If classes match, return true
+            if (cls == this)
+                return true;
+
+            // If any interface of this decl match, return true
+            if (isInterface()) {
+                for (JavaClass infc : cls.getInterfaces())
+                    if (isAssignable(infc))
+                        return true;
+            }
+        }
+
+        // Return false since no match found
+        return false;
+    }
+
+    /**
+     * Returns whether given type is assignable to this JavaDecl.
+     */
+    private boolean isAssignablePrimitive(JavaType otherType)
+    {
+        if (otherType == null)
+            return false;
+        JavaClass otherClass = otherType.getEvalClass();
+        JavaClass otherPrimitive = otherClass.getPrimitive();
+        if (otherPrimitive == null)
+            return false;
+        JavaDecl common = getCommonAncestorPrimitive(otherPrimitive);
+        return common == this;
+    }
+
+    /**
+     * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
+     */
+    @Override
+    public JavaType getResolvedType(JavaType aType)
+    {
+        // Handle ParamType and anything not a TypeVar
+        if (aType instanceof JavaParameterizedType) {
+            System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
+            return aType;
+        }
+
+        // If not TypeVariable, we shouldn't be here
+        if (!(aType instanceof JavaTypeVariable))
+            return aType;
+
+        // If has type var, return bounds type
+        String name = aType.getName();
+        JavaDecl typeVar = getTypeVarForName(name);
+        if (typeVar != null)
+            return typeVar.getEvalType();
+
+        // If super has type var, return mapped type //JavaDecl sdecl = getSuper();
+        /*if(sdecl!=null && sdecl.getTypeVar(name)!=null) {
+            int ind = sdecl.getHpr().getTypeVarDeclIndex(name);
+            if(ind>=0 && ind<_paramTypes.length) return _paramTypes[ind]; }*/
+
+        // If SuerType is ParameterizedType, let it try to resolve
+        if (_superType instanceof JavaParameterizedType)
+            return _superType.getResolvedType(aType);
+
+        // Otherwise just return EvalType
+        JavaType evalType = aType.getEvalType();
+        return evalType;
     }
 
     /**
@@ -1128,12 +834,24 @@ public class JavaClass extends JavaType {
         return simpleName;
     }
 
-    // Bogus class to get length
-    private static class Array { public int length; }
+    /**
+     * Returns the updater.
+     */
+    public JavaClassUpdater getUpdater()  { return _updater; }
 
-    private static Field getLenField()
+    /**
+     * Updates JavaDecls. Returns whether the decls changed since last update.
+     */
+    public boolean updateDecls()
     {
-        try { return Array.class.getField("length"); }
-        catch (Exception e) { return null; }
+        return _updater.updateDecls();
+    }
+
+    /**
+     * Returns the list of all decls.
+     */
+    public List<JavaDecl> getAllDecls()
+    {
+        return _updater.getAllDecls();
     }
 }

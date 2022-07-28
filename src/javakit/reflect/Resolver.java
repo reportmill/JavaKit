@@ -157,28 +157,13 @@ public class Resolver {
             jd = getJavaClassForClass(cls);
         }
 
-        // Handle Field
-        else if (anObj instanceof Field) {
-            Field field = (Field) anObj;
-            Class<?> cls = field.getDeclaringClass();
-            JavaClass decl = getJavaClassForClass(cls);
-            jd = decl.getField(field);
-        }
-
-        // Handle Method
-        else if (anObj instanceof Method) {
-            Method meth = (Method) anObj;
-            Class<?> cls = meth.getDeclaringClass();
-            JavaClass decl = getJavaClassForClass(cls);
-            jd = decl.getMethodDecl(meth);
-        }
-
-        // Handle Constructor
-        else if (anObj instanceof Constructor) {
-            Constructor<?> constr = (Constructor<?>) anObj;
-            Class<?> cls = constr.getDeclaringClass();
-            JavaClass decl = getJavaClassForClass(cls);
-            jd = decl.getConstructorDecl(constr);
+        // Handle Member
+        else if (anObj instanceof Member) {
+            Member member = (Member) anObj;
+            Class<?> declaringClass = member.getDeclaringClass();
+            JavaClass javaClass = getJavaClassForClass(declaringClass);
+            JavaClassUpdater updater = javaClass.getUpdater();
+            return updater.getJavaMemberForMember(member);
         }
 
         // Handle JVarDecl
