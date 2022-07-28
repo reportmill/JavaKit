@@ -23,6 +23,9 @@ public class JavaClass extends JavaType {
     // The super class decl
     private JavaClass  _superClass;
 
+    // The super class type (could be ParameterizedType)
+    private JavaType  _superType;
+
     // Whether class decl is enum, interface, primitive
     private boolean  _enum, _interface, _primitive;
 
@@ -58,8 +61,9 @@ public class JavaClass extends JavaType {
         // Do normal version
         super(aResolver, DeclType.Class);
 
-        // Set id
+        // Set Id, Name, SimpleName
         _id = _name = ResolverUtils.getIdForClass(aClass);
+        _simpleName = aClass.getSimpleName();
 
         // Set DeclaringClass or Package
         if (aPar instanceof JavaClass)
@@ -75,9 +79,8 @@ public class JavaClass extends JavaType {
                 aResolver._decls.put(altName, this);
         }
 
-        // Set class attributes
+        // Set Mods, Enum, Interface, Primitive
         _mods = aClass.getModifiers();
-        _simpleName = aClass.getSimpleName();
         _enum = aClass.isEnum();
         _interface = aClass.isInterface();
         _primitive = aClass.isPrimitive();
@@ -86,8 +89,7 @@ public class JavaClass extends JavaType {
         _evalType = this;
 
         // Get type super type and set in decl
-        AnnotatedType superAType = aClass.getAnnotatedSuperclass();
-        Type superType = superAType != null ? superAType.getType() : null;
+        Type superType = aClass.getGenericSuperclass();
         if (superType != null) {
             _superType = getJavaType(superType);
             _superClass = _superType.getClassType();
@@ -244,27 +246,27 @@ public class JavaClass extends JavaType {
             return true;
         if (getName().equals("java.lang.Object"))
             return true;
-        JavaClass ctype1 = aType.getClassType();
-        if (ctype1.isPrimitive())
-            ctype1 = ctype1.getPrimitiveAlt();
+        JavaClass otherClass = aType.getClassType();
+        if (otherClass.isPrimitive())
+            otherClass = otherClass.getPrimitiveAlt();
 
         // If either are array type, check ArrayItemTypes if both are (otherwise return false)
-        if (isArray() || ctype1.isArray()) {
-            if (isArray() && ctype1.isArray())
-                return getArrayItemType().isAssignable(ctype1.getArrayItemType());
+        if (isArray() || otherClass.isArray()) {
+            if (isArray() && otherClass.isArray())
+                return getArrayItemType().isAssignable(otherClass.getArrayItemType());
             return false;
         }
 
         // Iterate up given class superclasses and check class and interfaces
-        for (JavaClass ct1 = ctype1; ct1 != null; ct1 = ct1.getSuper()) {
+        for (JavaClass cls = otherClass; cls != null; cls = cls.getSuperClass()) {
 
             // If classes match, return true
-            if (ct1 == this)
+            if (cls == this)
                 return true;
 
             // If any interface of this decl match, return true
             if (isInterface()) {
-                for (JavaClass infc : ct1.getInterfaces())
+                for (JavaClass infc : cls.getInterfaces())
                     if (isAssignable(infc))
                         return true;
             }
@@ -291,9 +293,17 @@ public class JavaClass extends JavaType {
     /**
      * Override to return as Class type.
      */
-    public JavaClass getSuper()
+    public JavaClass getSuperClass()
     {
         return _superClass;
+    }
+
+    /**
+     * Override to return as Class type.
+     */
+    public JavaType getSuperType()
+    {
+        return _superType;
     }
 
     /**
@@ -704,7 +714,7 @@ public class JavaClass extends JavaType {
         List<JavaField> fieldsWithPrefix = new ArrayList<>();
 
         // Iterate over classes
-        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
 
             // Get Class fields
             List<JavaField> fields = cls.getFields();
@@ -728,7 +738,7 @@ public class JavaClass extends JavaType {
         List<JavaMethod> methodsWithPrefix = new ArrayList();
 
         // Iterate over classes
-        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
 
             // Get Class methods
             List<JavaMethod> methods = cls.getMethods();
@@ -801,7 +811,7 @@ public class JavaClass extends JavaType {
     public JavaMethod getCompatibleMethodDeep(String aName, JavaType[] theTypes)
     {
         // Search this class and superclasses for compatible method
-        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
             JavaMethod decl = cls.getCompatibleMethod(aName, theTypes);
             if (decl != null)
                 return decl;
@@ -820,7 +830,7 @@ public class JavaClass extends JavaType {
             return decl;
 
         // Search this class and superclasses for compatible interface
-        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
             for (JavaClass infc : cls.getInterfaces()) {
                 decl = infc.getCompatibleMethodAll(aName, theTypes);
                 if (decl != null)
@@ -871,7 +881,7 @@ public class JavaClass extends JavaType {
         List<JavaMethod> matches = Collections.EMPTY_LIST;
 
         // Iterate over this class and parents
-        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
             List<JavaMethod> decls = cls.getCompatibleMethods(aName, theTypes);
             if (decls.size() > 0) {
                 if (matches == Collections.EMPTY_LIST)
@@ -898,7 +908,7 @@ public class JavaClass extends JavaType {
         }
 
         // Search this class and superclasses for compatible interface
-        for (JavaClass cls = this; cls != null; cls = cls.getSuper()) {
+        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
             for (JavaClass infc : cls.getInterfaces()) {
                 methods = infc.getCompatibleMethodsAll(aName, theTypes);
                 if (methods.size() > 0) {

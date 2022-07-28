@@ -34,7 +34,7 @@ public class JavaConstructor extends JavaExecutable {
 
         // Get superclass and helper
         JavaClass declaringClass = getDeclaringClass();
-        JavaClass superClass = declaringClass != null ? declaringClass.getSuper() : null;
+        JavaClass superClass = declaringClass != null ? declaringClass.getSuperClass() : null;
         if (superClass == null)
             return null;
 

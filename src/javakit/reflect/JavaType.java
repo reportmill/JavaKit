@@ -8,9 +8,6 @@ package javakit.reflect;
  */
 public class JavaType extends JavaDecl {
 
-    // The super implementation of this type (Class, Method, Constructor)
-    protected JavaType  _superType;
-
     /**
      * Constructor.
      */
@@ -40,11 +37,6 @@ public class JavaType extends JavaDecl {
     public JavaType getArrayItemType()  { return null; }
 
     /**
-     * Returns the super decl of this JavaDecl (Class, Method, Constructor).
-     */
-    public JavaType getSuper()  { return _superType; }
-
-    /**
      * Returns whether is primitive.
      */
     public boolean isPrimitive()  { return false; }
@@ -64,6 +56,7 @@ public class JavaType extends JavaDecl {
      */
     public JavaType getCommonAncestor(JavaType aType)
     {
+        // If same class, return it
         if (aType == this)
             return this;
 
@@ -76,10 +69,12 @@ public class JavaType extends JavaDecl {
             return getCommonAncestor(aType.getPrimitiveAlt());
 
         // Iterate up each super chain to check
-        for (JavaType d0 = this; d0 != null; d0 = d0.getSuper())
-            for (JavaType d1 = aType; d1 != null; d1 = d1.getSuper())
-                if (d0 == d1)
-                    return d0;
+        JavaClass thisClass = getClassType();
+        JavaClass otherClass = aType.getClassType();
+        for (JavaClass cls1 = thisClass; cls1 != null; cls1 = cls1.getSuperClass())
+            for (JavaClass cls2 = otherClass; cls2 != null; cls2 = cls2.getSuperClass())
+                if (cls1 == cls2)
+                    return cls1;
 
         // Return Object (case where at least one was interface or ParamType of interface)
         return getJavaClassForClass(Object.class);

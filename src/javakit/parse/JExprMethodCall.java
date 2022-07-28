@@ -25,7 +25,7 @@ public class JExprMethodCall extends JExpr {
     /**
      * Creates a new method call for given identifier (method name) and arg list.
      */
-    public JExprMethodCall(JExprId anId, List theArgs)
+    public JExprMethodCall(JExprId anId, List<JExpr> theArgs)
     {
         setId(anId);
         setArgs(theArgs);

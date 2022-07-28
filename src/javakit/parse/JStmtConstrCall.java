@@ -76,22 +76,24 @@ public class JStmtConstrCall extends JStmt {
     protected JavaDecl getDeclImpl()
     {
         // Get class decl and constructor call arg types
-        JClassDecl cd = getEnclosingClassDecl();
-        JavaClass cdecl = cd.getDecl();
-        if (cdecl == null) return null;
+        JClassDecl enclosingClassDecl = getEnclosingClassDecl();
+        JavaClass enclosingClass = enclosingClassDecl.getDecl();
+        if (enclosingClass == null)
+            return null;
         JavaType[] argTypes = getArgEvalTypes();
 
         // If Super, switch to super class
-        String name = getIds().get(0).getName();
+        List<JExprId> exprIds = getIds();
+        String name = exprIds.get(0).getName();
         if (name.equals("super"))
-            cdecl = cdecl.getSuper();
+            enclosingClass = enclosingClass.getSuperClass();
 
-        // Get scope node class type and search for compatible method for name and arg types
-        JavaDecl decl = cdecl.getCompatibleConstructor(argTypes);
-        if (decl != null)
-            return decl;
+        // Get compatible constructor for arg types and return
+        JavaDecl constr = enclosingClass.getCompatibleConstructor(argTypes);
+        if (constr != null)
+            return constr;
 
-        // Return null since not found
+        // Return not found
         return null;
     }
 
