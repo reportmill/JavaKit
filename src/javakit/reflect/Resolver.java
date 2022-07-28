@@ -135,30 +135,15 @@ public class Resolver {
     public JavaDecl getJavaDecl(Object anObj)
     {
         // Handle String (Class or package name)
-        if (anObj instanceof String) {
-            String id = (String) anObj;
+        if (anObj instanceof String)
+            return getJavaDeclForName((String) anObj);
 
-            // If decl exists for name, just return
-            JavaDecl javaDecl = _decls.get(id);
-            if (javaDecl != null)
-                return javaDecl;
-
-            // If class exists, forward to getClassDecl()
-            Class<?> classForName = getClassForName(id);
-            if (classForName != null)
-                return getJavaClassForClass(classForName);
-            return null;
-        }
-
-        // Handle Class
-        JavaDecl jd;
-        if (anObj instanceof Class) {
-            Class<?> cls = (Class<?>) anObj;
-            jd = getJavaClassForClass(cls);
-        }
+        // Handle Class (java.lang.reflect.Type)
+        if (anObj instanceof Type)
+            return getJavaTypeForType((Type) anObj);
 
         // Handle Member
-        else if (anObj instanceof Member) {
+        if (anObj instanceof Member) {
             Member member = (Member) anObj;
             Class<?> declaringClass = member.getDeclaringClass();
             JavaClass javaClass = getJavaClassForClass(declaringClass);
@@ -169,23 +154,30 @@ public class Resolver {
         // Handle JVarDecl
         else if (anObj instanceof JVarDecl) {
             JVarDecl varDecl = (JVarDecl) anObj;
-            jd = new JavaLocalVar(this, varDecl);
-        }
-
-        // Handle Java.lang.reflect.Type
-        else if (anObj instanceof Type) {
-            Type type = (Type) anObj; //Class cls = getClass(type);
-            jd = getJavaTypeForType(type);
+            return new JavaLocalVar(this, varDecl);
         }
 
         // Complain
-        else throw new RuntimeException("Resolver.getJavaDecl: Unsupported type " + anObj);
+        throw new RuntimeException("Resolver.getJavaDecl: Unsupported type " + anObj);
+    }
 
-        if (jd == null)
-            System.out.println("Resolver.getJavaDecl: Decl not found for " + anObj);
+    /**
+     * Returns a JavaDecl for object.
+     */
+    public JavaDecl getJavaDeclForName(String aName)
+    {
+        // If decl exists for name, just return
+        JavaDecl javaDecl = _decls.get(aName);
+        if (javaDecl != null)
+            return javaDecl;
 
-        // Return
-        return jd;
+        // If class exists, forward to getClassDecl()
+        Class<?> classForName = getClassForName(aName);
+        if (classForName != null)
+            return getJavaClassForClass(classForName);
+
+        // Return not found
+        return null;
     }
 
     /**

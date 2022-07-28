@@ -105,7 +105,7 @@ public class JTypeVar extends JNode {
 
         // Handle nested case, e.g.: T extends Class <? super T>
         if (aNode.getName().equals(getName()))
-            return getJavaDecl(Object.class);
+            return getJavaClassForClass(Object.class);
 
         // Do normal version
         return super.getDeclImpl(aNode);

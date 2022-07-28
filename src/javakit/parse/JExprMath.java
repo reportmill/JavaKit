@@ -108,7 +108,7 @@ public class JExprMath extends JExpr {
             case Or:
             case And:
             case Not:
-                return getJavaDecl(boolean.class);
+                return getJavaClassForClass(boolean.class);
             case Conditional:
                 return getEvalTypeConditional();
             case Assign:
@@ -130,7 +130,7 @@ public class JExprMath extends JExpr {
             case PostDecrement:
                 return getOperand(0).getEvalType();
             default:
-                return getJavaDecl(boolean.class);
+                return getJavaClassForClass(boolean.class);
         }
     }
 

@@ -51,7 +51,7 @@ public class JStmtLabeled extends JStmt {
         if (_lvd != null) return _lvd;
         JType typ = new JType();
         typ._name = "String";
-        typ._decl = getJavaDecl(String.class);
+        typ._decl = getJavaClassForClass(String.class);
         _lvd = new JVarDecl();
         _lvd._id = _label;
         _lvd._type = typ;
