@@ -92,7 +92,7 @@ public class JExprMethodCall extends JExpr {
         Class classes[] = new Class[args.size()];
         for (int i = 0, iMax = args.size(); i < iMax; i++) {
             JExpr arg = args.get(i);
-            classes[i] = arg != null ? arg.getEvalClass() : null;
+            classes[i] = arg != null ? arg.getEvalTypeRealClass() : null;
         }
         return classes;
     }
@@ -142,7 +142,7 @@ public class JExprMethodCall extends JExpr {
             return null;
 
         // Search for compatible method for name and arg types
-        JavaClass scopeClass = scopeType.getClassType();
+        JavaClass scopeClass = scopeType.getEvalClass();
         JavaMethod method = scopeClass.getCompatibleMethodAll(name, argTypes);
         if (method != null)
             return method;
@@ -161,7 +161,7 @@ public class JExprMethodCall extends JExpr {
                 break;
 
             // Get scope class
-            scopeClass = scopeType.getClassType();
+            scopeClass = scopeType.getEvalClass();
             if (scopeClass == null)
                 break;
 

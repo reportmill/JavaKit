@@ -91,12 +91,9 @@ public class Resolver {
 
         // Add to Resolver classes cache
         //_decls.put(className, javaClass);
-
-        // Add array alternate name?
         /*if (aClass.isArray()) {
             String altName = ResolverUtils.getIdForClass(aClass);
-            if (!altName.equals(className))
-                _decls.put(altName, javaClass);
+            if (!altName.equals(className)) _decls.put(altName, javaClass);
         }*/
 
         // Return
@@ -193,7 +190,7 @@ public class Resolver {
         // Handle Java.lang.reflect.Type
         else if (anObj instanceof Type) {
             Type type = (Type) anObj; //Class cls = getClass(type);
-            jd = getTypeDecl(type);
+            jd = getJavaTypeForType(type);
         }
 
         // Complain
@@ -207,9 +204,9 @@ public class Resolver {
     }
 
     /**
-     * Returns a JavaDecl for type.
+     * Returns a JavaType for given type.
      */
-    public JavaType getTypeDecl(Type aType)
+    public JavaType getJavaTypeForType(Type aType)
     {
         // Handle Class
         if (aType instanceof Class)
@@ -266,7 +263,7 @@ public class Resolver {
         // Get RawType and ArgTypes as JavaType
         Type rawType = aPT.getRawType();
         Type[] typArgs = aPT.getActualTypeArguments();
-        JavaType rawTypeDecl = getTypeDecl(rawType);
+        JavaType rawTypeDecl = getJavaTypeForType(rawType);
         JavaType[] typeArgDecls = getJavaTypeArrayForTypes(typArgs);
 
         // Create and add to cache
@@ -354,7 +351,7 @@ public class Resolver {
         // Iterate over types and convert each to JavaType
         for (int i = 0; i < theTypes.length; i++) {
             Type type = theTypes[i];
-            JavaType javaType = getTypeDecl(type);
+            JavaType javaType = getJavaTypeForType(type);
             if (javaType == null)
                 System.err.println("Resolver.getJavaTypeArray: Couldn't resolve type: " + type);
             else javaTypes[i] = javaType;

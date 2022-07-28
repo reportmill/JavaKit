@@ -56,7 +56,8 @@ public class JavaCompleter {
         Class reccls = getReceivingClass(aNode);
         if (reccls != null && _list.size() > 10 && aNode.getName().length() <= 2) {
             List l2 = _list.stream().filter(p -> isReceivingClassAssignable(p, reccls)).collect(Collectors.toList());
-            if (l2.size() > 0) _list = l2;
+            if (l2.size() > 0)
+                _list = l2;
         }
 
         // Get array and sort
@@ -162,16 +163,16 @@ public class JavaCompleter {
             else if (parExpr.getEvalType() != null) {
 
                 // Get
-                JavaDecl parDecl = parExpr.getEvalType();
-                JavaClass parDeclClass = parDecl.getClassType();
+                JavaType parExprEvalType = parExpr.getEvalType();
+                JavaClass parExprEvalClass = parExprEvalType.getEvalClass();
 
                 // Get fields for prefix and add
-                List<JavaField> fieldsForPrefix = parDeclClass.getPrefixFields(prefix);
+                List<JavaField> fieldsForPrefix = parExprEvalClass.getPrefixFields(prefix);
                 for (JavaField fieldDecl : fieldsForPrefix)
                     addDecl(fieldDecl);
 
                 // Get methods for prefix and add
-                List<JavaMethod> methodsForPrefix = parDeclClass.getPrefixMethods(prefix);
+                List<JavaMethod> methodsForPrefix = parExprEvalClass.getPrefixMethods(prefix);
                 for (JavaMethod method : methodsForPrefix)
                     addDecl(method);
             }
@@ -187,13 +188,13 @@ public class JavaCompleter {
 
             // Add methods of enclosing class
             JClassDecl enclosingClassDecl = anId.getEnclosingClassDecl();
-            Class enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
+            Class enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalTypeRealClass() : null;
             while (enclosingClassDecl != null && enclosingClass != null) {
                 Method[] methodsForPrefix = MethodUtils.getMethodsForPrefix(enclosingClass, prefix);
                 for (Method meth : methodsForPrefix)
                     addDecl(meth);
                 enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
-                enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
+                enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalTypeRealClass() : null;
             }
 
             // If starts with upper case or is greater than 3 chars, add classes with prefix that are public
@@ -217,20 +218,22 @@ public class JavaCompleter {
     private static Class getReceivingClass(JNode aNode)
     {
         // If MethocCall arg, return arg class
-        JavaDecl argType = getMethodCallArgType(aNode);
-        if (argType != null)
-            return argType.getEvalClass();
+        JavaType argType = getMethodCallArgType(aNode);
+        if (argType != null) {
+            JavaClass argClass = argType.getEvalClass();
+            return argClass != null ? argClass.getRealClass() : null;
+        }
 
         // If node is Assign Right-Hand-Side, return assignment Left-Hand-Side class
         JExprMath assExpr = getExpression(aNode, JExprMath.Op.Assign);
         JExpr leftHandSide = assExpr != null ? assExpr.getOperand(0) : null;
         if (leftHandSide != null)
-            return leftHandSide.getEvalClass();
+            return leftHandSide.getEvalTypeRealClass();
 
         // If node is JVarDecl Initializer, return JVarDecl class
         JVarDecl initVarDecl = getVarDeclForInitializer(aNode);
         if (initVarDecl != null)
-            return initVarDecl.getEvalClass();
+            return initVarDecl.getEvalTypeRealClass();
 
         // If node is JExprMath, return op class
         JExprMath mathExpr = aNode.getParent(JExprMath.class);
@@ -273,7 +276,7 @@ public class JavaCompleter {
     /**
      * Return the method call arg class of node, if node is MethodCall arg.
      */
-    private static JavaDecl getMethodCallArgType(JNode aNode)
+    private static JavaType getMethodCallArgType(JNode aNode)
     {
         // Get methodc all
         JExprMethodCall methodCall = getMethodCall(aNode);
@@ -372,12 +375,26 @@ public class JavaCompleter {
      */
     private static final int getReceivingClassAssignableScore(JavaDecl aJD, Class<?> aRC)
     {
+        // Ignore package or null
         if (aRC == null || aJD instanceof JavaPackage)
             return 0;
-        Class<?> dcls = aJD.getEvalClass();
-        if (dcls == null)
+
+        // Get real class
+        JavaClass evalClass = aJD.getEvalClass();
+        Class<?> realClass = evalClass != null ? evalClass.getRealClass() : null;
+        if (realClass == null)
             return 0;
-        return aRC == dcls ? 2 : ClassUtils.isAssignable(aRC, dcls) ? 1 : 0;
+
+        // If classes equal, return 2
+        if (realClass == aRC)
+            return 2;
+
+        // If assignable, return 1
+        if (ClassUtils.isAssignable(aRC, realClass))
+            return 1;
+
+        // Return 0 since incompatible
+        return 0;
     }
 
     /**

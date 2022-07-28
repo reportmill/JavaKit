@@ -42,7 +42,7 @@ public abstract class JExpr extends JNode {
     public Class getScopeNodeEvalClass()
     {
         JNode sn = getScopeNode();
-        return sn != null ? sn.getEvalClass() : null;
+        return sn != null ? sn.getEvalTypeRealClass() : null;
     }
 
     /**

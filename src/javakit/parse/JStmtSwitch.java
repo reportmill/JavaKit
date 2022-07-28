@@ -5,6 +5,7 @@ package javakit.parse;
 
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
+import javakit.reflect.JavaField;
 import javakit.reflect.JavaType;
 
 import java.util.*;
@@ -122,20 +123,25 @@ public class JStmtSwitch extends JStmt {
         {
             // If node is case label and is id, try to evaluate against Switch expression enum type
             if (aNode == _expr && _expr instanceof JExprId) {
-                String name = _expr.getName();
-                JStmtSwitch swStmt = getParent(JStmtSwitch.class);
-                JExpr swExpr = swStmt.getExpr();
-                JavaType sdecl = swExpr != null ? swExpr.getEvalType() : null;
-                if (sdecl != null && sdecl.isEnum()) {
-                    JavaClass edecl = sdecl.getClassType();
-                    JavaDecl enumConst = edecl.getFieldForName(name);
+
+                // Get Switch expression type
+                JStmtSwitch switchStmt = getParent(JStmtSwitch.class);
+                JExpr switchExpr = switchStmt.getExpr();
+                JavaType switchExprType = switchExpr != null ? switchExpr.getEvalType() : null;
+
+                // Handle enum switch
+                if (switchExprType != null && switchExprType.isEnum()) {
+                    JavaClass enumClass = (JavaClass) switchExprType;
+                    String enumName = _expr.getName();
+                    JavaField enumConst = enumClass.getFieldForName(enumName);
                     if (enumConst != null)
                         return enumConst;
                 }
             }
 
             // If statements (as block) can resolve node, return decl
-            JavaDecl decl = JStmtBlock.getDeclImpl(aNode, getStatements());
+            List<JStmt> statements = getStatements();
+            JavaDecl decl = JStmtBlock.getDeclImpl(aNode, statements);
             if (decl != null)
                 return decl;
 

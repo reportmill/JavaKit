@@ -54,7 +54,7 @@ public class JavaClass extends JavaType {
     private JavaType  _arrayItemType;
 
     /**
-     * Creates a new JavaDeclClass for given owner, parent and Class.
+     * Constructor.
      */
     public JavaClass(Resolver aResolver, JavaDecl aPar, Class<?> aClass)
     {
@@ -91,8 +91,8 @@ public class JavaClass extends JavaType {
         // Get type super type and set in decl
         Type superType = aClass.getGenericSuperclass();
         if (superType != null) {
-            _superType = getJavaType(superType);
-            _superClass = _superType.getClassType();
+            _superType = _resolver.getJavaTypeForType(superType);
+            _superClass = _superType.getEvalClass();
         }
 
         // Handle Array
@@ -114,6 +114,18 @@ public class JavaClass extends JavaType {
                 _allDecls = aryDecl.getAllDecls();
             }
         }
+    }
+
+    /**
+     * Returns the class this decl evaluates to when referenced.
+     */
+    public Class<?> getRealClass()
+    {
+        String className = getClassName();
+        Class<?> realClass = className != null ? _resolver.getClassForName(className) : null;
+        if (realClass == null)
+            System.err.println("JavaClass.getRealClass: Couldn't find real class for name: " + className);
+        return realClass;
     }
 
     /**
@@ -238,15 +250,15 @@ public class JavaClass extends JavaType {
     public boolean isAssignable(JavaType aType)
     {
         // If this decl is primitive, forward to primitive version
-        if (isPrimitive())
-            return isAssignablePrimitive(aType);
+        if (isPrimitive() && aType instanceof JavaClass)
+            return isAssignablePrimitive((JavaClass) aType);
 
         // If given val is null or this decl is Object return true
         if (aType == null)
             return true;
         if (getName().equals("java.lang.Object"))
             return true;
-        JavaClass otherClass = aType.getClassType();
+        JavaClass otherClass = aType.getEvalClass();
         if (otherClass.isPrimitive())
             otherClass = otherClass.getPrimitiveAlt();
 
@@ -279,14 +291,15 @@ public class JavaClass extends JavaType {
     /**
      * Returns whether given type is assignable to this JavaDecl.
      */
-    private boolean isAssignablePrimitive(JavaDecl aDecl)
+    private boolean isAssignablePrimitive(JavaType otherType)
     {
-        if (aDecl == null) return false;
-        JavaClass ctype0 = getClassType();
-        JavaClass ctype1 = aDecl.getClassType().getPrimitive();
-        if (ctype1 == null)
+        if (otherType == null)
             return false;
-        JavaDecl common = getCommonAncestorPrimitive(ctype1);
+        JavaClass otherClass = otherType.getEvalClass();
+        JavaClass otherPrimitive = otherClass.getPrimitive();
+        if (otherPrimitive == null)
+            return false;
+        JavaDecl common = getCommonAncestorPrimitive(otherPrimitive);
         return common == this;
     }
 
@@ -309,20 +322,21 @@ public class JavaClass extends JavaType {
     /**
      * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
      */
-    public JavaType getResolvedType(JavaDecl aDecl)
+    @Override
+    public JavaType getResolvedType(JavaType aType)
     {
         // Handle ParamType and anything not a TypeVar
-        if (aDecl instanceof JavaParameterizedType) {
+        if (aType instanceof JavaParameterizedType) {
             System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
-            return (JavaParameterizedType) aDecl;
+            return aType;
         }
 
         // If not TypeVariable, we shouldn't be here
-        if (!(aDecl instanceof JavaTypeVariable))
-            return (JavaType) aDecl;
+        if (!(aType instanceof JavaTypeVariable))
+            return aType;
 
         // If has type var, return bounds type
-        String name = aDecl.getName();
+        String name = aType.getName();
         JavaDecl typeVar = getTypeVarForName(name);
         if (typeVar != null)
             return typeVar.getEvalType();
@@ -334,10 +348,10 @@ public class JavaClass extends JavaType {
 
         // If SuerType is ParameterizedType, let it try to resolve
         if (_superType instanceof JavaParameterizedType)
-            return _superType.getResolvedType(aDecl);
+            return _superType.getResolvedType(aType);
 
         // Otherwise just return EvalType
-        JavaType evalType = aDecl.getEvalType();
+        JavaType evalType = aType.getEvalType();
         return evalType;
     }
 
@@ -352,16 +366,18 @@ public class JavaClass extends JavaType {
         if (_fieldDecls == null)
             _fieldDecls = new ArrayList<>();
 
-        // Get eval class
-        Class evalClass = getEvalClass();
+        // Get ClassName
         String className = getClassName();
-        if (evalClass == null) {
-            System.err.println("JavaDeclClass: Failed to load class: " + className);
+
+        // Get real class
+        Class<?> realClass = getRealClass();
+        if (realClass == null) {
+            System.err.println("JavaClass: Failed to load class: " + className);
             return false;
         }
 
         // Get interfaces
-        Class[] interfaces = evalClass.getInterfaces();
+        Class[] interfaces = realClass.getInterfaces();
         _interfaces = new JavaClass[interfaces.length];
         for (int i = 0, iMax = interfaces.length; i < iMax; i++) {
             Class intrface = interfaces[i];
@@ -373,12 +389,12 @@ public class JavaClass extends JavaType {
         HashSet<JavaDecl> removedDecls = new HashSet<>(getAllDecls());
 
         // Make sure class decl is up to date
-        if (getModifiers() != evalClass.getModifiers())
-            _mods = evalClass.getModifiers();
+        if (getModifiers() != realClass.getModifiers())
+            _mods = realClass.getModifiers();
 
         // Get TypeVariables
         TypeVariable[] typeVariables;
-        try { typeVariables = evalClass.getTypeParameters(); }
+        try { typeVariables = realClass.getTypeParameters(); }
         catch (Throwable e) {
             System.err.println(e + " in " + className);
             return false;
@@ -392,12 +408,13 @@ public class JavaClass extends JavaType {
                 decl = new JavaTypeVariable(_resolver, this, typeVariable);
                 addDecl(decl);
                 addedDecls++;
-            } else removedDecls.remove(decl);
+            }
+            else removedDecls.remove(decl);
         }
 
         // Get Inner Classes
         Class<?>[] innerClasses;
-        try { innerClasses = evalClass.getDeclaredClasses(); }
+        try { innerClasses = realClass.getDeclaredClasses(); }
         catch (Throwable e) {
             System.err.println(e + " in " + className);
             return false;
@@ -410,12 +427,13 @@ public class JavaClass extends JavaType {
                 decl = getJavaDecl(innerClass);
                 addDecl(decl);
                 addedDecls++;
-            } else removedDecls.remove(decl);
+            }
+            else removedDecls.remove(decl);
         }
 
         // Get Fields
         Field[] fields;
-        try { fields = evalClass.getDeclaredFields(); }
+        try { fields = realClass.getDeclaredFields(); }
         catch (Throwable e) {
             System.err.println(e + " in " + className);
             return false;
@@ -428,12 +446,13 @@ public class JavaClass extends JavaType {
                 decl = new JavaField(_resolver, this, field);
                 addDecl(decl);
                 addedDecls++;
-            } else removedDecls.remove(decl);
+            }
+            else removedDecls.remove(decl);
         }
 
         // Get Methods
         Method[] methods;
-        try { methods = evalClass.getDeclaredMethods(); }
+        try { methods = realClass.getDeclaredMethods(); }
         catch (Throwable e) {
             System.err.println(e + " in " + className);
             return false;
@@ -448,12 +467,13 @@ public class JavaClass extends JavaType {
                 addDecl(decl);
                 decl.initTypes(meth);
                 addedDecls++;
-            } else removedDecls.remove(decl);
+            }
+            else removedDecls.remove(decl);
         }
 
         // Get Constructors
         Constructor[] constructors;
-        try { constructors = evalClass.getDeclaredConstructors(); }
+        try { constructors = realClass.getDeclaredConstructors(); }
         catch (Throwable e) {
             System.err.println(e + " in " + className);
             return false;
@@ -468,7 +488,8 @@ public class JavaClass extends JavaType {
                 addDecl(decl);
                 decl.initTypes(constr);
                 addedDecls++;
-            } else removedDecls.remove(decl);
+            }
+            else removedDecls.remove(decl);
         }
 
         // Array.length: Handle this special for Object[]

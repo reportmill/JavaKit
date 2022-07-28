@@ -55,7 +55,7 @@ public class JEnumConst extends JMemberDecl {
      */
     protected JavaDecl getDeclImpl()
     {
-        // Get enum name, enclosing JClassDecl and it's JavaDeclClass (can be null if enum hasn't been compiled yet)
+        // Get enum name, enclosing JClassDecl and its JavaClass (can be null if enum hasn't been compiled yet)
         String name = getName();
         JClassDecl cdecl = (JClassDecl) getParent();
         JavaClass jdecl = cdecl.getDecl();

@@ -8,6 +8,7 @@ import java.util.*;
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaExecutable;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
@@ -244,7 +245,7 @@ public class RowHeader extends View {
      */
     public class SuperMemberMarker extends Marker<JMemberDecl> {
 
-        JavaDecl _superDecl;
+        JavaExecutable _superDecl;
         boolean _interface;
 
         /**
@@ -273,7 +274,7 @@ public class RowHeader extends View {
          */
         public String getToolTip()
         {
-            String cname = _superDecl.getClassName();
+            String cname = _superDecl.getDeclaringClassName();
             return (isInterface() ? "Implements " : "Overrides ") + cname + '.' + _target.getName();
         }
 

@@ -67,7 +67,7 @@ public class JExprArrayIndex extends JExpr {
      */
     protected JavaDecl getDeclImpl()
     {
-        Class pclass = _arrayExpr != null ? _arrayExpr.getEvalClass() : null;
+        Class pclass = _arrayExpr != null ? _arrayExpr.getEvalTypeRealClass() : null;
         Class iclass = pclass != null && pclass.isArray() ? pclass.getComponentType() : Object.class;
         return getJavaDecl(iclass);
     }

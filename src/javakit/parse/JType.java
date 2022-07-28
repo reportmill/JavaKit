@@ -121,13 +121,18 @@ public class JType extends JNode {
      */
     public boolean isNumberType()
     {
-        JavaType decl = getBaseDecl();
-        String tp = decl != null ? decl.getClassName() : null;
-        if (tp == null) return false;
-        tp = tp.intern();
-        return tp == "byte" || tp == "short" || tp == "int" || tp == "long" || tp == "float" || tp == "double" ||
-                tp == "java.lang.Byte" || tp == "java.lang.Short" || tp == "java.lang.Integer" || tp == "java.lang.Long" ||
-                tp == "java.lang.Float" || tp == "java.lang.Double" || tp == "java.lang.Number";
+        JavaType javaType = getBaseDecl();
+        String className = javaType != null ? javaType.getClassName() : null;
+        if (className == null)
+            return false;
+
+        className = className.intern();
+        return className == "byte" || className == "short" ||
+                className == "int" || className == "long" ||
+                className == "float" || className == "double" ||
+                className == "java.lang.Byte" || className == "java.lang.Short" ||
+                className == "java.lang.Integer" || className == "java.lang.Long" ||
+                className == "java.lang.Float" || className == "java.lang.Double" || className == "java.lang.Number";
     }
 
     /**

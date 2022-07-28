@@ -140,25 +140,28 @@ public class JExprMath extends JExpr {
     private JavaDecl getEvalTypeMath()
     {
         // Get operand eval types (just return if either is null)
-        int cc = getChildCount();
-        JavaDecl e1 = cc > 0 ? getOperand(0).getEvalType() : null;
-        JavaDecl e2 = cc > 1 ? getOperand(1).getEvalType() : null;
-        if (e1 == null || e1 == e2) return e2;
-        if (e2 == null) return e1;
+        int childCount = getChildCount();
+        JavaType evalType1 = childCount > 0 ? getOperand(0).getEvalType() : null;
+        JavaType evalType2 = childCount > 1 ? getOperand(1).getEvalType() : null;
+        if (evalType1 == null || evalType1 == evalType2)
+            return evalType2;
+        if (evalType2 == null)
+            return evalType1;
 
         // Handle promotions: String, Double, Float, Long, Int
-        String c1 = e1.getClassName(), c2 = e2.getClassName();
-        if (isString(c1)) return e1;
-        if (isString(c2)) return e2;
-        if (isDouble(c1)) return e1;
-        if (isDouble(c2)) return e2;
-        if (isFloat(c1)) return e1;
-        if (isFloat(c2)) return e2;
-        if (isLong(c1)) return e1;
-        if (isLong(c2)) return e2;
-        if (isInt(c1)) return e1;
-        if (isInt(c2)) return e2;
-        return e1;
+        String c1 = evalType1.getClassName();
+        String c2 = evalType2.getClassName();
+        if (isString(c1)) return evalType1;
+        if (isString(c2)) return evalType2;
+        if (isDouble(c1)) return evalType1;
+        if (isDouble(c2)) return evalType2;
+        if (isFloat(c1)) return evalType1;
+        if (isFloat(c2)) return evalType2;
+        if (isLong(c1)) return evalType1;
+        if (isLong(c2)) return evalType2;
+        if (isInt(c1)) return evalType1;
+        if (isInt(c2)) return evalType2;
+        return evalType1;
     }
 
     /**

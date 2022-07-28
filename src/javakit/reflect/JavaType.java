@@ -17,6 +17,15 @@ public class JavaType extends JavaDecl {
     }
 
     /**
+     * Returns the class name.
+     */
+    public String getClassName()
+    {
+        JavaClass evalClass = getEvalClass();
+        return evalClass != null ? evalClass.getName() : null;
+    }
+
+    /**
      * Returns whether is a enum reference.
      */
     public boolean isEnum()  { return false; }
@@ -69,8 +78,8 @@ public class JavaType extends JavaDecl {
             return getCommonAncestor(aType.getPrimitiveAlt());
 
         // Iterate up each super chain to check
-        JavaClass thisClass = getClassType();
-        JavaClass otherClass = aType.getClassType();
+        JavaClass thisClass = getEvalClass();
+        JavaClass otherClass = aType.getEvalClass();
         for (JavaClass cls1 = thisClass; cls1 != null; cls1 = cls1.getSuperClass())
             for (JavaClass cls2 = otherClass; cls2 != null; cls2 = cls2.getSuperClass())
                 if (cls1 == cls2)
@@ -110,20 +119,20 @@ public class JavaType extends JavaDecl {
     /**
      * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
      */
-    public JavaType getResolvedType(JavaDecl aDecl)
+    public JavaType getResolvedType(JavaType aType)
     {
         // Handle ParamType and anything not a TypeVar
-        if (aDecl instanceof JavaParameterizedType) {
+        if (aType instanceof JavaParameterizedType) {
             System.err.println("JavaDecl.getResolvedType: ParamType not yet supported");
-            return (JavaParameterizedType) aDecl;
+            return aType;
         }
 
         // Should always be a TypeVar I think
-        if (!(aDecl instanceof JavaTypeVariable))
-            return (JavaType) aDecl;
+        if (!(aType instanceof JavaTypeVariable))
+            return aType;
 
         // If not resolve, just return bounds type
-        return aDecl.getEvalType();
+        return aType.getEvalType();
     }
 
     /**
@@ -142,7 +151,7 @@ public class JavaType extends JavaDecl {
             System.err.println("JavaType.getArrayTypeDecl: Unexpected type: " + this);
 
         // Forward to ClassType
-        JavaClass javaClass = getClassType();
+        JavaClass javaClass = getEvalClass();
         return javaClass.getArrayType();
     }
 
@@ -164,9 +173,9 @@ public class JavaType extends JavaDecl {
 
         // Handle ParamTypes: Test against ClassType instead
         if (this instanceof JavaParameterizedType)
-            return getClassType().matches(aDecl);
+            return getEvalClass().matches(aDecl);
         else if (aDecl instanceof JavaParameterizedType)
-            return matches(aDecl.getClassType());
+            return matches(aDecl.getEvalClass());
 
         // Return false, since no match
         return false;
@@ -186,10 +195,10 @@ public class JavaType extends JavaDecl {
         for (int i = 0; i < length; i++) {
             JavaType type1 = theTypes1[i];
             if (type1 != null)
-                type1 = type1.getClassType();
+                type1 = type1.getEvalClass();
             JavaType type2 = theTypes2[i];
             if (type2 != null)
-                type2 = type2.getClassType();
+                type2 = type2.getEvalClass();
             if (type1 != type2)
                 return false;
         }

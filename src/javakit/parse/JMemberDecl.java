@@ -95,11 +95,13 @@ public class JMemberDecl extends JNode {
      */
     public boolean isSuperDeclInterface()
     {
-        JavaDecl superDecl = getSuperDecl();
-        if (superDecl == null) return false;
+        JavaExecutable superDecl = getSuperDecl();
+        if (superDecl == null)
+            return false;
 
-        JavaClass javaClass = superDecl.getClassType();
-        if (javaClass == null) return false;
+        JavaClass javaClass = superDecl.getDeclaringClass();
+        if (javaClass == null)
+            return false;
 
         return javaClass.isInterface();
     }

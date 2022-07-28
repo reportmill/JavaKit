@@ -87,7 +87,8 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         if (aDecl instanceof JavaClass || (aDecl instanceof JavaConstructor)) {
 
             // Get
-            String className = aDecl.getClassName();
+            String className = aDecl instanceof JavaClass ? ((JavaClass) aDecl).getClassName() :
+                    ((JavaConstructor) aDecl).getDeclaringClassName();
             String simpleName = aDecl.getSimpleName();
             String importClassName = aFile.getImportClassName(simpleName);
 

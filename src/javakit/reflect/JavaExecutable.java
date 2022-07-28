@@ -67,8 +67,8 @@ public class JavaExecutable extends JavaMember {
                 return typeVar;
 
         // Forward to class
-        JavaClass parentClass = getClassType();
-        return parentClass.getTypeVarForName(aName);
+        JavaClass declaringClass = getDeclaringClass();
+        return declaringClass.getTypeVarForName(aName);
     }
 
     /**
@@ -230,10 +230,10 @@ public class JavaExecutable extends JavaMember {
         // Iterate over classes and add score based on matching classes
         // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
         for (int i = 0, iMax = plen; i < iMax; i++) {
-            JavaType cls1 = paramTypes[i].getClassType();
+            JavaType cls1 = paramTypes[i].getEvalClass();
             JavaType cls2 = theTypes[i];
             if (cls2 != null)
-                cls2 = cls2.getClassType();
+                cls2 = cls2.getEvalClass();
             if (!cls1.isAssignable(cls2))
                 return 0;
             rating += cls1 == cls2 ? 1000 : cls2 != null ? 100 : 10;
@@ -261,9 +261,9 @@ public class JavaExecutable extends JavaMember {
         // Iterate over classes and add score based on matching classes
         // This is a punt - need to groc the docs on this: https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html
         for (int i = 0, iMax = varArgIndex; i < iMax; i++) {
-            JavaType cls1 = paramTypes[i].getClassType();
+            JavaType cls1 = paramTypes[i].getEvalClass();
             JavaType cls2 = theTypes[i];
-            if (cls2 != null) cls2 = cls2.getClassType();
+            if (cls2 != null) cls2 = cls2.getEvalClass();
             if (!cls1.isAssignable(cls2))
                 return 0;
             rating += cls1 == cls2 ? 1000 : cls2 != null ? 100 : 10;

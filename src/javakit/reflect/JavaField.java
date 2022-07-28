@@ -18,7 +18,7 @@ public class JavaField extends JavaMember {
 
         // Set EvalType
         Type fieldType = aField.getGenericType();
-        _evalType = _resolver.getTypeDecl(fieldType);
+        _evalType = _resolver.getJavaTypeForType(fieldType);
     }
 
     /**
@@ -50,7 +50,7 @@ public class JavaField extends JavaMember {
     @Override
     public String getPrettyName()
     {
-        String className = getClassName();
+        String className = getDeclaringClassName();
         String fieldName = getName();
         return className + '.' + fieldName;
     }
@@ -61,7 +61,7 @@ public class JavaField extends JavaMember {
     @Override
     public String getMatchName()
     {
-        String className = getClassName();
+        String className = getDeclaringClassName();
         String fieldName = getName();
         return className + '.' + fieldName;
     }

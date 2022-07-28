@@ -233,7 +233,7 @@ public class JavaTextArea extends TextArea {
      */
     public Class getSelectedNodeClass()
     {
-        return _selNode != null ? _selNode.getEvalClass() : null;
+        return _selNode != null ? _selNode.getEvalTypeRealClass() : null;
     }
 
     /**

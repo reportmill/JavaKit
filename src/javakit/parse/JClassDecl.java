@@ -130,7 +130,7 @@ public class JClassDecl extends JMemberDecl {
      */
     public Class getSuperClass()
     {
-        Class sc = _extendsTypes.size() > 0 ? _extendsTypes.get(0).getEvalClass() : null;
+        Class sc = _extendsTypes.size() > 0 ? _extendsTypes.get(0).getEvalTypeRealClass() : null;
         return sc != null ? sc : Object.class;
     }
 
@@ -141,7 +141,7 @@ public class JClassDecl extends JMemberDecl {
     {
         List<Class> classes = new ArrayList();
         for (JType interfType : _implementsTypes) {
-            Class iclass = interfType.getEvalClass();
+            Class iclass = interfType.getEvalTypeRealClass();
             if (iclass != null)
                 classes.add(iclass);
         }
@@ -472,7 +472,7 @@ public class JClassDecl extends JMemberDecl {
         if (isId) {
             List<JType> implementsTypes = getImplementsTypes();
             for (JType implementsType : implementsTypes) {
-                Class interf = implementsType.getEvalClass();
+                Class interf = implementsType.getEvalTypeRealClass();
                 Field field2 = interf != null ? ClassUtils.getFieldForName(interf, name) : null;
                 if (field2 != null)
                     return getJavaDecl(field2);
@@ -485,7 +485,7 @@ public class JClassDecl extends JMemberDecl {
             return typeVar.getDecl();
 
         // Look for InnerClass of given name
-        Class evalClass = getEvalClass();
+        Class evalClass = getEvalTypeRealClass();
         if (evalClass != null) {
             Class innerClass = ClassUtils.getInnerClassForName(evalClass, name);
             if (innerClass != null)

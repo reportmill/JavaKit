@@ -65,82 +65,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     public String getSimpleName()  { return _simpleName; }
 
     /**
-     * Returns the type of the most basic class associated with this type:
-     * Class: itself
-     * Field, Method, Constructor: DeclaringClass
-     */
-    public JavaClass getClassType()
-    {
-        // Handle JavaClass
-        if (this instanceof JavaClass)
-            return (JavaClass) this;
-
-        // Handle JavaMember
-        if (this instanceof JavaMember)
-            return ((JavaMember) this).getDeclaringClass();
-
-        // Anything else: Try EvalType.ClassType?
-        JavaType evalType = getEvalType();
-        return evalType != null ? evalType.getClassType() : null;
-    }
-
-    /**
-     * Returns the class name.
-     */
-    public String getClassName()
-    {
-        JavaDecl ct = getClassType();
-        return ct != null ? ct.getName() : null;
-    }
-
-    /**
-     * Returns the JavaDecl for class this decl evaluates to when referenced.
-     */
-    public JavaType getEvalType()  { return _evalType; }
-
-    /**
-     * Returns the type name for class this decl evaluates to when referenced.
-     */
-    public String getEvalTypeName()
-    {
-        return _evalType != null ? _evalType.getName() : null;
-    }
-
-    /**
-     * Returns the type name for class this decl evaluates to when referenced.
-     */
-    public String getEvalClassName()
-    {
-        return _evalType != null ? _evalType.getClassName() : null;
-    }
-
-    /**
-     * Returns the class this decl evaluates to when referenced.
-     */
-    public Class<?> getEvalClass()
-    {
-        String className = getEvalClassName();
-        if (className == null) return null;
-        return _resolver.getClassForName(className);
-    }
-
-    /**
-     * Returns a name suitable to describe declaration.
-     */
-    public String getPrettyName()
-    {
-        return getName();
-    }
-
-    /**
-     * Returns a name unique for matching declarations.
-     */
-    public String getMatchName()
-    {
-        return getName();
-    }
-
-    /**
      * Returns the full name.
      */
     public String getFullName()
@@ -159,6 +83,59 @@ public class JavaDecl implements Comparable<JavaDecl> {
     protected String getFullNameImpl()
     {
         return getMatchName();
+    }
+
+    /**
+     * Returns the JavaType this decl evaluates to when referenced.
+     */
+    public JavaType getEvalType()  { return _evalType; }
+
+    /**
+     * Returns the type name for class this decl evaluates to when referenced.
+     */
+    public String getEvalTypeName()
+    {
+        JavaType evalType = getEvalType();
+        return evalType != null ? evalType.getName() : null;
+    }
+
+    /**
+     * Returns the type of the most basic class associated with this type:
+     */
+    public JavaClass getEvalClass()
+    {
+        // Handle JavaClass
+        if (this instanceof JavaClass)
+            return (JavaClass) this;
+
+        // Anything else: Try EvalType.ClassType?
+        JavaType evalType = getEvalType();
+        return evalType != null ? evalType.getEvalClass() : null;
+    }
+
+    /**
+     * Returns the type name for class this decl evaluates to when referenced.
+     */
+    public String getEvalClassName()
+    {
+        JavaType evalType = getEvalType();
+        return evalType != null ? evalType.getClassName() : null;
+    }
+
+    /**
+     * Returns a name suitable to describe declaration.
+     */
+    public String getPrettyName()
+    {
+        return getName();
+    }
+
+    /**
+     * Returns a name unique for matching declarations.
+     */
+    public String getMatchName()
+    {
+        return getName();
     }
 
     /**
@@ -185,14 +162,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     public JavaDecl getJavaDecl(Object anObj)
     {
         return _resolver.getJavaDecl(anObj);
-    }
-
-    /**
-     * Returns a JavaDecl for given object.
-     */
-    public JavaType getJavaType(Type anObj)
-    {
-        return _resolver.getTypeDecl(anObj);
     }
 
     /**

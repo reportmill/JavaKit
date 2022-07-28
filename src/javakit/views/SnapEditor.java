@@ -116,7 +116,7 @@ public class SnapEditor extends StackView {
         JNode jnode = spart.getJNode();
         Class cls = null;
         for (JNode jn = jnode; jn != null && cls == null; jn = jn.getParent())
-            cls = jn.getEvalClass();
+            cls = jn.getEvalTypeRealClass();
         return cls;
     }
 
@@ -131,7 +131,7 @@ public class SnapEditor extends StackView {
         JNode jnode = spart.getJNode();
         Class cls = null;
         for (JNode jn = jnode; jn != null && (cls == null || cls.isPrimitive()); jn = jn.getParent())
-            cls = jn.getEvalClass();
+            cls = jn.getEvalTypeRealClass();
         return cls;
     }
 
@@ -204,7 +204,7 @@ public class SnapEditor extends StackView {
         }
 
         if (aBaseNode instanceof JStmtExpr && aNewNode instanceof JStmtExpr &&
-                aBaseNode.getEvalClass() == getSelectedPartClass() && aBaseNode.getEvalClass() != void.class) {
+                aBaseNode.getEvalTypeRealClass() == getSelectedPartClass() && aBaseNode.getEvalTypeRealClass() != void.class) {
             int index = aBaseNode.getEnd();
             String nodeStr = aNewNode.getString(), str = '.' + nodeStr;
             replaceText(str, index - 1, index);

@@ -69,7 +69,7 @@ public class CodeBuilder extends ViewOwner {
     {
         // Get SelectedNode (or first node parent with class) and its class
         _node = getTextArea().getSelectedNode();
-        while (_node != null && _node.getEvalClass() == null) _node = _node.getParent();
+        while (_node != null && _node.getEvalTypeRealClass() == null) _node = _node.getParent();
 
         // Get suggested CodeBlocks for class and set in Suggestions list
         Object items[] = getCodeBlocks(_node);
@@ -83,7 +83,7 @@ public class CodeBuilder extends ViewOwner {
     private CodeBlock[] getCodeBlocks(JNode aNode)
     {
         List list = new ArrayList();
-        Class cls = _node != null ? _node.getEvalClass() : null;
+        Class cls = _node != null ? _node.getEvalTypeRealClass() : null;
         Method methods[] = cls != null ? cls.getMethods() : new Method[0];
         for (Method method : methods) {
             if (method.getDeclaringClass() == Object.class) continue;
@@ -130,7 +130,7 @@ public class CodeBuilder extends ViewOwner {
      */
     public void resetUI()
     {
-        setViewValue("ClassText", _node != null ? _node.getEvalClass().getSimpleName() + " Methods" : "No Selection");
+        setViewValue("ClassText", _node != null ? _node.getEvalTypeRealClass().getSimpleName() + " Methods" : "No Selection");
     }
 
     /**

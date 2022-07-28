@@ -201,7 +201,7 @@ public class JFile extends JNode {
     {
         Resolver resolver = getResolver();
         if (resolver == null) return null;
-        return (JavaClass) resolver.getTypeDecl(aClass);
+        return (JavaClass) resolver.getJavaTypeForType(aClass);
     }
 
     /**

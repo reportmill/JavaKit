@@ -85,16 +85,16 @@ public class JavaParameterizedType extends JavaType {
      * Returns a resolved type for given unresolved type (TypeVar or ParamType<TypeVar>), if this decl can resolve it.
      */
     @Override
-    public JavaType getResolvedType(JavaDecl aDecl)
+    public JavaType getResolvedType(JavaType aType)
     {
         // Search for TypeVar name in ParamTypes
-        String typeVarName = aDecl.getName();
-        JavaClass javaClass = getClassType();
+        JavaClass javaClass = getEvalClass();
+        String typeVarName = aType.getName();
         int ind = javaClass.getTypeVarIndexForName(typeVarName);
         if (ind >= 0 && ind < _paramTypes.length)
             return _paramTypes[ind];
 
         // Do normal version
-        return super.getResolvedType(aDecl);
+        return super.getResolvedType(aType);
     }
 }

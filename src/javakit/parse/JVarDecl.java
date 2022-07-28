@@ -190,7 +190,7 @@ public class JVarDecl extends JNode {
      */
     public Class getDeclaringClass()
     {
-        return getParent() instanceof JFieldDecl ? getParent(JClassDecl.class).getEvalClass() : null;
+        return getParent() instanceof JFieldDecl ? getParent(JClassDecl.class).getEvalTypeRealClass() : null;
     }
 
     /**

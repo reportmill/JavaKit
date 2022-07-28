@@ -75,7 +75,7 @@ public class JExprLambda extends JExpr {
         Class ptypes[] = new Class[_params.size()];
         for (int i = 0, iMax = _params.size(); i < iMax; i++) {
             JVarDecl vd = _params.get(i);
-            ptypes[i] = vd.getEvalClass();
+            ptypes[i] = vd.getEvalTypeRealClass();
         }
         return ptypes;
     }
@@ -164,7 +164,7 @@ public class JExprLambda extends JExpr {
 
             for (JavaMethod method : methods) {
                 JavaType paramType = method.getParamType(ind);
-                JavaClass paramClass = paramType.getClassType();
+                JavaClass paramClass = paramType.getEvalClass();
                 _meth = paramClass.getLambdaMethod(argc);
                 if (_meth != null)
                     return paramType;
@@ -180,7 +180,7 @@ public class JExprLambda extends JExpr {
             // If type is interface, get lambda type
             JavaType parentType = par.getEvalType();
             if (parentType != null) {
-                JavaClass parentClass = parentType.getClassType();
+                JavaClass parentClass = parentType.getEvalClass();
                 _meth = parentClass.getLambdaMethod(getParamCount());
                 if (_meth != null)
                     return parentType;
@@ -229,7 +229,7 @@ public class JExprLambda extends JExpr {
         // Get scope node class type and search for compatible method for name and arg types
         JavaDecl scopeType = mc.getScopeNodeEvalType();
         if (scopeType == null) return null;
-        JavaClass scopeClass = scopeType.getClassType();
+        JavaClass scopeClass = scopeType.getEvalClass();
         List<JavaMethod> decls = scopeClass.getCompatibleMethodsAll(name, argTypes);
         if (decls.size() > 0)
             return decls;

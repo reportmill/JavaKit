@@ -162,10 +162,11 @@ public class JNode {
     /**
      * Returns the Class of this node, if it has one.
      */
-    public Class getEvalClass()
+    public Class<?> getEvalTypeRealClass()
     {
         JavaType evalType = getEvalType();
-        return evalType != null ? evalType.getEvalClass() : null;
+        JavaClass evalClass = evalType != null ? evalType.getEvalClass() : null;
+        return evalClass != null ? evalClass.getRealClass() : null;
     }
 
     /**
@@ -173,8 +174,8 @@ public class JNode {
      */
     public String getEvalClassName()
     {
-        JavaDecl etype = getEvalType();
-        return etype != null ? etype.getClassName() : null;
+        JavaType evalType = getEvalType();
+        return evalType != null ? evalType.getClassName() : null;
     }
 
     /**

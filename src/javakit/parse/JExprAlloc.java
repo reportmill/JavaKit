@@ -143,9 +143,10 @@ public class JExprAlloc extends JExpr {
             return type.getDecl();
 
         // Get class decl and constructor call arg types
-        JavaDecl javaType = type.getDecl();
-        if (javaType == null) return null;
-        JavaClass javaClass = javaType.getClassType();
+        JavaType javaType = type.getDecl();
+        if (javaType == null)
+            return null;
+        JavaClass javaClass = javaType.getEvalClass();
         JavaType[] argTypes = getArgEvalTypes();
 
         // If inner class and not static, add implied class type to arg types array
