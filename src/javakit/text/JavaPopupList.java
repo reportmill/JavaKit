@@ -8,6 +8,8 @@ import java.util.List;
 import javakit.parse.JFile;
 import javakit.parse.JImportDecl;
 import javakit.parse.JNode;
+import javakit.reflect.JavaClass;
+import javakit.reflect.JavaConstructor;
 import javakit.reflect.JavaDecl;
 import snap.gfx.*;
 import snap.props.PropChange;
@@ -82,19 +84,28 @@ public class JavaPopupList extends PopupList<JavaDecl> {
     protected void addImport(JavaDecl aDecl, JFile aFile)
     {
         // Handle ClassName suggestion
-        if (aDecl.isClass() || aDecl.isConstructor()) {
-            String cname = aDecl.getClassName(), csname = aDecl.getSimpleName();
-            String cname2 = aFile.getImportClassName(csname);
-            if (cname2 == null || !cname2.equals(cname)) {
-                String cpath = cname.replace('$', '.'), istring = "import " + cpath + ";\n";
+        if (aDecl instanceof JavaClass || (aDecl instanceof JavaConstructor)) {
+
+            // Get
+            String className = aDecl.getClassName();
+            String simpleName = aDecl.getSimpleName();
+            String importClassName = aFile.getImportClassName(simpleName);
+
+            if (importClassName == null || !importClassName.equals(className)) {
+
+                String classPath = className.replace('$', '.');
+                String importStr = "import " + classPath + ";\n";
                 List<JImportDecl> imports = aFile.getImportDecls();
                 int is = aFile.getPackageDecl() != null ? aFile.getPackageDecl().getLineIndex() + 1 : 0;
-                for (JImportDecl i : imports) {
-                    if (cpath.compareTo(i.getName()) < 0) break;
-                    else is = i.getLineIndex() + 1;
+
+                for (JImportDecl imp : imports) {
+                    if (classPath.compareTo(imp.getName()) < 0)
+                        break;
+                    is = imp.getLineIndex() + 1;
                 }
+
                 TextBoxLine line = getTextArea().getLine(is);
-                getTextArea().replaceChars(istring, null, line.getStart(), line.getStart(), false);
+                getTextArea().replaceChars(importStr, null, line.getStart(), line.getStart(), false);
             }
         }
     }

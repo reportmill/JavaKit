@@ -487,8 +487,8 @@ public class JNode {
      */
     public boolean isKnownClassName(String aName)
     {
-        JavaDecl jd = getJavaDecl(aName);
-        return jd != null && jd.isClass();
+        JavaDecl decl = getJavaDecl(aName);
+        return decl instanceof JavaClass;
     }
 
     /**

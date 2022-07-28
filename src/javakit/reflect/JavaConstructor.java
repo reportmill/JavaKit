@@ -7,15 +7,15 @@ import java.lang.reflect.Constructor;
 /**
  * This class represents a Java Method or Constructor.
  */
-public class JavaContructor extends JavaExecutable {
+public class JavaConstructor extends JavaExecutable {
 
     // The super implementation of this method
-    protected JavaContructor  _super;
+    protected JavaConstructor  _super;
 
     /**
      * Constructor.
      */
-    public JavaContructor(Resolver aResolver, JavaClass aDeclaringClass, Constructor<?> constructor)
+    public JavaConstructor(Resolver aResolver, JavaClass aDeclaringClass, Constructor<?> constructor)
     {
         super(aResolver, aDeclaringClass, constructor);
 
@@ -29,7 +29,7 @@ public class JavaContructor extends JavaExecutable {
     /**
      * Returns the super decl of this JavaDecl (Class, Method, Constructor).
      */
-    public JavaContructor getSuper()
+    public JavaConstructor getSuper()
     {
         // If already set, just return
         if (_super != null)
@@ -43,7 +43,7 @@ public class JavaContructor extends JavaExecutable {
 
         // Get super method
         JavaType[] paramTypes = getParamTypes();
-        JavaContructor superMethod = superClass.getConstructorDeepForTypes(paramTypes);
+        JavaConstructor superMethod = superClass.getConstructorDeepForTypes(paramTypes);
         if (superMethod == null)
             superMethod = this;
 

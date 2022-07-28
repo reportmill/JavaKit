@@ -136,17 +136,19 @@ public class JavaType extends JavaDecl {
      */
     public JavaType getArrayType()
     {
-        // Handle ParamType or unexpected type: Return ClassType.getArrayTypeDecl()
-        if (!isClass()) {
-            if (!isParamType() && !isTypeVar())
-                System.err.println("JavaType.getArrayTypeDecl: Unexpected type: " + this);
-            JavaClass javaClass = getClassType();
-            return javaClass.getArrayType();
+        // Handle Class: Append array chars to class name and get decl
+        if (this instanceof JavaClass) {
+            String className = getName() + "[]";
+            return (JavaType) getJavaDecl(className);
         }
 
-        // Append array chars to class name and get decl
-        String className = getName() + "[]";
-        return (JavaType) getJavaDecl(className);
+        // Handle ParamType or unexpected type: Return ClassType.getArrayTypeDecl()
+        if (!isParamType() && !isTypeVar())
+            System.err.println("JavaType.getArrayTypeDecl: Unexpected type: " + this);
+
+        // Forward to ClassType
+        JavaClass javaClass = getClassType();
+        return javaClass.getArrayType();
     }
 
     /**

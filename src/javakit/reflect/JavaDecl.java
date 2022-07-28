@@ -53,26 +53,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     public DeclType getType()  { return _type; }
 
     /**
-     * Returns whether is a class reference.
-     */
-    public boolean isClass()  { return false; }
-
-    /**
-     * Returns whether is a field reference.
-     */
-    public boolean isField()  { return _type == DeclType.Field; }
-
-    /**
-     * Returns whether is a constructor reference.
-     */
-    public boolean isConstructor()  { return _type == DeclType.Constructor; }
-
-    /**
-     * Returns whether is a method reference.
-     */
-    public boolean isMethod()  { return _type == DeclType.Method; }
-
-    /**
      * Returns whether is a package reference.
      */
     public boolean isPackage()  { return _type == DeclType.Package; }

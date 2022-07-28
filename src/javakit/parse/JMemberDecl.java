@@ -83,8 +83,8 @@ public class JMemberDecl extends JNode {
         JavaDecl decl = getDecl();
         if (decl instanceof JavaMethod)
             return ((JavaMethod) decl).getSuper();
-        if (decl instanceof JavaContructor)
-            return ((JavaContructor) decl).getSuper();
+        if (decl instanceof JavaConstructor)
+            return ((JavaConstructor) decl).getSuper();
 
         // Return null
         return null;

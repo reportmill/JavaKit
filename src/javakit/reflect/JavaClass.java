@@ -36,7 +36,7 @@ public class JavaClass extends JavaType {
     private List<JavaMethod>  _methDecls = new ArrayList<>();
 
     // The constructor decls
-    private List<JavaContructor>  _constrDecls = new ArrayList<>();
+    private List<JavaConstructor>  _constrDecls = new ArrayList<>();
 
     // The inner class decls
     private List<JavaClass>  _innerClasses = new ArrayList<>();
@@ -150,11 +150,6 @@ public class JavaClass extends JavaType {
             return _declaringClass.getRootClassName();
         return getClassName();
     }
-
-    /**
-     * Returns whether is a class reference.
-     */
-    public boolean isClass()  { return true; }
 
     /**
      * Returns whether is a enum reference.
@@ -454,9 +449,9 @@ public class JavaClass extends JavaType {
         // Add JavaDecl for each constructor - also make sure parameter types are in refs
         for (Constructor constr : constructors) {
             if (constr.isSynthetic()) continue;
-            JavaContructor decl = getConstructorDecl(constr);
+            JavaConstructor decl = getConstructorDecl(constr);
             if (decl == null) {
-                decl = new JavaContructor(_resolver, this, constr);
+                decl = new JavaConstructor(_resolver, this, constr);
                 addDecl(decl);
                 decl.initTypes(constr);
                 addedDecls++;
@@ -514,7 +509,7 @@ public class JavaClass extends JavaType {
     /**
      * Returns the Constructors.
      */
-    public List<JavaContructor> getConstructors()
+    public List<JavaConstructor> getConstructors()
     {
         getFields();
         return _constrDecls;
@@ -568,13 +563,13 @@ public class JavaClass extends JavaType {
     /**
      * Returns a constructor decl for parameter types.
      */
-    public JavaContructor getConstructorForTypes(JavaType[] theTypes)
+    public JavaConstructor getConstructorForTypes(JavaType[] theTypes)
     {
-        List<JavaContructor> constructors = getConstructors();
-        for (JavaContructor contructor : constructors) {
-            JavaType[] constrParamTypes = contructor.getParamTypes();
+        List<JavaConstructor> constructors = getConstructors();
+        for (JavaConstructor constructor : constructors) {
+            JavaType[] constrParamTypes = constructor.getParamTypes();
             if (isTypesEqual(constrParamTypes, theTypes))
-                return contructor;
+                return constructor;
         }
 
         // Return
@@ -584,9 +579,9 @@ public class JavaClass extends JavaType {
     /**
      * Returns a constructor decl for parameter types.
      */
-    public JavaContructor getConstructorDeepForTypes(JavaType[] theTypes)
+    public JavaConstructor getConstructorDeepForTypes(JavaType[] theTypes)
     {
-        JavaContructor decl = getConstructorForTypes(theTypes);
+        JavaConstructor decl = getConstructorForTypes(theTypes);
         if (decl == null && _superClass != null)
             decl = _superClass.getConstructorDeepForTypes(theTypes);
         return decl;
@@ -748,14 +743,14 @@ public class JavaClass extends JavaType {
     /**
      * Returns a compatible constructor for given name and param types.
      */
-    public JavaContructor getCompatibleConstructor(JavaType[] theTypes)
+    public JavaConstructor getCompatibleConstructor(JavaType[] theTypes)
     {
-        List<JavaContructor> constructors = getConstructors();
-        JavaContructor constructor = null;
+        List<JavaConstructor> constructors = getConstructors();
+        JavaConstructor constructor = null;
         int rating = 0;
 
         // Iterate over constructors to find highest rating
-        for (JavaContructor constr : constructors) {
+        for (JavaConstructor constr : constructors) {
             int rtg = JavaExecutable.getMatchRatingForTypes(constr, theTypes);
             if (rtg > rating) {
                 constructor = constr;
@@ -993,10 +988,10 @@ public class JavaClass extends JavaType {
     /**
      * Returns the decl for constructor.
      */
-    public JavaContructor getConstructorDecl(Constructor aConstr)
+    public JavaConstructor getConstructorDecl(Constructor aConstr)
     {
         String id = ResolverUtils.getIdForMember(aConstr);
-        JavaContructor constructor = getConstructorForId(id);
+        JavaConstructor constructor = getConstructorForId(id);
         if (constructor == null)
             return null;
 
@@ -1012,10 +1007,10 @@ public class JavaClass extends JavaType {
     /**
      * Returns the Constructor decl for id string.
      */
-    public JavaContructor getConstructorForId(String anId)
+    public JavaConstructor getConstructorForId(String anId)
     {
-        List<JavaContructor> constructors = getConstructors();
-        for (JavaContructor constructor : constructors)
+        List<JavaConstructor> constructors = getConstructors();
+        for (JavaConstructor constructor : constructors)
             if (constructor.getId().equals(anId))
                 return constructor;
 
@@ -1032,7 +1027,7 @@ public class JavaClass extends JavaType {
         switch (type) {
             case Field: _fieldDecls.add((JavaField) aDecl); break;
             case Method: _methDecls.add((JavaMethod) aDecl); break;
-            case Constructor: _constrDecls.add((JavaContructor) aDecl); break;
+            case Constructor: _constrDecls.add((JavaConstructor) aDecl); break;
             case Class: _innerClasses.add((JavaClass) aDecl); break;
             case TypeVar: _typeVarDecls.add((JavaTypeVariable) aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.addDecl: Invalid type " + type);

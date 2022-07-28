@@ -84,8 +84,8 @@ public class JImportDecl extends JNode {
      */
     public boolean isClassName()
     {
-        JavaDecl jd = getDecl();
-        return jd != null && jd.isClass();
+        JavaDecl decl = getDecl();
+        return decl instanceof JavaClass;
     }
 
     /**
@@ -94,21 +94,25 @@ public class JImportDecl extends JNode {
     protected JavaDecl getDeclImpl()
     {
         String name = getName();
-        if (name == null) return null;
-        if (_inclusive && isKnownPackageName(name)) return getJavaDecl(name);
+        if (name == null)
+            return null;
+        if (_inclusive && isKnownPackageName(name))
+            return getJavaDecl(name);
 
         // Iterate up parts of import till we find Class in case import is like: import path.Class.InnerClass;
         while (name != null) {
             if (isKnownClassName(name)) {
                 if (name.length() < getName().length()) {
-                    String icname = getName().substring(name.length()).replace('.', '$'), name2 = name + icname;
+                    String icname = getName().substring(name.length()).replace('.', '$');
+                    String name2 = name + icname;
                     if (isKnownClassName(name2))
                         name = name2;
                 }
                 return getJavaDecl(name);
             }
             int i = name.lastIndexOf('.');
-            if (i > 0) name = name.substring(0, i);
+            if (i > 0)
+                name = name.substring(0, i);
             else name = null;
         }
 

@@ -56,7 +56,7 @@ public class JavaMember extends JavaDecl {
     {
         // Get Match name
         String name = getMatchName();
-        if (isMethod() || isField())
+        if (this instanceof JavaMethod || this instanceof JavaField)
             name = getEvalTypeName() + " " + name;
 
         // Add mod string

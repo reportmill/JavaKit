@@ -274,16 +274,16 @@ public class JFile extends JNode {
         }
 
         // Try "java.lang" + name
-        JavaDecl jld = getJavaDecl("java.lang." + aName);
-        if (jld != null && jld.isClass())
-            return jld.getName();
+        JavaDecl javaLangDecl = getJavaDecl("java.lang." + aName);
+        if (javaLangDecl instanceof JavaClass)
+            return javaLangDecl.getName();
 
         // If file declares package, see if it's in package
-        String pname = getPackageName();
-        if (pname != null && pname.length() > 0) {
-            String cname = pname + '.' + aName;
-            if (isKnownClassName(cname))
-                return cname;
+        String packageName = getPackageName();
+        if (packageName != null && packageName.length() > 0) {
+            String className = packageName + '.' + aName;
+            if (isKnownClassName(className))
+                return className;
         }
 
         // Get import for name

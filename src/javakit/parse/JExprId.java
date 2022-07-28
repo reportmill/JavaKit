@@ -44,8 +44,8 @@ public class JExprId extends JExpr {
      */
     public boolean isClassId()
     {
-        JavaDecl jd = getDecl();
-        return jd != null && jd.isClass();
+        JavaDecl decl = getDecl();
+        return decl instanceof JavaClass;
     }
 
     /**
@@ -63,8 +63,8 @@ public class JExprId extends JExpr {
      */
     public boolean isEnumConstId()
     {
-        JavaDecl jd = getDecl();
-        return jd != null && jd.isField() && jd.getEvalType().isEnum();
+        JavaDecl decl = getDecl();
+        return decl instanceof JavaField && decl.getEvalType().isEnum();
     }
 
     /**
@@ -72,8 +72,8 @@ public class JExprId extends JExpr {
      */
     public boolean isFieldId()
     {
-        JavaDecl jd = getDecl();
-        return jd != null && jd.isField();
+        JavaDecl decl = getDecl();
+        return decl instanceof JavaField;
     }
 
     /**
@@ -89,8 +89,8 @@ public class JExprId extends JExpr {
      */
     public boolean isMethodId()
     {
-        JavaDecl jd = getDecl();
-        return jd != null && jd.isMethod();
+        JavaDecl decl = getDecl();
+        return decl instanceof JavaMethod;
     }
 
     /**
