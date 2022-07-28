@@ -11,20 +11,20 @@ import snap.util.StringUtils;
  */
 public class JavaClass extends JavaType {
 
-    // The Declaring class
-    private JavaClass  _declaringClass;
-
-    // The package
+    // The package (if root level class)
     private JavaPackage  _package;
 
-    // The modifiers
-    private int  _mods;
-
-    // The super class decl
-    private JavaClass  _superClass;
+    // The Declaring class (if member of enclosing class)
+    private JavaClass  _declaringClass;
 
     // The super class type (could be ParameterizedType)
     private JavaType  _superType;
+
+    // The super class
+    private JavaClass  _superClass;
+
+    // The modifiers
+    private int  _mods;
 
     // Whether class decl is enum, interface, primitive
     private boolean  _enum, _interface, _primitive;
@@ -48,7 +48,7 @@ public class JavaClass extends JavaType {
     private List<JavaTypeVariable>  _typeVarDecls = new ArrayList<>();
 
     // A cached list of all decls
-    private List<JavaDecl> _allDecls;
+    private List<JavaDecl>  _allDecls;
 
     // The Array item type (if Array)
     private JavaType  _arrayItemType;
@@ -117,6 +117,48 @@ public class JavaClass extends JavaType {
     }
 
     /**
+     * Returns the package that declares this class.
+     */
+    public JavaPackage getPackage()  { return _package; }
+
+    /**
+     * Returns the class that contains this class (if inner class).
+     */
+    public JavaClass getDeclaringClass()  { return _declaringClass; }
+
+    /**
+     * Returns the class name.
+     */
+    @Override
+    public String getClassName()  { return _name; }
+
+    /**
+     * Returns the top level class name.
+     */
+    public String getRootClassName()
+    {
+        if (_declaringClass != null)
+            return _declaringClass.getRootClassName();
+        return getClassName();
+    }
+
+    /**
+     * Override to return as Class type.
+     */
+    public JavaType getSuperType()
+    {
+        return _superType;
+    }
+
+    /**
+     * Override to return as Class type.
+     */
+    public JavaClass getSuperClass()
+    {
+        return _superClass;
+    }
+
+    /**
      * Returns the class this decl evaluates to when referenced.
      */
     public Class<?> getRealClass()
@@ -127,11 +169,6 @@ public class JavaClass extends JavaType {
             System.err.println("JavaClass.getRealClass: Couldn't find real class for name: " + className);
         return realClass;
     }
-
-    /**
-     * Returns the class that contains this class (if inner class).
-     */
-    public JavaClass getDeclaringClass()  { return _declaringClass; }
 
     /**
      * Returns the modifiers.
@@ -147,24 +184,9 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Returns the package that declares this class.
-     */
-    public JavaPackage getPackage()  { return _package; }
-
-    /**
      * Returns whether class is member.
      */
     public boolean isMemberClass()  { return _declaringClass != null; }
-
-    /**
-     * Returns the top level class name.
-     */
-    public String getRootClassName()
-    {
-        if (_declaringClass != null)
-            return _declaringClass.getRootClassName();
-        return getClassName();
-    }
 
     /**
      * Returns whether is a enum reference.
@@ -301,22 +323,6 @@ public class JavaClass extends JavaType {
             return false;
         JavaDecl common = getCommonAncestorPrimitive(otherPrimitive);
         return common == this;
-    }
-
-    /**
-     * Override to return as Class type.
-     */
-    public JavaClass getSuperClass()
-    {
-        return _superClass;
-    }
-
-    /**
-     * Override to return as Class type.
-     */
-    public JavaType getSuperType()
-    {
-        return _superType;
     }
 
     /**
@@ -727,7 +733,7 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Returns a compatibile method for given name and param types.
+     * Returns a compatible method for given name and param types.
      */
     public List<JavaField> getPrefixFields(String aPrefix)
     {
