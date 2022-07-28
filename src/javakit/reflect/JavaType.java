@@ -41,9 +41,9 @@ public class JavaType extends JavaDecl {
     public boolean isArray()  { return false; }
 
     /**
-     * Returns the Array item type (if Array).
+     * Returns the Array component type (if Array).
      */
-    public JavaType getArrayItemType()  { return null; }
+    public JavaType getComponentType()  { return null; }
 
     /**
      * Returns whether is primitive.

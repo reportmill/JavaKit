@@ -271,7 +271,7 @@ public class JavaExecutable extends JavaMember {
 
         // Get VarArg type
         JavaType varArgArrayType = paramTypes[varArgIndex];
-        JavaType varArgType = varArgArrayType.getArrayItemType();
+        JavaType varArgType = varArgArrayType.getComponentType();
 
         // If only one arg and it is of array type, add 1000
         JavaType argType = theTypes.length == argsLen ? theTypes[varArgIndex] : null;

@@ -62,6 +62,12 @@ public class JavaClassUpdater {
             return false;
         }
 
+        // Set Decls from Object[] for efficiency
+        if (realClass.isArray() && realClass != Object[].class) {
+            updateArrayClass();
+            return true;
+        }
+
         // Create set for added/removed decls
         Set<JavaDecl> removedDecls = new HashSet<>(getAllDecls());
         _addedDecls = 0;
@@ -227,6 +233,20 @@ public class JavaClassUpdater {
             }
             else removedDecls.remove(decl);
         }
+    }
+
+    /**
+     * Updates array class.
+     */
+    private void updateArrayClass()
+    {
+        JavaClass aryDecl = _resolver.getJavaClassForClass(Object[].class);
+        _javaClass._fieldDecls = aryDecl.getFields();
+        _javaClass._interfaces = aryDecl._interfaces;
+        _javaClass._methDecls = aryDecl._methDecls;
+        _javaClass._constrDecls = aryDecl._constrDecls;
+        _javaClass._innerClasses = aryDecl._innerClasses;
+        _javaClass._typeVarDecls = aryDecl._typeVarDecls;
     }
 
     /**

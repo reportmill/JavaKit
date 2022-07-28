@@ -47,8 +47,8 @@ public class JavaClass extends JavaType {
     // The type var decls
     protected List<JavaTypeVariable>  _typeVarDecls = new ArrayList<>();
 
-    // The Array item type (if Array)
-    private JavaType  _arrayItemType;
+    // The Array component type (if Array)
+    private JavaClass  _componentType;
 
     // The updater
     private JavaClassUpdater  _updater;
@@ -98,23 +98,10 @@ public class JavaClass extends JavaType {
             _superClass = _superType.getEvalClass();
         }
 
-        // Handle Array
+        // If Array, set Component class
         if (aClass.isArray()) {
-
-            // Set ArrayItemType
             Class<?> compClass = aClass.getComponentType();
-            _arrayItemType = getJavaClassForClass(compClass);
-
-            // Set Decls from Object[] for efficiency
-            if (aClass != Object[].class) {
-                JavaClass aryDecl = getJavaClassForClass(Object[].class);
-                _fieldDecls = aryDecl.getFields();
-                _interfaces = aryDecl._interfaces;
-                _methDecls = aryDecl._methDecls;
-                _constrDecls = aryDecl._constrDecls;
-                _innerClasses = aryDecl._innerClasses;
-                _typeVarDecls = aryDecl._typeVarDecls;
-            }
+            _componentType = getJavaClassForClass(compClass);
         }
     }
 
@@ -203,15 +190,12 @@ public class JavaClass extends JavaType {
     /**
      * Returns whether is an array.
      */
-    public boolean isArray()  { return _arrayItemType != null; }
+    public boolean isArray()  { return _componentType != null; }
 
     /**
-     * Returns the Array item type (if Array).
+     * Returns the Array component type (if Array).
      */
-    public JavaType getArrayItemType()
-    {
-        return _arrayItemType;
-    }
+    public JavaClass getComponentType()  { return _componentType; }
 
     /**
      * Returns whether is primitive.
@@ -728,7 +712,7 @@ public class JavaClass extends JavaType {
         // If either are array type, check ArrayItemTypes if both are (otherwise return false)
         if (isArray() || otherClass.isArray()) {
             if (isArray() && otherClass.isArray())
-                return getArrayItemType().isAssignable(otherClass.getArrayItemType());
+                return getComponentType().isAssignable(otherClass.getComponentType());
             return false;
         }
 
