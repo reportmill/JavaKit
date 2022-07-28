@@ -1,10 +1,7 @@
 package javakit.parse;
 import java.util.*;
 
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaMethod;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 import snap.util.ListUtils;
 import snap.util.SnapUtils;
 
@@ -230,14 +227,14 @@ public class JExprLambda extends JExpr {
         JavaDecl scopeType = mc.getScopeNodeEvalType();
         if (scopeType == null) return null;
         JavaClass scopeClass = scopeType.getEvalClass();
-        List<JavaMethod> decls = scopeClass.getCompatibleMethodsAll(name, argTypes);
+        List<JavaMethod> decls = JavaClassUtils.getCompatibleMethodsAll(scopeClass, name, argTypes);
         if (decls.size() > 0)
             return decls;
 
         // If scope node class type is member class and not static, go up parent classes
         while (scopeClass.isMemberClass() && !scopeClass.isStatic()) {
             scopeClass = scopeClass.getDeclaringClass();
-            decls = scopeClass.getCompatibleMethodsAll(name, argTypes);
+            decls = JavaClassUtils.getCompatibleMethodsAll(scopeClass, name, argTypes);
             if (decls.size() > 0)
                 return decls;
         }

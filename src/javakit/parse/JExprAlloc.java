@@ -5,10 +5,7 @@ package javakit.parse;
 
 import java.util.*;
 
-import javakit.reflect.JavaConstructor;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 import snap.util.ArrayUtils;
 
 /**
@@ -156,7 +153,7 @@ public class JExprAlloc extends JExpr {
         }
 
         // Get scope node class type and search for compatible method for name and arg types
-        JavaConstructor constructor = javaClass.getCompatibleConstructor(argTypes);
+        JavaConstructor constructor = JavaClassUtils.getCompatibleConstructor(javaClass, argTypes);
         if (constructor != null)
             return constructor;
 
@@ -171,5 +168,4 @@ public class JExprAlloc extends JExpr {
     {
         return "Allocation";
     }
-
 }

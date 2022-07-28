@@ -2,6 +2,7 @@ package javakit.parse;
 
 import java.util.*;
 
+import javakit.reflect.JavaClassUtils;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaType;
@@ -89,7 +90,7 @@ public class JStmtConstrCall extends JStmt {
             enclosingClass = enclosingClass.getSuperClass();
 
         // Get compatible constructor for arg types and return
-        JavaDecl constr = enclosingClass.getCompatibleConstructor(argTypes);
+        JavaDecl constr = JavaClassUtils.getCompatibleConstructor(enclosingClass, argTypes);
         if (constr != null)
             return constr;
 

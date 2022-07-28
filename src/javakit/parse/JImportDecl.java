@@ -3,10 +3,7 @@
  */
 package javakit.parse;
 
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaMember;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 
 import java.util.*;
 
@@ -147,7 +144,7 @@ public class JImportDecl extends JNode {
             return cls.getFieldForName(aName);
 
         // Otherwise, look for method
-        return cls.getCompatibleMethodAll(aName, theParams);
+        return JavaClassUtils.getCompatibleMethodAll(cls, aName, theParams);
     }
 
     /**

@@ -167,12 +167,12 @@ public class JavaCompleter {
                 JavaClass parExprEvalClass = parExprEvalType.getEvalClass();
 
                 // Get fields for prefix and add
-                List<JavaField> fieldsForPrefix = parExprEvalClass.getPrefixFields(prefix);
+                List<JavaField> fieldsForPrefix = JavaClassUtils.getPrefixFields(parExprEvalClass, prefix);
                 for (JavaField fieldDecl : fieldsForPrefix)
                     addDecl(fieldDecl);
 
                 // Get methods for prefix and add
-                List<JavaMethod> methodsForPrefix = parExprEvalClass.getPrefixMethods(prefix);
+                List<JavaMethod> methodsForPrefix = JavaClassUtils.getPrefixMethods(parExprEvalClass, prefix);
                 for (JavaMethod method : methodsForPrefix)
                     addDecl(method);
             }

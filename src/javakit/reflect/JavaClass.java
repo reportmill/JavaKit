@@ -4,7 +4,6 @@
 package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
-import snap.util.StringUtils;
 
 /**
  * This JavaType subclass represents a java.lang.Class.
@@ -347,10 +346,10 @@ public class JavaClass extends JavaType {
      */
     public JavaClass getInnerClassForName(String aName)
     {
-        List<JavaClass> icdecls = getInnerClasses();
-        for (JavaClass jd : icdecls)
-            if (jd.getSimpleName().equals(aName))
-                return jd;
+        List<JavaClass> innerClasses = getInnerClasses();
+        for (JavaClass innerClass : innerClasses)
+            if (innerClass.getSimpleName().equals(aName))
+                return innerClass;
         return null;
     }
 
@@ -398,241 +397,6 @@ public class JavaClass extends JavaType {
     }
 
     /**
-     * Returns a compatible method for given name and param types.
-     */
-    public List<JavaField> getPrefixFields(String aPrefix)
-    {
-        // Create return list of prefix fields
-        List<JavaField> fieldsWithPrefix = new ArrayList<>();
-
-        // Iterate over classes
-        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
-
-            // Get Class fields
-            List<JavaField> fields = cls.getFields();
-            for (JavaField field : fields)
-                if (StringUtils.startsWithIC(field.getName(), aPrefix))
-                    fieldsWithPrefix.add(field);
-
-            // Should iterate over class interfaces, too
-        }
-
-        // Return list of prefix fields
-        return fieldsWithPrefix;
-    }
-
-    /**
-     * Returns methods that match given prefix.
-     */
-    public List<JavaMethod> getPrefixMethods(String aPrefix)
-    {
-        // Create return list of prefix methods
-        List<JavaMethod> methodsWithPrefix = new ArrayList<>();
-
-        // Iterate over classes
-        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
-
-            // Get Class methods
-            List<JavaMethod> methods = cls.getMethods();
-            for (JavaMethod method : methods)
-                if (StringUtils.startsWithIC(method.getName(), aPrefix))
-                    methodsWithPrefix.add(method);
-
-            // If interface, iterate over class interfaces, too (should probably do this anyway to catch default methods).
-            if (cls.isInterface()) {
-                for (JavaClass c2 : cls.getInterfaces()) {
-                    List<JavaMethod> pmeths2 = c2.getPrefixMethods(aPrefix);
-                    methodsWithPrefix.addAll(pmeths2);
-                }
-            }
-        }
-
-        // Return list of prefix methods
-        return methodsWithPrefix;
-    }
-
-    /**
-     * Returns a compatible constructor for given name and param types.
-     */
-    public JavaConstructor getCompatibleConstructor(JavaType[] theTypes)
-    {
-        List<JavaConstructor> constructors = getConstructors();
-        JavaConstructor constructor = null;
-        int rating = 0;
-
-        // Iterate over constructors to find highest rating
-        for (JavaConstructor constr : constructors) {
-            int rtg = JavaExecutable.getMatchRatingForTypes(constr, theTypes);
-            if (rtg > rating) {
-                constructor = constr;
-                rating = rtg;
-            }
-        }
-
-        // Return
-        return constructor;
-    }
-
-    /**
-     * Returns a compatible method for given name and param types.
-     */
-    public JavaMethod getCompatibleMethod(String aName, JavaType[] theTypes)
-    {
-        List<JavaMethod> methods = getMethods();
-        JavaMethod method = null;
-        int rating = 0;
-
-        // Iterate over methods to find highest rating
-        for (JavaMethod meth : methods) {
-            if (meth.getName().equals(aName)) {
-                int rtg = JavaExecutable.getMatchRatingForTypes(meth, theTypes);
-                if (rtg > rating) {
-                    method = meth;
-                    rating = rtg;
-                }
-            }
-        }
-
-        // Return
-        return method;
-    }
-
-    /**
-     * Returns a compatible method for given name and param types.
-     */
-    public JavaMethod getCompatibleMethodDeep(String aName, JavaType[] theTypes)
-    {
-        // Search this class and superclasses for compatible method
-        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
-            JavaMethod decl = cls.getCompatibleMethod(aName, theTypes);
-            if (decl != null)
-                return decl;
-        }
-        return null;
-    }
-
-    /**
-     * Returns a compatible method for given name and param types.
-     */
-    public JavaMethod getCompatibleMethodAll(String aName, JavaType[] theTypes)
-    {
-        // Search this class and superclasses for compatible method
-        JavaMethod decl = getCompatibleMethodDeep(aName, theTypes);
-        if (decl != null)
-            return decl;
-
-        // Search this class and superclasses for compatible interface
-        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
-            for (JavaClass infc : cls.getInterfaces()) {
-                decl = infc.getCompatibleMethodAll(aName, theTypes);
-                if (decl != null)
-                    return decl;
-            }
-        }
-
-        // If this class is Interface, check Object
-        if (isInterface()) {
-            JavaClass objDecl = getJavaClassForClass(Object.class);
-            return objDecl.getCompatibleMethodDeep(aName, theTypes);
-        }
-
-        // Return null since compatible method not found
-        return null;
-    }
-
-    /**
-     * Returns a compatible methods for given name and param types.
-     */
-    public List<JavaMethod> getCompatibleMethods(String aName, JavaType[] theTypes)
-    {
-        List<JavaMethod> matches = Collections.EMPTY_LIST;
-        List<JavaMethod> methods = getMethods();
-
-        // Iterate over methods to find highest rating
-        for (JavaMethod method : methods) {
-            if (method.getName().equals(aName)) {
-                int rtg = JavaExecutable.getMatchRatingForTypes(method, theTypes);
-                if (rtg > 0) {
-                    if (matches == Collections.EMPTY_LIST)
-                        matches = new ArrayList<>();
-                    matches.add(method);
-                }
-            }
-        }
-
-        // Return
-        return matches;
-    }
-
-    /**
-     * Returns a compatible method for given name and param types.
-     */
-    public List<JavaMethod> getCompatibleMethodsDeep(String aName, JavaType[] theTypes)
-    {
-        // Search this class and superclasses for compatible method
-        List<JavaMethod> matches = Collections.EMPTY_LIST;
-
-        // Iterate over this class and parents
-        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
-            List<JavaMethod> decls = cls.getCompatibleMethods(aName, theTypes);
-            if (decls.size() > 0) {
-                if (matches == Collections.EMPTY_LIST)
-                    matches = decls;
-                else matches.addAll(decls);
-            }
-        }
-
-        // Return
-        return matches;
-    }
-
-    /**
-     * Returns a compatible method for given name and param types.
-     */
-    public List<JavaMethod> getCompatibleMethodsAll(String aName, JavaType[] theTypes)
-    {
-        // Search this class and superclasses for compatible method
-        List<JavaMethod> matches = Collections.EMPTY_LIST;
-        List<JavaMethod> methods = getCompatibleMethodsDeep(aName, theTypes);
-        if (methods.size() > 0)
-            matches = methods;
-
-        // Search this class and superclasses for compatible interface
-        for (JavaClass cls = this; cls != null; cls = cls.getSuperClass()) {
-            for (JavaClass infc : cls.getInterfaces()) {
-                methods = infc.getCompatibleMethodsAll(aName, theTypes);
-                if (methods.size() > 0) {
-                    if (matches == Collections.EMPTY_LIST) matches = methods;
-                    else matches.addAll(methods);
-                }
-            }
-        }
-
-        // If this class is Interface, check Object
-        if (isInterface()) {
-            JavaClass objDecl = getJavaClassForClass(Object.class);
-            methods = objDecl.getCompatibleMethodsDeep(aName, theTypes);
-            if (methods.size() > 0) {
-                if (matches == Collections.EMPTY_LIST) matches = methods;
-                else matches.addAll(methods);
-            }
-        }
-
-        // Remove supers and duplicates
-        for (int i = 0; i < matches.size(); i++) {
-            JavaMethod method = matches.get(i);
-            for (JavaMethod superMethod = method.getSuper(); superMethod != null; superMethod = superMethod.getSuper())
-                matches.remove(superMethod);
-            for (int j = i + 1; j < matches.size(); j++)
-                if (matches.get(j) == method)
-                    matches.remove(j);
-        }
-
-        // Return null since compatible method not found
-        return matches;
-    }
-
-    /**
      * Returns the lambda method.
      */
     public JavaMethod getLambdaMethod(int argCount)
@@ -642,52 +406,6 @@ public class JavaClass extends JavaType {
             if (method.getParamCount() == argCount)
                 return method;
         return null;
-    }
-
-    /**
-     * Returns the primitive counter part, if available.
-     */
-    public JavaClass getPrimitive()
-    {
-        if (isPrimitive())
-            return this;
-
-        // Handle primitive types
-        switch (_name) {
-            case "java.lang.Boolean": return getJavaClassForClass(boolean.class);
-            case "java.lang.Byte": return getJavaClassForClass(byte.class);
-            case "java.lang.Character": return getJavaClassForClass(char.class);
-            case "java.lang.Short": return getJavaClassForClass(short.class);
-            case "java.lang.Integer": return getJavaClassForClass(int.class);
-            case "java.lang.Long": return getJavaClassForClass(long.class);
-            case "java.lang.Float": return getJavaClassForClass(float.class);
-            case "java.lang.Double": return getJavaClassForClass(double.class);
-            case "java.lang.Void": return getJavaClassForClass(void.class);
-            default: return null;
-        }
-    }
-
-    /**
-     * Returns the primitive counter part, if available.
-     */
-    public JavaClass getPrimitiveAlt()
-    {
-        if (!isPrimitive())
-            return this;
-
-        // Handle primitive types
-        switch (_name) {
-            case "boolean": return getJavaClassForClass(Boolean.class);
-            case "byte": return getJavaClassForClass(Byte.class);
-            case "char": return getJavaClassForClass(Character.class);
-            case "short": return getJavaClassForClass(Short.class);
-            case "int": return getJavaClassForClass(Integer.class);
-            case "long": return getJavaClassForClass(Long.class);
-            case "float": return getJavaClassForClass(Float.class);
-            case "double": return getJavaClassForClass(Double.class);
-            case "void": return getJavaClassForClass(Void.class);
-            default: return null;
-        }
     }
 
     /**
@@ -748,6 +466,52 @@ public class JavaClass extends JavaType {
             return false;
         JavaDecl common = getCommonAncestorPrimitive(otherPrimitive);
         return common == this;
+    }
+
+    /**
+     * Returns the primitive counter part, if available.
+     */
+    public JavaClass getPrimitive()
+    {
+        if (isPrimitive())
+            return this;
+
+        // Handle primitive types
+        switch (_name) {
+            case "java.lang.Boolean": return getJavaClassForClass(boolean.class);
+            case "java.lang.Byte": return getJavaClassForClass(byte.class);
+            case "java.lang.Character": return getJavaClassForClass(char.class);
+            case "java.lang.Short": return getJavaClassForClass(short.class);
+            case "java.lang.Integer": return getJavaClassForClass(int.class);
+            case "java.lang.Long": return getJavaClassForClass(long.class);
+            case "java.lang.Float": return getJavaClassForClass(float.class);
+            case "java.lang.Double": return getJavaClassForClass(double.class);
+            case "java.lang.Void": return getJavaClassForClass(void.class);
+            default: return null;
+        }
+    }
+
+    /**
+     * Returns the primitive counter part, if available.
+     */
+    public JavaClass getPrimitiveAlt()
+    {
+        if (!isPrimitive())
+            return this;
+
+        // Handle primitive types
+        switch (_name) {
+            case "boolean": return getJavaClassForClass(Boolean.class);
+            case "byte": return getJavaClassForClass(Byte.class);
+            case "char": return getJavaClassForClass(Character.class);
+            case "short": return getJavaClassForClass(Short.class);
+            case "int": return getJavaClassForClass(Integer.class);
+            case "long": return getJavaClassForClass(Long.class);
+            case "float": return getJavaClassForClass(Float.class);
+            case "double": return getJavaClassForClass(Double.class);
+            case "void": return getJavaClassForClass(Void.class);
+            default: return null;
+        }
     }
 
     /**
@@ -813,7 +577,7 @@ public class JavaClass extends JavaType {
         String simpleName = getSimpleName();
         if (_declaringClass != null)
             return simpleName + " - " + _declaringClass.getName();
-        if (_package != null)
+        else if (_package != null)
             return simpleName + " - " + _package.getName();
         return simpleName;
     }

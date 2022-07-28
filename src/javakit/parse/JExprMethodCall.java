@@ -143,7 +143,7 @@ public class JExprMethodCall extends JExpr {
 
         // Search for compatible method for name and arg types
         JavaClass scopeClass = scopeType.getEvalClass();
-        JavaMethod method = scopeClass.getCompatibleMethodAll(name, argTypes);
+        JavaMethod method = JavaClassUtils.getCompatibleMethodAll(scopeClass, name, argTypes);
         if (method != null)
             return method;
 
@@ -166,7 +166,7 @@ public class JExprMethodCall extends JExpr {
                 break;
 
             // If method found, return it
-            method = scopeClass.getCompatibleMethodAll(name, argTypes);
+            method = JavaClassUtils.getCompatibleMethodAll(scopeClass, name, argTypes);
             if (method != null)
                 return method;
         }
