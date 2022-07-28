@@ -23,13 +23,12 @@ public class JavaParameterizedType extends JavaType {
         // Do normal version
         super(aResolver, DeclType.ParamType);
 
-        // Set Id, Name
-        _id = _name = ResolverUtils.getIdForParameterizedTypeParts(aRawType, theTypeArgs);
-
-        // Set type info
+        // Set RawType, ParamTypes
         _rawType = aRawType;
         _paramTypes = theTypeArgs;
-        _evalType = aRawType;
+
+        // Set Id, Name
+        _id = _name = ResolverUtils.getIdForParameterizedTypeParts(aRawType, theTypeArgs);
 
         // Get/Set SimpleName
         _simpleName = aRawType.getSimpleName();
@@ -37,6 +36,9 @@ public class JavaParameterizedType extends JavaType {
             String typeArgsStr = StringUtils.join(getParamTypeSimpleNames(), ",");
             _simpleName = _simpleName + '<' + typeArgsStr + '>';
         }
+
+        // Set EvalType to RawType
+        _evalType = aRawType;
     }
 
     /**
@@ -66,13 +68,13 @@ public class JavaParameterizedType extends JavaType {
     {
         // ParamType might subclass TypeVars
         JavaType rawType = getRawType();
-        if (rawType instanceof JavaTypeVariable)
+        if (!rawType.isResolvedType())
             return false;
 
         // Or types might include TypeVars
         JavaType[] paramTypes = getParamTypes();
         for (JavaType paramType : paramTypes)
-            if (paramType instanceof JavaTypeVariable)
+            if (!paramType.isResolvedType())
                 return false;
 
         // Return

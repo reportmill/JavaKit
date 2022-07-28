@@ -81,6 +81,8 @@ public class JavaClass extends JavaType {
         _enum = aClass.isEnum();
         _interface = aClass.isInterface();
         _primitive = aClass.isPrimitive();
+
+        // Set EvalType to this
         _evalType = this;
 
         // Get type super type and set in decl

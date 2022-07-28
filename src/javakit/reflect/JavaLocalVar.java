@@ -21,7 +21,9 @@ public class JavaLocalVar extends JavaDecl {
 
         // Set EvalType
         JType varDeclType = aVarDecl.getType();
-        _evalType = varDeclType != null ? varDeclType.getDecl() : getJavaClassForClass(Object.class); // Can happen for Lambdas
+        _evalType = varDeclType != null ? varDeclType.getDecl() : null;
+        if (_evalType == null) // Can happen for Lambdas
+            _evalType = getJavaClassForClass(Object.class);
     }
 
     /**

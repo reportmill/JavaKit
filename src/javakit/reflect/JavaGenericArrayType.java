@@ -17,11 +17,13 @@ public class JavaGenericArrayType extends JavaType {
         // Do normal version
         super(anOwner, DeclType.GenArrayType);
 
-        // Set id
+        // Set Id
         _id = ResolverUtils.getIdForGenericArrayType(aGenArrayType);
 
-        // Set type info
+        // Set Name, SimpleName
         _name = _simpleName = aGenArrayType.getTypeName();
+
+        // Set EvalType: Probably need to do better than this
         _evalType = getJavaClassForClass(Object[].class);
     }
 
