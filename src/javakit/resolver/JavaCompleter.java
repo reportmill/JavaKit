@@ -2,12 +2,10 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.resolver;
-
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javakit.parse.*;
 import javakit.reflect.*;
 import snap.web.WebFile;
@@ -19,6 +17,9 @@ public class JavaCompleter {
 
     // The node
     private JNode  _node;
+
+    // The resolver
+    private Resolver  _resolver;
 
     // The project
     private Project  _proj;
@@ -51,8 +52,11 @@ public class JavaCompleter {
         // Get SourceFile Project
         _proj = Project.getProjectForFile(sourceFile);
         _proj = _proj != null ? _proj.getRootProject() : null;
-        if (_proj == null) {
-            System.err.println("JavaCompleter: No project for node"); return new JavaDecl[0]; }
+        _resolver = _proj != null ? _proj.getResolver() : null;
+        if (_resolver == null) {
+            System.err.println("JavaCompleter: No resolver for source file: " + sourceFile.getPath());
+            return new JavaDecl[0];
+        }
 
         // Add suggestions for node
         if (aNode instanceof JType)
@@ -115,7 +119,7 @@ public class JavaCompleter {
             for (String className : classNamesForPrefix) {
 
                 // Get class (skip if not found or not public)
-                JavaClass javaClass = _proj.getJavaClassForName(className);
+                JavaClass javaClass = _resolver.getJavaClassForName(className);
                 if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers()))
                     continue;
 
@@ -131,7 +135,7 @@ public class JavaCompleter {
         // Handle normal JType
         else {
             for (String className : classNamesForPrefix) {
-                JavaClass javaClass = _proj.getJavaClassForName(className);
+                JavaClass javaClass = _resolver.getJavaClassForName(className);
                 addDecl(javaClass);
             }
         }
@@ -160,7 +164,7 @@ public class JavaCompleter {
                 // Get class names for classes in parent package with prefix
                 List<String> packageClassNames = classPathInfo.getPackageClassNamesForPrefix(parPkgName, prefix);
                 for (String className : packageClassNames) {
-                    JavaClass javaClass = _proj.getJavaClassForName(className);
+                    JavaClass javaClass = _resolver.getJavaClassForName(className);
                     if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
                     addDecl(javaClass);
                 }
@@ -212,7 +216,7 @@ public class JavaCompleter {
             // If starts with upper case or is greater than 3 chars, add classes with prefix that are public
             List<String> classNamesForPrefix = classPathInfo.getClassNamesForPrefix(prefix);
             for (String className : classNamesForPrefix) {
-                JavaClass javaClass = _proj.getJavaClassForName(className);
+                JavaClass javaClass = _resolver.getJavaClassForName(className);
                 if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
                 addDecl(javaClass);
             }

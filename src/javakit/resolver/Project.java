@@ -1,13 +1,17 @@
 package javakit.resolver;
 import javakit.reflect.Resolver;
 import snap.props.PropChange;
+import snap.util.FilePathUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
+
+import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * This is a Resolver subclass.
  */
-public class Project extends Resolver {
+public class Project {
 
     // The encapsulated data site
     protected WebSite  _site;
@@ -20,6 +24,12 @@ public class Project extends Resolver {
 
     // ClassPathInfo
     private ClassPathInfo  _classPathInfo;
+
+    // The resolver
+    protected Resolver  _resolver;
+
+    // The ClassLoader for compiled class info
+    protected ClassLoader  _classLoader;
 
     /**
      * Creates a new Project for WebSite.
@@ -91,6 +101,61 @@ public class Project extends Resolver {
     protected ProjectConfig createProjectConfig()
     {
         return new ProjectConfig(this);
+    }
+
+    /**
+     * Returns the resolver.
+     */
+    public Resolver getResolver()
+    {
+        // If already set, just return
+        if (_resolver != null) return _resolver;
+
+        // Create Resolver
+        ClassLoader classLoader = getClassLoader();
+        Resolver resolver = new Resolver(classLoader);
+
+        // Set, return
+        return _resolver = resolver;
+    }
+
+    /**
+     * Returns the ClassLoader.
+     */
+    public ClassLoader getClassLoader()
+    {
+        // If already set, just return
+        if (_classLoader != null) return _classLoader;
+
+        // Create ClassLoader
+        ClassLoader classLoader = createClassLoader();
+
+        // Set, return
+        return _classLoader = classLoader;
+    }
+
+    /**
+     * Creates the ClassLoader.
+     */
+    protected ClassLoader createClassLoader()
+    {
+        // If RootProject, return RootProject.ClassLoader
+        Project rproj = getRootProject();
+        if (rproj != this)
+            return rproj.createClassLoader();
+
+        // Get all project ClassPath URLs
+        String[] classPaths = getClassPaths();
+        URL[] urls = FilePathUtils.getURLs(classPaths);
+
+        // Get System ClassLoader
+        ClassLoader sysClassLoader = ClassLoader.getSystemClassLoader().getParent();
+
+        // Create special URLClassLoader subclass so when debugging SnapCode, we can ignore classes loaded by Project
+        ClassLoader urlClassLoader = new URLClassLoader(urls, sysClassLoader);
+
+        // Return
+        return urlClassLoader;
     }
 
     /**

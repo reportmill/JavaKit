@@ -8,8 +8,8 @@ import snap.util.ClassUtils;
  */
 public class Resolver {
 
-    // The current Resolver
-    private static Resolver  _current;
+    // The ClassLoader for compiled class info
+    protected ClassLoader  _classLoader;
 
     // A cache of JavaPackages by name
     private Map<String,JavaPackage>  _packages = new HashMap<>();
@@ -26,16 +26,15 @@ public class Resolver {
     /**
      * Constructor.
      */
-    public Resolver()
+    public Resolver(ClassLoader aClassLoader)
     {
-        // Set as current resolver
-        _current = this;
+        _classLoader = aClassLoader;
     }
 
     /**
      * Returns the ClassLoader.
      */
-    public ClassLoader getClassLoader()  { return null; }
+    public ClassLoader getClassLoader()  { return _classLoader; }
 
     /**
      * Returns a Class for given name.
@@ -313,12 +312,4 @@ public class Resolver {
      * Standard toStringProps implementation.
      */
     public String toStringProps()  { return ""; }
-
-    /**
-     * Returns the current resolver.
-     */
-    public static Resolver getCurrent()
-    {
-        return _current;
-    }
 }
