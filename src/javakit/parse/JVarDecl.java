@@ -5,10 +5,7 @@ package javakit.parse;
 
 import java.util.*;
 
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaMethod;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 import snap.util.ListUtils;
 
 /**
@@ -213,16 +210,19 @@ public class JVarDecl extends JNode {
         // If part of a JFieldDecl, get JavaDecl for field
         JNode par = getParent();
         if (par instanceof JFieldDecl) {
-            JClassDecl cd = getEnclosingClassDecl();
-            if (cd == null) return null;
-            JavaClass cdecl = cd.getDecl();
-            if (cdecl == null) return null;
-            JavaDecl fdecl = cdecl.getFieldForName(name);
-            return fdecl;
+            JClassDecl enclosingClassDecl = getEnclosingClassDecl();
+            if (enclosingClassDecl == null)
+                return null;
+            JavaClass enclosingClass = enclosingClassDecl.getDecl();
+            if (enclosingClass == null)
+                return null;
+            JavaField field = enclosingClass.getFieldForName(name);
+            return field;
         }
 
-        // Otherwise, return JavaDecl for this JVarDecl
-        return getJavaDecl(this);
+        // Otherwise, return JavaLocalVar for this JVarDecl
+        Resolver resolver = getResolver();
+        return new JavaLocalVar(resolver, this);
     }
 
     /**

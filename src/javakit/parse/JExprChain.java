@@ -102,12 +102,18 @@ public class JExprChain extends JExpr {
 
         // Handle Parent is Package: Look for package sub-package or package class
         if (parDecl instanceof JavaPackage) {
+
+            // Add name to parent package and look for child package
             JavaPackage javaPkg = (JavaPackage) parDecl;
             String packageName = javaPkg.getName();
             String classPath = packageName + '.' + name;
-            JavaDecl decl = getJavaDecl(classPath);
-            if (decl != null)
-                return decl;
+            if (isKnownPackageName(classPath))
+                return getJavaPackageForName(classPath);
+
+            // Look for class for name
+            JavaClass javaClass = getJavaClassForName(classPath);
+            if (javaClass != null)
+                return javaClass;
         }
 
         // Handle Parent is Class: Look for ".this", ".class", static field or inner class
@@ -139,19 +145,22 @@ public class JExprChain extends JExpr {
 
         // Handle any parent with class: Look for field
         else if (parExpr.getEvalType() != null) {
-            JavaType pdecl = parExpr.getEvalType();
 
-            if (pdecl.isArray() && name.equals("length"))
-                return getJavaClassForClass(int.class); // was FieldName;
+            // Handle Array.length reference
+            JavaType parExprType = parExpr.getEvalType();
+            if (parExprType.isArray() && name.equals("length"))
+                return getJavaClassForClass(int.class);
 
-            if (pdecl instanceof JavaParameterizedType)
-                pdecl = ((JavaParameterizedType) pdecl).getRawType();
+            // Handle ParameterizedType
+            if (parExprType instanceof JavaParameterizedType)
+                parExprType = ((JavaParameterizedType) parExprType).getRawType();
 
-            if (pdecl instanceof JavaClass) {
-                JavaClass cdecl = (JavaClass) pdecl;
-                JavaDecl fd = cdecl.getFieldDeepForName(name);
-                if (fd != null)
-                    return fd;
+            // Handle Class.Field
+            if (parExprType instanceof JavaClass) {
+                JavaClass javaClass = (JavaClass) parExprType;
+                JavaField field = javaClass.getFieldDeepForName(name);
+                if (field != null)
+                    return field;
             }
         }
 

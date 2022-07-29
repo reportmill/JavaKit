@@ -43,7 +43,7 @@ public class JavaExecutable extends JavaMember {
     {
         // Get ParameterTypes
         Type[] paramTypes = getGenericParameterTypes(aMember);
-        _paramTypes = _resolver.getJavaTypeArrayForTypes(paramTypes);
+        _paramTypes = _resolver.getJavaTypesForTypes(paramTypes);
     }
 
     /**

@@ -71,11 +71,11 @@ public class JavaClass extends JavaType {
             _package = (JavaPackage) aPar;
 
         // Add to decls
-        aResolver._decls.put(_id, this);
+        aResolver._classes.put(_id, this);
         if (aClass.isArray()) {
             String altName = aClass.getName();
             if (!altName.equals(_id))
-                aResolver._decls.put(altName, this);
+                aResolver._classes.put(altName, this);
         }
 
         // Set Mods, Enum, Interface, Primitive

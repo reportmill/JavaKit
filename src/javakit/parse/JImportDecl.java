@@ -93,20 +93,30 @@ public class JImportDecl extends JNode {
         String name = getName();
         if (name == null)
             return null;
+
+        // If package name, return package
         if (_inclusive && isKnownPackageName(name))
-            return getJavaDecl(name);
+            return getJavaPackageForName(name);
 
         // Iterate up parts of import till we find Class in case import is like: import path.Class.InnerClass;
         while (name != null) {
+
+            // If known class name
             if (isKnownClassName(name)) {
+
+                // If
                 if (name.length() < getName().length()) {
-                    String icname = getName().substring(name.length()).replace('.', '$');
-                    String name2 = name + icname;
+                    String innerClassName = getName().substring(name.length()).replace('.', '$');
+                    String name2 = name + innerClassName;
                     if (isKnownClassName(name2))
                         name = name2;
                 }
-                return getJavaDecl(name);
+
+                // Return
+                return getJavaClassForName(name);
             }
+
+            // Strip off last name
             int i = name.lastIndexOf('.');
             if (i > 0)
                 name = name.substring(0, i);
@@ -114,7 +124,8 @@ public class JImportDecl extends JNode {
         }
 
         // If class not found, return as package decl anyway
-        return getJavaDecl(getName());
+        String pkgName = getName();
+        return getJavaPackageForName(pkgName);
     }
 
     /**

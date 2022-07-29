@@ -83,7 +83,7 @@ public class JavaCompleter {
      */
     private void addJavaPackageForName(String aPackageName)
     {
-        JavaDecl javaDecl = _node.getJavaDecl(aPackageName);
+        JavaDecl javaDecl = _node.getJavaPackageForName(aPackageName);
         addDecl(javaDecl);
     }
 

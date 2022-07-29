@@ -159,14 +159,6 @@ public class JavaDecl implements Comparable<JavaDecl> {
     /**
      * Returns a JavaDecl for given object.
      */
-    public JavaDecl getJavaDecl(Object anObj)
-    {
-        return _resolver.getJavaDecl(anObj);
-    }
-
-    /**
-     * Returns a JavaDecl for given object.
-     */
     public JavaClass getJavaClassForClass(Class<?> aClass)
     {
         return _resolver.getJavaClassForClass(aClass);

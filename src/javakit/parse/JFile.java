@@ -166,13 +166,13 @@ public class JFile extends JNode {
 
         // If it's in JPackageDecl, it's a Package
         if (isKnownPackageName(name))
-            return getJavaDecl(name);
+            return getJavaPackageForName(name);
 
         // See if it's a known class name using imports
-        String cname = getImportClassName(name);
-        JavaDecl cd = cname != null ? getJavaDecl(cname) : null;
-        if (cd != null)
-            return cd;
+        String className = getImportClassName(name);
+        JavaClass javaClass = className != null ? getJavaClassForName(className) : null;
+        if (javaClass != null)
+            return javaClass;
 
         // See if it's a known static import class member
         JavaDecl field = getImportClassMember(name, null);
@@ -181,27 +181,6 @@ public class JFile extends JNode {
 
         // Do normal version
         return super.getDeclImpl(aNode);
-    }
-
-    /**
-     * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
-     */
-    public JavaDecl getJavaDecl(Object anObj)
-    {
-        Resolver resolver = getResolver();
-        if (resolver == null) return null;
-        return resolver.getJavaDecl(anObj);
-    }
-
-    /**
-     * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
-     */
-    @Override
-    public JavaClass getJavaClassForClass(Class<?> aClass)
-    {
-        Resolver resolver = getResolver();
-        if (resolver == null) return null;
-        return (JavaClass) resolver.getJavaTypeForType(aClass);
     }
 
     /**
@@ -264,19 +243,26 @@ public class JFile extends JNode {
 
         // If name has parts, handle them separately
         if (aName.indexOf('.') > 0) {
-            String names[] = aName.split("\\.");
-            String cname = getImportClassName(names[0]);
-            if (cname == null) return null;
-            JavaClass cdecl = (JavaClass) getJavaDecl(cname);
-            for (int i = 1; cdecl != null && i < names.length; i++)
-                cdecl = cdecl.getInnerClassForName(names[i]);
-            return cdecl != null ? cdecl.getName() : null;
+
+            // Get import part names
+            String[] names = aName.split("\\.");
+            String className = getImportClassName(names[0]);
+            if (className == null)
+                return null;
+
+            // Get JavaClass for name
+            JavaClass javaClass = getJavaClassForName(className);
+            for (int i = 1; javaClass != null && i < names.length; i++)
+                javaClass = javaClass.getInnerClassForName(names[i]);
+
+            // Return class name
+            return javaClass != null ? javaClass.getName() : null;
         }
 
         // Try "java.lang" + name
-        JavaDecl javaLangDecl = getJavaDecl("java.lang." + aName);
-        if (javaLangDecl instanceof JavaClass)
-            return javaLangDecl.getName();
+        JavaClass javaLangClass = getJavaClassForName("java.lang." + aName);
+        if (javaLangClass != null)
+            return javaLangClass.getName();
 
         // If file declares package, see if it's in package
         String packageName = getPackageName();
@@ -291,7 +277,7 @@ public class JFile extends JNode {
         if (imp != null)
             return imp.getImportClassName(aName);
 
-        // Return null since class not found
+        // Return not found
         return null;
     }
 

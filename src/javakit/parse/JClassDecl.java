@@ -363,7 +363,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the class declaration.
      */
-    protected JavaDecl getDeclImpl()
+    protected JavaClass getDeclImpl()
     {
         // If enclosing class declaration, return ThatClassName$ThisName, otherwise return JFile.Name
         String className = getName();
@@ -385,7 +385,7 @@ public class JClassDecl extends JMemberDecl {
         }
 
         // Return class name
-        return className != null ? getJavaDecl(className) : null;
+        return className != null ? getJavaClassForName(className) : null;
     }
 
     /**

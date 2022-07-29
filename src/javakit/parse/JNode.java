@@ -4,10 +4,7 @@
 package javakit.parse;
 import java.util.*;
 
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaPackage;
-import javakit.reflect.JavaType;
+import javakit.reflect.*;
 import snap.parse.Token;
 import snap.util.*;
 
@@ -487,23 +484,12 @@ public class JNode {
     }
 
     /**
-     * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
+     * Returns the Resolver.
      */
-    public JavaDecl getJavaDecl(Object anObj)
+    public Resolver getResolver()
     {
         JFile jfile = getFile();
-        JavaDecl javaDecl = jfile.getJavaDecl(anObj);
-        return javaDecl;
-    }
-
-    /**
-     * Returns a JavaDecl for a Class, Field, Method, Constructor or class name string.
-     */
-    public JavaClass getJavaClassForClass(Class<?> aClass)
-    {
-        JFile jfile = getFile();
-        JavaClass javaClass = jfile.getJavaClassForClass(aClass);
-        return javaClass;
+        return jfile.getResolver();
     }
 
     /**
@@ -511,8 +497,28 @@ public class JNode {
      */
     public boolean isKnownClassName(String aName)
     {
-        JavaDecl decl = getJavaDecl(aName);
-        return decl instanceof JavaClass;
+        JavaDecl javaClass = getJavaClassForName(aName);
+        return javaClass != null;
+    }
+
+    /**
+     * Returns a JavaClass for given class name.
+     */
+    public JavaClass getJavaClassForName(String className)
+    {
+        Resolver resolver = getResolver(); if (resolver == null) return null;
+        JavaClass javaClass = resolver.getJavaClassForName(className);
+        return javaClass;
+    }
+
+    /**
+     * Returns a JavaClass for given java.lang.Class.
+     */
+    public JavaClass getJavaClassForClass(Class<?> aClass)
+    {
+        Resolver resolver = getResolver(); if (resolver == null) return null;
+        JavaClass javaClass = resolver.getJavaClassForClass(aClass);
+        return javaClass;
     }
 
     /**
@@ -520,8 +526,19 @@ public class JNode {
      */
     public boolean isKnownPackageName(String aName)
     {
-        JavaDecl decl = getJavaDecl(aName);
-        return decl instanceof JavaPackage;
+        Resolver resolver = getResolver(); if (resolver == null) return false;
+        return resolver.isKnownPackageName(aName);
+        //return javaPackage != null;
+    }
+
+    /**
+     * Returns a JavaPackage for given name.
+     */
+    public JavaPackage getJavaPackageForName(String className)
+    {
+        Resolver resolver = getResolver(); if (resolver == null) return null;
+        JavaPackage pkg = resolver.getJavaPackageForName(className);
+        return pkg;
     }
 
     /**

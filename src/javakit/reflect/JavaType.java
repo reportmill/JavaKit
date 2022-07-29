@@ -143,7 +143,7 @@ public class JavaType extends JavaDecl {
         // Handle Class: Append array chars to class name and get decl
         if (this instanceof JavaClass) {
             String className = getName() + "[]";
-            return (JavaType) getJavaDecl(className);
+            return _resolver.getJavaClassForName(className);
         }
 
         // Handle ParamType or unexpected type: Return ClassType.getArrayTypeDecl()
@@ -160,7 +160,7 @@ public class JavaType extends JavaDecl {
      */
     public JavaType getParamTypeDecl(JavaType ... theTypes)
     {
-        return _resolver.getParameterizedTypeDeclForParts(this, theTypes);
+        return _resolver.getJavaParameterizedTypeForTypes(this, theTypes);
     }
 
     /**

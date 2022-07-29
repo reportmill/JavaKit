@@ -1,7 +1,6 @@
 package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
-import javakit.parse.*;
 import snap.util.ClassUtils;
 
 /**
@@ -13,16 +12,16 @@ public class Resolver {
     private static Resolver  _current;
 
     // A cache of JavaPackages by name
-    public Map<String,JavaPackage>  _packages = new HashMap<>();
+    private Map<String,JavaPackage>  _packages = new HashMap<>();
 
     // A map of class/package names to JavaDecls to provide JavaDecls for project
-    public Map<String, JavaDecl>  _decls = new HashMap<>();
+    protected Map<String, JavaClass>  _classes = new HashMap<>();
 
     // A cache of JavaParameterizedTypes by id
-    public Map<String,JavaParameterizedType>  _paramTypes = new HashMap<>();
+    private Map<String,JavaParameterizedType>  _paramTypes = new HashMap<>();
 
     // A cache of JavaGenericArrayType by id
-    public Map<String,JavaGenericArrayType>  _arrayTypes = new HashMap<>();
+    private Map<String,JavaGenericArrayType>  _arrayTypes = new HashMap<>();
 
     /**
      * Constructor.
@@ -60,8 +59,8 @@ public class Resolver {
      */
     public JavaClass getJavaClassForName(String aClassName)
     {
-        // Lookup JavaClass by name and return if already set
-        JavaClass javaClass = (JavaClass) _decls.get(aClassName);
+        // Get from Classes cache and just return if found
+        JavaClass javaClass = _classes.get(aClassName);
         if (javaClass != null)
             return javaClass;
 
@@ -81,23 +80,27 @@ public class Resolver {
     {
         // Lookup class decl by name and return if already set
         String className = aClass.getName();
-        JavaClass javaClass = (JavaClass) _decls.get(className);
+        JavaClass javaClass = _classes.get(className);
         if (javaClass != null)
             return javaClass;
 
-        // Create JavaClass and add to Decls map
-        JavaDecl parDecl = getParentDecl(aClass);
-        javaClass = new JavaClass(this, parDecl, aClass);
+        // Get parent package or class for class
+        JavaDecl parDecl = getParentPackageOrClassForClass(aClass);
 
-        // Add to Resolver classes cache
-        //_decls.put(className, javaClass);
-        /*if (aClass.isArray()) {
-            String altName = ResolverUtils.getIdForClass(aClass);
-            if (!altName.equals(className)) _decls.put(altName, javaClass);
-        }*/
+        // Create JavaClass and add to Classes cache map (this is done in constructor)
+        javaClass = new JavaClass(this, parDecl, aClass);
 
         // Return
         return javaClass;
+    }
+
+    /**
+     * Returns whether given package really exists. This probably needs a real implementation.
+     */
+    public boolean isKnownPackageName(String aName)
+    {
+        boolean known = _packages.containsKey(aName);
+        return known;
     }
 
     /**
@@ -105,9 +108,6 @@ public class Resolver {
      */
     public JavaPackage getJavaPackageForName(String aName)
     {
-        // If bogus package name, just return
-        if (aName == null || aName.length() == 0) return null;
-
         // Get from Packages cache and just return if found
         JavaPackage pkg = _packages.get(aName);
         if (pkg != null)
@@ -117,8 +117,8 @@ public class Resolver {
         JavaPackage parent = null;
         int ind = aName.lastIndexOf('.');
         if (ind >= 0) {
-            String pname = aName.substring(0, ind);
-            parent = getJavaPackageForName(pname);
+            String pkgName = aName.substring(0, ind);
+            parent = getJavaPackageForName(pkgName);
         }
 
         // Create new JavaPackage and add to Packages cache
@@ -127,57 +127,6 @@ public class Resolver {
 
         // Return
         return pkg;
-    }
-
-    /**
-     * Returns a JavaDecl for object.
-     */
-    public JavaDecl getJavaDecl(Object anObj)
-    {
-        // Handle String (Class or package name)
-        if (anObj instanceof String)
-            return getJavaDeclForName((String) anObj);
-
-        // Handle Class (java.lang.reflect.Type)
-        if (anObj instanceof Type)
-            return getJavaTypeForType((Type) anObj);
-
-        // Handle Member
-        if (anObj instanceof Member) {
-            Member member = (Member) anObj;
-            Class<?> declaringClass = member.getDeclaringClass();
-            JavaClass javaClass = getJavaClassForClass(declaringClass);
-            JavaClassUpdater updater = javaClass.getUpdater();
-            return updater.getJavaMemberForMember(member);
-        }
-
-        // Handle JVarDecl
-        else if (anObj instanceof JVarDecl) {
-            JVarDecl varDecl = (JVarDecl) anObj;
-            return new JavaLocalVar(this, varDecl);
-        }
-
-        // Complain
-        throw new RuntimeException("Resolver.getJavaDecl: Unsupported type " + anObj);
-    }
-
-    /**
-     * Returns a JavaDecl for object.
-     */
-    public JavaDecl getJavaDeclForName(String aName)
-    {
-        // If decl exists for name, just return
-        JavaDecl javaDecl = _decls.get(aName);
-        if (javaDecl != null)
-            return javaDecl;
-
-        // If class exists, forward to getClassDecl()
-        Class<?> classForName = getClassForName(aName);
-        if (classForName != null)
-            return getJavaClassForClass(classForName);
-
-        // Return not found
-        return null;
     }
 
     /**
@@ -191,11 +140,11 @@ public class Resolver {
 
         // Handle ParameterizedType
         if (aType instanceof ParameterizedType)
-            return getParameterizedTypeDecl((ParameterizedType) aType);
+            return getJavaParameterizedTypeForType((ParameterizedType) aType);
 
         // Handle TypeVariable
         if (aType instanceof TypeVariable)
-            return getTypeVariableDecl((TypeVariable<?>) aType);
+            return getJavaTypeVariable((TypeVariable<?>) aType);
 
         // Handle GenericArrayType
         if (aType instanceof GenericArrayType)
@@ -208,9 +157,30 @@ public class Resolver {
     }
 
     /**
-     * Returns a generic ArrayType decl.
+     * Returns a JavaType array for given java.lang.reflect.Type array.
      */
-    public JavaGenericArrayType getGenericArrayTypeDecl(GenericArrayType aGAT)
+    public JavaType[] getJavaTypesForTypes(Type[] theTypes)
+    {
+        // Create JavaTypes array
+        JavaType[] javaTypes = new JavaType[theTypes.length];
+
+        // Iterate over types and convert each to JavaType
+        for (int i = 0; i < theTypes.length; i++) {
+            Type type = theTypes[i];
+            JavaType javaType = getJavaTypeForType(type);
+            if (javaType == null)
+                System.err.println("Resolver.getJavaTypeArray: Couldn't resolve type: " + type);
+            else javaTypes[i] = javaType;
+        }
+
+        // Return
+        return javaTypes;
+    }
+
+    /**
+     * Returns a JavaGenericArrayType for java.lang.reflect.GenericArrayType.
+     */
+    private JavaGenericArrayType getGenericArrayTypeDecl(GenericArrayType aGAT)
     {
         // Check ArrayTypes cache and return if found
         String id = ResolverUtils.getIdForGenericArrayType(aGAT);
@@ -227,9 +197,9 @@ public class Resolver {
     }
 
     /**
-     * Returns a ParameterizedType Decl.
+     * Returns a JavaParameterizedType for java.lang.reflect.ParameterizedType.
      */
-    public JavaParameterizedType getParameterizedTypeDecl(ParameterizedType aPT)
+    private JavaParameterizedType getJavaParameterizedTypeForType(ParameterizedType aPT)
     {
         // Check ParamTypes cache and return if found
         String id = ResolverUtils.getIdForParameterizedType(aPT);
@@ -241,7 +211,7 @@ public class Resolver {
         Type rawType = aPT.getRawType();
         Type[] typArgs = aPT.getActualTypeArguments();
         JavaType rawTypeDecl = getJavaTypeForType(rawType);
-        JavaType[] typeArgDecls = getJavaTypeArrayForTypes(typArgs);
+        JavaType[] typeArgDecls = getJavaTypesForTypes(typArgs);
 
         // Create and add to cache
         decl = new JavaParameterizedType(this, rawTypeDecl, typeArgDecls);
@@ -252,9 +222,9 @@ public class Resolver {
     }
 
     /**
-     * Returns the param type with given name.
+     * Returns a JavaParameterizedType for given types.
      */
-    public JavaType getParameterizedTypeDeclForParts(JavaType aRawType, JavaType[] theTypeArgs)
+    protected JavaParameterizedType getJavaParameterizedTypeForTypes(JavaType aRawType, JavaType[] theTypeArgs)
     {
         // Get id and decl for id (just return if found)
         String id = ResolverUtils.getIdForParameterizedTypeParts(aRawType, theTypeArgs);
@@ -271,36 +241,48 @@ public class Resolver {
     }
 
     /**
-     * Returns a ParameterizedType Decl.
+     * Returns a JavaTypeVariable.
      */
-    public JavaTypeVariable getTypeVariableDecl(TypeVariable<?> typeVar)
+    private JavaTypeVariable getJavaTypeVariable(TypeVariable<?> typeVar)
     {
         // Get class or method
         GenericDeclaration classOrMethod = typeVar.getGenericDeclaration();
-        JavaDecl parentDecl = getJavaDecl(classOrMethod);
-        String name = typeVar.getName();
+        String typeVarName = typeVar.getName();
 
         // Handle class
-        if (parentDecl instanceof JavaClass) {
-            JavaClass javaClass = (JavaClass) parentDecl;
-            return javaClass.getTypeVarForName(name);
+        if (classOrMethod instanceof Class) {
+            Class<?> ownerClass = (Class<?>) classOrMethod;
+            JavaClass javaClass = getJavaClassForClass(ownerClass);
+            return javaClass.getTypeVarForName(typeVarName);
         }
 
         // Handle Method/Constructor
-        else if (parentDecl instanceof JavaExecutable) {
-            JavaExecutable javaMethod = (JavaExecutable) parentDecl;
-            return javaMethod.getTypeVarForName(name);
+        else if (classOrMethod instanceof Executable) {
+            Executable method = (Executable) classOrMethod;
+            JavaExecutable javaMethod = (JavaExecutable) getJavaMemberForMember(method);
+            return javaMethod.getTypeVarForName(typeVarName);
         }
 
         // Can't resolve
-        System.out.println("Resolver.getTypeDecl: Can't resolve TypeVariable: " + name + " for " + classOrMethod);
+        System.out.println("Resolver.getJavaTypeVariable: Can't resolve name: " + typeVarName + " for " + classOrMethod);
         return null;
     }
 
     /**
-     * Returns the parent decl for a class.
+     * Returns a JavaMember for given Member.
      */
-    private JavaDecl getParentDecl(Class<?> aClass)
+    private JavaMember getJavaMemberForMember(Member aMember)
+    {
+        Class<?> declaringClass = aMember.getDeclaringClass();
+        JavaClass javaClass = getJavaClassForClass(declaringClass);
+        JavaClassUpdater updater = javaClass.getUpdater();
+        return updater.getJavaMemberForMember(aMember);
+    }
+
+    /**
+     * Returns the parent JavaPackage or JavaClass for a class.
+     */
+    private JavaDecl getParentPackageOrClassForClass(Class<?> aClass)
     {
         // Get parent class, get decl from parent decl
         Class<?> parentClass = aClass.getDeclaringClass();
@@ -313,29 +295,8 @@ public class Resolver {
         if (pkgName != null && pkgName.length() > 0)
             return getJavaPackageForName(pkgName);
 
-        // Return null
+        // Return root package
         return null;
-    }
-
-    /**
-     * Returns a JavaType array for given java.lang.reflect.Type array.
-     */
-    public JavaType[] getJavaTypeArrayForTypes(Type[] theTypes)
-    {
-        // Create JavaTypes array
-        JavaType[] javaTypes = new JavaType[theTypes.length];
-
-        // Iterate over types and convert each to JavaType
-        for (int i = 0; i < theTypes.length; i++) {
-            Type type = theTypes[i];
-            JavaType javaType = getJavaTypeForType(type);
-            if (javaType == null)
-                System.err.println("Resolver.getJavaTypeArray: Couldn't resolve type: " + type);
-            else javaTypes[i] = javaType;
-        }
-
-        // Return
-        return javaTypes;
     }
 
     /**
