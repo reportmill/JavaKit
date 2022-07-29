@@ -59,7 +59,7 @@ public class Breakpoint implements Comparable<Breakpoint> {
         _type = Type.LineBreakpoint;
         setFile(aFile);
         setLine(aLine);
-        Project proj = Project.get(aFile);
+        Project proj = Project.getProjectForFile(aFile);
         _className = proj.getClassNameForFile(aFile);
     }
 

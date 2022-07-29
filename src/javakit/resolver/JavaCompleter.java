@@ -27,6 +27,14 @@ public class JavaCompleter {
     List<JavaDecl> _list = new ArrayList<>();
 
     /**
+     * Constructor.
+     */
+    public JavaCompleter()
+    {
+        super();
+    }
+
+    /**
      * Returns completion for JNode (should be JType or JIdentifier).
      */
     public JavaDecl[] getSuggestions(JNode aNode)
@@ -41,7 +49,7 @@ public class JavaCompleter {
             System.err.println("JavaCompleter: No SourceFile for node"); return new JavaDecl[0]; }
 
         // Get SourceFile Project
-        _proj = Project.get(sourceFile);
+        _proj = Project.getProjectForFile(sourceFile);
         _proj = _proj != null ? _proj.getRootProject() : null;
         if (_proj == null) {
             System.err.println("JavaCompleter: No project for node"); return new JavaDecl[0]; }

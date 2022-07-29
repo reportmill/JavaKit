@@ -50,7 +50,12 @@ public class JavaTextBox extends TextBox {
      */
     public JFilePlus getJFile()
     {
-        return _jfile != null ? _jfile : (_jfile = createJFile());
+        // If already set, just return
+        if (_jfile != null) return _jfile;
+
+        // Create, set, return
+        JFilePlus jfile = createJFile();
+        return _jfile = jfile;
     }
 
     /**
@@ -67,7 +72,8 @@ public class JavaTextBox extends TextBox {
         jfile.setSourceFile(sourceFile);
 
         // Return (wrapped in JFilePlus)
-        return new JFilePlus(this, jfile);
+        JFilePlus jfilePlus = new JFilePlus(this, jfile);
+        return jfilePlus;
     }
 
     /**

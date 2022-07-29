@@ -23,24 +23,29 @@ public class JFile extends JNode {
     protected JPackageDecl  _packageDecl;
 
     // The list of imports
-    protected List<JImportDecl>  _importDecls = new ArrayList();
+    protected List<JImportDecl>  _importDecls = new ArrayList<>();
 
     // The list of class declarations
-    List<JClassDecl> _classDecls = new ArrayList();
+    protected List<JClassDecl> _classDecls = new ArrayList<>();
 
     // The parse exception, if one was hit
-    Exception _exception;
+    protected Exception _exception;
 
     // A set to hold unused imports
-    Set<JImportDecl> _unusedImports;
+    protected Set<JImportDecl> _unusedImports;
+
+    /**
+     * Constructor.
+     */
+    public JFile()
+    {
+        super();
+    }
 
     /**
      * Returns the WebFile for this JFile.
      */
-    public WebFile getSourceFile()
-    {
-        return _sourceFile;
-    }
+    public WebFile getSourceFile()  { return _sourceFile; }
 
     /**
      * Sets the WebFile for this JFile.
@@ -48,7 +53,7 @@ public class JFile extends JNode {
     public void setSourceFile(WebFile aFile)
     {
         _sourceFile = aFile;
-        _resolver = Project.get(aFile);
+        _resolver = Project.getProjectForFile(aFile);
     }
 
     /**

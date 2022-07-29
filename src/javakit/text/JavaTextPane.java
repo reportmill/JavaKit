@@ -467,9 +467,12 @@ public class JavaTextPane extends TextPane {
     {
         // Get Scratch Site
         WebSite scratchSite = WebURL.getURL("/tmp/ScratchProj").getAsSite();
-        Project proj = Project.get(scratchSite, true);
+        Project proj = new Project(scratchSite);
+
+        // Get test file
         WebFile testFile = proj.getSourceFile("/Test.java", false, false);
 
+        // Create JavaPane and show
         JavaTextPane javaPane = new JavaTextPane();
         javaPane.getTextArea().setSource(testFile);
         javaPane.getUI().setPrefHeight(800);

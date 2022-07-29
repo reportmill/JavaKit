@@ -24,7 +24,7 @@ public class Project extends Resolver {
     /**
      * Creates a new Project for WebSite.
      */
-    protected Project(WebSite aSite)
+    public Project(WebSite aSite)
     {
         // Set site
         setSite(aSite);
@@ -178,30 +178,18 @@ public class Project extends Resolver {
     /**
      * Returns the project for a given site.
      */
-    public static Project get(WebFile aFile)
+    public static Project getProjectForFile(WebFile aFile)
     {
         WebSite site = aFile.getSite();
-        return get(site);
+        return getProjectForSite(site);
     }
 
     /**
      * Returns the project for a given site.
      */
-    public static synchronized Project get(WebSite aSite)
-    {
-        return get(aSite, false);
-    }
-
-    /**
-     * Returns the project for a given site.
-     */
-    public static synchronized Project get(WebSite aSite, boolean doCreate)
+    public static synchronized Project getProjectForSite(WebSite aSite)
     {
         Project proj = (Project) aSite.getProp(Project.class.getSimpleName());
-        if (proj == null && doCreate)
-            proj = new Project(aSite);
-
-        // Return
         return proj;
     }
 }
