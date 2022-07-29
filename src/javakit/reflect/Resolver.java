@@ -41,10 +41,6 @@ public class Resolver {
      */
     public Class<?> getClassForName(String aName)
     {
-        // Check for ParamType (should never happen)
-        if (aName.indexOf('<') > 0)
-            throw new RuntimeException("Resolver.getClassForName: Shouldn't happen: " + aName);
-
         // Get Class loader, find class
         ClassLoader classLoader = getClassLoader();
         Class<?> cls = ClassUtils.getClassForName(aName, classLoader);
