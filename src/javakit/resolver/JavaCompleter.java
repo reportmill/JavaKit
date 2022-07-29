@@ -6,10 +6,10 @@ package javakit.resolver;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javakit.parse.*;
 import javakit.reflect.*;
-import snap.util.*;
 import snap.web.WebFile;
 
 /**
@@ -43,7 +43,7 @@ public class JavaCompleter {
         // Get SourceFile Project
         _proj = Project.get(sourceFile);
         _proj = _proj != null ? _proj.getRootProject() : null;
-        if (sourceFile == null) {
+        if (_proj == null) {
             System.err.println("JavaCompleter: No project for node"); return new JavaDecl[0]; }
 
         // Add suggestions for node
@@ -53,26 +53,19 @@ public class JavaCompleter {
             getSuggestions((JExprId) aNode);
 
         // Get receiving class and, if 2 letters or less, filter out suggestions that don't apply (unless none do)
-        Class reccls = getReceivingClass(aNode);
-        if (reccls != null && _list.size() > 10 && aNode.getName().length() <= 2) {
-            List l2 = _list.stream().filter(p -> isReceivingClassAssignable(p, reccls)).collect(Collectors.toList());
-            if (l2.size() > 0)
-                _list = l2;
+        JavaClass receivingClass = getReceivingClass(aNode);
+        if (receivingClass != null && _list.size() > 10 && aNode.getName().length() <= 2) {
+            Stream<JavaDecl> sugsStream = _list.stream();
+            Stream<JavaDecl> sugsStreamAssignable = sugsStream.filter(p -> isReceivingClassAssignable(p, receivingClass));
+            List<JavaDecl> sugsListAssignable = sugsStreamAssignable.collect(Collectors.toList());
+            if (sugsListAssignable.size() > 0)
+                _list = sugsListAssignable;
         }
 
         // Get array and sort
-        JavaDecl decls[] = _list.toArray(new JavaDecl[0]);
-        Arrays.sort(decls, new DeclCompare(reccls));
+        JavaDecl[] decls = _list.toArray(new JavaDecl[0]);
+        Arrays.sort(decls, new DeclCompare(receivingClass));
         return decls;
-    }
-
-    /**
-     * Adds a JavaDecl for object.
-     */
-    private void addDecl(Object anObj)
-    {
-        JavaDecl javaDecl = _node.getJavaDecl(anObj);
-        addDecl(javaDecl);
     }
 
     /**
@@ -83,6 +76,15 @@ public class JavaCompleter {
         if (aDecl == null)
             return;
         _list.add(aDecl);
+    }
+
+    /**
+     * Adds a JavaDecl for object.
+     */
+    private void addJavaPackageForName(String aPackageName)
+    {
+        JavaDecl javaDecl = _node.getJavaDecl(aPackageName);
+        addDecl(javaDecl);
     }
 
     /**
@@ -105,26 +107,25 @@ public class JavaCompleter {
             for (String className : classNamesForPrefix) {
 
                 // Get class (skip if not found or not public)
-                Class cls = _proj.getClassForName(className);
-                if (cls == null || !Modifier.isPublic(cls.getModifiers())) continue;
+                JavaClass javaClass = _proj.getJavaClassForName(className);
+                if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers()))
+                    continue;
 
                 // Get Constructors
-                Constructor[] constructors = null;
-                try { constructors = cls.getConstructors(); }
-                catch (Throwable t) { }
+                List<JavaConstructor> constructors = javaClass.getConstructors();
 
                 // Add constructors
-                if (constructors != null)
-                    for (Constructor constructor : constructors)
-                        if (!constructor.isSynthetic())
-                            addDecl(constructor);
+                for (JavaConstructor constructor : constructors)
+                    addDecl(constructor);
             }
         }
 
         // Handle normal JType
         else {
-            for (String className : classNamesForPrefix)
-                addDecl(className);
+            for (String className : classNamesForPrefix) {
+                JavaClass javaClass = _proj.getJavaClassForName(className);
+                addDecl(javaClass);
+            }
         }
     }
 
@@ -150,13 +151,16 @@ public class JavaCompleter {
 
                 // Get class names for classes in parent package with prefix
                 List<String> packageClassNames = classPathInfo.getPackageClassNamesForPrefix(parPkgName, prefix);
-                for (String className : packageClassNames)
-                    addDecl(className);
+                for (String className : packageClassNames) {
+                    JavaClass javaClass = _proj.getJavaClassForName(className);
+                    if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
+                    addDecl(javaClass);
+                }
 
                 // Get package names for packages in parent package with prefix
                 List<String> packageChildNames = classPathInfo.getPackageChildrenNamesForPrefix(parPkgName, prefix);
                 for (String packageName : packageChildNames)
-                    addDecl(packageName);
+                    addJavaPackageForName(packageName);
             }
 
             // Handle anything else with a parent class
@@ -188,52 +192,50 @@ public class JavaCompleter {
 
             // Add methods of enclosing class
             JClassDecl enclosingClassDecl = anId.getEnclosingClassDecl();
-            Class enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalTypeRealClass() : null;
+            JavaClass enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
             while (enclosingClassDecl != null && enclosingClass != null) {
-                Method[] methodsForPrefix = MethodUtils.getMethodsForPrefix(enclosingClass, prefix);
-                for (Method meth : methodsForPrefix)
+                List<JavaMethod> methodsForPrefix = JavaClassUtils.getPrefixMethods(enclosingClass, prefix);
+                for (JavaMethod meth : methodsForPrefix)
                     addDecl(meth);
                 enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
-                enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalTypeRealClass() : null;
+                enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
             }
 
             // If starts with upper case or is greater than 3 chars, add classes with prefix that are public
             List<String> classNamesForPrefix = classPathInfo.getClassNamesForPrefix(prefix);
             for (String className : classNamesForPrefix) {
-                Class cls = _proj.getClassForName(className);
-                if (cls == null || !Modifier.isPublic(cls.getModifiers())) continue;
-                addDecl(className);
+                JavaClass javaClass = _proj.getJavaClassForName(className);
+                if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
+                addDecl(javaClass);
             }
 
             // Add packages with prefix
             List<String> packageNamesForPrefix = classPathInfo.getPackageNamesForPrefix(prefix);
             for (String packageName : packageNamesForPrefix)
-                addDecl(packageName);
+                addJavaPackageForName(packageName);
         }
     }
 
     /**
      * Returns the assignable type of given node assuming it's the receiving expression of assign or a method arg.
      */
-    private static Class getReceivingClass(JNode aNode)
+    private static JavaClass getReceivingClass(JNode aNode)
     {
         // If MethocCall arg, return arg class
         JavaType argType = getMethodCallArgType(aNode);
-        if (argType != null) {
-            JavaClass argClass = argType.getEvalClass();
-            return argClass != null ? argClass.getRealClass() : null;
-        }
+        if (argType != null)
+            return argType.getEvalClass();
 
         // If node is Assign Right-Hand-Side, return assignment Left-Hand-Side class
         JExprMath assExpr = getExpression(aNode, JExprMath.Op.Assign);
         JExpr leftHandSide = assExpr != null ? assExpr.getOperand(0) : null;
         if (leftHandSide != null)
-            return leftHandSide.getEvalTypeRealClass();
+            return leftHandSide.getEvalClass();
 
         // If node is JVarDecl Initializer, return JVarDecl class
         JVarDecl initVarDecl = getVarDeclForInitializer(aNode);
         if (initVarDecl != null)
-            return initVarDecl.getEvalTypeRealClass();
+            return initVarDecl.getEvalClass();
 
         // If node is JExprMath, return op class
         JExprMath mathExpr = aNode.getParent(JExprMath.class);
@@ -241,8 +243,8 @@ public class JavaCompleter {
             switch (mathExpr.getOp()) {
                 case Or:
                 case And:
-                case Not: return Boolean.class;
-                default: return Double.class;
+                case Not: return aNode.getJavaClassForClass(Boolean.class);
+                default: return aNode.getJavaClassForClass(Double.class);
             }
         }
 
@@ -252,7 +254,7 @@ public class JavaCompleter {
             while (exp.getParent() instanceof JExpr) exp = (JExpr) exp.getParent();
             JNode par = exp.getParent();
             if (par instanceof JStmtIf || par instanceof JStmtWhile || par instanceof JStmtDo)
-                return Boolean.class;
+                return aNode.getJavaClassForClass(Boolean.class);
         }
 
         // Return null since no assignment type found for class
@@ -365,7 +367,7 @@ public class JavaCompleter {
     /**
      * Returns whether suggestion is receiving class.
      */
-    private static final boolean isReceivingClassAssignable(JavaDecl aJD, Class aRC)
+    private static final boolean isReceivingClassAssignable(JavaDecl aJD, JavaClass aRC)
     {
         return getReceivingClassAssignableScore(aJD, aRC) > 0;
     }
@@ -373,7 +375,7 @@ public class JavaCompleter {
     /**
      * Returns whether suggestion is receiving class.
      */
-    private static final int getReceivingClassAssignableScore(JavaDecl aJD, Class<?> aRC)
+    private static final int getReceivingClassAssignableScore(JavaDecl aJD, JavaClass aRC)
     {
         // Ignore package or null
         if (aRC == null || aJD instanceof JavaPackage)
@@ -381,16 +383,15 @@ public class JavaCompleter {
 
         // Get real class
         JavaClass evalClass = aJD.getEvalClass();
-        Class<?> realClass = evalClass != null ? evalClass.getRealClass() : null;
-        if (realClass == null)
+        if (evalClass == null)
             return 0;
 
         // If classes equal, return 2
-        if (realClass == aRC)
+        if (evalClass == aRC)
             return 2;
 
         // If assignable, return 1
-        if (ClassUtils.isAssignable(aRC, realClass))
+        if (aRC.isAssignable(evalClass))
             return 1;
 
         // Return 0 since incompatible
@@ -403,14 +404,14 @@ public class JavaCompleter {
     private static class DeclCompare implements Comparator<JavaDecl> {
 
         // The receiving class for suggestions
-        Class _rclass = null;
+        private JavaClass  _receivingClass;
 
         /**
          * Creates a DeclCompare.
          */
-        DeclCompare(Class aRC)
+        DeclCompare(JavaClass aRC)
         {
-            _rclass = aRC;
+            _receivingClass = aRC;
         }
 
         /**
@@ -419,8 +420,8 @@ public class JavaCompleter {
         public int compare(JavaDecl o1, JavaDecl o2)
         {
             // Get whether either suggestion is of Assignable to ReceivingClass
-            int rca1 = getReceivingClassAssignableScore(o1, _rclass);
-            int rca2 = getReceivingClassAssignableScore(o2, _rclass);
+            int rca1 = getReceivingClassAssignableScore(o1, _receivingClass);
+            int rca2 = getReceivingClassAssignableScore(o2, _receivingClass);
             if (rca1 != rca2) return rca1 > rca2 ? -1 : 1;
 
             // If Suggestion Types differ, return by type

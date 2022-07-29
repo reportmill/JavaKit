@@ -8,6 +8,8 @@ import java.util.*;
 
 import javakit.parse.JNode;
 import javakit.parse.JStmtBlock;
+import javakit.reflect.JavaClass;
+import javakit.reflect.JavaMethod;
 import snap.geom.*;
 import snap.text.*;
 import snap.view.*;
@@ -69,10 +71,11 @@ public class CodeBuilder extends ViewOwner {
     {
         // Get SelectedNode (or first node parent with class) and its class
         _node = getTextArea().getSelectedNode();
-        while (_node != null && _node.getEvalTypeRealClass() == null) _node = _node.getParent();
+        while (_node != null && _node.getEvalClass() == null)
+            _node = _node.getParent();
 
         // Get suggested CodeBlocks for class and set in Suggestions list
-        Object items[] = getCodeBlocks(_node);
+        Object[] items = getCodeBlocks(_node);
         setViewItems(_suggestionsList, items);
         resetLater();
     }
@@ -82,14 +85,23 @@ public class CodeBuilder extends ViewOwner {
      */
     private CodeBlock[] getCodeBlocks(JNode aNode)
     {
-        List list = new ArrayList();
-        Class cls = _node != null ? _node.getEvalTypeRealClass() : null;
-        Method methods[] = cls != null ? cls.getMethods() : new Method[0];
+        JavaClass javaClass = _node != null ? _node.getEvalClass() : null;
+        Class<?> realClass = javaClass != null ? javaClass.getRealClass() : null;
+        Method[] methods = realClass != null ? realClass.getMethods() : null;
+        if (methods == null)
+            return new CodeBlock[0];
+
+        List<CodeBlock> codeBlocks = new ArrayList<>();
+
         for (Method method : methods) {
-            if (method.getDeclaringClass() == Object.class) continue;
-            list.add(new CodeBlock().init(aNode, method));
+            if (method.getDeclaringClass() == Object.class)
+                continue;
+            CodeBlock codeBlock = new CodeBlock().init(aNode, method);
+            codeBlocks.add(codeBlock);
         }
-        return (CodeBlock[]) list.toArray(new CodeBlock[list.size()]);
+
+        // Return
+        return codeBlocks.toArray(new CodeBlock[0]);
     }
 
     /**
@@ -130,7 +142,8 @@ public class CodeBuilder extends ViewOwner {
      */
     public void resetUI()
     {
-        setViewValue("ClassText", _node != null ? _node.getEvalTypeRealClass().getSimpleName() + " Methods" : "No Selection");
+        String className = _node != null ? _node.getEvalClassName() : null;
+        setViewValue("ClassText", className != null ? className + " Methods" : "No Selection");
     }
 
     /**

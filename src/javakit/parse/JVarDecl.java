@@ -188,9 +188,17 @@ public class JVarDecl extends JNode {
     /**
      * Returns the declaring class, if field variable.
      */
-    public Class getDeclaringClass()
+    public JavaClass getDeclaringClass()
     {
-        return getParent() instanceof JFieldDecl ? getParent(JClassDecl.class).getEvalTypeRealClass() : null;
+        // If Field, return Declaring class
+        boolean isField = getParent() instanceof JFieldDecl;
+        if (isField) {
+            JClassDecl classDecl = getParent(JClassDecl.class);
+            return classDecl.getEvalClass();
+        }
+
+        // Return
+        return null;
     }
 
     /**

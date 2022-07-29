@@ -5,10 +5,7 @@ package javakit.parse;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaType;
-import javakit.reflect.JavaTypeVariable;
+import javakit.reflect.*;
 import snap.util.*;
 
 /**
@@ -128,24 +125,26 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the superclass.
      */
-    public Class getSuperClass()
+    public JavaClass getSuperClass()
     {
-        Class sc = _extendsTypes.size() > 0 ? _extendsTypes.get(0).getEvalTypeRealClass() : null;
-        return sc != null ? sc : Object.class;
+        List<JType> extendsTypes = _extendsTypes;
+        JType extendsType = extendsTypes.size() > 0 ? extendsTypes.get(0) : null;
+        JavaClass extendsClass = extendsType != null ? extendsType.getEvalClass() : null;
+        return extendsClass != null ? extendsClass : getJavaClassForClass(Object.class);
     }
 
     /**
      * Returns implemented interfaces.
      */
-    public Class[] getInterfaces()
+    public JavaClass[] getInterfaces()
     {
-        List<Class> classes = new ArrayList();
+        List<JavaClass> interfaceClasses = new ArrayList<>();
         for (JType interfType : _implementsTypes) {
-            Class iclass = interfType.getEvalTypeRealClass();
-            if (iclass != null)
-                classes.add(iclass);
+            JavaClass interfaceClass = interfType.getEvalClass();
+            if (interfaceClass != null)
+                interfaceClasses.add(interfaceClass);
         }
-        return classes.toArray(new Class[classes.size()]);
+        return interfaceClasses.toArray(new JavaClass[0]);
     }
 
     /**
@@ -435,10 +434,8 @@ public class JClassDecl extends JMemberDecl {
             return getDecl();
 
         // If it's "super", set class and return ClassField
-        if (name.equals("super")) {
-            Class<?> superClass = getSuperClass();
-            return superClass != null ? getJavaClassForClass(superClass) : null;
-        }
+        if (name.equals("super"))
+            return getSuperClass();
 
         // Iterate over fields and return declaration if found
         if (isId) {
@@ -461,21 +458,21 @@ public class JClassDecl extends JMemberDecl {
         }
 
         // See if it's a field reference from superclass
-        Class superClass = getSuperClass();
+        JavaClass superClass = getSuperClass();
         if (superClass != null) {
-            Field field = ClassUtils.getFieldForName(superClass, name);
+            JavaField field = superClass.getFieldForName(name);
             if (field != null)
-                return getJavaDecl(field);
+                return field;
         }
 
         // Check interfaces:  Not sure what's going on here
         if (isId) {
             List<JType> implementsTypes = getImplementsTypes();
             for (JType implementsType : implementsTypes) {
-                Class interf = implementsType.getEvalTypeRealClass();
-                Field field2 = interf != null ? ClassUtils.getFieldForName(interf, name) : null;
+                JavaClass interf = implementsType.getEvalClass();
+                JavaField field2 = interf != null ? interf.getFieldForName(name) : null;
                 if (field2 != null)
-                    return getJavaDecl(field2);
+                    return field2;
             }
         }
 
@@ -485,11 +482,11 @@ public class JClassDecl extends JMemberDecl {
             return typeVar.getDecl();
 
         // Look for InnerClass of given name
-        Class evalClass = getEvalTypeRealClass();
+        JavaClass evalClass = getEvalClass();
         if (evalClass != null) {
-            Class innerClass = ClassUtils.getInnerClassForName(evalClass, name);
+            JavaClass innerClass = evalClass.getInnerClassForName(name);
             if (innerClass != null)
-                return getJavaDecl(innerClass);
+                return innerClass;
         }
 
         // Do normal version

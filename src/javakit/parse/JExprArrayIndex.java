@@ -1,5 +1,5 @@
 package javakit.parse;
-
+import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 
 /**
@@ -8,43 +8,39 @@ import javakit.reflect.JavaDecl;
 public class JExprArrayIndex extends JExpr {
 
     // The expression for array
-    JExpr _arrayExpr;
+    protected JExpr  _arrayExpr;
 
     // The expression for array index
-    JExpr _indexExpr;
+    protected JExpr  _indexExpr;
 
     /**
      * Creates a new ArrayIndex.
      */
     public JExprArrayIndex(JExpr anArrayExpr, JExpr anIndexExpr)
     {
-        setIndexExpr(anIndexExpr);
+        if (anArrayExpr != null) setArrayExpr(anArrayExpr);
+        if (anIndexExpr != null) setIndexExpr(anIndexExpr);
     }
 
     /**
      * Returns the array expression.
      */
-    public JExpr getArrayExpr()
-    {
-        return _arrayExpr;
-    }
+    public JExpr getArrayExpr()  { return _arrayExpr; }
 
     /**
      * Sets the index expression.
      */
     public void setArrayExpr(JExpr anExpr)
     {
-        if (_arrayExpr == null) addChild(_arrayExpr = anExpr, 0);
+        if (_arrayExpr == null)
+            addChild(_arrayExpr = anExpr, 0);
         else replaceChild(_arrayExpr, _arrayExpr = anExpr);
     }
 
     /**
      * Returns the index expression.
      */
-    public JExpr getIndexExpr()
-    {
-        return _indexExpr;
-    }
+    public JExpr getIndexExpr()  { return _indexExpr; }
 
     /**
      * Sets the index expression.
@@ -57,19 +53,15 @@ public class JExprArrayIndex extends JExpr {
     /**
      * Returns the part name.
      **/
-    public String getNodeString()
-    {
-        return "ArrayIndex";
-    }
+    public String getNodeString()  { return "ArrayIndex"; }
 
     /**
      * Tries to resolve the class name for this node.
      */
     protected JavaDecl getDeclImpl()
     {
-        Class pclass = _arrayExpr != null ? _arrayExpr.getEvalTypeRealClass() : null;
-        Class iclass = pclass != null && pclass.isArray() ? pclass.getComponentType() : Object.class;
-        return getJavaDecl(iclass);
+        JavaClass arrayClass = _arrayExpr != null ? _arrayExpr.getEvalClass() : null;
+        JavaClass compClass = arrayClass != null && arrayClass.isArray() ? arrayClass.getComponentType() : null;
+        return compClass != null ? compClass : getJavaClassForClass(Object.class);
     }
-
 }

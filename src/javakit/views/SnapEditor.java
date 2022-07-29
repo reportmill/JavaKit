@@ -3,6 +3,7 @@ package javakit.views;
 import java.util.List;
 
 import javakit.parse.*;
+import javakit.reflect.JavaClass;
 import snap.text.TextBoxLine;
 import javakit.text.JavaTextArea;
 import snap.view.*;
@@ -108,16 +109,22 @@ public class SnapEditor extends StackView {
     /**
      * Returns the selected part's class.
      */
-    public Class getSelectedPartClass()
+    public Class<?> getSelectedPartClass()
     {
-        // Get class for SnapPart.JNode
-        JNodeView spart = getSelectedPart();
-        if (spart == null) spart = getFilePart();
-        JNode jnode = spart.getJNode();
-        Class cls = null;
-        for (JNode jn = jnode; jn != null && cls == null; jn = jn.getParent())
-            cls = jn.getEvalTypeRealClass();
-        return cls;
+        // Get selected NodeView
+        JNodeView selNodeView = getSelectedPart();
+        if (selNodeView == null)
+            selNodeView = getFilePart();
+
+        // Get first parent JNode that resolves to class
+        JNode selNode = selNodeView.getJNode();
+        while (selNode != null && selNode.getEvalClass() == null)
+            selNode = selNode.getParent();
+
+        // Return class
+        JavaClass javaClass = selNode != null ? selNode.getEvalClass() : null;
+        Class<?> realClass = javaClass != null ? javaClass.getRealClass() : null;
+        return realClass;
     }
 
     /**
@@ -125,14 +132,20 @@ public class SnapEditor extends StackView {
      */
     public Class getSelectedPartEnclClass()
     {
-        // Get class for SnapPart.JNode
-        JNodeView spart = getSelectedPart();
-        if (spart == null) spart = getFilePart();
-        JNode jnode = spart.getJNode();
-        Class cls = null;
-        for (JNode jn = jnode; jn != null && (cls == null || cls.isPrimitive()); jn = jn.getParent())
-            cls = jn.getEvalTypeRealClass();
-        return cls;
+        // Get selected NodeView
+        JNodeView selNodeView = getSelectedPart();
+        if (selNodeView == null)
+            selNodeView = getFilePart();
+
+        // Get first parent JNode that resolves to class
+        JNode selNode = selNodeView.getJNode();
+        while (selNode != null && (selNode.getEvalClass() == null || selNode.getEvalClass().isPrimitive()))
+            selNode = selNode.getParent();
+
+        // Return class
+        JavaClass javaClass = selNode != null ? selNode.getEvalClass() : null;
+        Class<?> realClass = javaClass != null ? javaClass.getRealClass() : null;
+        return realClass;
     }
 
     /**
@@ -203,20 +216,26 @@ public class SnapEditor extends StackView {
             return;
         }
 
-        if (aBaseNode instanceof JStmtExpr && aNewNode instanceof JStmtExpr &&
-                aBaseNode.getEvalTypeRealClass() == getSelectedPartClass() && aBaseNode.getEvalTypeRealClass() != void.class) {
-            int index = aBaseNode.getEnd();
-            String nodeStr = aNewNode.getString(), str = '.' + nodeStr;
-            replaceText(str, index - 1, index);
-            setTextSelection(index, index + nodeStr.length());
-        } else {
-            int index = aPos < 0 ? getBeforeNode(aBaseNode) : aPos > 0 ? getAfterNode(aBaseNode) : getInNode(aBaseNode);
-            String indent = getIndent(aBaseNode, aPos);
-            String nodeStr = aNewNode.getString().trim().replace("\n", "\n" + indent);
-            String str = indent + nodeStr + '\n';
-            replaceText(str, index, index);
-            setTextSelection(index + indent.length(), index + indent.length() + nodeStr.trim().length());
+        if (aBaseNode instanceof JStmtExpr && aNewNode instanceof JStmtExpr) {
+            JavaClass baseNodeJavaClass = aBaseNode.getEvalClass();
+            Class<?> baseNodeClass = baseNodeJavaClass != null ? baseNodeJavaClass.getRealClass() : null;
+            Class<?> selPartClass = getSelectedPartClass();
+            if (baseNodeClass == selPartClass && baseNodeClass != void.class) {
+                int index = aBaseNode.getEnd();
+                String nodeStr = aNewNode.getString(), str = '.' + nodeStr;
+                replaceText(str, index - 1, index);
+                setTextSelection(index, index + nodeStr.length());
+                return;
+            }
         }
+
+        //
+        int index = aPos < 0 ? getBeforeNode(aBaseNode) : aPos > 0 ? getAfterNode(aBaseNode) : getInNode(aBaseNode);
+        String indent = getIndent(aBaseNode, aPos);
+        String nodeStr = aNewNode.getString().trim().replace("\n", "\n" + indent);
+        String str = indent + nodeStr + '\n';
+        replaceText(str, index, index);
+        setTextSelection(index + indent.length(), index + indent.length() + nodeStr.trim().length());
     }
 
     /**

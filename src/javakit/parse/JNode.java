@@ -82,7 +82,7 @@ public class JNode {
 
         //
         JNode par = id.getParent();
-        return par instanceof JMemberDecl || par instanceof JEnumConst || par instanceof JVarDecl;
+        return par instanceof JMemberDecl || par instanceof JVarDecl;
     }
 
     /**
@@ -160,13 +160,13 @@ public class JNode {
     }
 
     /**
-     * Returns the Class of this node, if it has one.
+     * Returns the JavaClass that this node evaluates to.
      */
-    public Class<?> getEvalTypeRealClass()
+    public JavaClass getEvalClass()
     {
         JavaType evalType = getEvalType();
         JavaClass evalClass = evalType != null ? evalType.getEvalClass() : null;
-        return evalClass != null ? evalClass.getRealClass() : null;
+        return evalClass;
     }
 
     /**
@@ -346,18 +346,28 @@ public class JNode {
      */
     protected void addChild(JNode aNode, int anIndex)
     {
+        // Checks
         if (aNode == null) return;
         if (anIndex < 0) anIndex = _children.size();
-        if (_children == Collections.EMPTY_LIST) _children = new ArrayList();
+
+        // Make sure Children array is real
+        if (_children == Collections.EMPTY_LIST)
+            _children = new ArrayList<>();
+
+        // Add child and set Parent
         _children.add(anIndex, aNode);
         aNode.setParent(this);
+
+        // Set StartToken
         if (getStartToken() == null || getStart() > aNode.getStart()) {
-            if (aNode.getStartToken() == null) System.err.println("JNode.addChild: Bogus start token");
+            if (aNode.getStartToken() == null)
+                System.err.println("JNode.addChild: Bogus start token");
             else setStartToken(aNode.getStartToken());
         }
 
-        if (getEndToken() == null || getEnd() < aNode.getEnd()) setEndToken(aNode.getEndToken());
-        //for(JNode n=this; n!=null; n=n.getParent()) n._string = null;
+        // Set end token
+        if (getEndToken() == null || getEnd() < aNode.getEnd())
+            setEndToken(aNode.getEndToken());
     }
 
     /**
@@ -366,9 +376,11 @@ public class JNode {
     protected int removeChild(JNode aNode)
     {
         if (aNode == null) return -1;
+
+        // Get index and remove
         int index = ListUtils.indexOfId(_children, aNode);
-        if (index >= 0) _children.remove(index);
-        //for(JNode n=this; n!=null; n=n.getParent()) n._string = null;
+        if (index >= 0)
+            _children.remove(index);
         return index;
     }
 
@@ -415,7 +427,9 @@ public class JNode {
             if (node.getStart() <= anIndex && anIndex <= node.getEnd())
                 return node.getNodeAtCharIndex(anIndex);
         }
-        return this; // Return this node
+
+        // Return
+        return this;
     }
 
     /**
@@ -429,7 +443,9 @@ public class JNode {
             if (node.getStart() <= aStart && anEnd <= node.getEnd())
                 return node.getNodeAtCharIndex(aStart, anEnd);
         }
-        return this; // Return this node
+
+        // Return
+        return this;
     }
 
     /**
@@ -437,7 +453,8 @@ public class JNode {
      */
     public List<JVarDecl> getVarDecls(String aPrefix, List<JVarDecl> theVariables)
     {
-        if (_parent != null) _parent.getVarDecls(aPrefix, theVariables);
+        if (_parent != null)
+            _parent.getVarDecls(aPrefix, theVariables);
         return theVariables;
     }
 
@@ -446,9 +463,11 @@ public class JNode {
      */
     public List<JNode> getNodeParents()
     {
-        List<JNode> parents = new ArrayList();
+        List<JNode> parents = new ArrayList<>();
         for (JNode parent = getParent(); parent != null; parent = parent.getParent())
             parents.add(0, parent);
+
+        // Return
         return parents;
     }
 
@@ -459,8 +478,11 @@ public class JNode {
     {
         List<JNode> parents = getNodeParents();
         StringBuffer sb = new StringBuffer();
-        for (JNode parent : parents) sb.append(parent.getNodeString()).append(aSep);
+        for (JNode parent : parents)
+            sb.append(parent.getNodeString()).append(aSep);
         sb.append(getNodeString());
+
+        // Return
         return sb.toString();
     }
 
@@ -515,7 +537,8 @@ public class JNode {
      */
     public String getString()
     {
-        return new JavaWriter().getString(this);
+        JavaWriter javaWriter = new JavaWriter();
+        return javaWriter.getString(this);
     }
 
     /**
@@ -524,16 +547,27 @@ public class JNode {
     public String toString()
     {
         StringBuffer sb = new StringBuffer(getClass().getSimpleName()).append(" { ");
-        if (getFile() != null) sb.append("File:").append(getFile().getName()).append(", ");
-        sb.append("Line:").append(getLineIndex() + 1).append(", Start:").append(getLineCharIndex());
+
+        // Append FileName
+        if (getFile() != null)
+            sb.append("File:").append(getFile().getName()).append(", ");
+
+        // Append Line, Start, Len
+        sb.append("Line:").append(getLineIndex() + 1);
+        sb.append(", Start:").append(getLineCharIndex());
         sb.append(", Len:").append(getEnd() - getStart());
-        if (getName() != null && getName().length() > 0) sb.append(", Name:").append(getName());
+        if (getName() != null && getName().length() > 0)
+            sb.append(", Name:").append(getName());
         sb.append(" } ");
+
+        // Append original text
         String str = getString();
         int ind = str.indexOf('\n');
-        if (ind > 0) str = str.substring(0, ind) + " ...";
+        if (ind > 0)
+            str = str.substring(0, ind) + " ...";
         sb.append(str);
+
+        // Return
         return sb.toString();
     }
-
 }

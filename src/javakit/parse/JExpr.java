@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 
+import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaType;
 
@@ -39,10 +40,10 @@ public abstract class JExpr extends JNode {
     /**
      * Returns the ScopeNode EvalClass.
      */
-    public Class getScopeNodeEvalClass()
+    public JavaClass getScopeNodeEvalClass()
     {
-        JNode sn = getScopeNode();
-        return sn != null ? sn.getEvalTypeRealClass() : null;
+        JNode scopeNode = getScopeNode();
+        return scopeNode != null ? scopeNode.getEvalClass() : null;
     }
 
     /**

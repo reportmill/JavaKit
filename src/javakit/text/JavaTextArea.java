@@ -4,6 +4,7 @@
 package javakit.text;
 import java.util.*;
 import javakit.parse.*;
+import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.NodeMatcher;
 import snap.geom.*;
@@ -20,37 +21,40 @@ import snap.web.WebFile;
 public class JavaTextArea extends TextArea {
 
     // The max column
-    int _printMarginColumn = 120;
+    private int  _printMarginColumn = 120;
 
     // Whether to draw line for print margin column
-    boolean _showPrintMargin = true;
+    private boolean  _showPrintMargin = true;
 
     // The default font
-    Font _defaultFont;
+    private Font _defaultFont;
 
     // The selected JNode
-    JNode _selNode = new JFile(), _deepNode;
+    protected JNode _selNode = new JFile();
 
-    // The node that the mouse is hoving over (if command is down)
-    JNode _hoverNode;
+    // The deepest child of SelNode recently selected
+    protected JNode  _deepNode;
+
+    // The node that the mouse is hovering over (if command down)
+    protected JNode  _hoverNode;
 
     // The list of selected tokens
-    List<TextBoxToken> _tokens = new ArrayList();
+    protected List<TextBoxToken>  _tokens = new ArrayList<>();
 
     // A PopupList to show code completion stuff
-    JavaPopupList _popup;
+    protected JavaPopupList  _popup;
 
     // The TextPane
-    JavaTextPane _textPane;
+    protected JavaTextPane  _textPane;
 
     // The code builder
-    CodeBuilder _codeBuilder;
+    protected CodeBuilder  _codeBuilder;
 
     // The RowHeader
-    RowHeader _rowHeader;
+    protected RowHeader  _rowHeader;
 
     // The OverviewPane
-    OverviewPane _overviewPane;
+    protected OverviewPane  _overviewPane;
 
     /**
      * Creates a new JavaTextArea.
@@ -90,7 +94,12 @@ public class JavaTextArea extends TextArea {
      */
     public JavaPopupList getPopup()
     {
-        return _popup != null ? _popup : (_popup = new JavaPopupList(this));
+        // If already set, just return
+        if (_popup != null) return _popup;
+
+        // Create, set, return
+        JavaPopupList popupList = new JavaPopupList(this);
+        return _popup = popupList;
     }
 
     /**
@@ -100,8 +109,10 @@ public class JavaTextArea extends TextArea {
     {
         // Get suggestions
         JNode selectedNode = getSelectedNode();
-        JavaDecl sugs[] = new JavaCompleter().getSuggestions(selectedNode);
-        if (sugs.length == 0) return; // || !doReplace && !isVariableFieldOrMethod(suggestions[0]))
+        JavaCompleter javaCompleter = new JavaCompleter();
+        JavaDecl[] sugs = javaCompleter.getSuggestions(selectedNode);
+        if (sugs.length == 0) // || !doReplace && !isVariableFieldOrMethod(suggestions[0]))
+            return;
 
         // If one suggestion and doReplace, perform replace
         //if(sugs.length==1) { setSel(selectedNode.getStart(), getSelEnd()); replaceChars(sugs[0].getReplaceString()); }
@@ -120,13 +131,22 @@ public class JavaTextArea extends TextArea {
      */
     public void updatePopupList()
     {
+        // Get popup
+        JavaPopupList javaPopup = getPopup();
+
         // If Java Popup is visible, get new suggestions and set
-        if (getPopup().isShowing()) {
+        if (javaPopup.isShowing()) {
+
+            // Get suggestions
             JNode node = getSelectedNode();
             boolean atEnd = isSelEmpty() && getSelStart() == node.getEnd();
-            JavaDecl sugs[] = atEnd ? new JavaCompleter().getSuggestions(node) : null;
-            if (sugs != null && sugs.length > 0) getPopup().setItems(sugs);
-            else getPopup().hide();
+            JavaCompleter javaCompleter = new JavaCompleter();
+            JavaDecl[] sugs = atEnd ? javaCompleter.getSuggestions(node) : null;
+
+            // Either set items or hide
+            if (sugs != null && sugs.length > 0)
+                javaPopup.setItems(sugs);
+            else javaPopup.hide();
         }
 
         // If CodeBuilder Visible, update CodeBlocks
@@ -231,9 +251,11 @@ public class JavaTextArea extends TextArea {
     /**
      * Returns the class name for the currently selected JNode.
      */
-    public Class getSelectedNodeClass()
+    public Class<?> getSelectedNodeClass()
     {
-        return _selNode != null ? _selNode.getEvalTypeRealClass() : null;
+        JavaClass javaClass = _selNode != null ? _selNode.getEvalClass() : null;
+        Class<?> realClass = javaClass != null ? javaClass.getRealClass() : null;
+        return realClass;
     }
 
     /**

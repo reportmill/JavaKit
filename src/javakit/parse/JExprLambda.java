@@ -11,13 +11,13 @@ import snap.util.SnapUtils;
 public class JExprLambda extends JExpr {
 
     // The parameters
-    List<JVarDecl> _params = new ArrayList<>();
+    protected List<JVarDecl>  _params = new ArrayList<>();
 
     // The expression, if lambda has expression
-    JExpr _expr;
+    protected JExpr  _expr;
 
     // The statement Block, if lambda has block
-    JStmtBlock _block;
+    protected JStmtBlock  _block;
 
     // The declaration for the actual method for the interface this lambda represents
     protected JavaMethod  _meth;
@@ -25,26 +25,17 @@ public class JExprLambda extends JExpr {
     /**
      * Returns the list of formal parameters.
      */
-    public List<JVarDecl> getParams()
-    {
-        return _params;
-    }
+    public List<JVarDecl> getParams()  { return _params; }
 
     /**
      * Returns the number of paramters.
      */
-    public int getParamCount()
-    {
-        return _params.size();
-    }
+    public int getParamCount()  { return _params.size(); }
 
     /**
      * Returns the parameter at given index.
      */
-    public JVarDecl getParam(int anIndex)
-    {
-        return _params.get(anIndex);
-    }
+    public JVarDecl getParam(int anIndex)  { return _params.get(anIndex); }
 
     /**
      * Adds a formal parameter.
@@ -60,30 +51,35 @@ public class JExprLambda extends JExpr {
      */
     public JVarDecl getParam(String aName)
     {
-        for (JVarDecl vd : _params) if (SnapUtils.equals(vd.getName(), aName)) return vd;
+        for (JVarDecl varDecl : _params)
+            if (SnapUtils.equals(varDecl.getName(), aName))
+                return varDecl;
+
+        // Return not found
         return null;
     }
 
     /**
      * Returns the list of parameter classes.
      */
-    public Class[] getParamTypes()
+    public JavaClass[] getParamTypes()
     {
-        Class ptypes[] = new Class[_params.size()];
+        JavaClass[] paramTypes = new JavaClass[_params.size()];
+
+        // Iterate over params and get EvalClass for each
         for (int i = 0, iMax = _params.size(); i < iMax; i++) {
             JVarDecl vd = _params.get(i);
-            ptypes[i] = vd.getEvalTypeRealClass();
+            paramTypes[i] = vd.getEvalClass();
         }
-        return ptypes;
+
+        // Return
+        return paramTypes;
     }
 
     /**
      * Returns the expression, if lambda has expression.
      */
-    public JExpr getExpr()
-    {
-        return _expr;
-    }
+    public JExpr getExpr()  { return _expr; }
 
     /**
      * Sets the expression.
@@ -96,18 +92,12 @@ public class JExprLambda extends JExpr {
     /**
      * Returns whether statement has a block associated with it.
      */
-    public boolean isBlock()
-    {
-        return true;
-    }
+    public boolean isBlock()  { return true; }
 
     /**
      * Returns the block.
      */
-    public JStmtBlock getBlock()
-    {
-        return _block;
-    }
+    public JStmtBlock getBlock()  { return _block; }
 
     /**
      * Sets the block.
@@ -172,7 +162,7 @@ public class JExprLambda extends JExpr {
         }
 
         // Handle parent anything else (JVarDecl, JStmtExpr): Get lambda interface from eval type
-        else if (par != null && par._decl != null) {
+        if (par._decl != null) {
 
             // If type is interface, get lambda type
             JavaType parentType = par.getEvalType();
@@ -184,7 +174,7 @@ public class JExprLambda extends JExpr {
             }
         }
 
-        // Return null since not found
+        // Return not found
         return null;
     }
 
@@ -247,16 +237,8 @@ public class JExprLambda extends JExpr {
         return decls;
     }
 
-/**
- * Returns the compatible methods.
- */
-
     /**
      * Returns the node name.
      */
-    public String getNodeString()
-    {
-        return "LambdaExpr";
-    }
-
+    public String getNodeString()  { return "LambdaExpr"; }
 }

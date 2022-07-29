@@ -1,5 +1,4 @@
 package javakit.parse;
-
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
 
@@ -10,11 +9,12 @@ import java.util.List;
  * A JNode for Enum constants.
  */
 public class JEnumConst extends JMemberDecl {
+
     // The args
-    List<JExpr> _args = Collections.EMPTY_LIST;
+    protected List<JExpr>  _args = Collections.EMPTY_LIST;
 
     // The class or interface body
-    String _classBody;
+    protected String  _classBody;
 
     /**
      * Returns the arguments.

@@ -86,15 +86,20 @@ public class JExprMethodCall extends JExpr {
     /**
      * Returns the arg classes.
      */
-    public Class[] getArgClasses()
+    public JavaClass[] getArgClasses()
     {
-        List<JExpr> args = getArgs();
-        Class classes[] = new Class[args.size()];
-        for (int i = 0, iMax = args.size(); i < iMax; i++) {
-            JExpr arg = args.get(i);
-            classes[i] = arg != null ? arg.getEvalTypeRealClass() : null;
+        // Get args
+        List<JExpr> argExprs = getArgs();
+        JavaClass argClasses[] = new JavaClass[argExprs.size()];
+
+        // Iterate over arg expressions and get EvalClass for each
+        for (int i = 0, iMax = argExprs.size(); i < iMax; i++) {
+            JExpr argExpr = argExprs.get(i);
+            argClasses[i] = argExpr != null ? argExpr.getEvalClass() : null;
         }
-        return classes;
+
+        // Return
+        return argClasses;
     }
 
     /**

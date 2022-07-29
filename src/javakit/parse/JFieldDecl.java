@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import javakit.reflect.JavaDecl;
 
 import java.util.*;
@@ -11,19 +10,25 @@ import java.util.*;
  * A JMember for Field declarations.
  */
 public class JFieldDecl extends JMemberDecl {
+
     // The type/return-type
-    JType _type;
+    protected JType  _type;
 
     // List of variable declarations
-    List<JVarDecl> _vars = new ArrayList();
+    protected List<JVarDecl> _vars = new ArrayList<>();
+
+    /**
+     * Constructor.
+     */
+    public JFieldDecl()
+    {
+        super();
+    }
 
     /**
      * Returns the field type.
      */
-    public JType getType()
-    {
-        return _type;
-    }
+    public JType getType()  { return _type; }
 
     /**
      * Sets the field type.
@@ -36,10 +41,7 @@ public class JFieldDecl extends JMemberDecl {
     /**
      * Returns the variable declarations.
      */
-    public List<JVarDecl> getVarDecls()
-    {
-        return _vars;
-    }
+    public List<JVarDecl> getVarDecls()  { return _vars; }
 
     /**
      * Adds a variable declarations.
@@ -56,7 +58,8 @@ public class JFieldDecl extends JMemberDecl {
     @Override
     protected JavaDecl getDeclImpl()
     {
-        return _vars.size() > 0 ? _vars.get(0).getDecl() : null;
+        JVarDecl varDecl = _vars.size() > 0 ? _vars.get(0) : null;
+        return varDecl != null ? varDecl.getDecl() : null;
     }
 
     /**
@@ -66,5 +69,4 @@ public class JFieldDecl extends JMemberDecl {
     {
         return "FieldDecl";
     }
-
 }

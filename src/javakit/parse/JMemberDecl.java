@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import javakit.reflect.*;
 
 import java.util.List;
@@ -14,17 +13,18 @@ import java.util.List;
 public class JMemberDecl extends JNode {
 
     // The modifiers
-    JModifiers _mods;
+    protected JModifiers  _mods;
 
     // The name identifier
-    JExprId _id;
+    protected JExprId  _id;
 
     /**
      * Returns the modifiers.
      */
     public JModifiers getMods()
     {
-        if (_mods == null) _mods = new JModifiers();
+        if (_mods == null)
+            _mods = new JModifiers();
         return _mods;
     }
 
@@ -33,17 +33,15 @@ public class JMemberDecl extends JNode {
      */
     public void setMods(JModifiers aValue)
     {
-        if (_mods == null) addChild(_mods = aValue, 0);
+        if (_mods == null)
+            addChild(_mods = aValue, 0);
         else replaceChild(_mods, _mods = aValue);
     }
 
     /**
      * Returns the identifier.
      */
-    public JExprId getId()
-    {
-        return _id;
-    }
+    public JExprId getId()  { return _id; }
 
     /**
      * Sets the identifier.
@@ -51,27 +49,29 @@ public class JMemberDecl extends JNode {
     public void setId(JExprId anId)
     {
         replaceChild(_id, _id = anId);
-        if (_id != null) setName(_id.getName());
+        if (_id != null)
+            setName(_id.getName());
     }
 
     /**
      * Returns the type variables for this member.
      */
-    public List<JTypeVar> getTypeVars()
-    {
-        return null;
-    }
+    public List<JTypeVar> getTypeVars()  { return null; }
 
     /**
      * Returns the type variable for this member with given name.
      */
     public JTypeVar getTypeVar(String aName)
     {
-        List<JTypeVar> tvars = getTypeVars();
-        if (tvars == null) return null;
-        for (JTypeVar tvar : tvars)
+        List<JTypeVar> typeVars = getTypeVars();
+        if (typeVars == null)
+            return null;
+
+        for (JTypeVar tvar : typeVars)
             if (tvar.getName().equals(aName))
                 return tvar;
+
+        // Return not found
         return null;
     }
 
@@ -105,5 +105,4 @@ public class JMemberDecl extends JNode {
 
         return javaClass.isInterface();
     }
-
 }

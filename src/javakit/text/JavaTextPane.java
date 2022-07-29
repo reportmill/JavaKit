@@ -293,8 +293,10 @@ public class JavaTextPane extends TextPane {
     {
         // Get class name for selected JNode
         Class cls = _textArea.getSelectedNodeClass();
-        if (cls == null) return null;
-        if (cls.isArray()) cls = cls.getComponentType();
+        if (cls == null)
+            return null;
+        if (cls.isArray())
+            cls = cls.getComponentType();
 
         // Iterate up through class parents until URL found or null
         while (cls != null) {
