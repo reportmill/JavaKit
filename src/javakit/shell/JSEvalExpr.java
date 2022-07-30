@@ -7,6 +7,7 @@ import java.util.*;
 import javakit.parse.*;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
+import javakit.reflect.Resolver;
 import snap.parse.Parser;
 import snap.util.*;
 
@@ -24,6 +25,17 @@ public class JSEvalExpr {
     // A parser to parse expressions
     private static Parser  _exprParser = JavaParser.getShared().getExprParser();
 
+    // A Resolver
+    protected Resolver  _resolver;
+
+    /**
+     * Constructor.
+     */
+    public JSEvalExpr()
+    {
+
+    }
+
     /**
      * Evaluate expression.
      */
@@ -32,6 +44,7 @@ public class JSEvalExpr {
         // Get JExpr for string
         _exprParser.setInput(anExpr);
         JExpr expr = _exprParser.parseCustom(JExpr.class);
+        expr.setResolver(_resolver);
 
         // Eval expression
         Object value;

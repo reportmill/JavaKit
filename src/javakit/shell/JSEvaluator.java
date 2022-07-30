@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.shell;
+import javakit.reflect.Resolver;
 import snap.view.TextArea;
 
 import java.io.OutputStream;
@@ -16,7 +17,7 @@ public class JSEvaluator {
     private JavaShell  _javaShell;
 
     // A Statement evaluator
-    private JSEvalStmt  _stmtEval = new JSEvalStmt();
+    private JSEvalStmt  _stmtEval;
 
     // An expression evaluator
     private JSEvalExpr  _exprEval;
@@ -26,6 +27,9 @@ public class JSEvaluator {
 
     // The values
     protected Object[]  _lineVals;
+
+    // The Resolver
+    private Resolver  _resolver;
 
     // The public out and err PrintStreams
     private PrintStream  _stdOut = System.out;
@@ -41,7 +45,15 @@ public class JSEvaluator {
     public JSEvaluator(JavaShell aPG)
     {
         _javaShell = aPG;
+
+        // Create Resolver
+        _resolver = new Resolver(getClass().getClassLoader());
+
+        // Create Statement eval
+        _stmtEval = new JSEvalStmt();
+        _stmtEval._resolver = _resolver;
         _exprEval = JSEvalExpr.get(_javaShell);
+        _exprEval._resolver = _resolver;
     }
 
     /**

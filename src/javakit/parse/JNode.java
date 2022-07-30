@@ -14,22 +14,25 @@ import snap.util.*;
 public class JNode {
 
     // The name for this node (if it has one)
-    String _name;
+    protected String  _name;
 
     // The start/end tokens for this node
-    Token _startToken, _endToken;
+    protected Token  _startToken, _endToken;
 
     // The parent node
-    JNode _parent;
+    protected JNode  _parent;
 
     // The list of child nodes
-    List<JNode> _children = Collections.EMPTY_LIST;
+    protected List<JNode> _children = Collections.EMPTY_LIST;
 
     // The declaration most closely associated with this node
-    JavaDecl  _decl;
+    protected JavaDecl  _decl;
 
     // The type this node evaluates to (resolved, if TypeVar)
-    JavaType  _evalType;
+    protected JavaType  _evalType;
+
+    // The resolver
+    private Resolver  _resolver;
 
     /**
      * Returns the parent file node (root).
@@ -488,8 +491,21 @@ public class JNode {
      */
     public Resolver getResolver()
     {
-        JFile jfile = getFile();
-        return jfile.getResolver();
+        if (_resolver != null)
+            return _resolver;
+        if (_parent != null)
+            return _parent.getResolver();
+        return null;
+        //JFile jfile = getFile();
+        //return jfile.getResolver();
+    }
+
+    /**
+     * Sets the resolver.
+     */
+    public void setResolver(Resolver aResolver)
+    {
+        _resolver = aResolver;
     }
 
     /**

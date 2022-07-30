@@ -5,6 +5,7 @@ package javakit.shell;
 import java.util.*;
 
 import javakit.parse.*;
+import javakit.reflect.Resolver;
 import snap.parse.*;
 import snap.util.ListUtils;
 
@@ -19,6 +20,17 @@ public class JSEvalStmt {
     // A parser to parse expressions
     private static Parser  _stmtParser = new StmtParser();
 
+    // A Resolver
+    protected Resolver  _resolver;
+
+    /**
+     * Constructor.
+     */
+    public JSEvalStmt()
+    {
+
+    }
+
     /**
      * Evaluate expression.
      */
@@ -27,6 +39,7 @@ public class JSEvalStmt {
         // Parse string to statement
         _stmtParser.setInput(anExpr);
         JStmt stmt = _stmtParser.parseCustom(JStmt.class);
+        stmt.setResolver(_resolver);
 
         // Set ObjectRef and eval statement
         _exprEval._thisObj = aOR;
