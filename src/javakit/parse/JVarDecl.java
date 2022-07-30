@@ -2,9 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.util.*;
-
 import javakit.reflect.*;
 import snap.util.ListUtils;
 
@@ -15,19 +13,19 @@ import snap.util.ListUtils;
 public class JVarDecl extends JNode {
 
     // The type
-    JType _type;
+    protected JType  _type;
 
     // The variable name
-    JExprId _id;
+    protected JExprId  _id;
 
     // The variable dimension (if defined with variable instead of type)
-    int _arrayCount;
+    protected int  _arrayCount;
 
     // The initializer
-    JExpr _initializer;
+    protected JExpr  _initializer;
 
     // The array initializer (if array)
-    List<JExpr> _arrayInits = Collections.EMPTY_LIST;
+    protected List<JExpr>  _arrayInits = Collections.EMPTY_LIST;
 
     /**
      * Returns whether type is set.
@@ -76,12 +74,16 @@ public class JVarDecl extends JNode {
      */
     private JType getParentType()
     {
-        // Handle parent is Field or VarDecl statement: return type from parent
+        // Handle FieldDecl.VarDecl: return type from parent
         JNode par = getParent();
-        if (par instanceof JFieldDecl) return ((JFieldDecl) par).getType();
-        if (par instanceof JStmtVarDecl) return ((JStmtVarDecl) par).getType();
+        if (par instanceof JFieldDecl)
+            return ((JFieldDecl) par).getType();
 
-        // Handle parent is JExprLambda: Get decl for this param and create new type
+        // Handle StatementVarDecl VarDecl: Return type from parent
+        if (par instanceof JStmtVarDecl)
+            return ((JStmtVarDecl) par).getType();
+
+        // Handle JExprLambda VarDecl: Get decl for this param and create new type
         if (par instanceof JExprLambda) {
 
             // Get decl for this param (resolve if needed)
@@ -112,6 +114,7 @@ public class JVarDecl extends JNode {
             return type;
         }
 
+        // Return unknown
         return null;
     }
 
