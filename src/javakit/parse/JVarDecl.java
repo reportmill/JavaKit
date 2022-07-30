@@ -205,7 +205,8 @@ public class JVarDecl extends JNode {
     {
         // Get name - if not set, just bail
         String name = getName();
-        if (name == null) return null;
+        if (name == null)
+            return null;
 
         // If part of a JFieldDecl, get JavaDecl for field
         JNode par = getParent();
@@ -220,9 +221,16 @@ public class JVarDecl extends JNode {
             return field;
         }
 
-        // Otherwise, return JavaLocalVar for this JVarDecl
+        // Get the eval type
+        JType varDeclType = getType();
+        JavaType evalType = varDeclType != null ? varDeclType.getDecl() : null;
+        if (evalType == null) // Can happen for Lambdas
+            evalType = getJavaClassForClass(Object.class);
+
+        // Otherwise, return JavaLocalVar for Name/EvalType (UniqueId might help for debugging)
         Resolver resolver = getResolver();
-        return new JavaLocalVar(resolver, this);
+        String uniqueId = getUniqueId(name, evalType);
+        return new JavaLocalVar(resolver, name, evalType, uniqueId);
     }
 
     /**
@@ -230,8 +238,31 @@ public class JVarDecl extends JNode {
      */
     protected JavaDecl getDeclImpl(JNode aNode)
     {
-        if (aNode == _id) return getDecl();
+        // VarDecl.Id evaluates same as whole
+        if (aNode == _id)
+            return getDecl();
+
+        // Do normal version
         return super.getDeclImpl(aNode);
     }
 
+    /**
+     * Returns an identifier string describing where this variable declaration is defined.
+     */
+    private String getUniqueId(String aName, JavaType aType)
+    {
+        // Get enclosing Method/Constructor and Class
+        JMemberDecl enclosingExec = getEnclosingMemberDecl();
+        JClassDecl enclosingClass = getEnclosingClassDecl();
+
+        // Get Enclosing path string
+        String enclosingPathStr = "";
+        if (enclosingClass != null)
+            enclosingPathStr = enclosingClass.getName() + '.';
+        if (enclosingExec != null)
+            enclosingPathStr += enclosingExec.getName() + '.';
+
+        // Return TypeId.VarName
+        return enclosingPathStr + aType.getId() + ' ' + aName;
+    }
 }

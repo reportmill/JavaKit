@@ -2,32 +2,23 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-import javakit.parse.JType;
-import javakit.parse.JVarDecl;
 
 /**
- * This class represents a local variable in a statement block, for-loop declaration or catch block.
+ * This class represents a local variable definition in a statement block, for-loop declaration or catch block.
  */
 public class JavaLocalVar extends JavaDecl {
 
     /**
      * Constructor.
      */
-    public JavaLocalVar(Resolver anOwner, JVarDecl aVarDecl)
+    public JavaLocalVar(Resolver anOwner, String aName, JavaType aType, String anId)
     {
         super(anOwner, DeclType.VarDecl);
 
-        // Set Id
-        _id = ResolverUtils.getIdForJVarDecl(aVarDecl);
-
-        // Set Name, SimpleName
-        _name = _simpleName = aVarDecl.getName();
-
-        // Set EvalType
-        JType varDeclType = aVarDecl.getType();
-        _evalType = varDeclType != null ? varDeclType.getDecl() : null;
-        if (_evalType == null) // Can happen for Lambdas
-            _evalType = getJavaClassForClass(Object.class);
+        // Set Id, Name, SimpleName, EvalType
+        _id = anId;
+        _name = _simpleName = aName;
+        _evalType = aType;
     }
 
     /**

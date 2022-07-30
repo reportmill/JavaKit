@@ -1,43 +1,13 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.reflect;
-import javakit.parse.*;
 import java.lang.reflect.*;
 
 /**
  * Utility methods for JavaParse package.
  */
 public class ResolverUtils {
-
-    /**
-     * Returns an id string for given Java part.
-     */
-    public static String getId(Object anObj)
-    {
-        // Handle Class: <Name>
-        if (anObj instanceof Class)
-            return getIdForClass((Class<?>) anObj);
-
-        // Handle java.lang.reflect.Member (Field, Method, Constructor)
-        if (anObj instanceof Member)
-            return getIdForMember((Member) anObj);
-
-        // Handle java.lang.reflect.Type (ParameterizedType, TypeVariable, GenericArrayType, WildcardType)
-        else if (anObj instanceof Type)
-            return getIdForType((Type) anObj);
-
-        // Handle JVarDecl
-        else if (anObj instanceof JVarDecl)
-            return getIdForJVarDecl((JVarDecl) anObj);
-
-        // Handle String (package name)
-        else if (anObj instanceof String)
-            return (String) anObj;
-
-        // Handle array of types
-        //else if (anObj instanceof Object[]) return getIdForTypeArray((Object[]) anObj);
-
-        // Complain about anything else
-        else throw new RuntimeException("ResolverUtils.getId: Unsupported type: " + anObj);
-    }
 
     /**
      * Returns an Id for a Java.lang.Class.
@@ -129,11 +99,13 @@ public class ResolverUtils {
     {
         // Get GenericDecl and TypeVar.Name
         GenericDeclaration genericDecl = typeVariable.getGenericDeclaration();
-        String genericDeclId = getId(genericDecl);
+        String genericDeclId = genericDecl instanceof Member ?
+                getIdForMember((Member) genericDecl) :
+                getIdForClass((Class<?>) genericDecl);
         String typeVarName = typeVariable.getName();
 
         // Return GenericDecl.TypeVarName
-        return new StringBuffer(genericDeclId).append('.').append(typeVarName).toString();
+        return genericDeclId + '.' + typeVarName;
     }
 
     /**
@@ -226,34 +198,6 @@ public class ResolverUtils {
 
         // Return
         return sb.toString();
-    }
-
-    /**
-     * Returns an Id for JVarDecl.
-     */
-    public static String getIdForJVarDecl(JVarDecl varDecl)
-    {
-        // Get Type.Id
-        JType varDeclType = varDecl.getType();
-        JavaType varType = varDeclType != null ? varDeclType.getDecl() : null;
-        String varTypeId = varType != null ? varType.getId() : "Unknown";
-        String varName = varDecl.getName();
-
-        // Get enclosing Method/Constructor
-        JMemberDecl enclosingExec = varDecl.getEnclosingMemberDecl();
-
-        // Get enclosing Class
-        JClassDecl enclosingClass = varDecl.getEnclosingClassDecl();
-
-        // Get Enclosing path string
-        String enclosingPathStr = "";
-        if (enclosingClass != null)
-            enclosingPathStr = enclosingClass.getName() + '.';
-        if (enclosingExec != null)
-            enclosingPathStr += enclosingExec.getName() + '.';
-
-        // Return TypeId.VarName
-        return enclosingPathStr + varTypeId + ' ' + varName;
     }
 
     /**
