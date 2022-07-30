@@ -2,23 +2,20 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import javakit.reflect.JavaDecl;
 
 /**
- * A Java statement for statements that are just expressions.
+ * A Java statement for statements that are just expressions (increment, decrement, assignment).
  */
 public class JStmtExpr extends JStmt {
+
     // The expression
-    JExpr _expr;
+    protected JExpr  _expr;
 
     /**
      * Returns the expression.
      */
-    public JExpr getExpr()
-    {
-        return _expr;
-    }
+    public JExpr getExpr()  { return _expr; }
 
     /**
      * Sets the expression.
@@ -35,5 +32,4 @@ public class JStmtExpr extends JStmt {
     {
         return _expr.getDecl();
     }
-
 }

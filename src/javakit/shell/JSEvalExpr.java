@@ -4,8 +4,9 @@
 package javakit.shell;
 import java.lang.reflect.*;
 import java.util.*;
-
 import javakit.parse.*;
+import javakit.reflect.JavaClass;
+import javakit.reflect.JavaDecl;
 import snap.parse.Parser;
 import snap.util.*;
 
@@ -57,31 +58,47 @@ public class JSEvalExpr {
     }
 
     /**
-     * Evaluate JExpr.
+     * Evaluates given expression on given object reference.
      */
     public Object evalExpr(Object anOR, JExpr anExpr) throws Exception
     {
+        // Handle Literal
         if (anExpr instanceof JExprLiteral)
             return evalJExprLiteral((JExprLiteral) anExpr);
+
+        // Handle variable
         if (anExpr instanceof JExprId)
             return evalJExprId(anOR, (JExprId) anExpr);
+
+        // Handle method call
         if (anExpr instanceof JExprMethodCall)
             return evalJExprMethodCall(anOR, (JExprMethodCall) anExpr);
+
+        // Handle math expression
         if (anExpr instanceof JExprMath)
             return evalJExprMath(anOR, (JExprMath) anExpr);
+
+        // Handle array dereference
         if (anExpr instanceof JExprArrayIndex)
             return evalJExprArrayIndex(anOR, (JExprArrayIndex) anExpr);
+
+        // Handle expression chain
         if (anExpr instanceof JExprChain)
             return evalJExprChain(anOR, (JExprChain) anExpr);
+
+        // Handle alloc expression
+        if(anExpr instanceof JExprAlloc)
+            return evalJExprAlloc(anOR, (JExprAlloc) anExpr);
+
+        //if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
+        //if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
+        //if(aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr)aExpr);
+        //if(aExpr instanceof JExprLambda) writeJExprLambda((JExprLambda)aExpr);
+        //if(aExpr instanceof JExprMethodRef) writeJExprMethodRef((JExprMethodRef)aExpr);
+        //if(aExpr instanceof JExprType) writeJExprType((JExprType)aExpr); */
+
+        // Complain
         throw new RuntimeException("JSEvalExpr.evalExpr: Unsupported expression " + anExpr.getClass());
-    
-        /*if(aExpr instanceof JExprAlloc) writeJExprAlloc((JExprAlloc)aExpr);
-        else if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
-        else if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
-        else if(aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr)aExpr);
-        else if(aExpr instanceof JExprLambda) writeJExprLambda((JExprLambda)aExpr);
-        else if(aExpr instanceof JExprMethodRef) writeJExprMethodRef((JExprMethodRef)aExpr);
-        else if(aExpr instanceof JExprType) writeJExprType((JExprType)aExpr); */
     }
 
     /**
@@ -142,18 +159,26 @@ public class JSEvalExpr {
      */
     Object evalJExprMethodCall(Object anOR, JExprMethodCall anExpr) throws Exception
     {
+        // If object null, throw NullPointerException
         if (anOR == null)
             return null;
 
+        // Get method name
+        String methodName = anExpr.getName();
+
+        // Get arg info
         Object thisObj = thisObject();
-        String name = anExpr.getName();
-        int argc = anExpr.getArgCount();
-        Object args[] = new Object[argc];
-        for (int i = 0; i < argc; i++) {
-            JExpr arg = anExpr.getArg(i);
-            args[i] = evalExpr(thisObj, arg);
+        int argCount = anExpr.getArgCount();
+        Object[] argValues = new Object[argCount];
+
+        // Iterate over arg expressions and get evaluated values
+        for (int i = 0; i < argCount; i++) {
+            JExpr argExpr = anExpr.getArg(i);
+            argValues[i] = evalExpr(thisObj, argExpr);
         }
-        Object val = invokeMethod(anOR, name, args);
+
+        // Invoke method and return
+        Object val = invokeMethod(anOR, methodName, argValues);
         return val;
     }
 
@@ -179,6 +204,21 @@ public class JSEvalExpr {
 
         // Return ArrayReference value at index
         return arrayValue(array, index);
+    }
+
+    /**
+     * Evaluate JExprChain.
+     */
+    protected Object evalJExprAlloc(Object anOR, JExprAlloc anExpr) throws Exception
+    {
+        // Get real class for expression
+        JavaDecl exprDecl = anExpr.getDecl();
+        JavaClass javaClass = exprDecl.getEvalClass();
+        Class<?> realClass = javaClass.getRealClass();
+
+        // Create new instance and return
+        Object newInstance = realClass.newInstance();
+        return newInstance;
     }
 
     /**
@@ -610,13 +650,13 @@ public class JSEvalExpr {
     /**
      * Invoke method.
      */
-    public Object invokeMethod(Object anObj, String aName, Object[] theArgs)
+    public Object invokeMethod(Object anObj, String aName, Object[] theArgs) throws Exception
     {
         // Get object class
-        Class objClass = anObj.getClass(); // anObj instanceof Class? (Class)anObj : anObj.getClass();
+        Class<?> objClass = anObj.getClass(); // anObj instanceof Class? (Class)anObj : anObj.getClass();
 
         // Get parameter classes
-        Class[] paramClasses = new Class[theArgs.length];
+        Class<?>[] paramClasses = new Class[theArgs.length];
         for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
             Object arg = theArgs[i];
             paramClasses[i] = arg != null ? arg.getClass() : null;
@@ -626,12 +666,7 @@ public class JSEvalExpr {
         Method meth = MethodUtils.getMethodBest(objClass, aName, paramClasses);
 
         // Invoke method
-        try {
-            return meth.invoke(anObj, theArgs);
-        }
-
-        // Handle exceptions
-        catch (Exception e) { return null; }
+        return meth.invoke(anObj, theArgs);
     }
 
     /**

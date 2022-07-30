@@ -158,9 +158,13 @@ public class JType extends JNode {
         if (primitiveClass != null)
             return _baseDecl = getJavaClassForClass(primitiveClass);
 
+        // Try to find class directly
+        JavaType javaClass = getJavaClassForName(_name);
+        if (javaClass != null)
+            return _baseDecl = javaClass;
 
         // If not primitive, try to resolve class
-        JavaType javaClass = (JavaType) getDeclImpl(this);
+        javaClass = (JavaType) getDeclImpl(this);
 
         // Set/return
         return _baseDecl = javaClass;
@@ -218,5 +222,4 @@ public class JType extends JNode {
     {
         return getDecl() != null ? getDecl().hashCode() : super.hashCode();
     }
-
 }
