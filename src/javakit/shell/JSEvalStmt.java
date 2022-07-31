@@ -40,6 +40,7 @@ public class JSEvalStmt {
         _stmtParser.setInput(anExpr);
         JStmt stmt = _stmtParser.parseCustom(JStmt.class);
         stmt.setResolver(_resolver);
+        _exprEval._resolver = _resolver;
 
         // Set ObjectRef and eval statement
         _exprEval._thisObj = aOR;

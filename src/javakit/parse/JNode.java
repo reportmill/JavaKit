@@ -579,26 +579,27 @@ public class JNode {
      */
     public String toString()
     {
-        StringBuffer sb = new StringBuffer(getClass().getSimpleName()).append(" { ");
-
-        // Append FileName
-        if (getFile() != null)
-            sb.append("File:").append(getFile().getName()).append(", ");
-
-        // Append Line, Start, Len
-        sb.append("Line:").append(getLineIndex() + 1);
-        sb.append(", Start:").append(getLineCharIndex());
-        sb.append(", Len:").append(getEnd() - getStart());
-        if (getName() != null && getName().length() > 0)
-            sb.append(", Name:").append(getName());
-        sb.append(" } ");
+        String simpleName = getClass().getSimpleName();
+        StringBuffer sb = new StringBuffer(simpleName);
 
         // Append original text
+        sb.append(": ");
         String str = getString();
         int ind = str.indexOf('\n');
         if (ind > 0)
             str = str.substring(0, ind) + " ...";
         sb.append(str);
+
+//        // Append Line, Start, Len
+//        sb.append(" { ");
+//        if (getFile() != null)
+//            sb.append("File:").append(getFile().getName()).append(", ");
+//        sb.append("Line:").append(getLineIndex() + 1);
+//        sb.append(", Start:").append(getLineCharIndex());
+//        sb.append(", Len:").append(getEnd() - getStart());
+//        if (getName() != null && getName().length() > 0)
+//            sb.append(", Name:").append(getName());
+//        sb.append(" } ");
 
         // Return
         return sb.toString();

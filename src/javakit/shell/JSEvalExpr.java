@@ -4,6 +4,8 @@
 package javakit.shell;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.DoubleUnaryOperator;
+
 import javakit.parse.*;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
@@ -109,8 +111,8 @@ public class JSEvalExpr {
         //if(aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr)aExpr);
 
         // Handle lambda expression
-        //if(anExpr instanceof JExprLambda)
-        //    writeJExprLambda((JExprLambda)aExpr);
+        if(anExpr instanceof JExprLambda)
+            return anExpr;
 
         //if(aExpr instanceof JExprMethodRef) writeJExprMethodRef((JExprMethodRef)aExpr);
         //if(aExpr instanceof JExprType) writeJExprType((JExprType)aExpr); */
@@ -143,7 +145,13 @@ public class JSEvalExpr {
     private Object evalJExprId(Object anOR, JExprId anId) throws Exception
     {
         String name = anId.getName();
-        return evalName(anOR, name);
+        Object value = evalName(anOR, name);
+        if (value == null) {
+            JavaDecl decl = anId.getDecl();
+            if (decl instanceof JavaClass)
+                return ((JavaClass) decl).getRealClass();
+        }
+        return value;
     }
 
     /**
@@ -160,7 +168,7 @@ public class JSEvalExpr {
             return getLocalVarValue(aName);
 
         // Check for field
-        if (isField(anOR, aName))
+        if (anOR != null && isField(anOR, aName))
             return getFieldValue(anOR, aName);
 
         // Check for class name
@@ -169,7 +177,8 @@ public class JSEvalExpr {
             return cls;
 
         // Complain
-        throw new RuntimeException("Identifier not found: " + aName);
+        return null;
+        //throw new RuntimeException("Identifier not found: " + aName);
     }
 
     /**
@@ -222,7 +231,7 @@ public class JSEvalExpr {
     }
 
     /**
-     * Evaluate JExprChain.
+     * Evaluate JExprAlloc.
      */
     protected Object evalJExprAlloc(Object anOR, JExprAlloc anExpr) throws Exception
     {
@@ -425,10 +434,10 @@ public class JSEvalExpr {
     /**
      * Handle JExprMath Assign.
      */
-    Object evalJExprMathAssign(Object anOR, String aName, JExprMath anExpr) throws Exception
+    private Object evalJExprLambda(Object anOR, JExprLambda anExpr) throws Exception
     {
-        Object value = evalExpr(anOR, anExpr);
-        setLocalVarValue(aName, value);
+        JExpr simpleExpr = anExpr.getExpr();
+        Object value = evalExpr(anOR, simpleExpr);
         return value;
     }
 
@@ -507,16 +516,37 @@ public class JSEvalExpr {
     {
         // Get object class
         Class<?> objClass = anObj.getClass(); // anObj instanceof Class? (Class)anObj : anObj.getClass();
+        JExprLambda lambdaExpr = null;
+        int lambdaIndex = 0;
 
         // Get parameter classes
         Class<?>[] paramClasses = new Class[theArgs.length];
         for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
             Object arg = theArgs[i];
+            if (arg instanceof JExprLambda) {
+                lambdaExpr = (JExprLambda) arg;
+                lambdaIndex = i;
+                arg = null;
+            }
             paramClasses[i] = arg != null ? arg.getClass() : null;
         }
 
         // Get method
         Method meth = MethodUtils.getMethodBest(objClass, aName, paramClasses);
+
+        if (lambdaExpr != null) {
+            Class<?> paramClass = meth.getParameterTypes()[lambdaIndex];
+            JExprLambda finalLambda = lambdaExpr;
+            DoubleUnaryOperator lambdaReal = d -> {
+                setLocalVarValue("d", d);
+                try {
+                    Object value = evalJExprLambda(anObj, finalLambda);
+                    return SnapUtils.doubleValue(value);
+                }
+                catch (Exception e) { return 0; }
+            };
+            theArgs[lambdaIndex] = lambdaReal;
+        }
 
         // Invoke method
         return meth.invoke(anObj, theArgs);
@@ -557,12 +587,14 @@ public class JSEvalExpr {
     protected JavaClass getJavaClassForName(Object anOR, String aName)
     {
         // Look for inner class
-        Class<?> realClass = anOR instanceof Class ? (Class<?>) anOR : anOR.getClass();
-        JavaClass javaClass = _resolver.getJavaClassForClass(realClass);
-        String innerClassName = javaClass.getName() + '$' + aName;
-        JavaClass cls = javaClass.getInnerClassForName(innerClassName);
-        if (cls != null)
-            return cls;
+        if (anOR != null) {
+            Class<?> realClass = anOR instanceof Class ? (Class<?>) anOR : anOR.getClass();
+            JavaClass javaClass = _resolver.getJavaClassForClass(realClass);
+            String innerClassName = javaClass != null ? javaClass.getName() + '$' + aName : null;
+            JavaClass cls = javaClass.getInnerClassForName(innerClassName);
+            if (cls != null)
+                return cls;
+        }
 
         // Look for root level class
         JavaClass rootLevelClass = _resolver.getJavaClassForName(aName);
