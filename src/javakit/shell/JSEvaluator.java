@@ -52,7 +52,7 @@ public class JSEvaluator {
         // Create Statement eval
         _stmtEval = new JSEvalStmt();
         _stmtEval._resolver = _resolver;
-        _exprEval = JSEvalExpr.get(_javaShell);
+        _exprEval = JSEvalExpr.getExprEvaluatorForThisObject(_javaShell);
         _exprEval._resolver = _resolver;
     }
 

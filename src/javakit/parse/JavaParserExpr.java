@@ -597,27 +597,27 @@ public class JavaParserExpr extends Parser {
             if (anId == "PrimitiveType")
                 getPart().setType(aNode.getCustomNode(JType.class));
 
-                // Handle ArrayDimsAndInits
+            // Handle ArrayDimsAndInits
             else if (anId == "Expression" && getPart().getType() != null && getPart().getType().isArrayType())
                 getPart().setArrayDims(aNode.getCustomNode(JExpr.class));
 
-                // Handle ArrayDimsAndInits ArrayInit
+            // Handle ArrayDimsAndInits ArrayInit
             else if (anId == "ArrayInit")
                 getPart().setArrayInits(aNode.getCustomNode(List.class));
 
-                // Handle ClassType
+            // Handle ClassType
             else if (anId == "ClassType")
                 getPart().setType(aNode.getCustomNode(JType.class));
 
-                // Handle TypeArgs, ArrayDimsAndInits
+            // Handle TypeArgs, ArrayDimsAndInits
             else if (anId == "[" && getPart().getType() != null)
                 getPart().getType().setArrayCount(getPart().getType().getArrayCount() + 1);
 
-                // Handle Arguments
+            // Handle Arguments
             else if (anId == "Arguments")
                 getPart().setArgs(aNode.getCustomNode(List.class));
 
-                // Handle ClassBody
+            // Handle ClassBody
             else if (anId == "ClassBody") {
                 JClassDecl cd = aNode.getCustomNode(JClassDecl.class);
                 cd.addExtendsType(getPart().getType());

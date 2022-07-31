@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.util.*;
 
 import javakit.reflect.*;
@@ -14,19 +13,19 @@ import snap.util.ArrayUtils;
 public class JExprAlloc extends JExpr {
 
     // The Allocation type
-    JType _type;
+    protected JType  _type;
 
     // The allocation args
-    List<JExpr> _args = Collections.EMPTY_LIST;
+    protected List<JExpr>  _args = Collections.EMPTY_LIST;
 
     // The dimensions expression, if array
-    JExpr _arrayDims;
+    protected JExpr  _arrayDims;
 
-    // The array init expressionss, if array
-    List<JExpr> _arrayInits = Collections.EMPTY_LIST;
+    // The array init expressions, if array
+    protected List<JExpr>  _arrayInits = Collections.EMPTY_LIST;
 
     // The allocation JClassDecl
-    JClassDecl _classDecl;
+    protected JClassDecl  _classDecl;
 
     /**
      * Returns the allocation JType.
@@ -82,10 +81,7 @@ public class JExprAlloc extends JExpr {
     /**
      * Returns the array dimensions.
      */
-    public JExpr getArrayDims()
-    {
-        return _arrayDims;
-    }
+    public JExpr getArrayDims()  { return _arrayDims; }
 
     /**
      * Sets the array dimension.
@@ -98,10 +94,7 @@ public class JExprAlloc extends JExpr {
     /**
      * Returns the array init expressions, if array.
      */
-    public List<JExpr> getArrayInits()
-    {
-        return _arrayInits;
-    }
+    public List<JExpr> getArrayInits()  { return _arrayInits; }
 
     /**
      * Sets the array init expressions, if array.
@@ -116,10 +109,7 @@ public class JExprAlloc extends JExpr {
     /**
      * Returns the allocation ClassBodyDecl.
      */
-    public JClassDecl getClassDecl()
-    {
-        return _classDecl;
-    }
+    public JClassDecl getClassDecl()  { return _classDecl; }
 
     /**
      * Sets the allocation ClassBodyDecl.
@@ -164,8 +154,5 @@ public class JExprAlloc extends JExpr {
     /**
      * Returns the part name.
      */
-    public String getNodeString()
-    {
-        return "Allocation";
-    }
+    public String getNodeString()  { return "Allocation"; }
 }

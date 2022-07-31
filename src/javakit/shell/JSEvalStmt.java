@@ -15,7 +15,7 @@ import snap.util.ListUtils;
 public class JSEvalStmt {
 
     // The Expression evaluator
-    private JSEvalExpr  _exprEval = JSEvalExpr.get(null);
+    private JSEvalExpr  _exprEval = JSEvalExpr.getExprEvaluatorForThisObject(null);
 
     // A parser to parse expressions
     private static Parser  _stmtParser = new StmtParser();

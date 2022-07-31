@@ -8,6 +8,7 @@ import javakit.parse.*;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.Resolver;
+import static javakit.shell.JSEvalExprUtils.*;
 import snap.parse.Parser;
 import snap.util.*;
 
@@ -144,7 +145,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JIdentifier.
      */
-    Object evalName(Object anOR, String aName) throws Exception
+    private Object evalName(Object anOR, String aName) throws Exception
     {
         // If name is "this", return ThisObject
         if (aName == null) return null;
@@ -170,7 +171,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprMethodCall.
      */
-    Object evalJExprMethodCall(Object anOR, JExprMethodCall anExpr) throws Exception
+    private Object evalJExprMethodCall(Object anOR, JExprMethodCall anExpr) throws Exception
     {
         // If object null, throw NullPointerException
         if (anOR == null)
@@ -198,25 +199,23 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprArrayIndex.
      */
-    Object evalJExprArrayIndex(Object anOR, JExprArrayIndex anExpr) throws Exception
+    private Object evalJExprArrayIndex(Object anOR, JExprArrayIndex anExpr) throws Exception
     {
         // Get Array
         JExpr arrayExpr = anExpr.getArrayExpr();
         Object arrayObj = evalExpr(anOR, arrayExpr);
         if (!isArray(arrayObj))
             return null;
-        Object[] array = (Object[]) arrayObj;
 
         // Get Index
-        JExpr indexExpr = anExpr.getIndexExpr();
         Object thisObj = thisObject();
-        arrayObj = evalExpr(thisObj, indexExpr);
-        if (!isPrimitive(arrayObj))
-            return null;
-        int index = intValue(arrayObj);
+        JExpr indexExpr = anExpr.getIndexExpr();
+        Object indexObj = evalExpr(thisObj, indexExpr);
+        //if (!isPrimitive(indexObj)) return null;
+        int index = intValue(indexObj);
 
-        // Return ArrayReference value at index
-        return arrayValue(array, index);
+        // Return Array value at index
+        return Array.get(arrayObj, index);
     }
 
     /**
@@ -229,15 +228,45 @@ public class JSEvalExpr {
         JavaClass javaClass = exprDecl.getEvalClass();
         Class<?> realClass = javaClass.getRealClass();
 
+        // Handle array
+        if (realClass.isArray()) {
+
+            // Get Index
+            JExpr dimensionExpr = anExpr.getArrayDims(); // Should be a list
+            if (dimensionExpr != null) {
+
+                // Get dimension
+                Object thisObj = thisObject();
+                Object dimensionObj = evalExpr(thisObj, dimensionExpr);
+                int arrayLen = intValue(dimensionObj);
+
+                // Create/return array
+                Class<?> compClass = realClass.getComponentType();
+                return Array.newInstance(compClass, arrayLen);
+            }
+        }
+
+        // Get arg info
+        Object thisObj = thisObject();
+        List<JExpr> argExprs = anExpr.getArgs();
+        int argCount = argExprs.size();
+        Object[] argValues = new Object[argCount];
+
+        // Iterate over arg expressions and get evaluated values
+        for (int i = 0; i < argCount; i++) {
+            JExpr argExpr = argExprs.get(i);
+            argValues[i] = evalExpr(thisObj, argExpr);
+        }
+
         // Create new instance and return
-        Object newInstance = realClass.newInstance();
+        Object newInstance = invokeConstructor(realClass, argValues);
         return newInstance;
     }
 
     /**
      * Evaluate JExprChain.
      */
-    Object evalJExprChain(Object anOR, JExprChain anExpr) throws Exception
+    private Object evalJExprChain(Object anOR, JExprChain anExpr) throws Exception
     {
         Object val = anOR; //Object or = anOR;
         for (int i = 0, iMax = anExpr.getExprCount(); i < iMax; i++) {
@@ -251,7 +280,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprMath.
      */
-    Object evalJExprMath(Object anOR, JExprMath anExpr) throws Exception
+    private Object evalJExprMath(Object anOR, JExprMath anExpr) throws Exception
     {
         // Get Op and OpCount
         JExprMath.Op op = anExpr.getOp();
@@ -329,7 +358,7 @@ public class JSEvalExpr {
     /**
      * Handle JExprMath Assign.
      */
-    Object evalJExprMathAssign(Object anOR, JExprMath anExpr) throws Exception
+    private Object evalJExprMathAssign(Object anOR, JExprMath anExpr) throws Exception
     {
         // Get name expression/name
         JExpr nameExpr = anExpr.getOperand(0);
@@ -355,256 +384,9 @@ public class JSEvalExpr {
     }
 
     /**
-     * Add two values.
-     */
-    Object add(Object aVal1, Object aVal2)
-    {
-        if (isString(aVal1) || isString(aVal2))
-            return mirrorOf(toString(aVal1) + toString(aVal2));
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) + doubleValue(aVal2);
-            return value(result, aVal1, aVal2);
-        }
-        throw new RuntimeException("Can't add types " + aVal1 + " + " + aVal2);
-    }
-
-    /**
-     * Subtract two values.
-     */
-    Object subtract(Object aVal1, Object aVal2)
-    {
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) - doubleValue(aVal2);
-            return value(result, aVal1, aVal2);
-        }
-        throw new RuntimeException("Can't subtract types " + aVal1 + " + " + aVal2);
-    }
-
-    /**
-     * Multiply two values.
-     */
-    Object multiply(Object aVal1, Object aVal2)
-    {
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) * doubleValue(aVal2);
-            return value(result, aVal1, aVal2);
-        }
-        throw new RuntimeException("Can't multiply types " + aVal1 + " + " + aVal2);
-    }
-
-    /**
-     * Divide two values.
-     */
-    Object divide(Object aVal1, Object aVal2)
-    {
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) / doubleValue(aVal2);
-            return value(result, aVal1, aVal2);
-        }
-        throw new RuntimeException("Can't divide types " + aVal1 + " + " + aVal2);
-    }
-
-    /**
-     * Mod two values.
-     */
-    Object mod(Object aVal1, Object aVal2)
-    {
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = longValue(aVal1) % longValue(aVal2);
-            return value(result, aVal1, aVal2);
-        }
-        throw new RuntimeException("Can't mod types " + aVal1 + " + " + aVal2);
-    }
-
-    /**
-     * Compare two numeric values.
-     */
-    Object compareNumeric(Object aVal1, Object aVal2, JExprMath.Op anOp)
-    {
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double v1 = doubleValue(aVal1), v2 = doubleValue(aVal2);
-            boolean val = compareNumeric(v1, v2, anOp);
-            return mirrorOf(val);
-        }
-        throw new RuntimeException("Can't numeric compare types " + aVal1 + " + " + aVal2);
-    }
-
-    /**
-     * Compare two numeric values.
-     */
-    boolean compareNumeric(double aVal1, double aVal2, JExprMath.Op anOp)
-    {
-        switch (anOp) {
-            case Equal: return aVal1 == aVal2;
-            case NotEqual: return aVal1 != aVal2;
-            case LessThan: return aVal1 < aVal2;
-            case GreaterThan: return aVal1 > aVal2;
-            case LessThanOrEqual: return aVal1 <= aVal2;
-            case GreaterThanOrEqual: return aVal1 >= aVal2;
-            default: throw new RuntimeException("Not a compare op " + anOp);
-        }
-    }
-
-    /**
-     * Compare two boolean values.
-     */
-    Object compareLogical(Object aVal1, Object aVal2, JExprMath.Op anOp)
-    {
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            boolean v1 = boolValue(aVal1), v2 = boolValue(aVal2);
-            boolean val = compareLogical(v1, v2, anOp);
-            return mirrorOf(val);
-        }
-        throw new RuntimeException("Can't logical compare types " + aVal1 + " + " + aVal2);
-    }
-
-    /**
-     * Compare two values.
-     */
-    boolean compareLogical(boolean aVal1, boolean aVal2, JExprMath.Op anOp)
-    {
-        if (anOp == JExprMath.Op.And) return aVal1 && aVal2;
-        if (anOp == JExprMath.Op.Or) return aVal1 && aVal2;
-        throw new RuntimeException("Not a compare op " + anOp);
-    }
-
-    /**
-     * Return value of appropriate type for given number and original two values.
-     */
-    Object value(double aValue, Object aVal1, Object aVal2)
-    {
-        if (isDouble(aVal1) || isDouble(aVal2))
-            return mirrorOf(aValue);
-        if (isFloat(aVal1) || isFloat(aVal2))
-            return mirrorOf((float) aValue);
-        if (isLong(aVal1) || isLong(aVal2))
-            return mirrorOf((long) aValue);
-        if (isInt(aVal1) || isInt(aVal2))
-            return mirrorOf((int) aValue);
-        throw new RuntimeException("Can't discern value type for " + aVal1 + " and " + aVal2);
-    }
-
-    /**
      * Return the current this object.
      */
-    public Object thisObject()
-    {
-        return _thisObj;
-    }
-
-    /**
-     * Return whether object is primitive.
-     */
-    public boolean isPrimitive(Object anObj)
-    {
-        return isInt(anObj) || isLong(anObj) || isFloat(anObj) || isDouble(anObj);
-    }
-
-    /**
-     * Return whether object is boolean.
-     */
-    public boolean isBoolean(Object anObj)
-    {
-        return anObj instanceof Boolean;
-    }
-
-    /**
-     * Return whether object is int.
-     */
-    public boolean isInt(Object anObj)
-    {
-        return anObj instanceof Integer;
-    }
-
-    /**
-     * Return whether object is long.
-     */
-    public boolean isLong(Object anObj)
-    {
-        return anObj instanceof Long;
-    }
-
-    /**
-     * Return whether object is float.
-     */
-    public boolean isFloat(Object anObj)
-    {
-        return anObj instanceof Float;
-    }
-
-    /**
-     * Return whether object is double.
-     */
-    public boolean isDouble(Object anObj)
-    {
-        return anObj instanceof Double;
-    }
-
-    /**
-     * Return whether object is String.
-     */
-    public boolean isString(Object anObj)
-    {
-        return anObj instanceof String;
-    }
-
-    /**
-     * Returns whether object is array value.
-     */
-    public boolean isArray(Object anObj)
-    {
-        return anObj != null && anObj.getClass().isArray();
-    }
-
-    /**
-     * Returns the boolean value.
-     */
-    public boolean boolValue(Object anObj)
-    {
-        return SnapUtils.boolValue(anObj);
-    }
-
-    /**
-     * Returns the int value.
-     */
-    public int intValue(Object anObj)
-    {
-        return SnapUtils.intValue(anObj);
-    }
-
-    /**
-     * Returns the long value.
-     */
-    public long longValue(Object anObj)
-    {
-        return SnapUtils.longValue(anObj);
-    }
-
-    /**
-     * Returns the float value.
-     */
-    public float floatValue(Object anObj)
-    {
-        return SnapUtils.floatValue(anObj);
-    }
-
-    /**
-     * Returns the double value.
-     */
-    public double doubleValue(Object anObj)
-    {
-        return SnapUtils.doubleValue(anObj);
-    }
-
-    /**
-     * Returns the array value at given index.
-     */
-    public Object arrayValue(Object anObj, int anIndex)
-    {
-        if (anObj instanceof Object[])
-            return ((Object[]) anObj)[anIndex];
-        return null;
-    }
+    public Object thisObject()  { return _thisObj; }
 
     /**
      * Returns whether there is a local variable for name.
@@ -683,9 +465,28 @@ public class JSEvalExpr {
     }
 
     /**
+     * Invoke constructor.
+     */
+    public Object invokeConstructor(Class<?> aClass, Object[] theArgs) throws Exception
+    {
+        // Get parameter classes
+        Class<?>[] paramClasses = new Class[theArgs.length];
+        for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
+            Object arg = theArgs[i];
+            paramClasses[i] = arg != null ? arg.getClass() : null;
+        }
+
+        // Get method
+        Constructor<?> constructor = MethodUtils.getConstructor(aClass, paramClasses);
+
+        // Invoke method
+        return constructor.newInstance(theArgs);
+    }
+
+    /**
      * Returns a class for given name.
      */
-    public Class getClassForName(Object anOR, String aName)
+    protected static final Class getClassForName(Object anOR, String aName)
     {
         // Look for inner class
         String icname = anOR.getClass().getName() + '$' + aName;
@@ -709,25 +510,9 @@ public class JSEvalExpr {
     }
 
     /**
-     * Return the current this object.
-     */
-    public Object mirrorOf(Object anObj)
-    {
-        return anObj;
-    }
-
-    /**
-     * Return the current this object.
-     */
-    public String toString(Object anObj)
-    {
-        return anObj != null ? anObj.toString() : null;
-    }
-
-    /**
      * Returns a new evaluator for given object.
      */
-    public static JSEvalExpr get(Object anObj)
+    public static JSEvalExpr getExprEvaluatorForThisObject(Object anObj)
     {
         JSEvalExpr eval = new JSEvalExpr();
         eval._thisObj = anObj;
