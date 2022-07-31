@@ -107,7 +107,11 @@ public class JSEvalExpr {
         //if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
         //if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
         //if(aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr)aExpr);
-        //if(aExpr instanceof JExprLambda) writeJExprLambda((JExprLambda)aExpr);
+
+        // Handle lambda expression
+        //if(anExpr instanceof JExprLambda)
+        //    writeJExprLambda((JExprLambda)aExpr);
+
         //if(aExpr instanceof JExprMethodRef) writeJExprMethodRef((JExprMethodRef)aExpr);
         //if(aExpr instanceof JExprType) writeJExprType((JExprType)aExpr); */
 
@@ -229,6 +233,27 @@ public class JSEvalExpr {
 
         // Handle array
         if (realClass.isArray()) {
+
+            // Handle inits
+            List<JExpr> initsExpr = anExpr.getArrayInits();
+            if (initsExpr != null) {
+
+                // Create array
+                int arrayLen = initsExpr.size();
+                Class<?> compClass = realClass.getComponentType();
+                Object array = Array.newInstance(compClass, arrayLen);
+                Object thisObj = thisObject();
+
+                // Iterate over arg expressions and get evaluated values
+                for (int i = 0; i < arrayLen; i++) {
+                    JExpr initExpr = initsExpr.get(i);
+                    Object initValue = evalExpr(thisObj, initExpr);
+                    Array.set(array, i, initValue);
+                }
+
+                // Return
+                return array;
+            }
 
             // Get Index
             JExpr dimensionExpr = anExpr.getArrayDims(); // Should be a list
