@@ -48,6 +48,10 @@ public class Resolver {
         ClassLoader classLoader = getClassLoader();
         Class<?> cls = ClassUtils.getClassForName(aName, classLoader);
 
+        // If not found and name doesn't contain '.', try java.lang.Name
+        if (cls == null && aName.indexOf('.') < 0)
+            cls = ClassUtils.getClassForName("java.lang." + aName, classLoader);
+
         // Return
         return cls;
     }

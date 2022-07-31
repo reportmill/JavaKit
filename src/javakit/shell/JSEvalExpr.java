@@ -118,7 +118,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprLiteral.
      */
-    Object evalJExprLiteral(JExprLiteral aLiteral) throws Exception
+    private Object evalJExprLiteral(JExprLiteral aLiteral) throws Exception
     {
         switch (aLiteral.getLiteralType()) {
             case Boolean: return (Boolean) aLiteral.getValue();
@@ -136,7 +136,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprId.
      */
-    Object evalJExprId(Object anOR, JExprId anId) throws Exception
+    private Object evalJExprId(Object anOR, JExprId anId) throws Exception
     {
         String name = anId.getName();
         return evalName(anOR, name);
@@ -210,8 +210,7 @@ public class JSEvalExpr {
         // Get Index
         Object thisObj = thisObject();
         JExpr indexExpr = anExpr.getIndexExpr();
-        Object indexObj = evalExpr(thisObj, indexExpr);
-        //if (!isPrimitive(indexObj)) return null;
+        Object indexObj = evalExpr(thisObj, indexExpr); //if (!isPrimitive(indexObj)) return null;
         int index = intValue(indexObj);
 
         // Return Array value at index
@@ -269,11 +268,15 @@ public class JSEvalExpr {
     private Object evalJExprChain(Object anOR, JExprChain anExpr) throws Exception
     {
         Object val = anOR; //Object or = anOR;
+
+        // Iterate over chain
         for (int i = 0, iMax = anExpr.getExprCount(); i < iMax; i++) {
             JExpr expr = anExpr.getExpr(i);
             val = evalExpr(val, expr); //val = evalExpr(or, expr);
             //if(val instanceof ObjectReference) or = (ObjectReference)val;
         }
+
+        // Return
         return val;
     }
 
@@ -360,16 +363,37 @@ public class JSEvalExpr {
      */
     private Object evalJExprMathAssign(Object anOR, JExprMath anExpr) throws Exception
     {
-        // Get name expression/name
-        JExpr nameExpr = anExpr.getOperand(0);
-        String name = nameExpr.getName();
-
         // Get value expression/value
         JExpr valExpr = anExpr.getOperand(1);
         Object value = evalExpr(anOR, valExpr);
 
+        // Get name expression/name
+        JExpr leftSideExpr = anExpr.getOperand(0);
+
+        // Handle array
+        if (leftSideExpr instanceof JExprArrayIndex) {
+
+            // Get name
+            JExprArrayIndex arrayIndexExpr = (JExprArrayIndex) leftSideExpr;
+            JExpr arrayNameExpr = arrayIndexExpr.getArrayExpr();
+            String arrayName = arrayNameExpr.getName();
+
+            // Get Index
+            Object thisObj = thisObject();
+            JExpr indexExpr = arrayIndexExpr.getIndexExpr();
+            Object indexObj = evalExpr(thisObj, indexExpr); //if (!isPrimitive(indexObj)) return null;
+            int index = intValue(indexObj);
+
+            // Set value
+            setLocalVarArrayValueAtIndex(arrayName, value, index);
+            return value;
+        }
+
+        // Get name of variable
+        String varName = leftSideExpr.getName();
+
         // Set local var value and return value
-        setLocalVarValue(name, value);
+        setLocalVarValue(varName, value);
         return value;
     }
 
@@ -413,6 +437,15 @@ public class JSEvalExpr {
     public void setLocalVarValue(String aName, Object aValue)
     {
         _locals.put(aName, aValue);
+    }
+
+    /**
+     * Sets a local variable value by name.
+     */
+    public void setLocalVarArrayValueAtIndex(String aName, Object aValue, int anIndex)
+    {
+        Object array = getLocalVarValue(aName);
+        Array.set(array, anIndex, aValue);
     }
 
     /**
@@ -486,26 +519,32 @@ public class JSEvalExpr {
     /**
      * Returns a class for given name.
      */
-    protected static final Class getClassForName(Object anOR, String aName)
+    protected Class<?> getClassForName(Object anOR, String aName)
+    {
+        JavaClass javaClass = getJavaClassForName(anOR, aName);
+        Class<?> realClass = javaClass != null ? javaClass.getRealClass() : null;
+        return realClass;
+    }
+
+    /**
+     * Returns a class for given name.
+     */
+    protected JavaClass getJavaClassForName(Object anOR, String aName)
     {
         // Look for inner class
-        String icname = anOR.getClass().getName() + '$' + aName;
-        Class cls = ClassUtils.getClassForName(icname);
+        Class<?> realClass = anOR instanceof Class ? (Class<?>) anOR : anOR.getClass();
+        JavaClass javaClass = _resolver.getJavaClassForClass(realClass);
+        String innerClassName = javaClass.getName() + '$' + aName;
+        JavaClass cls = javaClass.getInnerClassForName(innerClassName);
         if (cls != null)
             return cls;
 
         // Look for root level class
-        cls = ClassUtils.getClassForName(aName);
-        if (cls != null)
-            return cls;
+        JavaClass rootLevelClass = _resolver.getJavaClassForName(aName);
+        if (rootLevelClass != null)
+            return rootLevelClass;
 
-        // Look for standard class
-        String sname = "java.lang." + aName;
-        cls = ClassUtils.getClassForName(sname);
-        if (cls != null)
-            return cls;
-
-        // Return null since not found
+        // Return not found
         return null;
     }
 
