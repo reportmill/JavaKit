@@ -91,7 +91,7 @@ public class JavaClass extends JavaType {
         _updater = new JavaClassUpdater(this);
 
         // Get type super type and set in decl
-        Type superType = aClass.getGenericSuperclass();
+        Type superType = _resolver.getGenericSuperClassForClass(aClass);
         if (superType != null) {
             _superType = _resolver.getJavaTypeForType(superType);
             _superClass = _superType.getEvalClass();

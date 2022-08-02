@@ -23,7 +23,7 @@ public class JavaMethod extends JavaExecutable {
         super(aResolver, DeclType.Method, aDeclaringClass, aMethod);
 
         // Get whether default
-        _default = aMethod.isDefault();
+        _default = _resolver.isDefaultMethod(aMethod);
     }
 
     /**
@@ -32,7 +32,7 @@ public class JavaMethod extends JavaExecutable {
     protected void initTypes(Method aMethod)
     {
         // Get/set EvalType to method return Type
-        Type returnType = aMethod.getGenericReturnType();
+        Type returnType = _resolver.getGenericReturnTypeForMethod(aMethod);
         _evalType = _resolver.getJavaTypeForType(returnType);
 
         // Do normal version

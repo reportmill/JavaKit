@@ -30,7 +30,7 @@ public class JavaExecutable extends JavaMember {
         _varArgs = isVarArgs(aMember);
 
         // Get TypeVariables
-        TypeVariable<?>[] typeVars = getTypeParameters(aMember);
+        TypeVariable<?>[] typeVars = aResolver.getTypeParametersForExecutable(aMember);
         _typeVars = new JavaTypeVariable[typeVars.length];
         for (int i = 0, iMax = typeVars.length; i < iMax; i++)
             _typeVars[i] = new JavaTypeVariable(_resolver, this, typeVars[i]);
@@ -42,7 +42,7 @@ public class JavaExecutable extends JavaMember {
     protected void initTypes(Member aMember)
     {
         // Get ParameterTypes
-        Type[] paramTypes = getGenericParameterTypes(aMember);
+        Type[] paramTypes = _resolver.getGenericParameterTypesForExecutable(aMember);
         _paramTypes = _resolver.getJavaTypesForTypes(paramTypes);
     }
 
@@ -297,37 +297,5 @@ public class JavaExecutable extends JavaMember {
         if (aMember instanceof Method)
             return ((Method) aMember).isVarArgs();
         return ((Constructor<?>) aMember).isVarArgs();
-    }
-
-    /**
-     * Returns TypeVariables.
-     */
-    private static TypeVariable<?>[] getTypeParameters(Member aMember)
-    {
-        if (aMember instanceof Method)
-            return ((Method) aMember).getTypeParameters();
-        return ((Constructor<?>) aMember).getTypeParameters();
-    }
-
-    /**
-     * Returns ParameterTypes.
-     */
-    private static Type[] getGenericParameterTypes(Member aMember)
-    {
-        // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
-        if (aMember instanceof Method) {
-            Method method = (Method) aMember;
-            Type[] paramTypes = method.getGenericParameterTypes();
-            if (paramTypes.length < method.getParameterCount())
-                paramTypes = method.getParameterTypes();
-            return paramTypes;
-        }
-
-        // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
-        Constructor<?> constructor = (Constructor<?>) aMember;
-        Type[] paramTypes = constructor.getGenericParameterTypes();
-        if (paramTypes.length < constructor.getParameterCount())
-            paramTypes = constructor.getParameterTypes();
-        return paramTypes;
     }
 }

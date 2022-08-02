@@ -140,7 +140,7 @@ public class JavaClassUpdater {
     private void updateTypeVariables(Class<?> realClass, Set<JavaDecl> removedDecls) throws SecurityException
     {
         // Get TypeVariables
-        TypeVariable<?>[] typeVariables = realClass.getTypeParameters();
+        TypeVariable<?>[] typeVariables = _resolver.getTypeParametersForClass(realClass);
 
         // Add JavaDecl for each Type parameter
         for (TypeVariable<?> typeVariable : typeVariables) {
@@ -161,7 +161,7 @@ public class JavaClassUpdater {
     private void updateInnerClasses(Class<?> realClass, Set<JavaDecl> removedDecls) throws SecurityException
     {
         // Get Inner Classes
-        Class<?>[] innerClasses = realClass.getDeclaredClasses();
+        Class<?>[] innerClasses = _resolver.getDeclaredClassesForClass(realClass);
 
         // Add JavaDecl for each inner class
         for (Class<?> innerClass : innerClasses) {   //if(icls.isSynthetic()) continue;
