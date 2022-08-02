@@ -104,7 +104,7 @@ public class JSEvalStmt {
     /**
      * Evaluate JStmtExpr.
      */
-    public Object evalJStmtExpr(JStmtExpr aStmt)
+    public Object evalJStmtExpr(JStmtExpr aStmt) throws Exception
     {
         JExpr expr = aStmt.getExpr();
         Object val = evalJExpr(expr);
@@ -122,38 +122,39 @@ public class JSEvalStmt {
     /**
      * Evaluate JStmtVarDecl.
      */
-    public Object evalJStmtVarDecl(JStmtVarDecl aStmt)
+    public Object evalJStmtVarDecl(JStmtVarDecl aStmt) throws Exception
     {
+        // Get list
+        List<JVarDecl> varDecls = aStmt.getVarDecls();
         List vals = new ArrayList();
-        for (JVarDecl vd : aStmt.getVarDecls()) {
-            JExpr iexpr = vd.getInitializer();
-            if (iexpr != null) {
-                Object val = evalJExpr(iexpr);
-                _exprEval.setLocalVarValue(vd.getName(), val);
+
+        // Iterate over VarDecls
+        for (JVarDecl varDecl : varDecls) {
+
+            // If initializer expression, evaluate and set local var
+            JExpr initExpr = varDecl.getInitializer();
+            if (initExpr != null) {
+                Object val = evalJExpr(initExpr);
+                _exprEval.setLocalVarValue(varDecl.getName(), val);
                 vals.add(val);
             }
         }
 
+        // If one value, just return it
         if (vals.size() == 1)
             return vals.get(0);
+
+        // Otherwise, return joined string
         return ListUtils.joinStrings(vals, ", ");
     }
 
     /**
      * Evaluate JStmtExpr.
      */
-    public Object evalJExpr(JExpr anExpr)
+    public Object evalJExpr(JExpr anExpr) throws Exception
     {
         // Evaluate expr
-        Object val;
-        try {
-            val = _exprEval.evalExpr(anExpr);
-        }
-
-        // Handle exceptions
-        catch (Exception e) {
-            return e;
-        }
+        Object val = _exprEval.evalExpr(anExpr);
 
         // Return
         return val;

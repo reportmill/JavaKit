@@ -95,13 +95,19 @@ public class JSEvaluator {
         TextArea tview = _javaShell.getConsole().getConsoleView();
         int start = tview.length();
 
-        // Eval as statement (or expression, if that fails)
+        // Eval line as statement
         Object val = null;
-        try { val = _stmtEval.eval(_javaShell, line); }
+        try {
+            val = _stmtEval.eval(_javaShell, line);
+        }
 
         // Handle statement eval exception: Try expression
         catch (Exception e) {
-            try { val = _exprEval.eval(line); }
+
+            // Try Expression evaluator
+            try {
+                val = _exprEval.eval(line);
+            }
             catch (Exception e2) { }
         }
 
