@@ -7,6 +7,7 @@ import javakit.parse.*;
 import javakit.reflect.JavaDecl;
 import javakit.resolver.Project;
 import snap.gfx.*;
+import snap.props.Undoer;
 import snap.util.*;
 import snap.view.*;
 import snap.viewx.TextPane;
@@ -138,9 +139,22 @@ public class JavaTextPane extends TextPane {
         super.resetUI();
 
         // Reset FontSizeText
-        setViewValue("FontSizeText", getTextArea().getFont().getSize());
+        JavaTextArea textArea = getTextArea();
+        setViewValue("FontSizeText", textArea.getFont().getSize());
 
-        // Clear path box and add Lin/Col postion label
+        // Update UndoButton, RedoButton
+        Undoer undoer = textArea.getUndoer();
+        boolean hasUndos = undoer.hasUndos();
+        setViewEnabled("UndoButton", hasUndos);
+        setViewEnabled("RedoButton", hasUndos);
+
+        // Update JavaDocButton
+        String javaDocURL = getJavaDocURL();
+        setViewVisible("JavaDocButton", javaDocURL != null);
+        String javaDocText = getJavaDocText();
+        setViewText("JavaDocButton", javaDocText);
+
+        // Clear path box and add Lin/Col position label
         RowView nodePathBox = getView("BottomBox", RowView.class);
         while (nodePathBox.getChildCount() > 1) nodePathBox.removeChild(1);
         Font font = Font.get("Arial", 11);

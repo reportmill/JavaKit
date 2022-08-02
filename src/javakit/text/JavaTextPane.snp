@@ -11,20 +11,13 @@
   <Button Name="IncreaseFontButton" PrefWidth="22" PrefHeight="22" ToolTip="Increase Font Size" image="/snap/viewx/pkg.images/Font_Increase.png" ShowBorder="false" />
   <Button Name="DecreaseFontButton" PrefWidth="22" PrefHeight="22" ToolTip="Decrease Font Size" image="/snap/viewx/pkg.images/Font_Decrease.png" ShowBorder="false" />
   <Separator PrefHeight="18" Vertical="true" />
-  <Button Name="UndoButton" PrefWidth="22" PrefHeight="22" ToolTip="Undo" image="/snap/viewx/pkg.images/Edit_Undo.png" ShowBorder="false">
-    <binding aspect="Enabled" key="TextArea.Undoer.hasUndos" />
-  </Button>
-  <Button Name="RedoButton" PrefWidth="22" PrefHeight="22" ToolTip="Redo" image="/snap/viewx/pkg.images/Edit_Redo.png" ShowBorder="false">
-    <binding aspect="Enabled" key="TextArea.Undoer.hasRedos" />
-  </Button>
+  <Button Name="UndoButton" PrefWidth="22" PrefHeight="22" ToolTip="Undo" image="/snap/viewx/pkg.images/Edit_Undo.png" ShowBorder="false" />
+  <Button Name="RedoButton" PrefWidth="22" PrefHeight="22" ToolTip="Redo" image="/snap/viewx/pkg.images/Edit_Redo.png" ShowBorder="false" />
   <Separator PrefHeight="18" Vertical="true" />
   <TextField Name="FindText" PrefWidth="172" PrefHeight="22" />
   <CheckBox Name="IgnoreCaseCheckBox" PrefWidth="47" PrefHeight="22" text="IC" Selected="true" />
   <Separator PrefHeight="18" Vertical="true" />
   <Button Name="CodeBuilderButton" PrefWidth="22" PrefHeight="22" ToolTip="Code Builder" image="Code.png" />
-  <Button Name="JavaDocButton" PrefWidth="116" PrefHeight="22" LeanX="RIGHT" text="Documentation">
-    <binding aspect="Visible" key="JavaDocURL" />
-    <binding aspect="Text" key="JavaDocText" />
-  </Button>
+  <Button Name="JavaDocButton" PrefWidth="116" PrefHeight="22" LeanX="RIGHT" text="Documentation" />
   <Button Name="SnapCodeButton" PrefWidth="75" PrefHeight="22" LeanX="RIGHT" ToolTip="Snap Code" text="SnapCode" />
 </RowView>

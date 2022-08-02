@@ -172,6 +172,11 @@ public class JSConsole extends ViewOwner {
         _tview.setPadding(4, 4, 4, 4);
     }
 
+    @Override
+    protected void resetUI()
+    {
+    }
+
     /**
      * Respond to UI controls.
      */
