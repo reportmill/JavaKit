@@ -47,7 +47,7 @@ public class JSEvaluator {
         _javaShell = aPG;
 
         // Create Resolver
-        _resolver = new Resolver(getClass().getClassLoader());
+        _resolver = Resolver.newResolverForClassLoader(getClass().getClassLoader());
 
         // Create Statement eval
         _stmtEval = new JSEvalStmt();

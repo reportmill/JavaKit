@@ -5,6 +5,7 @@ package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
 import snap.util.ClassUtils;
+import snap.util.SnapUtils;
 
 /**
  * A class that manages all the JavaDecls for a project.
@@ -306,7 +307,7 @@ public class Resolver {
      */
     public Type getGenericSuperClassForClass(Class<?> aClass)
     {
-        return aClass.getGenericSuperclass();
+        return aClass.getSuperclass();
     }
 
     /**
@@ -314,7 +315,7 @@ public class Resolver {
      */
     public TypeVariable<?>[] getTypeParametersForClass(Class<?> aClass)
     {
-        return aClass.getTypeParameters();
+        return new TypeVariable<?>[0];
     }
 
     /**
@@ -322,7 +323,7 @@ public class Resolver {
      */
     public Class<?>[] getDeclaredClassesForClass(Class<?> aClass)
     {
-        return aClass.getDeclaredClasses();
+        return new Class<?>[0];
     }
 
     /**
@@ -330,7 +331,7 @@ public class Resolver {
      */
     public Type getGenericTypeForField(Field aField)
     {
-        return aField.getGenericType();
+        return aField.getType();
     }
 
     /**
@@ -338,7 +339,7 @@ public class Resolver {
      */
     public Type getGenericReturnTypeForMethod(Method aMethod)
     {
-        return aMethod.getGenericReturnType();
+        return aMethod.getReturnType();
     }
 
     /**
@@ -346,8 +347,7 @@ public class Resolver {
      */
     public TypeVariable<?>[] getTypeParametersForExecutable(Member aMember)
     {
-        Executable exec = (Executable) aMember;
-        return exec.getTypeParameters();
+        return new TypeVariable<?>[0];
     }
 
     /**
@@ -355,12 +355,9 @@ public class Resolver {
      */
     public Type[] getGenericParameterTypesForExecutable(Member aMember)
     {
-        // Get GenericParameterTypes (this can fail https://bugs.openjdk.java.net/browse/JDK-8075483))
-        Executable exec = (Executable) aMember;
-        Type[] paramTypes = exec.getGenericParameterTypes();
-        if (paramTypes.length < exec.getParameterCount())
-            paramTypes = exec.getParameterTypes();
-        return paramTypes;
+        if (aMember instanceof Method)
+            return ((Method) aMember).getParameterTypes();
+        return ((Constructor<?>) aMember).getParameterTypes();
     }
 
     /**
@@ -368,7 +365,7 @@ public class Resolver {
      */
     public boolean isDefaultMethod(Method aMethod)
     {
-        return aMethod.isDefault();
+        return false;
     }
 
     /**
@@ -385,4 +382,24 @@ public class Resolver {
      * Standard toStringProps implementation.
      */
     public String toStringProps()  { return ""; }
+
+    /**
+     * Creates a new Resolver.
+     */
+    public static Resolver newResolverForClassLoader(ClassLoader aClassLoader)
+    {
+        if (SnapUtils.isTeaVM)
+            return new Resolver(aClassLoader);
+
+        // Try Swing
+        String className = SnapUtils.isTeaVM ? "junk" : "javakit.reflect.ResolverSys";
+        try {
+            Resolver resolver = (Resolver) Class.forName(className).newInstance();
+            resolver._classLoader = aClassLoader;
+            return resolver;
+        }
+        catch(Exception e) {
+            throw new RuntimeException("Resolver.newResolverForClassLoader: Can't create: " + className + ", " + e);
+        }
+    }
 }

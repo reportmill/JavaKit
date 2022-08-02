@@ -113,7 +113,7 @@ public class Project {
 
         // Create Resolver
         ClassLoader classLoader = getClassLoader();
-        Resolver resolver = new Resolver(classLoader);
+        Resolver resolver = Resolver.newResolverForClassLoader(classLoader);
 
         // Set, return
         return _resolver = resolver;
