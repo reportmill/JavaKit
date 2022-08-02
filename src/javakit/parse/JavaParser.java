@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import java.util.*;
+import java.util.stream.Stream;
 import snap.parse.*;
 
 /**
@@ -32,7 +33,6 @@ public class JavaParser extends JavaParserStmt {
     public JavaParser()
     {
         super();
-        installHandlers();
     }
 
     /**
@@ -40,6 +40,7 @@ public class JavaParser extends JavaParserStmt {
      */
     public static JavaParser getShared()
     {
+        if (_shared != null) return _shared;
         return _shared;
     }
 
@@ -49,7 +50,8 @@ public class JavaParser extends JavaParserStmt {
     public Parser getExprParser()
     {
         if (_exprParser != null) return _exprParser;
-        return _exprParser = new Parser(_shared.getRule("Expression"));
+        ParseRule exprRule = getShared().getRule("Expression");
+        return _exprParser = new Parser(exprRule);
     }
 
     /**
@@ -58,7 +60,8 @@ public class JavaParser extends JavaParserStmt {
     public Parser getStmtParser()
     {
         if (_stmtParser != null) return _stmtParser;
-        return _stmtParser = new Parser(_shared.getRule("Statement"));
+        ParseRule stmtRule = getShared().getRule("Statement");
+        return _stmtParser = new Parser(stmtRule);
     }
 
     /**
@@ -67,22 +70,10 @@ public class JavaParser extends JavaParserStmt {
     public Parser getImportsParser()
     {
         if (_importsParser != null) return _importsParser;
-        Parser ip = new JavaParser();
-        ip.setRule(ip.getRule("JavaFileImports"));
-        return _importsParser = ip;
-    }
-
-    /**
-     * Installs handlers.
-     */
-    protected void installHandlers()
-    {
-        // Get Main rule
-        ParseRule mainRule = getRule();
-
-        // Install handlers from list
-        for (Class<? extends ParseHandler<?>> handlerClass : _handlerClasses)
-            ParseUtils.installHandlerForClass(handlerClass, mainRule);
+        Parser javaParser = new JavaParser();
+        ParseRule importsRule = javaParser.getRule("JavaFileImports");
+        javaParser.setRule(importsRule);
+        return _importsParser = javaParser;
     }
 
     /**
@@ -90,7 +81,14 @@ public class JavaParser extends JavaParserStmt {
      */
     protected ParseRule createRule()
     {
+        // Create rule
         ParseRule rule = ParseUtils.loadRule(JavaParser.class, null);
+
+        // Install handlers from list
+        for (Class<? extends ParseHandler<?>> handlerClass : _handlerClasses)
+            ParseUtils.installHandlerForClass(handlerClass, rule);
+
+        // Return
         return rule;
     }
 
@@ -729,4 +727,24 @@ public class JavaParser extends JavaParserStmt {
         ImportDeclHandler.class, PackageDeclHandler.class, JavaFileImportsHandler.class,
         JavaFileHandler.class
     };
+
+    // TeaVM needs this to exist, otherwise RuleNames.intern() != RuleName (and id == RuleName doesn't work)
+    private static String[] _allRuleNames = { "JavaFile", "PackageDecl", "Annotation", "Name", "Identifier", "NormalAnnotation",
+            "MemberValuePairs", "MemberValuePair", "MemberValue", "MemberValueArrayInit", "ConditionalExpr", "ConditionalOrExpr",
+            "ConditionalAndExpr", "InclusiveOrExpr", "ExclusiveOrExpr", "AndExpr", "EqualityExpr", "InstanceOfExpr", "RelationalExpr",
+            "ShiftExpr", "AdditiveExpr", "MultiplicativeExpr", "UnaryExpr", "PreIncrementExpr", "PrimaryExpr", "PrimaryPrefix", "Literal",
+            "IntegerLiteral", "IntLiteral", "HexLiteral", "OctalLiteral", "FloatLiteral", "CharacterLiteral", "StringLiteral",
+            "BooleanLiteral", "NullLiteral", "ClassType", "TypeArgs", "TypeArg", "ReferenceType", "PrimitiveType", "WildcardBounds",
+            "LambdaExpr", "Expression", "AssignmentOp", "Block", "BlockStatement", "Modifiers", "Modifier", "Type", "VarDeclStmt",
+            "VarDecl", "VarInit", "ArrayInit", "Statement", "LabeledStatement", "AssertStatement", "EmptyStatement", "ExprStatement",
+            "PreDecrementExpr", "SwitchStatement", "SwitchLabel", "IfStatement", "WhileStatement", "DoStatement", "ForStatement",
+            "ForInit", "ExprStmtList", "BreakStatement", "ContinueStatement", "ReturnStatement", "ThrowStatement", "SynchronizedStatement",
+            "TryStatement", "FormalParam", "ClassDecl", "TypeParams", "TypeParam", "TypeBound", "ExtendsList", "ImplementsList",
+            "ClassBody", "ClassBodyDecl", "Initializer", "MemberDecl", "EnumDecl", "EnumConstant", "Arguments", "ConstrDecl",
+            "FormalParams", "ThrowsList", "ConstrCall", "FieldDecl", "MethodDecl", "ResultType", "AnnotationDecl", "AllocExpr",
+            "ArrayDimsAndInits", "PrimarySuffix", "MemberSelector", "UnaryExprNotPlusMinus", "CastLook", "CastExpr", "PostfixExpr",
+            "ShiftRightUnsigned", "ShiftRight", "SingleMemberAnnotation", "MarkerAnnotation", "ImportDecl", "TypeDecl",
+            "JavaFileImports" };
+    public static String[] _allRuleNamesIntern = Stream.of(_allRuleNames).map(s -> s.intern()).toArray(size -> new String[size]);
+
 }
