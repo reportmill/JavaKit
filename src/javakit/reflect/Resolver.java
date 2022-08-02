@@ -5,6 +5,7 @@ package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
 import snap.util.ClassUtils;
+import snap.util.MethodUtils;
 import snap.util.SnapUtils;
 
 /**
@@ -300,6 +301,36 @@ public class Resolver {
 
         // Return root package
         return null;
+    }
+
+    /**
+     * Invokes a method on given object for name and args.
+     */
+    public Object invokeMethod(Object anObj, String aName, Object[] theArgs) throws Exception
+    {
+        // Silly
+        if (anObj instanceof String && aName.equals("length"))
+            return ((String) anObj).length();
+
+        // Invoke method
+        Class<?> objClass = anObj.getClass();
+        throw new NoSuchMethodException(objClass.getName() + ": " + aName);
+    }
+
+    /**
+     * Invokes a method on given object for name and args.
+     */
+    public Object invokeConstructor(Class<?> aClass, Object[] theArgs) throws Exception
+    {
+        if (theArgs.length == 0)
+            return aClass.newInstance();
+
+        // Silly
+        if (aClass == String.class && theArgs[0] instanceof String)
+            return theArgs[0];
+
+        // Invoke method
+        throw new NoSuchMethodException(aClass.getName());
     }
 
     /**

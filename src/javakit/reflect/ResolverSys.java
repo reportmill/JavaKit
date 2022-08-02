@@ -2,6 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
+import snap.util.MethodUtils;
+
 import java.lang.reflect.*;
 
 /**
@@ -20,6 +22,49 @@ public class ResolverSys extends Resolver {
     public ResolverSys(ClassLoader aClassLoader)
     {
         super(aClassLoader);
+    }
+
+    /**
+     * Invokes a method on given object for name and args.
+     */
+    @Override
+    public Object invokeMethod(Object anObj, String aName, Object[] theArgs) throws Exception
+    {
+        // Get object class
+        Class<?> objClass = anObj.getClass();
+
+        // Get parameter classes
+        Class<?>[] paramClasses = new Class[theArgs.length];
+        for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
+            Object arg = theArgs[i];
+            paramClasses[i] = arg != null ? arg.getClass() : null;
+        }
+
+        // Get method
+        Method meth = MethodUtils.getMethodBest(objClass, aName, paramClasses);
+
+        // Invoke
+        return meth.invoke(anObj, theArgs);
+    }
+
+    /**
+     * Invokes a constructor on given class with given args.
+     */
+    @Override
+    public Object invokeConstructor(Class<?> aClass, Object[] theArgs) throws Exception
+    {
+        // Get parameter classes
+        Class<?>[] paramClasses = new Class[theArgs.length];
+        for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
+            Object arg = theArgs[i];
+            paramClasses[i] = arg != null ? arg.getClass() : null;
+        }
+
+        // Get method
+        Constructor<?> constructor = MethodUtils.getConstructor(aClass, paramClasses);
+
+        // Invoke method
+        return constructor.newInstance(theArgs);
     }
 
     /**

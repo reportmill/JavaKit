@@ -433,13 +433,37 @@ public class JSEvalExpr {
     }
 
     /**
-     * Handle JExprMath Assign.
+     * Handle JExprLambda.
      */
-    private Object evalJExprLambda(Object anOR, JExprLambda anExpr) throws Exception
+    private Object evalExprLambda(Object anOR, JExprLambda aLambdaExpr) throws Exception
     {
-        JExpr simpleExpr = anExpr.getExpr();
-        Object value = evalExpr(anOR, simpleExpr);
-        return value;
+        final JExpr contentExpr = aLambdaExpr.getExpr();
+        Object lambdaValue = null;
+
+        // Get lambda class
+        JavaClass lambdaClass = aLambdaExpr.getEvalClass();
+        if (lambdaClass == null)
+            return null;
+
+        // Need to wrap Lambda in real expression
+        Class<?> realClass = lambdaClass.getRealClass();
+
+        // Handle DoubleUnaryOperator
+        if (realClass == DoubleUnaryOperator.class) {
+            DoubleUnaryOperator lambdaReal = d -> {
+                setLocalVarValue("d", d);
+                try {
+                    Object value = evalExpr(anOR, contentExpr);
+                    return SnapUtils.doubleValue(value);
+                } catch (Exception e) {
+                    return 0;
+                }
+            };
+            lambdaValue = lambdaReal;
+        }
+
+        // Return
+        return lambdaValue;
     }
 
     /**
@@ -515,42 +539,11 @@ public class JSEvalExpr {
      */
     public Object invokeMethod(Object anObj, String aName, Object[] theArgs) throws Exception
     {
-        // Get object class
-        Class<?> objClass = anObj.getClass(); // anObj instanceof Class? (Class)anObj : anObj.getClass();
-        JExprLambda lambdaExpr = null;
-        int lambdaIndex = 0;
-
-        // Get parameter classes
-        Class<?>[] paramClasses = new Class[theArgs.length];
-        for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
-            Object arg = theArgs[i];
-            if (arg instanceof JExprLambda) {
-                lambdaExpr = (JExprLambda) arg;
-                lambdaIndex = i;
-                arg = null;
-            }
-            paramClasses[i] = arg != null ? arg.getClass() : null;
-        }
-
-        // Get method
-        Method meth = MethodUtils.getMethodBest(objClass, aName, paramClasses);
-
-        if (lambdaExpr != null) {
-            Class<?> paramClass = meth.getParameterTypes()[lambdaIndex];
-            JExprLambda finalLambda = lambdaExpr;
-            DoubleUnaryOperator lambdaReal = d -> {
-                setLocalVarValue("d", d);
-                try {
-                    Object value = evalJExprLambda(anObj, finalLambda);
-                    return SnapUtils.doubleValue(value);
-                }
-                catch (Exception e) { return 0; }
-            };
-            theArgs[lambdaIndex] = lambdaReal;
-        }
-
         // Invoke method
-        return meth.invoke(anObj, theArgs);
+        Object value = _resolver.invokeMethod(anObj, aName, theArgs);
+
+        // Return
+        return value;
     }
 
     /**
@@ -558,18 +551,11 @@ public class JSEvalExpr {
      */
     public Object invokeConstructor(Class<?> aClass, Object[] theArgs) throws Exception
     {
-        // Get parameter classes
-        Class<?>[] paramClasses = new Class[theArgs.length];
-        for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
-            Object arg = theArgs[i];
-            paramClasses[i] = arg != null ? arg.getClass() : null;
-        }
-
-        // Get method
-        Constructor<?> constructor = MethodUtils.getConstructor(aClass, paramClasses);
-
         // Invoke method
-        return constructor.newInstance(theArgs);
+        Object value = _resolver.invokeConstructor(aClass, theArgs);
+
+        // Return
+        return value;
     }
 
     /**
