@@ -242,6 +242,20 @@ public class JSEvalExprUtils {
     }
 
     /**
+     * Returns a value cast or converted to given primitive class.
+     */
+    protected static Object castOrConvertValueToPrimitiveClass(Object aValue, Class<?> aClass)
+    {
+        if (aClass == double.class)
+            return SnapUtils.doubleValue(aValue);
+        if (aClass == float.class)
+            return SnapUtils.floatValue(aValue);
+        if (aClass == int.class)
+            return SnapUtils.intValue(aValue);
+        return aValue;
+    }
+
+    /**
      * Return the current this object.
      */
     protected static Object mirrorOf(Object anObj)  { return anObj; }

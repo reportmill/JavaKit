@@ -257,6 +257,7 @@ public class JSEvalExpr {
                 for (int i = 0; i < arrayLen; i++) {
                     JExpr initExpr = initsExpr.get(i);
                     Object initValue = evalExpr(thisObj, initExpr);
+                    initValue = castOrConvertValueToPrimitiveClass(initValue, compClass);
                     Array.set(array, i, initValue);
                 }
 
