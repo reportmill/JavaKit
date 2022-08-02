@@ -258,9 +258,9 @@ public class Resolver {
             return javaClass.getTypeVarForName(typeVarName);
         }
 
-        // Handle Method/Constructor
-        else if (classOrMethod instanceof Executable) {
-            Executable method = (Executable) classOrMethod;
+        // Handle Method/Constructor (not using Executable for TeaVM sake)
+        else if (classOrMethod instanceof Method || classOrMethod instanceof Constructor) {
+            Member method = (Member) classOrMethod;
             JavaExecutable javaMethod = (JavaExecutable) getJavaMemberForMember(method);
             return javaMethod.getTypeVarForName(typeVarName);
         }
