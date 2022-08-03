@@ -28,20 +28,10 @@ public class ResolverSys extends Resolver {
      * Invokes a method on given object for name and args.
      */
     @Override
-    public Object invokeMethod(Object anObj, String aName, Object[] theArgs) throws Exception
+    public Object invokeMethod(Object anObj, JavaMethod javaMethod, Object[] theArgs) throws Exception
     {
-        // Get object class
-        Class<?> objClass = anObj.getClass();
-
-        // Get parameter classes
-        Class<?>[] paramClasses = new Class[theArgs.length];
-        for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
-            Object arg = theArgs[i];
-            paramClasses[i] = arg != null ? arg.getClass() : null;
-        }
-
         // Get method
-        Method meth = MethodUtils.getMethodBest(objClass, aName, paramClasses);
+        Method meth = javaMethod.getMethod();
 
         // Invoke
         return meth.invoke(anObj, theArgs);

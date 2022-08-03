@@ -25,6 +25,7 @@ public class JavaExecutable extends JavaMember {
     public JavaExecutable(Resolver aResolver, DeclType aType, JavaClass aDeclaringClass, Member aMember)
     {
         super(aResolver, aType, aDeclaringClass, aMember);
+        if (aMember == null) return;
 
         // Get VarArgs
         _varArgs = isVarArgs(aMember);

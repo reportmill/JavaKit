@@ -9,6 +9,7 @@ import java.util.function.DoubleUnaryOperator;
 import javakit.parse.*;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
+import javakit.reflect.JavaMethod;
 import javakit.reflect.Resolver;
 import static javakit.shell.JSEvalExprUtils.*;
 import snap.parse.Parser;
@@ -88,7 +89,7 @@ public class JSEvalExpr {
 
         // Handle method call
         if (anExpr instanceof JExprMethodCall)
-            return evalJExprMethodCall(anOR, (JExprMethodCall) anExpr);
+            return evalExprMethodCall(anOR, (JExprMethodCall) anExpr);
 
         // Handle math expression
         if (anExpr instanceof JExprMath)
@@ -184,14 +185,14 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprMethodCall.
      */
-    private Object evalJExprMethodCall(Object anOR, JExprMethodCall anExpr) throws Exception
+    private Object evalExprMethodCall(Object anOR, JExprMethodCall anExpr) throws Exception
     {
         // If object null, throw NullPointerException
         if (anOR == null)
             return null;
 
-        // Get method name
-        String methodName = anExpr.getName();
+        // Get method
+        JavaMethod method = anExpr.getDecl();
 
         // Get arg info
         Object thisObj = thisObject();
@@ -204,9 +205,11 @@ public class JSEvalExpr {
             argValues[i] = evalExpr(thisObj, argExpr);
         }
 
-        // Invoke method and return
-        Object val = invokeMethod(anOR, methodName, argValues);
-        return val;
+        // Invoke method
+        Object value = _resolver.invokeMethod(anOR, method, argValues);
+
+        // Return
+        return value;
     }
 
     /**
@@ -532,18 +535,6 @@ public class JSEvalExpr {
         //ReferenceType refType = anOR.referenceType();
         //Field field = refType.fieldByName(name);
         //if(field!=null) return anOR.getValue(field);
-    }
-
-    /**
-     * Invoke method.
-     */
-    public Object invokeMethod(Object anObj, String aName, Object[] theArgs) throws Exception
-    {
-        // Invoke method
-        Object value = _resolver.invokeMethod(anObj, aName, theArgs);
-
-        // Return
-        return value;
     }
 
     /**

@@ -306,15 +306,11 @@ public class Resolver {
     /**
      * Invokes a method on given object for name and args.
      */
-    public Object invokeMethod(Object anObj, String aName, Object[] theArgs) throws Exception
+    public Object invokeMethod(Object anObj, JavaMethod javaMethod, Object[] theArgs) throws Exception
     {
-        // Silly
-        if (anObj instanceof String && aName.equals("length"))
-            return ((String) anObj).length();
-
-        // Invoke method
-        Class<?> objClass = anObj.getClass();
-        throw new NoSuchMethodException(objClass.getName() + ": " + aName);
+        String sig = javaMethod.getId();
+        Object value = StaticResolver.invokeMethod(this, sig, theArgs);
+        return value;
     }
 
     /**

@@ -7,6 +7,8 @@ import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaType;
 
+import java.util.List;
+
 /**
  * The JNode base class for Java expressions.
  * See: JLiteral, JIdentifier, JMethodCall, JOpExpr, ArrayIndex, Allocation, Cast
@@ -54,14 +56,17 @@ public abstract class JExpr extends JNode {
         // If parent is JExprChain, iterate over expressions and return one before this expression
         JNode par = getParent();
         if (par instanceof JExprChain) {
-            JExprChain echain = (JExprChain) par;
-            for (int i = 0, iMax = echain.getExprCount(); i < iMax; i++) {
-                JExpr expr = echain.getExpr(i);
+            JExprChain exprChain = (JExprChain) par;
+            List<JExpr> chainExprs = exprChain.getExpressions();
+            for (int i = 0, iMax = chainExprs.size(); i < iMax; i++) {
+                JExpr expr = exprChain.getExpr(i);
                 if (expr == this)
-                    return i > 0 ? echain.getExpr(i - 1) : null;
+                    return i > 0 ? exprChain.getExpr(i - 1) : null;
             }
         }
-        return null; // Return null, since no parent expression
+
+        // Return not found
+        return null;
     }
 
     /**

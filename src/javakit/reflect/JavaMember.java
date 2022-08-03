@@ -10,10 +10,10 @@ import java.lang.reflect.*;
 public class JavaMember extends JavaDecl {
 
     // The declaring class
-    private JavaClass  _declaringClass;
+    protected JavaClass  _declaringClass;
 
     // The modifiers
-    private int  _mods;
+    protected int  _mods;
 
     /**
      * Constructor.
@@ -21,6 +21,7 @@ public class JavaMember extends JavaDecl {
     public JavaMember(Resolver aResolver, DeclType aType, JavaClass aDeclaringClass, Member aMember)
     {
         super(aResolver, aType);
+        if (aMember == null) return;
 
         // Set id
         _id = ResolverUtils.getIdForMember(aMember);
