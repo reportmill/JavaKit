@@ -58,34 +58,54 @@ public class JStmtBlock extends JStmt {
      */
     protected JavaDecl getDeclImpl(JNode aNode)
     {
-        JavaDecl decl = getDeclImpl(aNode, getStatements());
-        if (decl != null)
-            return decl;
+        // Get VarDecl for name from statements
+        List<JStmt> statements = getStatements();
+        JVarDecl varDecl = getVarDeclForNameFromStatements(aNode, statements);
+        if (varDecl != null)
+            return varDecl.getDecl();
+
+        // Do normal version
         return super.getDeclImpl(aNode);
     }
 
     /**
      * Override to check inner variable declaration statements.
      */
-    public static JavaDecl getDeclImpl(JNode aNode, List<JStmt> theStmts)
+    public static JVarDecl getVarDeclForNameFromStatements(JNode aNode, List<JStmt> theStmts)
     {
         // Get node info
-        String name = aNode.getName();
+        String name = aNode.getName(); if (name == null) return null;
+
+        // This shouldn't happen
         boolean isType = aNode instanceof JExprType;
+        if (isType)
+            return null;
 
         // Iterate over statements and see if any contains variable
-        if (!isType) for (JStmt s : theStmts) {
-            if (s instanceof JStmtLabeled) {
-                JStmtLabeled ls = (JStmtLabeled) s;
-                if (SnapUtils.equals(ls.getLabelName(), name))
-                    return ls.getLabelVarDecl().getDecl();
+        for (JStmt stmt : theStmts) {
+
+            // Handle Label statement
+            if (stmt instanceof JStmtLabeled) {
+                JStmtLabeled labeledStmt = (JStmtLabeled) stmt;
+                if (name.equals(labeledStmt.getLabelName()))
+                    return labeledStmt.getLabelVarDecl();
             }
-            if (s.getStart() > aNode.getStart()) break;
-            if (!(s instanceof JStmtVarDecl)) continue;
-            JStmtVarDecl vds = (JStmtVarDecl) s;
-            for (JVarDecl vd : vds.getVarDecls())
-                if (SnapUtils.equals(vd.getName(), name) && vd.getStart() < aNode.getStart())
-                    return vd.getDecl();
+
+            // If block statement is past id reference, break
+            if (stmt.getStart() > aNode.getStart())
+                break;
+
+            // Handle VarDecl
+            if (stmt instanceof JStmtVarDecl) {
+                JStmtVarDecl varDeclStmt = (JStmtVarDecl) stmt;
+                List<JVarDecl> varDecls = varDeclStmt.getVarDecls();
+                for (JVarDecl varDecl : varDecls) {
+                    if (name.equals(varDecl.getName())) {
+                        if (varDecl.getStart() < aNode.getStart())
+                            return varDecl;
+                    }
+                }
+            }
         }
 
         // Do normal version

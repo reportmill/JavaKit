@@ -768,7 +768,8 @@ public class JavaParserExpr extends Parser {
 
             // Set start/end token
             if (_part != null) {
-                if (_part.getStartToken() == null) _part.setStartToken(getStartToken());
+                if (_part.getStartToken() == null)
+                    _part.setStartToken(getStartToken());
                 _part.setEndToken(aNode.getEndToken());
             }
         }

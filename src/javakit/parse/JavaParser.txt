@@ -11,7 +11,10 @@ TypeDecl { ";" | Modifiers (ClassDecl | EnumDecl | AnnotationDecl) }
 
 MemberDecl
 {
-    ClassDecl | EnumDecl | LookAhead(TypeParams? Identifier "(") ConstrDecl | LookAhead(Type Identifier ("[" "]")* ("," | "=" | ";")) FieldDecl | MethodDecl | AnnotationDecl
+    ClassDecl | EnumDecl |
+    LookAhead(TypeParams? Identifier "(") ConstrDecl |
+    LookAhead(Type Identifier ("[" "]")* ("," | "=" | ";")) FieldDecl |
+    MethodDecl | AnnotationDecl
 }
 
 ClassDecl

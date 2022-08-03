@@ -2,9 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.shell;
+import javakit.parse.JStmt;
 import javakit.reflect.Resolver;
 import snap.view.TextArea;
-
 import java.io.OutputStream;
 import java.io.PrintStream;
 
@@ -16,20 +16,14 @@ public class JSEvaluator {
     // The JavaShell
     private JavaShell  _javaShell;
 
+    // The JavaShell parser
+    private JSParser  _javaParser;
+
     // A Statement evaluator
     private JSEvalStmt  _stmtEval;
 
-    // An expression evaluator
-    private JSEvalExpr  _exprEval;
-
-    // The lines
-    private String[]  _lines;
-
     // The values
     protected Object[]  _lineVals;
-
-    // The Resolver
-    private Resolver  _resolver;
 
     // The public out and err PrintStreams
     private PrintStream  _stdOut = System.out;
@@ -46,14 +40,11 @@ public class JSEvaluator {
     {
         _javaShell = aPG;
 
-        // Create Resolver
-        _resolver = Resolver.newResolverForClassLoader(getClass().getClassLoader());
+        // Create JSParser
+        _javaParser = new JSParser();
 
         // Create Statement eval
         _stmtEval = new JSEvalStmt();
-        _stmtEval._resolver = _resolver;
-        _exprEval = JSEvalExpr.getExprEvaluatorForThisObject(_javaShell);
-        _exprEval._resolver = _resolver;
     }
 
     /**
@@ -61,6 +52,9 @@ public class JSEvaluator {
      */
     public void eval(String aStr)
     {
+        // Parse Java text to statements
+        JStmt[] javaStmts = _javaParser.parseJavaText(aStr);
+
         // Set sys out/err to catch console output
         System.setOut(_shellOut);
         System.setErr(_shellErr);
@@ -68,13 +62,14 @@ public class JSEvaluator {
         // Clear console
         _javaShell.getConsole().clear();
 
-        _lines = aStr.split("\n");
-        _lineVals = new Object[_lines.length];
+        // Get line vals for statements
+        _lineVals = new Object[javaStmts.length];
 
         // Iterate over lines and eval each
-        for (int i = 0, iMax = _lines.length; i < iMax; i++) {
-            String line = _lines[i];
-            _lineVals[i] = evalLine(line);
+        for (int i = 0, iMax = javaStmts.length; i < iMax; i++) {
+            JStmt stmt = javaStmts[i];
+            if (stmt != null)
+                _lineVals[i] = evalStatement(stmt);
         }
 
         // Restore sys out/err
@@ -83,32 +78,23 @@ public class JSEvaluator {
     }
 
     /**
-     * Evaluate string.
+     * Evaluate JStmt.
      */
-    protected Object evalLine(String aLine)
+    protected Object evalStatement(JStmt aStmt)
     {
-        // Get trimmed line (just return if empty or comment)
-        String line = aLine.trim();
-        if (line.length() == 0 || line.startsWith("//")) return null;
-
         // Get textview and mark current length, in case we need to check for console output
         TextArea tview = _javaShell.getConsole().getConsoleView();
         int start = tview.length();
 
-        // Eval line as statement
-        Object val = null;
+        // Eval statement
+        Object val;
         try {
-            val = _stmtEval.eval(_javaShell, line);
+            val = _stmtEval.evalStmt(_javaShell, aStmt);
         }
 
         // Handle statement eval exception: Try expression
         catch (Exception e) {
-
-            // Try Expression evaluator
-            try {
-                val = _exprEval.eval(line);
-            }
-            catch (Exception e2) { }
+            val = e;
         }
 
         // If val is null, see if there was any console output
@@ -118,6 +104,7 @@ public class JSEvaluator {
                 val = '"' + tview.getText().substring(start, end).trim() + '"';
         }
 
+        // Return
         return val;
     }
 

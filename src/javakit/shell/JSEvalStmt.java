@@ -3,10 +3,7 @@
  */
 package javakit.shell;
 import java.util.*;
-
 import javakit.parse.*;
-import javakit.reflect.Resolver;
-import snap.parse.*;
 import snap.util.ListUtils;
 
 /**
@@ -15,13 +12,7 @@ import snap.util.ListUtils;
 public class JSEvalStmt {
 
     // The Expression evaluator
-    private JSEvalExpr  _exprEval = JSEvalExpr.getExprEvaluatorForThisObject(null);
-
-    // A parser to parse expressions
-    private static Parser  _stmtParser = new StmtParser();
-
-    // A Resolver
-    protected Resolver  _resolver;
+    private JSEvalExpr  _exprEval = new JSEvalExpr();
 
     /**
      * Constructor.
@@ -32,37 +23,13 @@ public class JSEvalStmt {
     }
 
     /**
-     * Evaluate expression.
-     */
-    public Object eval(Object aOR, String anExpr)
-    {
-        // Parse string to statement
-        _stmtParser.setInput(anExpr);
-        JStmt stmt = _stmtParser.parseCustom(JStmt.class);
-        stmt.setResolver(_resolver);
-        _exprEval._resolver = _resolver;
-
-        // Set ObjectRef and eval statement
-        _exprEval._thisObj = aOR;
-        Object value;
-        try {
-            value = evalStmt(aOR, stmt);
-        }
-
-        // Handle exceptions
-        catch (Exception e) {
-            return e;
-        }
-
-        // Return
-        return value;
-    }
-
-    /**
      * Evaluate JStmt.
      */
     public Object evalStmt(Object anOR, JStmt aStmt) throws Exception
     {
+        // Dunno
+        _exprEval._thisObj = anOR;
+
         //if(aStmt instanceof JStmtAssert) return evalJStmtAssert((JStmtAssert)aStmt);
         //else if(aStmt instanceof JStmtBlock) return evalJStmtBlock((JStmtBlock)aStmt, false);
         //else if(aStmt instanceof JStmtBreak) return evalJStmtBreak((JStmtBreak)aStmt);
@@ -126,7 +93,7 @@ public class JSEvalStmt {
     {
         // Get list
         List<JVarDecl> varDecls = aStmt.getVarDecls();
-        List vals = new ArrayList();
+        List<Object> vals = new ArrayList<>();
 
         // Iterate over VarDecls
         for (JVarDecl varDecl : varDecls) {
@@ -158,28 +125,5 @@ public class JSEvalStmt {
 
         // Return
         return val;
-    }
-
-    /**
-     * A Java Statement parser.
-     */
-    protected static class StmtParser extends Parser {
-
-        /**
-         * Creates a new StmtParser.
-         */
-        public StmtParser()
-        {
-            super(JavaParser.getShared().getRule("BlockStatement"));
-        }
-
-        /**
-         * Override to ignore exception.
-         */
-        protected void parseFailed(ParseRule aRule, ParseHandler aHandler)
-        {
-            if (aRule.getPattern() != ";")
-                super.parseFailed(aRule, aHandler);
-        }
     }
 }

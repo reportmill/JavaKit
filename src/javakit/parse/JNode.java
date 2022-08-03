@@ -31,9 +31,6 @@ public class JNode {
     // The type this node evaluates to (resolved, if TypeVar)
     protected JavaType  _evalType;
 
-    // The resolver
-    private Resolver  _resolver;
-
     /**
      * Returns the parent file node (root).
      */
@@ -491,21 +488,9 @@ public class JNode {
      */
     public Resolver getResolver()
     {
-        if (_resolver != null)
-            return _resolver;
         if (_parent != null)
             return _parent.getResolver();
         return null;
-        //JFile jfile = getFile();
-        //return jfile.getResolver();
-    }
-
-    /**
-     * Sets the resolver.
-     */
-    public void setResolver(Resolver aResolver)
-    {
-        _resolver = aResolver;
     }
 
     /**

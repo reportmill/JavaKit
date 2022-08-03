@@ -67,6 +67,14 @@ public class JFile extends JNode {
     public Resolver getResolver()  { return _resolver; }
 
     /**
+     * Sets the resolver.
+     */
+    public void setResolver(Resolver aResolver)
+    {
+        _resolver = aResolver;
+    }
+
+    /**
      * Returns the package declaration.
      */
     public JPackageDecl getPackageDecl()

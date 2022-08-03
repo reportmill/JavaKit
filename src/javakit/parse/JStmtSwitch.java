@@ -14,11 +14,12 @@ import java.util.*;
  * A Java statement for SwitchStatement.
  */
 public class JStmtSwitch extends JStmt {
+
     // The expression
-    JExpr _expr;
+    protected JExpr  _expr;
 
     // The list of SwitchLabels
-    List<SwitchLabel> _switchLabels = new ArrayList();
+    protected List<SwitchLabel>  _switchLabels = new ArrayList<>();
 
     /**
      * Returns the expression.
@@ -141,9 +142,9 @@ public class JStmtSwitch extends JStmt {
 
             // If statements (as block) can resolve node, return decl
             List<JStmt> statements = getStatements();
-            JavaDecl decl = JStmtBlock.getDeclImpl(aNode, statements);
-            if (decl != null)
-                return decl;
+            JVarDecl varDecl = JStmtBlock.getVarDeclForNameFromStatements(aNode, statements);
+            if (varDecl != null)
+                return varDecl.getDecl();
 
             // Do normal version
             return super.getDeclImpl(aNode);

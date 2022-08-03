@@ -5,14 +5,12 @@ package javakit.shell;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.DoubleUnaryOperator;
-
 import javakit.parse.*;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaMethod;
 import javakit.reflect.Resolver;
 import static javakit.shell.JSEvalExprUtils.*;
-import snap.parse.Parser;
 import snap.util.*;
 
 /**
@@ -26,9 +24,6 @@ public class JSEvalExpr {
     // A map of local variables
     private Map<String, Object>  _locals = new HashMap<>();
 
-    // A parser to parse expressions
-    private static Parser  _exprParser = JavaParser.getShared().getExprParser();
-
     // A Resolver
     protected Resolver  _resolver;
 
@@ -41,35 +36,11 @@ public class JSEvalExpr {
     }
 
     /**
-     * Evaluate expression.
-     */
-    public Object eval(String anExpr)
-    {
-        // Get JExpr for string
-        _exprParser.setInput(anExpr);
-        JExpr expr = _exprParser.parseCustom(JExpr.class);
-        expr.setResolver(_resolver);
-
-        // Eval expression
-        Object value;
-        try {
-            value = evalExpr(expr);
-        }
-
-        // Handle exceptions
-        catch (Exception e) {
-            return e;
-        }
-
-        // Return
-        return value;
-    }
-
-    /**
      * Evaluate JExpr.
      */
     public Object evalExpr(JExpr anExpr) throws Exception
     {
+        _resolver = anExpr.getResolver();
         Object thisObj = thisObject();
         return evalExpr(thisObj, anExpr);
     }
@@ -193,6 +164,8 @@ public class JSEvalExpr {
 
         // Get method
         JavaMethod method = anExpr.getDecl();
+        if (method == null)
+            throw new NoSuchMethodException("JEvalExpr: Method not found for " + anExpr.getName());
 
         // Get arg info
         Object thisObj = thisObject();
@@ -581,15 +554,5 @@ public class JSEvalExpr {
 
         // Return not found
         return null;
-    }
-
-    /**
-     * Returns a new evaluator for given object.
-     */
-    public static JSEvalExpr getExprEvaluatorForThisObject(Object anObj)
-    {
-        JSEvalExpr eval = new JSEvalExpr();
-        eval._thisObj = anObj;
-        return eval;
     }
 }
