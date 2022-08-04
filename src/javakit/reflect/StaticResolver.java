@@ -31,7 +31,6 @@ public class StaticResolver {
     public static JavaMethod[] getMethodsForClass(Resolver aResolver, String aClassName)
     {
         JavaMethod.MethodBuilder mb = new JavaMethod.MethodBuilder(aResolver, aClassName);
-        System.out.println("Get methods for " + aClassName);
 
         switch (aClassName) {
             case "java.lang.Object": return getMethodsForJavaLangObject(aResolver, mb);
@@ -116,7 +115,6 @@ public class StaticResolver {
      */
     public static Object invokeMethod(Object anObj, String anId, Object ... theArgs) throws Exception
     {
-        System.out.println("Invoke: " + anId);
         switch (anId) {
             case "java.lang.String.length()": return ((String) anObj).length();
             case "java.lang.String.replace(java.lang.String,java.lang.String)":
