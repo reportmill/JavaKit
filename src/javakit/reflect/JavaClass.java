@@ -91,11 +91,9 @@ public class JavaClass extends JavaType {
         _updater = new JavaClassUpdater(this);
 
         // Get type super type and set in decl
-        Type superType = _resolver.getGenericSuperClassForClass(aClass);
-        if (superType != null) {
-            _superType = _resolver.getJavaTypeForType(superType);
-            _superClass = _superType.getEvalClass();
-        }
+        Class<?> superClass = aClass.getSuperclass();
+        if (superClass != null)
+            _superClass = _resolver.getJavaClassForClass(superClass);
 
         // If Array, set Component class
         if (aClass.isArray()) {
@@ -135,7 +133,17 @@ public class JavaClass extends JavaType {
      */
     public JavaType getSuperType()
     {
-        return _superType;
+        // If already set or Object.class, just return
+        if (_superType != null) return _superType;
+        if (_superClass == null) return null;
+
+        // Get GenericSuperClass as JavaType
+        Class<?> realClass = getRealClass();
+        Type superType = _resolver.getGenericSuperClassForClass(realClass);
+        JavaType javaType = _resolver.getJavaTypeForType(superType);
+
+        // Set, return
+        return _superType = javaType;
     }
 
     /**
@@ -542,8 +550,9 @@ public class JavaClass extends JavaType {
             if(ind>=0 && ind<_paramTypes.length) return _paramTypes[ind]; }*/
 
         // If SuerType is ParameterizedType, let it try to resolve
-        if (_superType instanceof JavaParameterizedType)
-            return _superType.getResolvedType(aType);
+        JavaType superType = getSuperType();
+        if (superType instanceof JavaParameterizedType)
+            return superType.getResolvedType(aType);
 
         // Otherwise just return EvalType
         JavaType evalType = aType.getEvalType();
