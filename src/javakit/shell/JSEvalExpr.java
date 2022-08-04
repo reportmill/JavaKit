@@ -49,11 +49,11 @@ public class JSEvalExpr {
     {
         // Handle Literal
         if (anExpr instanceof JExprLiteral)
-            return evalJExprLiteral((JExprLiteral) anExpr);
+            return evalLiteralExpr((JExprLiteral) anExpr);
 
         // Handle variable
         if (anExpr instanceof JExprId)
-            return evalJExprId(anOR, (JExprId) anExpr);
+            return evalIdentifierExpr(anOR, (JExprId) anExpr);
 
         // Handle method call
         if (anExpr instanceof JExprMethodCall)
@@ -61,15 +61,15 @@ public class JSEvalExpr {
 
         // Handle math expression
         if (anExpr instanceof JExprMath)
-            return evalJExprMath(anOR, (JExprMath) anExpr);
+            return evalMathExpr(anOR, (JExprMath) anExpr);
 
         // Handle array dereference
         if (anExpr instanceof JExprArrayIndex)
-            return evalJExprArrayIndex(anOR, (JExprArrayIndex) anExpr);
+            return evalArrayIndexExpr(anOR, (JExprArrayIndex) anExpr);
 
         // Handle expression chain
         if (anExpr instanceof JExprChain)
-            return evalJExprChain(anOR, (JExprChain) anExpr);
+            return evalExprChain(anOR, (JExprChain) anExpr);
 
         // Handle alloc expression
         if(anExpr instanceof JExprAlloc)
@@ -93,7 +93,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprLiteral.
      */
-    private Object evalJExprLiteral(JExprLiteral aLiteral) throws Exception
+    private Object evalLiteralExpr(JExprLiteral aLiteral) throws Exception
     {
         switch (aLiteral.getLiteralType()) {
             case Boolean: return (Boolean) aLiteral.getValue();
@@ -111,15 +111,22 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprId.
      */
-    private Object evalJExprId(Object anOR, JExprId anId) throws Exception
+    private Object evalIdentifierExpr(Object anOR, JExprId anId) throws Exception
     {
+        // Get identifier name
         String name = anId.getName();
+
+        // Evaluate to see if it has value
         Object value = evalName(anOR, name);
+
+        // If not found, but ExprId evaluates to class, return class
         if (value == null) {
             JavaDecl decl = anId.getDecl();
             if (decl instanceof JavaClass)
                 return ((JavaClass) decl).getRealClass();
         }
+
+        // Return
         return value;
     }
 
@@ -131,6 +138,10 @@ public class JSEvalExpr {
         // If name is "this", return ThisObject
         if (aName == null) return null;
         if (aName.equals("this")) return thisObject();
+
+        // Handle array length
+        if (aName.equals("length") && isArray(anOR))
+            return Array.getLength(anOR);
 
         // Check for local variable
         if (isLocalVar(aName))
@@ -191,7 +202,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprArrayIndex.
      */
-    private Object evalJExprArrayIndex(Object anOR, JExprArrayIndex anExpr) throws Exception
+    private Object evalArrayIndexExpr(Object anOR, JExprArrayIndex anExpr) throws Exception
     {
         // Get Array
         JExpr arrayExpr = anExpr.getArrayExpr();
@@ -224,7 +235,7 @@ public class JSEvalExpr {
 
             // Handle inits
             List<JExpr> initsExpr = anExpr.getArrayInits();
-            if (initsExpr != null) {
+            if (initsExpr != null && initsExpr.size() > 0) {
 
                 // Create array
                 int arrayLen = initsExpr.size();
@@ -286,7 +297,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprChain.
      */
-    private Object evalJExprChain(Object anOR, JExprChain anExpr) throws Exception
+    private Object evalExprChain(Object anOR, JExprChain anExpr) throws Exception
     {
         Object val = anOR; //Object or = anOR;
 
@@ -304,7 +315,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprMath.
      */
-    private Object evalJExprMath(Object anOR, JExprMath anExpr) throws Exception
+    private Object evalMathExpr(Object anOR, JExprMath anExpr) throws Exception
     {
         // Get Op and OpCount
         JExprMath.Op op = anExpr.getOp();
@@ -312,48 +323,99 @@ public class JSEvalExpr {
 
         // Handle Assign special
         if (op == JExprMath.Op.Assign)
-            return evalJExprMathAssign(anOR, anExpr);
+            return evalAssignExpr(anOR, anExpr);
 
         // Get first value
         JExpr expr1 = anExpr.getOperand(0);
+        String exprName = expr1 instanceof JExprId ? expr1.getName() : null;
         Object val1 = evalExpr(anOR, expr1);
 
         // Handle Unary
         if (opCount == 1) {
 
-            if (op == JExprMath.Op.Not) {
-                if (isBoolean(val1)) {
+            switch (op) {
+
+                // Handle Not
+                case Not: {
+                    if (!isBoolean(val1))
+                        throw new RuntimeException("Logical Not MathExpr not boolean: " + anExpr);
                     boolean val = boolValue(val1);
-                    return mirrorOf(!val);
+                    return !val;
                 }
-                throw new RuntimeException("Logical Not MathExpr not boolean: " + anExpr.toString());
-            }
 
-            if (op == JExprMath.Op.Negate) { // Need to not promote everything to double
-                if (isPrimitive(val1)) {
+                // Handle Negate
+                case Negate: {
+                    if (!isPrimitive(val1))
+                        throw new RuntimeException("Numeric Negate Expr not numeric: " + anExpr);
                     double val = doubleValue(val1);
-                    return mirrorOf(-val);
+                    return -val;
                 }
-                throw new RuntimeException("Numeric Negate MathExpr not numeric: " + anExpr.toString());
-            }
 
-            else switch (op) {
-                case Not:
+                // Handle Increment
+                case PreIncrement: {
+                    if (!isPrimitive(val1))
+                        throw new RuntimeException("Numeric PreIncrement Expr not numeric: " + anExpr);
+                    Object val2 = add(val1, 1);
+                    setLocalVarValue(exprName, val2);
+                    return val2;
+                }
+
+                // Handle Decrement
+                case PreDecrement: {
+                    if (!isPrimitive(val1))
+                        throw new RuntimeException("Numeric PreDecrement Expr not numeric: " + anExpr);
+                    Object val2 = add(val1, -1);
+                    setLocalVarValue(exprName, val2);
+                    return val2;
+                }
+
+                // Handle Increment
+                case PostIncrement: {
+                    if (!isPrimitive(val1))
+                        throw new RuntimeException("Numeric PostIncrement Expr not numeric: " + anExpr);
+                    setLocalVarValue(exprName, add(val1, 1));
+                    return val1;
+                }
+
+                // Handle Decrement
+                case PostDecrement: {
+                    if (!isPrimitive(val1))
+                        throw new RuntimeException("Numeric PostDecrement Expr not numeric: " + anExpr);
+                    setLocalVarValue(exprName, add(val1, -1));
+                    return val1;
+                }
+
+                // Handle unknown (BitComp?)
                 default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
-                // PreIncrement, PreDecrement, BitComp, PostIncrement, PostDecrement
             }
         }
 
         // Handle Binary
         else if (opCount == 2) {
+
+            // Get second expression and value
             JExpr expr2 = anExpr.getOperand(1);
             Object val2 = evalExpr(anOR, expr2);
+
+            // Handle binary op
             switch (op) {
+
+                // Handle add
                 case Add: return add(val1, val2);
+
+                // Handle subtract
                 case Subtract: return subtract(val1, val2);
+
+                // Handle multiply
                 case Multiply: return multiply(val1, val2);
+
+                // Handle divide
                 case Divide: return divide(val1, val2);
+
+                // Handle Mod
                 case Mod: return mod(val1, val2);
+
+                // Handle compare
                 case Equal:
                 case NotEqual:
                 case LessThan:
@@ -362,17 +424,26 @@ public class JSEvalExpr {
                 case GreaterThanOrEqual: return compareNumeric(val1, val2, op);
                 case Or:
                 case And: return compareLogical(val1, val2, op);
+
+                // Handle unsupported: BitOr, BitXOr, BitAnd, InstanceOf, ShiftLeft, ShiftRight, ShiftRightUnsigned
                 default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
-                // BitOr, BitXOr, BitAnd, InstanceOf, ShiftLeft, ShiftRight, ShiftRightUnsigned,
             }
         }
 
         // Handle ternary
         else if (opCount == 3 && op == JExprMath.Op.Conditional) {
-            if (!isPrimitive(val1)) throw new RuntimeException("Ternary conditional expr not bool: " + expr1);
+
+            // Validate
+            if (!isPrimitive(val1))
+                throw new RuntimeException("Ternary conditional expr not bool: " + expr1);
+
+            // Get resulting expression
             boolean result = boolValue(val1);
-            JExpr expr = result ? anExpr.getOperand(1) : anExpr.getOperand(2);
-            return evalExpr(anOR, expr);
+            JExpr resultExpr = result ? anExpr.getOperand(1) : anExpr.getOperand(2);
+
+            // Evaluate resulting expression and return
+            Object resultValue = evalExpr(anOR, resultExpr);
+            return resultValue;
         }
 
         // Complain
@@ -382,7 +453,7 @@ public class JSEvalExpr {
     /**
      * Handle JExprMath Assign.
      */
-    private Object evalJExprMathAssign(Object anOR, JExprMath anExpr) throws Exception
+    private Object evalAssignExpr(Object anOR, JExprMath anExpr) throws Exception
     {
         // Get value expression/value
         JExpr valExpr = anExpr.getOperand(1);

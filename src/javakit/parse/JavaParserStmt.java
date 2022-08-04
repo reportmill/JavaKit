@@ -96,7 +96,7 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Identifier")
                 getPart().setLabel(aNode.getCustomNode(JExprId.class));
 
-                // Handle Statement
+            // Handle Statement
             else if (anId == "Statement")
                 getPart().setStmt(aNode.getCustomNode(JStmt.class));
         }
@@ -137,11 +137,11 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "VarDeclStmt")
                 _part = aNode.getCustomNode(JStmtVarDecl.class);
 
-                // Handle Statement
+            // Handle Statement
             else if (anId == "Statement")
                 _part = aNode.getCustomNode(JStmt.class);
 
-                // Handle ClassDecl
+            // Handle ClassDecl
             else if (anId == "ClassDecl") {
                 JStmtClassDecl scd = new JStmtClassDecl();
                 scd.setClassDecl(aNode.getCustomNode(JClassDecl.class));
@@ -166,15 +166,15 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Type")
                 getPart().setType(aNode.getCustomNode(JType.class));
 
-                // Handle vararg
+            // Handle vararg
             else if (anId == "...")
                 getPart().getType().setArrayCount(getPart().getType().getArrayCount() + 1);
 
-                // Handle Identifier
+            // Handle Identifier
             else if (anId == "Identifier")
                 getPart().setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle ("[" "]")*
+            // Handle ("[" "]")*
             else if (anId == "[")
                 getPart().getType().setArrayCount(getPart().getArrayCount() + 1);
         }
@@ -196,15 +196,15 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Identifier")
                 getPart().setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle ("[" "]")*
+            // Handle ("[" "]")*
             else if (anId == "[")
                 getPart().setArrayCount(getPart().getArrayCount() + 1);
 
-                // Handle VarInit ArrayInit
+            // Handle VarInit ArrayInit
             else if (anId == "ArrayInit")
                 getPart().setArrayInits(aNode.getCustomNode(List.class));
 
-                // Handle VarInit Expression
+            // Handle VarInit Expression
             else if (anId == "Expression")
                 getPart().setInitializer(aNode.getCustomNode(JExpr.class));
         }
@@ -226,11 +226,11 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Modifiers")
                 getPart().setMods(aNode.getCustomNode(JModifiers.class));
 
-                // Handle Type
+            // Handle Type
             else if (anId == "Type")
                 getPart().setType(aNode.getCustomNode(JType.class));
 
-                // Handle VarDecl(s)
+            // Handle VarDecl(s)
             else if (anId == "VarDecl") {
                 JVarDecl vd = aNode.getCustomNode(JVarDecl.class);
                 getPart().addVarDecl(vd);
@@ -270,13 +270,14 @@ public class JavaParserStmt extends JavaParserExpr {
             if (aNode.getCustomNode() instanceof JExpr && _part == null)
                 getPart().setExpr(aNode.getCustomNode(JExpr.class));
 
-                // Handle post increment/decrement
-            else if (anId == "++")
-                getPart().setExpr(new JExprMath(JExprMath.Op.PostIncrement, getPart().getExpr()));
-            else if (anId == "--")
-                getPart().setExpr(new JExprMath(JExprMath.Op.PostDecrement, getPart().getExpr()));
+            // Handle post increment/decrement
+            else if (anId == "++" || anId == "--") {
+                JExpr expr = getPart().getExpr();
+                JExprMath.Op op = anId == "++" ? JExprMath.Op.PostIncrement : JExprMath.Op.PostDecrement;
+                getPart().setExpr(new JExprMath(op, expr));
+            }
 
-                // Handle Assign Expression
+            // Handle Assign Expression
             else if (anId == "Expression") {
                 JExpr expr = aNode.getCustomNode(JExpr.class);
                 getPart().setExpr(new JExprMath(JExprMath.Op.Assign, getPart().getExpr(), expr));
@@ -300,11 +301,11 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Expression")
                 getPart().setExpr(aNode.getCustomNode(JExpr.class));
 
-                // Handle SwitchLabel
+            // Handle SwitchLabel
             else if (anId == "SwitchLabel")
                 getPart().addSwitchLabel(aNode.getCustomNode(JStmtSwitch.SwitchLabel.class));
 
-                // Handle BlockStatement
+            // Handle BlockStatement
             else if (anId == "BlockStatement") {
                 List<JStmtSwitch.SwitchLabel> switchLabels = getPart().getSwitchLabels();
                 JStmtSwitch.SwitchLabel switchLabel = switchLabels.get(switchLabels.size() - 1);
@@ -334,11 +335,11 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Expression")
                 getPart().setExpr(aNode.getCustomNode(JExpr.class));
 
-                // Handle "default"
+            // Handle "default"
             else if (anId == "default")
                 getPart().setDefault(true);
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
@@ -359,7 +360,7 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Expression")
                 getPart().setConditional(aNode.getCustomNode(JExpr.class));
 
-                // Handle Statement
+            // Handle Statement
             else if (anId == "Statement") {
                 JStmt stmt = aNode.getCustomNode(JStmt.class);
                 if (getPart().getStatement() == null) getPart().setStatement(stmt);
@@ -387,11 +388,11 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Expression")
                 getPart().setConditional(aNode.getCustomNode(JExpr.class));
 
-                // Handle Statement
+            // Handle Statement
             else if (anId == "Statement")
                 getPart().setStmt(aNode.getCustomNode(JStmt.class));
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
@@ -412,11 +413,11 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Statement")
                 getPart().setStatement(aNode.getCustomNode(JStmt.class));
 
-                // Handle Expression
+            // Handle Expression
             else if (anId == "Expression")
                 getPart().setConditional(aNode.getCustomNode(JExpr.class));
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
@@ -428,56 +429,64 @@ public class JavaParserStmt extends JavaParserExpr {
      */
     public static class ForStatementHandler extends JNodeParseHandler<JStmtFor> {
 
-        // The current part index (0=init, 1=conditional, 2=update)
-        int partIndex = 0;
+        // The current part index (0 = init, 1 = conditional, 2 = update)
+        private int  _partIndex = 0;
 
         /**
          * ParseHandler method.
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Go ahead and get ForStmt
+            JStmtFor forStmt = getPart();
+
             // Handle Type
             if (anId == "Type") {
                 JType type = aNode.getCustomNode(JType.class);
                 JStmtVarDecl svd = new JStmtVarDecl();
                 svd.setType(type);
-                getPart().setInitDecl(svd);
+                forStmt.setInitDecl(svd);
             }
 
             // Handle Identifier
             else if (anId == "Identifier") {
-                JVarDecl vd = new JVarDecl();
-                vd.setId(aNode.getCustomNode(JExprId.class));
-                getPart().getInitDecl().addVarDecl(vd);
+                JExprId idExpr = aNode.getCustomNode(JExprId.class);
+                JVarDecl varDecl = new JVarDecl();
+                varDecl.setId(idExpr);
+                forStmt.getInitDecl().addVarDecl(varDecl);
             }
 
             // Handle ForInit VarDeclStmt
-            else if (anId == "VarDeclStmt")
-                getPart().setInitDecl(aNode.getCustomNode(JStmtVarDecl.class));
+            else if (anId == "VarDeclStmt") {
+                JStmtVarDecl varDeclStmt = aNode.getCustomNode(JStmtVarDecl.class);
+                forStmt.setInitDecl(varDeclStmt);
+            }
 
-                // Handle ForInit ExprStatement(s) or ForUpdate ExprStatement(s)
+            // Handle ForInit ExprStatement(s) or ForUpdate ExprStatement(s)
             else if (anId == "ExprStatement") {
                 JStmtExpr se = aNode.getCustomNode(JStmtExpr.class);
-                if (partIndex == 0) getPart().addInitStmt(se);
-                else getPart().addUpdateStmt(se);
+                if (_partIndex == 0)
+                    forStmt.addInitStmt(se);
+                else forStmt.addUpdateStmt(se);
             }
 
             // Handle init or conditional Expression
-            else if (anId == "Expression")
-                getPart().setConditional(aNode.getCustomNode(JExpr.class));
+            else if (anId == "Expression") {
+                JExpr condExpr = aNode.getCustomNode(JExpr.class);
+                forStmt.setConditional(condExpr);
+            }
 
-                // Handle separator
+            // Handle separator
             else if (anId == ";") {
-                partIndex++;
-                getPart()._forEach = false;
+                _partIndex++;
+                forStmt._forEach = false;
             }
 
             // Handle Statement
-            else if (anId == "Statement")
-                getPart().setStatement(aNode.getCustomNode(JStmt.class));
-
-                // Handle anything else
-            else getPart();
+            else if (anId == "Statement") {
+                JStmt stmt = aNode.getCustomNode(JStmt.class);
+                forStmt.setStatement(stmt);
+            }
         }
 
         /**
@@ -485,7 +494,7 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         public JStmtFor parsedAll()
         {
-            partIndex = 0;
+            _partIndex = 0;
             return super.parsedAll();
         }
 
@@ -506,7 +515,7 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Identifier")
                 getPart().setLabel(aNode.getCustomNode(JExprId.class));
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
@@ -527,7 +536,7 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Identifier")
                 getPart().setLabel(aNode.getCustomNode(JExprId.class));
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
@@ -548,7 +557,7 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Expression")
                 getPart().setExpr(aNode.getCustomNode(JExpr.class));
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
@@ -569,7 +578,7 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Expression")
                 getPart().setExpr(aNode.getCustomNode(JExpr.class));
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
@@ -590,11 +599,11 @@ public class JavaParserStmt extends JavaParserExpr {
             if (anId == "Expression")
                 getPart().setExpression(aNode.getCustomNode(JExpr.class));
 
-                // Handle Block
+            // Handle Block
             else if (anId == "Block")
                 getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
 
-                // Handle anything else
+            // Handle anything else
             else getPart();
         }
 
