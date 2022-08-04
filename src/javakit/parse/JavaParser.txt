@@ -120,7 +120,8 @@ LabeledStatement { Identifier ":" Statement }
 
 AssertStatement { "assert" Expression (":" Expression)? ";" }
 
-ExprStatement { PreIncrementExpr | PreDecrementExpr | PrimaryExpr ("++" | "--" | AssignmentOp Expression)? }
+//ExprStatement { PreIncrementExpr | PreDecrementExpr | PrimaryExpr ("++" | "--" | AssignmentOp Expression) }
+ExprStatement { PreIncrementExpr | PreDecrementExpr | Expression }
 
 SwitchStatement { "switch" "(" Expression ")" "{" (SwitchLabel BlockStatement*)* "}" }
 

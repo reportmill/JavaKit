@@ -3,7 +3,6 @@
  */
 package javakit.shell;
 import javakit.parse.JStmt;
-import javakit.reflect.Resolver;
 import snap.view.TextArea;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -70,6 +69,7 @@ public class JSEvaluator {
             JStmt stmt = javaStmts[i];
             if (stmt != null)
                 _lineVals[i] = evalStatement(stmt);
+            else _lineVals[i] = "";
         }
 
         // Restore sys out/err
