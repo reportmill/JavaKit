@@ -3,6 +3,8 @@
  */
 package javakit.reflect;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 
 /**
  * This class represents a Java Method or Constructor.
@@ -11,6 +13,9 @@ public class JavaConstructor extends JavaExecutable {
 
     // The super implementation of this method
     protected JavaConstructor  _super;
+
+    // The method
+    protected Constructor<?>  _constructor;
 
     /**
      * Constructor.
@@ -21,7 +26,15 @@ public class JavaConstructor extends JavaExecutable {
 
         // Set EvalType to DeclaringClass
         _evalType = aDeclaringClass;
+
+        // Set Constructor
+        _constructor = constructor;
     }
+
+    /**
+     * Returns the constructor.
+     */
+    public Constructor<?> getConstructor()  { return _constructor; }
 
     /**
      * Returns the super decl of this JavaDecl (Class, Method, Constructor).
@@ -46,5 +59,74 @@ public class JavaConstructor extends JavaExecutable {
 
         // Set/return
         return _super = superMethod;
+    }
+
+    /**
+     * Returns a signature.
+     */
+    public static String getSigForParts(JavaClass aClass, JavaType[] paramTypes)
+    {
+        // Basic "pkg.pkg.ClassName()"
+        String prefix = aClass.getId();
+        if (paramTypes.length == 0) return prefix + "()";
+
+        // Add ParamTypes: "(pkg.pkg.ClassName,pkg.pkg.ClassName,...)"
+        StringBuffer sb = new StringBuffer(prefix).append('(');
+        for (JavaType type : paramTypes)
+            sb.append(type.getId()).append(',');
+        sb.setLength(sb.length() - 1);
+
+        // Return string
+        return sb.append(')').toString();
+    }
+
+    /**
+     * A Builder class for JavaConstructor.
+     */
+    public static class ConstructorBuilder {
+
+        // Ivars
+        Resolver  _resolver;
+        JavaClass  _declaringClass;
+        int  _mods =  Modifier.PUBLIC;
+        JavaType[]  _paramTypes = new JavaType[0];
+        JavaTypeVariable[]  _typeVars = new JavaTypeVariable[0];
+        boolean  _varArgs;
+
+        /**
+         * Constructor.
+         */
+        public ConstructorBuilder(Resolver aResolver, String aClassName)
+        {
+            _resolver = aResolver;
+            _declaringClass = aResolver.getJavaClassForName(aClassName);
+        }
+
+        // Properties.
+        public ConstructorBuilder mods(int mods)  { _mods = mods; return this; }
+        public ConstructorBuilder paramTypes(Type...  paramTypes)  { _paramTypes = _resolver.getJavaTypesForTypes(paramTypes); return this; }
+        public ConstructorBuilder typeVars(String aName)  { return this; }
+        public ConstructorBuilder isVarArgs(boolean varArgs)  { _varArgs = varArgs; return this; }
+
+        /**
+         * Build.
+         */
+        public JavaConstructor build()
+        {
+            JavaConstructor c = new JavaConstructor(_resolver, _declaringClass, null);
+            c._mods = _mods;
+            c._id = getSigForParts(_declaringClass, _paramTypes);
+            c._name = c._simpleName = _declaringClass.getSimpleName();
+            c._declaringClass = _declaringClass;
+            c._paramTypes = _paramTypes;
+            c._evalType = _declaringClass;
+            c._typeVars = _typeVars;
+            c._varArgs = _varArgs;
+            _mods = Modifier.PUBLIC;
+            _paramTypes = new JavaType[0];
+            _typeVars = new JavaTypeVariable[0];
+            _varArgs = false;
+            return c;
+        }
     }
 }

@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-import snap.util.MethodUtils;
 import java.lang.reflect.*;
 
 /**
@@ -43,17 +42,13 @@ public class ResolverSys extends Resolver {
      * Invokes a constructor on given class with given args.
      */
     @Override
-    public Object invokeConstructor(Class<?> aClass, Object[] theArgs) throws Exception
+    public Object invokeConstructor(Class<?> aClass, JavaConstructor javaConstructor, Object[] theArgs) throws Exception
     {
-        // Get parameter classes
-        Class<?>[] paramClasses = new Class[theArgs.length];
-        for (int i = 0, iMax = theArgs.length; i < iMax; i++) {
-            Object arg = theArgs[i];
-            paramClasses[i] = arg != null ? arg.getClass() : null;
-        }
+        if (isTeaVM)
+            return super.invokeConstructor(aClass, javaConstructor, theArgs);
 
         // Get method
-        Constructor<?> constructor = MethodUtils.getConstructor(aClass, paramClasses);
+        Constructor<?> constructor = javaConstructor.getConstructor();
 
         // Invoke method
         return constructor.newInstance(theArgs);

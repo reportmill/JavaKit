@@ -28,7 +28,7 @@ public class Resolver {
     private Map<String,JavaGenericArrayType>  _arrayTypes = new HashMap<>();
 
     // TeaVM
-    protected static boolean isTeaVM = SnapUtils.isTeaVM; // || true;
+    protected static boolean isTeaVM = SnapUtils.isTeaVM || true;
 
     /**
      * Constructor.
@@ -318,17 +318,15 @@ public class Resolver {
     /**
      * Invokes a method on given object for name and args.
      */
-    public Object invokeConstructor(Class<?> aClass, Object[] theArgs) throws Exception
+    public Object invokeConstructor(Class<?> aClass, JavaConstructor javaConstructor, Object[] theArgs) throws Exception
     {
         if (theArgs.length == 0)
             return aClass.newInstance();
 
-        // Silly
-        if (aClass == String.class && theArgs[0] instanceof String)
-            return theArgs[0];
-
-        // Invoke method
-        throw new NoSuchMethodException(aClass.getName());
+        // Invoke
+        String sig = javaConstructor.getId();
+        Object newInstance = StaticResolver.invokeConstructor(aClass, sig, theArgs);
+        return newInstance;
     }
 
     /**

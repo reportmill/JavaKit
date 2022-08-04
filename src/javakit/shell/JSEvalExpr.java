@@ -6,10 +6,8 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.DoubleUnaryOperator;
 import javakit.parse.*;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaMethod;
-import javakit.reflect.Resolver;
+import javakit.reflect.*;
+
 import static javakit.shell.JSEvalExprUtils.*;
 import snap.util.*;
 
@@ -76,7 +74,7 @@ public class JSEvalExpr {
 
         // Handle alloc expression
         if(anExpr instanceof JExprAlloc)
-            return evalJExprAlloc(anOR, (JExprAlloc) anExpr);
+            return evalExprAlloc(anOR, (JExprAlloc) anExpr);
 
         //if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
         //if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
@@ -180,8 +178,6 @@ public class JSEvalExpr {
 
         // Invoke method
         Object value = _resolver.invokeMethod(anOR, method, argValues);
-
-        // Return
         return value;
     }
 
@@ -209,11 +205,11 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprAlloc.
      */
-    protected Object evalJExprAlloc(Object anOR, JExprAlloc anExpr) throws Exception
+    protected Object evalExprAlloc(Object anOR, JExprAlloc anExpr) throws Exception
     {
         // Get real class for expression
-        JavaDecl exprDecl = anExpr.getDecl();
-        JavaClass javaClass = exprDecl.getEvalClass();
+        JavaConstructor javaConstructor = (JavaConstructor) anExpr.getDecl();
+        JavaClass javaClass = javaConstructor.getDeclaringClass();
         Class<?> realClass = javaClass.getRealClass();
 
         // Handle array
@@ -256,10 +252,14 @@ public class JSEvalExpr {
             }
         }
 
-        // Get arg info
-        Object thisObj = thisObject();
+        // Special case
         List<JExpr> argExprs = anExpr.getArgs();
         int argCount = argExprs.size();
+        if (argCount == 0)
+            return realClass.newInstance();
+
+        // Get arg info
+        Object thisObj = thisObject();
         Object[] argValues = new Object[argCount];
 
         // Iterate over arg expressions and get evaluated values
@@ -268,8 +268,8 @@ public class JSEvalExpr {
             argValues[i] = evalExpr(thisObj, argExpr);
         }
 
-        // Create new instance and return
-        Object newInstance = invokeConstructor(realClass, argValues);
+        // Invoke constructor
+        Object newInstance = _resolver.invokeConstructor(realClass, javaConstructor, argValues);
         return newInstance;
     }
 
@@ -508,18 +508,6 @@ public class JSEvalExpr {
         //ReferenceType refType = anOR.referenceType();
         //Field field = refType.fieldByName(name);
         //if(field!=null) return anOR.getValue(field);
-    }
-
-    /**
-     * Invoke constructor.
-     */
-    public Object invokeConstructor(Class<?> aClass, Object[] theArgs) throws Exception
-    {
-        // Invoke method
-        Object value = _resolver.invokeConstructor(aClass, theArgs);
-
-        // Return
-        return value;
     }
 
     /**
