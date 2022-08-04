@@ -3,7 +3,6 @@
  */
 package javakit.reflect;
 import snap.util.MethodUtils;
-
 import java.lang.reflect.*;
 
 /**
@@ -30,6 +29,9 @@ public class ResolverSys extends Resolver {
     @Override
     public Object invokeMethod(Object anObj, JavaMethod javaMethod, Object[] theArgs) throws Exception
     {
+        if (isTeaVM)
+            return super.invokeMethod(anObj, javaMethod, theArgs);
+
         // Get method
         Method meth = javaMethod.getMethod();
 

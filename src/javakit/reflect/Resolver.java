@@ -5,7 +5,6 @@ package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
 import snap.util.ClassUtils;
-import snap.util.MethodUtils;
 import snap.util.SnapUtils;
 
 /**
@@ -27,6 +26,9 @@ public class Resolver {
 
     // A cache of JavaGenericArrayType by id
     private Map<String,JavaGenericArrayType>  _arrayTypes = new HashMap<>();
+
+    // TeaVM
+    protected static boolean isTeaVM = SnapUtils.isTeaVM; // || true;
 
     /**
      * Constructor.
@@ -309,7 +311,7 @@ public class Resolver {
     public Object invokeMethod(Object anObj, JavaMethod javaMethod, Object[] theArgs) throws Exception
     {
         String sig = javaMethod.getId();
-        Object value = StaticResolver.invokeMethod(this, sig, theArgs);
+        Object value = StaticResolver.invokeMethod(anObj, sig, theArgs);
         return value;
     }
 

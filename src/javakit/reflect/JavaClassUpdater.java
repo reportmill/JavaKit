@@ -3,10 +3,7 @@
  */
 package javakit.reflect;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class updates a JavaClass from resolver.
@@ -200,6 +197,12 @@ public class JavaClassUpdater {
      */
     private void updateMethods(Class<?> realClass, Set<JavaDecl> removedDecls) throws SecurityException
     {
+        if (_resolver.isTeaVM) {
+            JavaMethod[] methods = StaticResolver.getMethodsForClass(_resolver, realClass.getName());
+            _javaClass._methDecls = Arrays.asList(methods);
+            return;
+        }
+
         // Get Methods
         Method[] methods = realClass.getDeclaredMethods();
 
@@ -212,7 +215,8 @@ public class JavaClassUpdater {
                 addDecl(decl);
                 decl.initTypes(meth);
                 _addedDecls++;
-            } else removedDecls.remove(decl);
+            }
+            else removedDecls.remove(decl);
         }
     }
 
