@@ -15,6 +15,7 @@ public class JavaField extends JavaMember {
     public JavaField(Resolver aResolver, JavaClass aDeclaringClass, Field aField)
     {
         super(aResolver, DeclType.Field, aDeclaringClass, aField);
+        if (aField == null) return;
 
         // Set EvalType
         Type fieldType = aResolver.getGenericTypeForField(aField);
@@ -64,5 +65,47 @@ public class JavaField extends JavaMember {
         String className = getDeclaringClassName();
         String fieldName = getName();
         return className + '.' + fieldName;
+    }
+
+    /**
+     * A Builder class for JavaField.
+     */
+    public static class FieldBuilder {
+
+        // Ivars
+        Resolver  _resolver;
+        JavaClass  _declaringClass;
+        int  _mods =  Modifier.PUBLIC;
+        String  _name;
+        JavaType  _type;
+
+        /**
+         * Constructor.
+         */
+        public FieldBuilder(Resolver aResolver, String aClassName)
+        {
+            _resolver = aResolver;
+            _declaringClass = aResolver.getJavaClassForName(aClassName);
+        }
+
+        // Properties.
+        public FieldBuilder mods(int mods)  { _mods = mods; return this; }
+        public FieldBuilder name(String name)  { _name = name; return this; }
+        public FieldBuilder type(Type type)  { _type = _resolver.getJavaTypeForType(type); return this; }
+
+        /**
+         * Build.
+         */
+        public JavaField build()
+        {
+            JavaField f = new JavaField(_resolver, _declaringClass, null);
+            f._mods = _mods;
+            f._id = _declaringClass.getId() + '.' + _name;
+            f._name = f._simpleName = _name;
+            f._declaringClass = _declaringClass;
+            f._evalType = _type;
+            _mods = Modifier.PUBLIC;
+            return f;
+        }
     }
 }

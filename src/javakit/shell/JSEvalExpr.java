@@ -136,9 +136,17 @@ public class JSEvalExpr {
         if (isLocalVar(aName))
             return getLocalVarValue(aName);
 
-        // Check for field
-        if (anOR != null && isField(anOR, aName))
-            return getFieldValue(anOR, aName);
+        // Bogus for TeaVM
+        if (anOR == System.class && SnapUtils.isTeaVM)
+            return aName.equals("err") ? System.err : System.out;
+
+        // Look for field
+        if (anOR != null && !SnapUtils.isTeaVM) {
+            Class cls = anOR instanceof Class ? (Class) anOR : anOR.getClass();
+            Field field = ClassUtils.getFieldForName(cls, aName);
+            if (field != null)
+                return field.get(anOR);
+        }
 
         // Check for class name
         Class cls = getClassForName(anOR, aName);

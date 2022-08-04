@@ -177,6 +177,13 @@ public class JavaClassUpdater {
      */
     private void updateFields(Class<?> realClass, Set<JavaDecl> removedDecls) throws SecurityException
     {
+        // Hack to use StaticResolver for browser
+        if (_resolver.isTeaVM) {
+            JavaField[] fields = StaticResolver.getFieldsForClass(_resolver, realClass.getName());
+            _javaClass._fieldDecls = Arrays.asList(fields);
+            return;
+        }
+
         // Get Fields
         Field[] fields = realClass.getDeclaredFields();
 

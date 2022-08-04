@@ -28,7 +28,7 @@ public class JSTextPane extends TextPane {
     private LineNumView  _lineNumView = new LineNumView();
 
     // EvalView
-    protected EvalView  _evalView = new EvalView();
+    protected EvalView  _evalView;
 
     // Font
     private Font  _defaultFont;
@@ -77,22 +77,10 @@ public class JSTextPane extends TextPane {
         ui.setPrefSize(800, 700);
         ui.setGrowHeight(true);
 
-        StringBuilder sb = new StringBuilder();
-        //sb.append("// \n");
-        //sb.append("// Playground: Enter Java statements and expressions\n");
-        //sb.append("//\n\n");
-        //sb.append("System.out.println(\"Hello World!\");").append("\n\n");
-        sb.append("1 + 1").append("\n\n");
-        sb.append("2 + 2").append("\n\n");
-        //sb.append("\"Hello\" + \" Again\"").append("\n\n");
-        //sb.append("getClass().getName()").append("\n\n");
-
         _textArea = getTextArea();
         _textArea.setGrowWidth(true);
         _textArea.getRichText().setDefaultStyle(new TextStyle(getDefaultFont()));
         enableEvents(_textArea, KeyRelease);
-        _textArea.setText(sb.toString());
-        _textArea.setSel(sb.length());
         ScrollView scroll = _textArea.getParent(ScrollView.class);
 
         _textArea.getRichText().addPropChangeListener(pce -> _lineNumView.updateLines());
@@ -101,11 +89,21 @@ public class JSTextPane extends TextPane {
         RectView rview = new RectView(0, 0, 1, 300);
         rview.setFill(Color.LIGHTGRAY);
 
+        // Create/config EvalView
+        _evalView = new EvalView();
+        ScrollView evalScroll = new ScrollView(_evalView);
+        evalScroll.setPrefWidth(200);
+
         RowView hbox = new RowView();
         hbox.setFillHeight(true);
         hbox.setGrowHeight(true);
-        hbox.setChildren(_lineNumView, _textArea, rview, _evalView);
+        hbox.setChildren(_lineNumView, _textArea, rview, evalScroll);
         scroll.setContent(hbox);
+
+        // Initialize
+        String sampleText = getSampleText();
+        _textArea.setText(sampleText);
+        _textArea.setSel(sampleText.length());
     }
 
     /**
@@ -162,8 +160,7 @@ public class JSTextPane extends TextPane {
         public EvalView()
         {
             setFill(new Color("#f7f7f7"));
-            setTextFill(Color.GRAY);
-            setPrefWidth(200);
+            setTextFill(Color.GRAY); //setPrefWidth(200);
             setEditable(false);
             setFont(JSTextPane.this.getDefaultFont());
         }
@@ -215,5 +212,15 @@ public class JSTextPane extends TextPane {
         Object[] array = new Object[len];
         for (int i = 0; i < len; i++) array[i] = Array.get(anObj, i);
         return Arrays.toString(array);
+    }
+
+    private static String getSampleText()
+    {
+        String t1 = "x = \"Hi World\"\n\n";
+        String t2 = "y = x.replace(\"Hi\", \"Hello\")\n\n";
+        String t3 = "z = new double[] { 1,2,3 }\n\n";
+        String t4 = "System.out.println(y + \": \" + z[2])\n\n";
+        return '\n' + t1 + t2 + t3 + t4;
+        //return "1 + 1\n\n2 + 2\n\n";
     }
 }
