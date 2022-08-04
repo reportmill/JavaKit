@@ -92,6 +92,7 @@ public class JSTextPane extends TextPane {
         _textArea.getRichText().setDefaultStyle(new TextStyle(getDefaultFont()));
         enableEvents(_textArea, KeyRelease);
         _textArea.setText(sb.toString());
+        _textArea.setSel(sb.length());
         ScrollView scroll = _textArea.getParent(ScrollView.class);
 
         _textArea.getRichText().addPropChangeListener(pce -> _lineNumView.updateLines());

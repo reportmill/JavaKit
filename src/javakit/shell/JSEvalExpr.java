@@ -7,7 +7,6 @@ import java.util.*;
 import java.util.function.DoubleUnaryOperator;
 import javakit.parse.*;
 import javakit.reflect.*;
-
 import static javakit.shell.JSEvalExprUtils.*;
 import snap.util.*;
 
@@ -208,8 +207,8 @@ public class JSEvalExpr {
     protected Object evalExprAlloc(Object anOR, JExprAlloc anExpr) throws Exception
     {
         // Get real class for expression
-        JavaConstructor javaConstructor = (JavaConstructor) anExpr.getDecl();
-        JavaClass javaClass = javaConstructor.getDeclaringClass();
+        JavaDecl exprDecl = anExpr.getDecl();
+        JavaClass javaClass = exprDecl.getEvalClass();
         Class<?> realClass = javaClass.getRealClass();
 
         // Handle array
@@ -257,6 +256,9 @@ public class JSEvalExpr {
         int argCount = argExprs.size();
         if (argCount == 0)
             return realClass.newInstance();
+
+        // Get constructor
+        JavaConstructor javaConstructor = (JavaConstructor) exprDecl;
 
         // Get arg info
         Object thisObj = thisObject();
