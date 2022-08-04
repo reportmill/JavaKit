@@ -560,7 +560,17 @@ public class JSEvalExpr {
      */
     public void setLocalVarArrayValueAtIndex(String aName, Object aValue, int anIndex)
     {
+        // Get array
         Object array = getLocalVarValue(aName);
+
+        // Make sure value is right type
+        if (SnapUtils.isTeaVM) {
+            Class<?> cls = array.getClass().getComponentType();
+            if (cls.isPrimitive())
+                aValue = castOrConvertValueToPrimitiveClass(aValue, cls);
+        }
+
+        // Set value
         Array.set(array, anIndex, aValue);
     }
 
