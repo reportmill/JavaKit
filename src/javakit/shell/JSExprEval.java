@@ -7,13 +7,13 @@ import java.util.*;
 import java.util.function.DoubleUnaryOperator;
 import javakit.parse.*;
 import javakit.reflect.*;
-import static javakit.shell.JSEvalExprUtils.*;
+import static javakit.shell.JSExprEvalUtils.*;
 import snap.util.*;
 
 /**
  * A class to evaluate expressions.
  */
-public class JSEvalExpr {
+public class JSExprEval {
 
     // The current "this" object
     protected Object  _thisObj;
@@ -27,7 +27,7 @@ public class JSEvalExpr {
     /**
      * Constructor.
      */
-    public JSEvalExpr()
+    public JSExprEval()
     {
 
     }
@@ -72,22 +72,31 @@ public class JSEvalExpr {
             return evalExprChain(anOR, (JExprChain) anExpr);
 
         // Handle alloc expression
-        if(anExpr instanceof JExprAlloc)
+        if (anExpr instanceof JExprAlloc)
             return evalAllocExpr(anOR, (JExprAlloc) anExpr);
 
-        //if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
-        //if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
-        //if(aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr)aExpr);
+        // Handle cast expression
+        if (anExpr instanceof JExpr.CastExpr)
+            throw new RuntimeException("JSExprEval.evalCastExpr() not implemented");
+
+        // Handle Instanceof expression
+        if (anExpr instanceof JExpr.InstanceOfExpr)
+            throw new RuntimeException("JSExprEval.evalTypeExpr() not implemented");
 
         // Handle lambda expression
-        if(anExpr instanceof JExprLambda)
-            return anExpr;
+        if (anExpr instanceof JExprLambda)
+            return evalLambdaExpr(anOR, (JExprLambda) anExpr);
 
-        //if(aExpr instanceof JExprMethodRef) writeJExprMethodRef((JExprMethodRef)aExpr);
-        //if(aExpr instanceof JExprType) writeJExprType((JExprType)aExpr); */
+        // Handle method ref expression
+        if (anExpr instanceof JExprMethodRef)
+            throw new RuntimeException("JSExprEval.evalMethodRef() not implemented");
+
+        // Handle Type expression
+        if (anExpr instanceof JExprType)
+            return evalTypeExpr(anOR, (JExprType) anExpr);
 
         // Complain
-        throw new RuntimeException("JSEvalExpr.evalExpr: Unsupported expression " + anExpr.getClass());
+        throw new RuntimeException("JSExprEval.evalExpr: Unsupported expression " + anExpr.getClass());
     }
 
     /**
@@ -492,35 +501,34 @@ public class JSEvalExpr {
     /**
      * Handle JExprLambda.
      */
-    private Object evalExprLambda(Object anOR, JExprLambda aLambdaExpr) throws Exception
+    private Object evalLambdaExpr(Object anOR, JExprLambda aLambdaExpr) throws Exception
     {
-        final JExpr contentExpr = aLambdaExpr.getExpr();
-        Object lambdaValue = null;
+        // Get the content expression
+        JExpr contentExpr = aLambdaExpr.getExpr();
 
         // Get lambda class
         JavaClass lambdaClass = aLambdaExpr.getEvalClass();
         if (lambdaClass == null)
-            return null;
+            throw new RuntimeException("JSExprEval.evalLambdaExpr: Can't determine lambda class for expr: " + aLambdaExpr);
 
         // Need to wrap Lambda in real expression
         Class<?> realClass = lambdaClass.getRealClass();
 
-        // Handle DoubleUnaryOperator
-        if (realClass == DoubleUnaryOperator.class) {
-            DoubleUnaryOperator lambdaReal = d -> {
-                setLocalVarValue("d", d);
-                try {
-                    Object value = evalExpr(anOR, contentExpr);
-                    return SnapUtils.doubleValue(value);
-                } catch (Exception e) {
-                    return 0;
-                }
-            };
-            lambdaValue = lambdaReal;
-        }
+        // Get/return lambda of lambda class that wraps given expression
+        Object wrappedLambda = getWrappedLambdaExpression(anOR, contentExpr, realClass);
+        return wrappedLambda;
+    }
 
-        // Return
-        return lambdaValue;
+    /**
+     * Handle JExprType.
+     */
+    private Object evalTypeExpr(Object anOR, JExprType typeExpr) throws Exception
+    {
+        JavaClass evalClass = typeExpr.getEvalClass();
+        Class<?> realClass = evalClass != null ? evalClass.getRealClass() : null;
+        if (realClass == null)
+            throw new RuntimeException("JSExprEval.evalTypeExpr: Can't find type for expr: " + typeExpr);
+        return realClass;
     }
 
     /**
@@ -633,5 +641,28 @@ public class JSEvalExpr {
 
         // Return not found
         return null;
+    }
+
+    /**
+     * Returns a wrapped lambda expression for given class.
+     */
+    private Object getWrappedLambdaExpression(Object anOR, JExpr contentExpr, Class<?> aClass)
+    {
+        // Handle DoubleUnaryOperator
+        if (aClass == DoubleUnaryOperator.class) {
+            return (DoubleUnaryOperator) d -> {
+                setLocalVarValue("d", d);
+                try {
+                    Object value = evalExpr(anOR, contentExpr);
+                    return SnapUtils.doubleValue(value);
+                }
+                catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        }
+
+        // Complain
+        throw new RuntimeException("JSExprEval.getWrappedLambdaExpr: Uknown lambda class: " + aClass.getName());
     }
 }

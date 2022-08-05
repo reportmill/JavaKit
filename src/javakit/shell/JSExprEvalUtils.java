@@ -3,9 +3,9 @@ import javakit.parse.JExprMath;
 import snap.util.SnapUtils;
 
 /**
- * Utility methods for JSEvalExpr.
+ * Utility methods for JSExprEval.
  */
-public class JSEvalExprUtils {
+public class JSExprEvalUtils {
 
     /**
      * Add two values.

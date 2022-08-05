@@ -19,7 +19,7 @@ public class JSEvaluator {
     private JSParser  _javaParser;
 
     // A Statement evaluator
-    private JSEvalStmt  _stmtEval;
+    private JSStmtEval _stmtEval;
 
     // The values
     protected Object[]  _lineVals;
@@ -43,7 +43,7 @@ public class JSEvaluator {
         _javaParser = new JSParser();
 
         // Create Statement eval
-        _stmtEval = new JSEvalStmt();
+        _stmtEval = new JSStmtEval();
     }
 
     /**

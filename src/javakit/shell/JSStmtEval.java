@@ -10,15 +10,15 @@ import snap.util.SnapUtils;
 /**
  * A class to evaluate Java statements.
  */
-public class JSEvalStmt {
+public class JSStmtEval {
 
     // The Expression evaluator
-    private JSEvalExpr  _exprEval = new JSEvalExpr();
+    private JSExprEval _exprEval = new JSExprEval();
 
     /**
      * Constructor.
      */
-    public JSEvalStmt()
+    public JSStmtEval()
     {
 
     }
@@ -31,46 +31,84 @@ public class JSEvalStmt {
         // Dunno
         _exprEval._thisObj = anOR;
 
-        //if(aStmt instanceof JStmtAssert) return evalJStmtAssert((JStmtAssert)aStmt);
+        // Handle Assert statement
+        if (aStmt instanceof JStmtAssert)
+            throw new RuntimeException("JSStmtEval: Assert Statement not implemented");
 
         // Handle block statement
-        if(aStmt instanceof JStmtBlock)
-            return evalBlockStmt(anOR, (JStmtBlock)aStmt);
+        if (aStmt instanceof JStmtBlock)
+            return evalBlockStmt(anOR, (JStmtBlock) aStmt);
 
-        //else if(aStmt instanceof JStmtBreak) return evalJStmtBreak((JStmtBreak)aStmt);
-        //else if(aStmt instanceof JStmtClassDecl) return evalJStmtClassDecl((JStmtClassDecl)aStmt);
-        // else if(aStmt instanceof JStmtConstrCall) return evalJStmtConstrCall((JStmtConstrCall)aStmt);
+        // Handle break statement
+        if (aStmt instanceof JStmtBreak)
+            throw new RuntimeException("JSStmtEval: break Statement not implemented");
 
-        //else if(aStmt instanceof JStmtContinue) return evalJStmtContinue((JStmtContinue)aStmt);
-        //else if(aStmt instanceof JStmtDo) return evalJStmtDo((JStmtDo)aStmt);
+        // Handle ClassDecl
+        if (aStmt instanceof JStmtClassDecl)
+            throw new RuntimeException("JSStmtEval: ClassDecl Statement not implemented");
+
+        // Handle constructor call
+        if (aStmt instanceof JStmtConstrCall)
+            throw new RuntimeException("JSStmtEval: constructor Statement not implemented");
+
+        // Handle continue statement
+        if (aStmt instanceof JStmtContinue)
+            throw new RuntimeException("JSStmtEval: continue Statement not implemented");
+
+        // Handle Do statement
+        if (aStmt instanceof JStmtDo)
+            throw new RuntimeException("JSStmtEval: Do Statement not implemented");
 
         // Empty statement
         if(aStmt instanceof JStmtEmpty)
             return null;
 
         // Expression statement
-        else if (aStmt instanceof JStmtExpr)
+        if (aStmt instanceof JStmtExpr)
             return evalExprStmt((JStmtExpr) aStmt);
 
         // For statement
-        else if (aStmt instanceof JStmtFor)
+        if (aStmt instanceof JStmtFor)
             return evalForStmt(anOR, (JStmtFor) aStmt);
 
-        //else if(aStmt instanceof JStmtIf) return evalJStmtIf((JStmtIf)aStmt);
-        //else if(aStmt instanceof JStmtLabeled) return evalJStmtLabeled((JStmtLabeled)aStmt);
-        //else if(aStmt instanceof JStmtReturn) return evalJStmtReturn((JStmtReturn)aStmt);
-        //else if(aStmt instanceof JStmtSwitch) return evalJStmtSwitch((JStmtSwitch)aStmt);
-        //else if(aStmt instanceof JStmtSynchronized) return evalJStmtSynchronized((JStmtSynchronized)aStmt);
-        //else if(aStmt instanceof JStmtThrow) return evalJStmtThrow((JStmtThrow)aStmt);
-        //else if(aStmt instanceof JStmtTry) return evalJStmtTry((JStmtTry)aStmt);
+        // Handle if statement
+        if (aStmt instanceof JStmtIf)
+            throw new RuntimeException("JSStmtEval: if Statement not implemented");
 
-        // Variable declaration statement
-        else if (aStmt instanceof JStmtVarDecl)
-            return evalJStmtVarDecl((JStmtVarDecl) aStmt);
+        // Handle labeled statement
+        if (aStmt instanceof JStmtLabeled)
+            throw new RuntimeException("JSStmtEval: labeled Statement not implemented");
 
-        //else if(aStmt instanceof JStmtWhile) return evalJStmtWhile((JStmtWhile)aStmt);
+        // Handle return statement
+        if (aStmt instanceof JStmtReturn)
+            throw new RuntimeException("JSStmtEval: return Statement not implemented");
 
-        else throw new RuntimeException("EvalStmt.evalStmt: Unsupported statement " + aStmt.getClass());
+        // Handle switch statement
+        if (aStmt instanceof JStmtSwitch)
+            throw new RuntimeException("JSStmtEval: switch Statement not implemented");
+
+        // Handle sync statement
+        if (aStmt instanceof JStmtSynchronized)
+            return evalStmt(anOR, aStmt.getBlock());
+
+        // Handle throw statement
+        if (aStmt instanceof JStmtThrow)
+            throw new RuntimeException("JSStmtEval: throw Statement not implemented");
+
+        // Handle try statement
+        if (aStmt instanceof JStmtTry)
+            throw new RuntimeException("JSStmtEval: try Statement not implemented");
+
+        // Handle variable declaration statement
+        if (aStmt instanceof JStmtVarDecl)
+            return evalVarDeclStmt((JStmtVarDecl) aStmt);
+
+        // Handle while statement
+        if (aStmt instanceof JStmtWhile)
+            throw new RuntimeException("JSStmtEval: while Statement not implemented");
+
+        // Complain
+        throw new RuntimeException("EvalStmt.evalStmt: Unsupported statement " + aStmt.getClass());
     }
 
     /**
@@ -174,7 +212,7 @@ public class JSEvalStmt {
     /**
      * Evaluate JStmtVarDecl.
      */
-    public Object evalJStmtVarDecl(JStmtVarDecl aStmt) throws Exception
+    public Object evalVarDeclStmt(JStmtVarDecl aStmt) throws Exception
     {
         // Get list
         List<JVarDecl> varDecls = aStmt.getVarDecls();
