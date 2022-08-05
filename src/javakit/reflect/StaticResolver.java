@@ -137,6 +137,8 @@ public class StaticResolver {
                 return ((java.lang.String) anObj).replace((String) theArgs[0],(String) theArgs[1]);
             case "java.io.PrintStream.print(java.lang.Object)":
                 ((PrintStream) anObj).print(theArgs[0]); return theArgs[0];
+            case "java.io.PrintStream.println(java.lang.Object)":
+                ((PrintStream) anObj).println(theArgs[0]); return theArgs[0];
             case "java.util.stream.DoubleStream.of(double[])":
                 return DoubleStream.of((double[]) theArgs[0]);
             case "java.util.stream.DoubleStream.map(java.util.function.DoubleUnaryOperator)":

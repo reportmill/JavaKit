@@ -214,17 +214,18 @@ public class JSTextPane extends TextPane {
         return Arrays.toString(array);
     }
 
-    private static String getSampleText1()
+    private static String getSampleText()
     {
         String t1 = "x = \"Hi World\"\n\n";
         String t2 = "y = x.replace(\"Hi\", \"Hello\")\n\n";
         String t3 = "z = new double[] { 1,2,3 }\n\n";
         String t4 = "System.out.println(y + \": \" + z[2])\n\n";
-        return '\n' + t1 + t2 + t3 + t4;
+        String t5 = "zSquared = DoubleStream.of(z).map(d -> d * d).toArray()\n\n";
+        return '\n' + t1 + t2 + t3 + t4 + t5;
         //return "1 + 1\n\n2 + 2\n\n";
     }
 
-    private static String getSampleText()
+    private static String getSampleText2()
     {
         String t1 = "double[] x = new double[] { 1,2,3 };\n\n";
         String t2 = "DoubleStream xStr = DoubleStream.of(x);\n\n";
