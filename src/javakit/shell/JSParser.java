@@ -189,10 +189,13 @@ public class JSParser {
     private String getJavaFileHeader()
     {
         // Construct class/method wrapper for statements
-        String importDecl = "import snap.view.*;\n\n";
+        String importDecl1 = "import java.util.*;\n";
+        String importDecl2 = "import java.util.stream.*;\n";
+        String importDecl3 = "import snap.view.*;\n\n";
+        String importsDecl = importDecl1 + importDecl2 + importDecl3;
         String classDecl = "public class JavaShellEvaluator {\n\n";
         String methodDecl = "void body() {\n\n";
-        return importDecl + classDecl + methodDecl;
+        return importsDecl + classDecl + methodDecl;
     }
 
     /**

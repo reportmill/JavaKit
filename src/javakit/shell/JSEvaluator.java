@@ -66,10 +66,16 @@ public class JSEvaluator {
 
         // Iterate over lines and eval each
         for (int i = 0, iMax = javaStmts.length; i < iMax; i++) {
+
+            // Get Statement (if null, just set empty string value and continue)
             JStmt stmt = javaStmts[i];
-            if (stmt != null)
-                _lineVals[i] = evalStatement(stmt);
-            else _lineVals[i] = "";
+            if (stmt == null) {
+                _lineVals[i] = ""; continue; }
+
+            // Evaluate statement
+            Object lineVal = _lineVals[i] = evalStatement(stmt);
+            if (lineVal instanceof Exception)
+                ((Exception) lineVal).printStackTrace();
         }
 
         // Restore sys out/err

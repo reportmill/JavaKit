@@ -53,11 +53,11 @@ public class JSEvalExpr {
 
         // Handle variable
         if (anExpr instanceof JExprId)
-            return evalIdentifierExpr(anOR, (JExprId) anExpr);
+            return evalIdExpr(anOR, (JExprId) anExpr);
 
         // Handle method call
         if (anExpr instanceof JExprMethodCall)
-            return evalExprMethodCall(anOR, (JExprMethodCall) anExpr);
+            return evalMethodCallExpr(anOR, (JExprMethodCall) anExpr);
 
         // Handle math expression
         if (anExpr instanceof JExprMath)
@@ -73,7 +73,7 @@ public class JSEvalExpr {
 
         // Handle alloc expression
         if(anExpr instanceof JExprAlloc)
-            return evalExprAlloc(anOR, (JExprAlloc) anExpr);
+            return evalAllocExpr(anOR, (JExprAlloc) anExpr);
 
         //if(aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr)aExpr);
         //if(aExpr instanceof JExprId) writeJExprId((JExprId)aExpr);
@@ -111,7 +111,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprId.
      */
-    private Object evalIdentifierExpr(Object anOR, JExprId anId) throws Exception
+    private Object evalIdExpr(Object anOR, JExprId anId) throws Exception
     {
         // Get identifier name
         String name = anId.getName();
@@ -172,7 +172,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprMethodCall.
      */
-    private Object evalExprMethodCall(Object anOR, JExprMethodCall anExpr) throws Exception
+    private Object evalMethodCallExpr(Object anOR, JExprMethodCall anExpr) throws Exception
     {
         // If object null, throw NullPointerException
         if (anOR == null)
@@ -223,7 +223,7 @@ public class JSEvalExpr {
     /**
      * Evaluate JExprAlloc.
      */
-    protected Object evalExprAlloc(Object anOR, JExprAlloc anExpr) throws Exception
+    protected Object evalAllocExpr(Object anOR, JExprAlloc anExpr) throws Exception
     {
         // Get real class for expression
         JavaDecl exprDecl = anExpr.getDecl();
