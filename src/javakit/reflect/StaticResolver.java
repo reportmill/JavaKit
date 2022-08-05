@@ -1,7 +1,10 @@
 package javakit.reflect;
 import javakit.reflect.JavaField.FieldBuilder;
 import javakit.reflect.JavaMethod.MethodBuilder;
+import javakit.reflect.JavaConstructor.ConstructorBuilder;
 import java.io.PrintStream;
+import java.util.function.DoubleUnaryOperator;
+import java.util.stream.DoubleStream;
 
 /**
  * Provide reflection info for TeaVM.
@@ -33,10 +36,11 @@ public class StaticResolver {
         JavaMethod.MethodBuilder mb = new JavaMethod.MethodBuilder(aResolver, aClassName);
 
         switch (aClassName) {
-            case "java.lang.Object": return getMethodsForJavaLangObject(aResolver, mb);
-            case "java.lang.Class": return getMethodsForJavaLangClass(aResolver, mb);
-            case "java.lang.String": return getMethodsForJavaLangString(aResolver, mb);
-            case "java.io.PrintStream": return getMethodsForJavaIoPrintStream(aResolver, mb);
+            case "java.lang.Object": return getMethodsForJavaLangObject(mb);
+            case "java.lang.Class": return getMethodsForJavaLangClass(mb);
+            case "java.lang.String": return getMethodsForJavaLangString(mb);
+            case "java.io.PrintStream": return getMethodsForJavaIoPrintStream(mb);
+            case "java.util.stream.DoubleStream": return getMethodsForJavaUtilStreamDoubleStream(mb);
             default: return new JavaMethod[0];
         }
     }
@@ -49,7 +53,7 @@ public class StaticResolver {
         switch (aClassName) {
             case "java.lang.String": return getConstructorsForJavaLangString(aResolver);
             default:
-                JavaConstructor.ConstructorBuilder cb = new JavaConstructor.ConstructorBuilder(aResolver, aClassName);
+                ConstructorBuilder cb = new ConstructorBuilder(aResolver, aClassName);
                 return new JavaConstructor[] { cb.build() };
         }
     }
@@ -57,9 +61,9 @@ public class StaticResolver {
     /**
      * Returns methods for java.lang.Object.
      */
-    public static JavaMethod[] getMethodsForJavaLangObject(Resolver aResolver, MethodBuilder mb)
+    public static JavaMethod[] getMethodsForJavaLangObject(MethodBuilder mb)
     {
-        JavaMethod[] methods = new JavaMethod[2];
+        JavaMethod[] methods = new JavaMethod[1];
         methods[0] = mb.name("getClass").returnType(Class.class).build();
         return methods;
     }
@@ -67,7 +71,7 @@ public class StaticResolver {
     /**
      * Returns methods for java.lang.Class.
      */
-    public static JavaMethod[] getMethodsForJavaLangClass(Resolver aResolver, MethodBuilder mb)
+    public static JavaMethod[] getMethodsForJavaLangClass(MethodBuilder mb)
     {
         JavaMethod[] methods = new JavaMethod[2];
         methods[0] = mb.name("getName").returnType(String.class).build();
@@ -78,7 +82,7 @@ public class StaticResolver {
     /**
      * Returns methods for java.lang.String.
      */
-    public static JavaMethod[] getMethodsForJavaLangString(Resolver aResolver, MethodBuilder mb)
+    public static JavaMethod[] getMethodsForJavaLangString(MethodBuilder mb)
     {
         JavaMethod[] methods = new JavaMethod[2];
         methods[0] = mb.name("length").returnType(int.class).build();
@@ -89,7 +93,7 @@ public class StaticResolver {
     /**
      * Returns methods for java.io.PrintStream.
      */
-    public static JavaMethod[] getMethodsForJavaIoPrintStream(Resolver aResolver, MethodBuilder mb)
+    public static JavaMethod[] getMethodsForJavaIoPrintStream(MethodBuilder mb)
     {
         JavaMethod[] methods = new JavaMethod[2];
         methods[0] = mb.name("print").paramTypes(Object.class).build();
@@ -98,11 +102,23 @@ public class StaticResolver {
     }
 
     /**
+     * Returns methods for java.util.stream.DoubleStream.
+     */
+    public static JavaMethod[] getMethodsForJavaUtilStreamDoubleStream(MethodBuilder mb)
+    {
+        JavaMethod[] methods = new JavaMethod[3];
+        methods[0] = mb.name("of").paramTypes(double[].class).returnType(DoubleStream.class).build();
+        methods[1] = mb.name("map").paramTypes(DoubleUnaryOperator.class).returnType(DoubleStream.class).build();
+        methods[2] = mb.name("toArray").returnType(double[].class).build();
+        return methods;
+    }
+
+    /**
      * Returns constructors for java.lang.String.
      */
     public static JavaConstructor[] getConstructorsForJavaLangString(Resolver aResolver)
     {
-        JavaConstructor.ConstructorBuilder cb = new JavaConstructor.ConstructorBuilder(aResolver, "java.lang.String");
+        ConstructorBuilder cb = new ConstructorBuilder(aResolver, "java.lang.String");
         JavaConstructor[] constructors = new JavaConstructor[2];
 
         constructors[0] = cb.build();
@@ -121,8 +137,12 @@ public class StaticResolver {
                 return ((java.lang.String) anObj).replace((String) theArgs[0],(String) theArgs[1]);
             case "java.io.PrintStream.print(java.lang.Object)":
                 ((PrintStream) anObj).print(theArgs[0]); return theArgs[0];
-            case "java.io.PrintStream.println(java.lang.Object)":
-                ((PrintStream) anObj).print(theArgs[0]); return theArgs[0];
+            case "java.util.stream.DoubleStream.of(double[])":
+                return DoubleStream.of((double[]) theArgs[0]);
+            case "java.util.stream.DoubleStream.map(java.util.function.DoubleUnaryOperator)":
+                return ((DoubleStream) anObj).map((DoubleUnaryOperator) theArgs[0]);
+            case "java.util.stream.DoubleStream.toArray()":
+                return ((DoubleStream) anObj).toArray();
             default: throw new NoSuchMethodException("Unknown method: " + anId);
         }
     }

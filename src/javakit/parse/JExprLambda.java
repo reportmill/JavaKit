@@ -28,7 +28,7 @@ public class JExprLambda extends JExpr {
     public List<JVarDecl> getParams()  { return _params; }
 
     /**
-     * Returns the number of paramters.
+     * Returns the number of parameters.
      */
     public int getParamCount()  { return _params.size(); }
 
@@ -49,7 +49,7 @@ public class JExprLambda extends JExpr {
     /**
      * Returns the parameter with given name.
      */
-    public JVarDecl getParam(String aName)
+    public JVarDecl getParamForName(String aName)
     {
         for (JVarDecl varDecl : _params)
             if (SnapUtils.equals(varDecl.getName(), aName))
@@ -68,8 +68,8 @@ public class JExprLambda extends JExpr {
 
         // Iterate over params and get EvalClass for each
         for (int i = 0, iMax = _params.size(); i < iMax; i++) {
-            JVarDecl vd = _params.get(i);
-            paramTypes[i] = vd.getEvalClass();
+            JVarDecl varDecl = _params.get(i);
+            paramTypes[i] = varDecl.getEvalClass();
         }
 
         // Return
@@ -138,26 +138,37 @@ public class JExprLambda extends JExpr {
         // Handle parent is method call: Get lambda interface from method call decl param
         if (par instanceof JExprMethodCall) {
 
+            // Get methodCall and matching methods
             JExprMethodCall methodCall = (JExprMethodCall) par;
             List<JavaMethod> methods = getCompatibleMethods();
             if (methods == null || methods.size() == 0)
                 return null;
 
+            // Get arg index of this lambda
             List<JExpr> argExpressions = methodCall.getArgs();
-            int ind = ListUtils.indexOfId(argExpressions, this);
-            int argc = getParamCount();
-            if (ind < 0)
+            int argIndex = ListUtils.indexOfId(argExpressions, this);
+            int argCount = getParamCount();
+            if (argIndex < 0)
                 return null;
 
+            // Iterate over methods and return first that matches arg count
             for (JavaMethod method : methods) {
-                JavaType paramType = method.getParamType(ind);
+                if (method.isDefault()) continue;
+                JavaType paramType = method.getParamType(argIndex);
                 JavaClass paramClass = paramType.getEvalClass();
-                _meth = paramClass.getLambdaMethod(argc);
+                _meth = paramClass.getLambdaMethod(argCount);
                 if (_meth != null)
                     return paramType;
             }
 
-            // Return
+            // Otherwise, let's just return param type of first matching method (maybe TeaVM thing)
+            if (methods.size() > 0) {
+                JavaMethod method = methods.get(0);
+                JavaType paramType = method.getParamType(argIndex);
+                return paramType;
+            }
+
+            // Return not found
             return null;
         }
 
@@ -183,10 +194,10 @@ public class JExprLambda extends JExpr {
      */
     protected JavaDecl getDeclImpl(JNode aNode)
     {
-        // If node is paramter name, return param decl
+        // If node is parameter name, return param decl
         if (aNode instanceof JExprId) {
             String name = aNode.getName();
-            JVarDecl param = getParam(name);
+            JVarDecl param = getParamForName(name);
             if (param != null)
                 return param.getDecl();
         }
@@ -201,32 +212,35 @@ public class JExprLambda extends JExpr {
     protected List<JavaMethod> getCompatibleMethods()
     {
         // Get method call, method name and args
-        JExprMethodCall mc = (JExprMethodCall) getParent();
-        String name = mc.getName();
-        List<JExpr> args = mc.getArgs();
-        int argc = args.size();
+        JExprMethodCall methodCallExpr = (JExprMethodCall) getParent();
+        String name = methodCallExpr.getName();
+        List<JExpr> methodArgs = methodCallExpr.getArgs();
+        int argCount = methodArgs.size();
 
         // Get arg types
-        JavaType[] argTypes = new JavaType[argc];
-        for (int i = 0; i < argc; i++) {
-            JExpr arg = args.get(i);
+        JavaType[] argTypes = new JavaType[argCount];
+        for (int i = 0; i < argCount; i++) {
+            JExpr arg = methodArgs.get(i);
             argTypes[i] = arg instanceof JExprLambda ? null : arg.getEvalType();
         }
 
         // Get scope node class type and search for compatible method for name and arg types
-        JavaDecl scopeType = mc.getScopeNodeEvalType();
-        if (scopeType == null) return null;
-        JavaClass scopeClass = scopeType.getEvalClass();
-        List<JavaMethod> decls = JavaClassUtils.getCompatibleMethodsAll(scopeClass, name, argTypes);
-        if (decls.size() > 0)
-            return decls;
+        JavaType scopeType = methodCallExpr.getScopeNodeEvalType();
+        JavaClass scopeClass = scopeType != null ? scopeType.getEvalClass() : null;
+        if (scopeClass == null)
+            return null;
+
+        // Get scope node class type and search for compatible method for name and arg types
+        List<JavaMethod> compatibleMethods = JavaClassUtils.getCompatibleMethodsAll(scopeClass, name, argTypes);
+        if (compatibleMethods.size() > 0)
+            return compatibleMethods;
 
         // If scope node class type is member class and not static, go up parent classes
         while (scopeClass.isMemberClass() && !scopeClass.isStatic()) {
             scopeClass = scopeClass.getDeclaringClass();
-            decls = JavaClassUtils.getCompatibleMethodsAll(scopeClass, name, argTypes);
-            if (decls.size() > 0)
-                return decls;
+            compatibleMethods = JavaClassUtils.getCompatibleMethodsAll(scopeClass, name, argTypes);
+            if (compatibleMethods.size() > 0)
+                return compatibleMethods;
         }
 
         // See if method is from static import
@@ -234,7 +248,7 @@ public class JExprLambda extends JExpr {
         //if(decl!=null && decl.isMethod()) return decl;
 
         // Return null since not found
-        return decls;
+        return compatibleMethods;
     }
 
     /**
