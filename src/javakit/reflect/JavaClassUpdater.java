@@ -97,8 +97,8 @@ public class JavaClassUpdater {
         // Array.length: Handle this special for Object[]
         if (_javaClass.isArray() && _javaClass.getFieldForName("length") == null) {
             Field lenField = getLenField();
-            JavaDecl decl = new JavaField(_resolver, _javaClass, lenField);
-            addDecl(decl);
+            JavaField javaField = new JavaField(_resolver, _javaClass, lenField);
+            _javaClass._fieldDecls = Arrays.asList(javaField);
             _addedDecls++;
         }
 

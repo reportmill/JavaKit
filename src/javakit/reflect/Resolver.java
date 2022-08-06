@@ -28,7 +28,7 @@ public class Resolver {
     private Map<String,JavaGenericArrayType>  _arrayTypes = new HashMap<>();
 
     // TeaVM
-    protected static boolean isTeaVM = SnapUtils.isTeaVM;
+    protected static boolean isTeaVM = SnapUtils.isTeaVM || true;
 
     /**
      * Constructor.

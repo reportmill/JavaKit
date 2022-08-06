@@ -84,13 +84,13 @@ public class StaticResolver {
 
             // Handle snap.view.View
             case "snap.view.View":
-                return mb.name("getAnim").paramTypes(int.class).buildAll();
+                return mb.name("getAnim").paramTypes(int.class).returnType(snap.view.ViewAnim.class).buildAll();
 
             // Handle snap.view.ViewAnim
             case "snap.view.ViewAnim":
-                mb.name("setScaleX").paramTypes(double.class).save();
-                mb.name("setScaleY").paramTypes(double.class).save();
-                mb.name("setRotation").paramTypes(double.class).save();
+                mb.name("setRotate").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
+                mb.name("setScaleX").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
+                mb.name("setScaleY").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
                 return mb.name("play").buildAll();
 
             // Handle snap.view.ViewOwner
@@ -163,6 +163,8 @@ public class StaticResolver {
                 return ((snap.view.View) anObj).getAnim(intVal(theArgs[0]));
 
             // Handle snap.view.ViewAnim
+            case "snap.view.ViewAnim.setRotate(double)":
+                return ((snap.view.ViewAnim) anObj).setRotate(doubleVal(theArgs[0]));
             case "snap.view.ViewAnim.setScaleX(double)":
                 return ((snap.view.ViewAnim) anObj).setScaleX(doubleVal(theArgs[0]));
             case "snap.view.ViewAnim.setScaleY(double)":
