@@ -3,6 +3,7 @@
  */
 package javakit.reflect;
 import java.lang.reflect.*;
+import java.util.Arrays;
 
 /**
  * This class represents a JavaClass Field.
@@ -79,10 +80,19 @@ public class JavaField extends JavaMember {
         String  _name;
         JavaType  _type;
 
+        // For build all
+        private JavaField[]  _fields = new JavaField[20];
+        private int  _fieldCount;
+
         /**
          * Constructor.
          */
-        public FieldBuilder(Resolver aResolver, String aClassName)
+        public FieldBuilder()  { }
+
+        /**
+         * Init.
+         */
+        public void init(Resolver aResolver, String aClassName)
         {
             _resolver = aResolver;
             _declaringClass = aResolver.getJavaClassForName(aClassName);
@@ -105,7 +115,27 @@ public class JavaField extends JavaMember {
             f._declaringClass = _declaringClass;
             f._evalType = _type;
             _mods = Modifier.PUBLIC;
+            _name = null;
             return f;
+        }
+
+        /**
+         * Builds current field and saves it in array for buildAll.
+         */
+        public FieldBuilder save()
+        {
+            _fields[_fieldCount++] = build(); return this;
+        }
+
+        /**
+         * Returns an array of all currently saved fields.
+         */
+        public JavaField[] buildAll()
+        {
+            if (_name != null) save();
+            JavaField[] fields = Arrays.copyOf(_fields, _fieldCount);
+            _fieldCount = 0;
+            return fields;
         }
     }
 }

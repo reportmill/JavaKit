@@ -1,7 +1,11 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.reflect;
 import javakit.reflect.JavaField.FieldBuilder;
 import javakit.reflect.JavaMethod.MethodBuilder;
 import javakit.reflect.JavaConstructor.ConstructorBuilder;
+import snap.util.SnapUtils;
 import java.io.PrintStream;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.DoubleStream;
@@ -11,19 +15,30 @@ import java.util.stream.DoubleStream;
  */
 public class StaticResolver {
 
+    // A shared field builder
+    private static FieldBuilder fb = new FieldBuilder();
+
+    // A shared method builder
+    private static MethodBuilder mb = new MethodBuilder();
+
+    // A shared constructor builder
+    private static ConstructorBuilder cb = new ConstructorBuilder();
+
     /**
      * Returns the declared fields for given class.
      */
     public static JavaField[] getFieldsForClass(Resolver aResolver, String aClassName)
     {
+        fb.init(aResolver, aClassName);
+
         switch (aClassName) {
-            case "java.lang.System": {
-                FieldBuilder fb = new FieldBuilder(aResolver, aClassName);
-                JavaField[] fields = new JavaField[2];
-                fields[0] = fb.name("out").type(PrintStream.class).build();
-                fields[1] = fb.name("err").type(PrintStream.class).build();
-                return fields;
-            }
+
+            // Handle java.lang.System
+            case "java.lang.System":
+                fb.name("out").type(PrintStream.class).save();
+                return fb.name("err").type(PrintStream.class).buildAll();
+
+            // Handle anything else
             default: return new JavaField[0];
         }
     }
@@ -33,14 +48,56 @@ public class StaticResolver {
      */
     public static JavaMethod[] getMethodsForClass(Resolver aResolver, String aClassName)
     {
-        JavaMethod.MethodBuilder mb = new JavaMethod.MethodBuilder(aResolver, aClassName);
+        mb.init(aResolver, aClassName);
 
         switch (aClassName) {
-            case "java.lang.Object": return getMethodsForJavaLangObject(mb);
-            case "java.lang.Class": return getMethodsForJavaLangClass(mb);
-            case "java.lang.String": return getMethodsForJavaLangString(mb);
-            case "java.io.PrintStream": return getMethodsForJavaIoPrintStream(mb);
-            case "java.util.stream.DoubleStream": return getMethodsForJavaUtilStreamDoubleStream(mb);
+
+            // Handle java.lang.Object
+            case "java.lang.Object":
+                return mb.name("getClass").returnType(Class.class).buildAll();
+
+            // Handle java.lang.Class
+            case "java.lang.Class":
+                mb.name("getName").returnType(String.class).save();
+                return mb.name("getSimpleName").returnType(String.class).buildAll();
+
+            // Handle java.lang.String
+            case "java.lang.String":
+                mb.name("length").returnType(int.class).save();
+                return mb.name("replace").paramTypes(String.class,String.class).returnType(String.class).buildAll();
+
+            // Handle java.io.PrintStream
+            case "java.io.PrintStream":
+                mb.name("print").paramTypes(Object.class).save();
+                return mb.name("println").paramTypes(Object.class).buildAll();
+
+            // Handle java.util.stream.DoubleStream
+            case "java.util.stream.DoubleStream":
+                mb.name("of").paramTypes(double[].class).returnType(DoubleStream.class).save();
+                mb.name("map").paramTypes(DoubleUnaryOperator.class).returnType(DoubleStream.class).save();
+                return mb.name("toArray").returnType(double[].class).buildAll();
+
+            // Handle snap.view.Button
+            case "snap.view.Button":
+                mb.name("setPrefSize").paramTypes(double.class,double.class).save();
+                return mb.name("setTitle").paramTypes(String.class).buildAll();
+
+            // Handle snap.view.View
+            case "snap.view.View":
+                return mb.name("getAnim").paramTypes(int.class).buildAll();
+
+            // Handle snap.view.ViewAnim
+            case "snap.view.ViewAnim":
+                mb.name("setScaleX").paramTypes(double.class).save();
+                mb.name("setScaleY").paramTypes(double.class).save();
+                mb.name("setRotation").paramTypes(double.class).save();
+                return mb.name("play").buildAll();
+
+            // Handle snap.view.ViewOwner
+            case "snap.view.ViewOwner":
+                return mb.name("setWindowVisible").paramTypes(boolean.class).buildAll();
+
+            // Handle anything else
             default: return new JavaMethod[0];
         }
     }
@@ -50,80 +107,25 @@ public class StaticResolver {
      */
     public static JavaConstructor[] getConstructorsForClass(Resolver aResolver, String aClassName)
     {
+        cb.init(aResolver, aClassName);
+
         switch (aClassName) {
-            case "java.lang.String": return getConstructorsForJavaLangString(aResolver);
-            default:
-                ConstructorBuilder cb = new ConstructorBuilder(aResolver, aClassName);
-                return new JavaConstructor[] { cb.build() };
+
+            // Handle java.lang.String
+            case "java.lang.String":
+                return cb.save().paramTypes(String.class).buildAll();
+
+            // Handle snap.view.Button
+            case "snap.view.Button":
+                return cb.save().paramTypes(String.class).buildAll();
+
+            // Handle ViewOwner
+            case "snap.view.ViewOwner":
+                return cb.save().paramTypes(snap.view.View.class).buildAll();
+
+            // Handle anything else
+            default: return cb.save().buildAll();
         }
-    }
-
-    /**
-     * Returns methods for java.lang.Object.
-     */
-    public static JavaMethod[] getMethodsForJavaLangObject(MethodBuilder mb)
-    {
-        JavaMethod[] methods = new JavaMethod[1];
-        methods[0] = mb.name("getClass").returnType(Class.class).build();
-        return methods;
-    }
-
-    /**
-     * Returns methods for java.lang.Class.
-     */
-    public static JavaMethod[] getMethodsForJavaLangClass(MethodBuilder mb)
-    {
-        JavaMethod[] methods = new JavaMethod[2];
-        methods[0] = mb.name("getName").returnType(String.class).build();
-        methods[1] = mb.name("getSimpleName").returnType(String.class).build();
-        return methods;
-    }
-
-    /**
-     * Returns methods for java.lang.String.
-     */
-    public static JavaMethod[] getMethodsForJavaLangString(MethodBuilder mb)
-    {
-        JavaMethod[] methods = new JavaMethod[2];
-        methods[0] = mb.name("length").returnType(int.class).build();
-        methods[1] = mb.name("replace").paramTypes(String.class,String.class).returnType(String.class).build();
-        return methods;
-    }
-
-    /**
-     * Returns methods for java.io.PrintStream.
-     */
-    public static JavaMethod[] getMethodsForJavaIoPrintStream(MethodBuilder mb)
-    {
-        JavaMethod[] methods = new JavaMethod[2];
-        methods[0] = mb.name("print").paramTypes(Object.class).build();
-        methods[1] = mb.name("println").paramTypes(Object.class).build();
-        return methods;
-    }
-
-    /**
-     * Returns methods for java.util.stream.DoubleStream.
-     */
-    public static JavaMethod[] getMethodsForJavaUtilStreamDoubleStream(MethodBuilder mb)
-    {
-        JavaMethod[] methods = new JavaMethod[3];
-        methods[0] = mb.name("of").paramTypes(double[].class).returnType(DoubleStream.class).build();
-        methods[1] = mb.name("map").paramTypes(DoubleUnaryOperator.class).returnType(DoubleStream.class).build();
-        methods[2] = mb.name("toArray").returnType(double[].class).build();
-        return methods;
-    }
-
-    /**
-     * Returns constructors for java.lang.String.
-     */
-    public static JavaConstructor[] getConstructorsForJavaLangString(Resolver aResolver)
-    {
-        ConstructorBuilder cb = new ConstructorBuilder(aResolver, "java.lang.String");
-        JavaConstructor[] constructors = new JavaConstructor[2];
-
-        constructors[0] = cb.build();
-        constructors[1] = cb.paramTypes(String.class).build();
-        return constructors;
     }
 
     /**
@@ -132,19 +134,47 @@ public class StaticResolver {
     public static Object invokeMethod(Object anObj, String anId, Object ... theArgs) throws Exception
     {
         switch (anId) {
+
+            // Handle java.lang.String
             case "java.lang.String.length()": return ((String) anObj).length();
             case "java.lang.String.replace(java.lang.String,java.lang.String)":
                 return ((java.lang.String) anObj).replace((String) theArgs[0],(String) theArgs[1]);
+
+            // Handle java.io.PrintStream
             case "java.io.PrintStream.print(java.lang.Object)":
                 ((PrintStream) anObj).print(theArgs[0]); return theArgs[0];
             case "java.io.PrintStream.println(java.lang.Object)":
                 ((PrintStream) anObj).println(theArgs[0]); return theArgs[0];
+
+            // Handle java.util.stream.DoubleStream
             case "java.util.stream.DoubleStream.of(double[])":
                 return DoubleStream.of((double[]) theArgs[0]);
             case "java.util.stream.DoubleStream.map(java.util.function.DoubleUnaryOperator)":
                 return ((DoubleStream) anObj).map((DoubleUnaryOperator) theArgs[0]);
             case "java.util.stream.DoubleStream.toArray()":
                 return ((DoubleStream) anObj).toArray();
+
+            // Handle snap.view.Button
+            case "snap.view.Button.setPrefSize(double,double)":
+                ((snap.view.Button) anObj).setPrefSize(doubleVal(theArgs[0]),doubleVal(theArgs[1])); return null;
+
+            // Handle snap.view.View
+            case "snap.view.View.getAnim(int)":
+                return ((snap.view.View) anObj).getAnim(intVal(theArgs[0]));
+
+            // Handle snap.view.ViewAnim
+            case "snap.view.ViewAnim.setScaleX(double)":
+                return ((snap.view.ViewAnim) anObj).setScaleX(doubleVal(theArgs[0]));
+            case "snap.view.ViewAnim.setScaleY(double)":
+                return ((snap.view.ViewAnim) anObj).setScaleY(doubleVal(theArgs[0]));
+            case "snap.view.ViewAnim.play()":
+                ((snap.view.ViewAnim) anObj).play(); return null;
+
+            // Handle snap.view.ViewOwner
+            case "snap.view.ViewOwner.setWindowVisible(boolean)":
+                ((snap.view.ViewOwner) anObj).setWindowVisible(boolVal(theArgs[0])); return null;
+
+            // Handle anything else
             default: throw new NoSuchMethodException("Unknown method: " + anId);
         }
     }
@@ -152,12 +182,29 @@ public class StaticResolver {
     /**
      * Invokes constructor for Java.lang.String.
      */
-    public static Object invokeConstructor(Class<?> aClass, String anId, Object ... theArgs) throws Exception
+    public static Object invokeConstructor(String anId, Object ... theArgs) throws Exception
     {
         switch (anId) {
-            case "java.lang.String()": return new String();
-            case "java.lang.String(java.lang.String)": return theArgs[0];
+
+            // Handle java.lang.String
+            case "java.lang.String(java.lang.String)":
+                return theArgs[0];
+
+            // Handle snap.view.Button(java.lang.String)
+            case "snap.view.Button(java.lang.String)":
+                return new snap.view.Button((String) theArgs[0]);
+
+            // Handle snap.view.ViewOwner
+            case "snap.view.ViewOwner(snap.view.View)":
+                return new snap.view.ViewOwner((snap.view.View) theArgs[0]);
+
+            // Handle anything else
             default: throw new NoSuchMethodException("Unknown constructor: " + anId);
         }
     }
+
+    // Conveniences
+    private static boolean boolVal(Object anObj)  { return SnapUtils.boolValue(anObj); }
+    private static int intVal(Object anObj)  { return SnapUtils.intValue(anObj); }
+    private static double doubleVal(Object anObj)  { return SnapUtils.doubleValue(anObj); }
 }

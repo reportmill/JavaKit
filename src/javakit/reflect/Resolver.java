@@ -325,7 +325,7 @@ public class Resolver {
 
         // Invoke
         String sig = javaConstructor.getId();
-        Object newInstance = StaticResolver.invokeConstructor(aClass, sig, theArgs);
+        Object newInstance = StaticResolver.invokeConstructor(sig, theArgs);
         return newInstance;
     }
 

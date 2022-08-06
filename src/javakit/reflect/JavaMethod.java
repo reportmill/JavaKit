@@ -3,6 +3,7 @@
  */
 package javakit.reflect;
 import java.lang.reflect.*;
+import java.util.Arrays;
 
 /**
  * This class represents a Java Method.
@@ -117,10 +118,19 @@ public class JavaMethod extends JavaExecutable {
         boolean  _default;
         boolean  _varArgs;
 
+        // For build all
+        private JavaMethod[]  _methods = new JavaMethod[20];
+        private int  _methodCount;
+
         /**
          * Constructor.
          */
-        public MethodBuilder(Resolver aResolver, String aClassName)
+        public MethodBuilder()  { }
+
+        /**
+         * Init.
+         */
+        public void init(Resolver aResolver, String aClassName)
         {
             _resolver = aResolver;
             _declaringClass = aResolver.getJavaClassForName(aClassName);
@@ -151,10 +161,30 @@ public class JavaMethod extends JavaExecutable {
             m._default = _default;
             m._varArgs = _varArgs;
             _mods = Modifier.PUBLIC;
+            _name = null;
             _paramTypes = new JavaType[0];
             _typeVars = new JavaTypeVariable[0];
             _default = _varArgs = false;
             return m;
+        }
+
+        /**
+         * Builds current method and saves it in array for buildAll.
+         */
+        public MethodBuilder save()
+        {
+            _methods[_methodCount++] = build(); return this;
+        }
+
+        /**
+         * Returns an array of all currently saved methods.
+         */
+        public JavaMethod[] buildAll()
+        {
+            if (_name != null) save();
+            JavaMethod[] methods = Arrays.copyOf(_methods, _methodCount);
+            _methodCount = 0;
+            return methods;
         }
     }
 }

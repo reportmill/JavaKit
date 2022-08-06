@@ -5,6 +5,7 @@ package javakit.reflect;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 
 /**
  * This class represents a Java Method or Constructor.
@@ -93,10 +94,19 @@ public class JavaConstructor extends JavaExecutable {
         JavaTypeVariable[]  _typeVars = new JavaTypeVariable[0];
         boolean  _varArgs;
 
+        // For build all
+        private JavaConstructor[]  _constructors = new JavaConstructor[20];
+        private int  _constructorCount;
+
         /**
          * Constructor.
          */
-        public ConstructorBuilder(Resolver aResolver, String aClassName)
+        public ConstructorBuilder()  { }
+
+        /**
+         * init.
+         */
+        public void init(Resolver aResolver, String aClassName)
         {
             _resolver = aResolver;
             _declaringClass = aResolver.getJavaClassForName(aClassName);
@@ -127,6 +137,25 @@ public class JavaConstructor extends JavaExecutable {
             _typeVars = new JavaTypeVariable[0];
             _varArgs = false;
             return c;
+        }
+
+        /**
+         * Builds current constructors and saves it in array for buildAll.
+         */
+        public ConstructorBuilder save()
+        {
+            _constructors[_constructorCount++] = build(); return this;
+        }
+
+        /**
+         * Returns an array of all currently saved methods.
+         */
+        public JavaConstructor[] buildAll()
+        {
+            if (_paramTypes.length != 0) save();
+            JavaConstructor[] constructors = Arrays.copyOf(_constructors, _constructorCount);
+            _constructorCount = 0;
+            return constructors;
         }
     }
 }
