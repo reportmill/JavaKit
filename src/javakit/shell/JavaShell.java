@@ -38,12 +38,19 @@ public class JavaShell extends ViewOwner {
     }
 
     /**
-     * Runs the playground.
+     * Runs the JavaShell.
      */
     public void play()
     {
-        _evaluator.eval(_textPane.getTextArea().getText());
+        // Get Java text and eval
+        String javaText = _textPane.getTextArea().getText();
+        _evaluator.eval(javaText);
+
+        // Update lines
         _textPane._evalView.updateLines();
+
+        // Update graphics
+        _console.updateShelf();
     }
 
     /**
@@ -51,14 +58,16 @@ public class JavaShell extends ViewOwner {
      */
     protected View createUI()
     {
-        //Button rbtn = new Button("Run"); rbtn.setName("RunButton"); rbtn.setPrefSize(60,20);
-        //HBox hbox = new HBox(); hbox.setChildren(rbtn);
-        //VBox vbox = new VBox(); vbox.setFillWidth(true); vbox.setChildren(_textPane.getUI(), hbox);
+        // Create/config SplitView
         SplitView split = new SplitView();
         split.setPrefSize(1000, 900);
         split.setVertical(true);
         split.setItems(_textPane.getUI(), _console.getUI()); //(vbox,_tabPane.getUI());
-        _console.getUI().setPrefHeight(180);
+
+        // Configure Console
+        _console.getUI().setPrefHeight(240);
+
+        // Return
         return split;
     }
 
@@ -70,12 +79,12 @@ public class JavaShell extends ViewOwner {
         super.initUI();
 
         // Add Button to TextPane
-        Button rbtn = new Button("Run");
-        rbtn.setName("RunButton");
-        rbtn.setPrefSize(100, 20);
-        rbtn.setLeanX(HPos.RIGHT);
-        rbtn.setOwner(this);
-        _textPane.getToolBarPane().addChild(rbtn);
+        Button runButton = new Button("Run");
+        runButton.setName("RunButton");
+        runButton.setPrefSize(100, 20);
+        runButton.setLeanX(HPos.RIGHT);
+        runButton.setOwner(this);
+        _textPane.getToolBarPane().addChild(runButton);
         _textPane.getToolBarPane().setPadding(0, 30, 0, 4);
         runLater(() -> play());
     }

@@ -199,7 +199,7 @@ public class JSTextPane extends TextPane {
     }
 
     /**
-     *
+     * Returns a String for given array object.
      */
     private static String toStringArray(Object anObj)
     {
@@ -214,6 +214,9 @@ public class JSTextPane extends TextPane {
         return Arrays.toString(array);
     }
 
+    /**
+     * Sample starter text.
+     */
     private static String getSampleText()
     {
         String t1 = "x = \"Hi World\"\n\n";
@@ -225,6 +228,9 @@ public class JSTextPane extends TextPane {
         //return "1 + 1\n\n2 + 2\n\n";
     }
 
+    /**
+     * Sample starter text.
+     */
     private static String getSampleText2()
     {
         String t1 = "double[] x = new double[] { 1,2,3 };\n\n";
