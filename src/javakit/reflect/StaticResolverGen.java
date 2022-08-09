@@ -9,13 +9,14 @@ import java.util.*;
 import java.util.stream.Stream;
 
 /**
- *
+ * This class generates StaticResolver.java for TeaVM.
  */
 public class StaticResolverGen {
 
     // StringBuffer
     private static StringBuffer _sb = new StringBuffer();
 
+    // A resolver
     private static Resolver  _resolver = new ResolverSys(snap.view.View.class.getClassLoader());
 
     /**
@@ -23,6 +24,7 @@ public class StaticResolverGen {
      */
     public void printPreamble()
     {
+        // Append imports
         appendln("package javakit.reflect;");
         appendln("import javakit.reflect.JavaField.FieldBuilder;");
         appendln("import javakit.reflect.JavaMethod.MethodBuilder;");
@@ -31,6 +33,8 @@ public class StaticResolverGen {
         appendln("import java.io.PrintStream;");
         appendln("import java.util.function.DoubleUnaryOperator;");
         appendln("import java.util.stream.DoubleStream;");
+
+        // Append class header
         appendln("");
         appendln("/**");
         appendln(" * Provide reflection info for TeaVM.");
@@ -49,6 +53,7 @@ public class StaticResolverGen {
      */
     public void printGetFieldsForClass()
     {
+        // Append method header
         appendln("    /**");
         appendln("     * Returns the declared fields for given class.");
         appendln("     */");
@@ -58,10 +63,14 @@ public class StaticResolverGen {
         appendln("");
         appendln("        switch (aClassName) {");
         appendln("");
+
+        // Append bogus
         appendln("            // Handle java.lang.System");
         appendln("            case \"java.lang.System\":");
         appendln("                fb.name(\"out\").type(PrintStream.class).save();");
         appendln("                return fb.name(\"err\").type(PrintStream.class).buildAll();");
+
+        // Append method trailer
         appendln("");
         appendln("            // Handle anything else");
         appendln("            default: return new JavaField[0];");
@@ -75,6 +84,7 @@ public class StaticResolverGen {
      */
     public void printGetMethodsForClassForClasses(Class<?>[] theClasses)
     {
+        // Append method header
         appendln("/**");
         appendln(" * Returns the declared methods for given class.");
         appendln(" */");
@@ -84,10 +94,11 @@ public class StaticResolverGen {
         appendln("");
         appendln("    switch (aClassName) {");
 
+        // Iterate over classes and print methods for each
         for (Class<?> cls : theClasses)
             printGetMethodsForClassForClass(cls);
 
-        // Append trailer
+        // Append method trailer
         appendln("");
         appendln("        // Handle anything else");
         appendln("        default: return new JavaMethod[0];");
@@ -100,47 +111,42 @@ public class StaticResolverGen {
      */
     public void printGetMethodsForClassForClass(Class aClass)
     {
-        String className = aClass.getName();
-        appendln("");
-        append("        // Handle ").appendln(className);
-        appendln("        case \"" + className + "\":");
-
         // Get methods
         Method[] methods = aClass.getDeclaredMethods();
         Stream<Method> methodsStream = Stream.of(methods);
         methodsStream = methodsStream.filter(m -> isValidMethod(m));
         methods = methodsStream.toArray(size -> new Method[size]);
+        if (methods.length == 0)
+            return;
 
+        // Append case statement for class
+        String className = aClass.getName();
+        appendln("");
+        append("        // Handle ").appendln(className);
+        appendln("        case \"" + className + "\":");
+
+        // Iterate over methods and print builder line for each
         for (int i = 0, iMax = methods.length; i < iMax; i++) {
             Method method = methods[i];
-            printGetMethodsForClassForClassMethod(method, i + 1 == iMax);
+            printGetMethodsForClassForMethod(method, i + 1 == iMax);
         }
-    }
-
-    boolean isValidMethod(Method m)
-    {
-        if (!Modifier.isPublic(m.getModifiers())) return false;
-        if (!_whiteList.contains(m.getName())) return false;
-        JavaClass javaClass = _resolver.getJavaClassForClass(m.getDeclaringClass());
-        if (_blackList.contains(new JavaMethod(_resolver, javaClass, m).getId())) return false;
-        return true;
     }
 
     /**
      * Prints getMethodsForClass() method.
      */
-    public void printGetMethodsForClassForClassMethod(Method aMethod, boolean isLast)
+    public void printGetMethodsForClassForMethod(Method aMethod, boolean isLast)
     {
-        // Preface
+        // Append indent (and 'return ' if last)
         append("            ");
         if (isLast)
             append("return ");
 
-        // Method name
+        // Append method name
         String methodName = aMethod.getName();
         append("mb.name(\"" + methodName + "\")");
 
-        // Parameters
+        // Append parameters
         Class<?>[] paramTypes = aMethod.getParameterTypes();
         if (paramTypes.length > 0) {
             append(".paramTypes(");
@@ -152,14 +158,14 @@ public class StaticResolverGen {
             append(")");
         }
 
-        // Return type
+        // Append return type
         Class<?> returnType = aMethod.getReturnType();
         if (returnType != null) {
             String className = className(returnType);
             append(".returnType(").append(className).append(".class").append(")");
         }
 
-        // Append Save()/BuildAll()
+        // Append Save() or BuildAll()
         if (isLast)
             appendln(".buildAll();");
         else appendln(".save();");
@@ -170,6 +176,7 @@ public class StaticResolverGen {
      */
     public void printGetConstructorsForClassForClasses(Class<?>[] theClasses)
     {
+        // Append method header
         appendln("/**");
         appendln(" * Returns the declared constructors for given class.");
         appendln(" */");
@@ -179,10 +186,11 @@ public class StaticResolverGen {
         appendln("");
         appendln("    switch (aClassName) {");
 
+        // Iterate over classes and generate constructors for each
         for (Class<?> cls : theClasses)
             printGetConstructorsForClassForClass(cls);
 
-        // Append trailer
+        // Append method trailer
         appendln("");
         appendln("        // Handle anything else");
         appendln("        default: return cb.save().buildAll();");
@@ -195,6 +203,7 @@ public class StaticResolverGen {
      */
     public void printGetConstructorsForClassForClass(Class aClass)
     {
+        // Get valid constructors (just return if none)
         JavaClass javaClass = _resolver.getJavaClassForClass(aClass);
         JavaConstructor[] constructors = javaClass.getConstructors().toArray(new JavaConstructor[0]);
         Stream<JavaConstructor> constrStream = Stream.of(constructors);
@@ -203,11 +212,13 @@ public class StaticResolverGen {
         if (constructors.length == 0)
             return;
 
+        // Append case statement for class name
         String className = aClass.getName();
         appendln("");
         append("        // Handle ").appendln(className);
         appendln("        case \"" + className + "\":");
 
+        // Iterate over constructors and print constructor create line for each
         for (int i = 0, iMax = constructors.length; i < iMax; i++) {
             Constructor constructor = constructors[i].getConstructor();
             if (!Modifier.isPublic(constructor.getModifiers())) continue;
@@ -215,26 +226,18 @@ public class StaticResolverGen {
         }
     }
 
-    boolean isValidConstructor(JavaConstructor c)
-    {
-        if (!Modifier.isPublic(c.getModifiers())) return false;
-        if (c.getParamTypes().length == 0) return false;
-        if (_blackList.contains(c.getId())) return false;
-        return true;
-    }
-
     /**
      * Prints getMethodsForClass() method.
      */
     public void printGetConstructorsForClassForConstructor(Constructor aConstructor, boolean isLast)
     {
-        // Preface
+        // Append prefix
         append("            ");
         if (isLast)
             append("return ");
         append("cb");
 
-        // Parameters
+        // Iterate over parameters and append each
         Class<?>[] paramTypes = aConstructor.getParameterTypes();
         if (paramTypes.length > 0) {
             append(".paramTypes(");
@@ -246,7 +249,7 @@ public class StaticResolverGen {
             append(")");
         }
 
-        // Append Save()/BuildAll()
+        // Append Save() or BuildAll()
         if (isLast)
             appendln(".buildAll();");
         else appendln(".save();");
@@ -257,6 +260,7 @@ public class StaticResolverGen {
      */
     public void printInvokeMethodForClasses(Class<?>[] theClasses)
     {
+        // Append method header
         appendln("/**");
         appendln(" * Invokes methods for given method id, object and args.");
         appendln(" */");
@@ -264,6 +268,7 @@ public class StaticResolverGen {
         appendln("{");
         appendln("    switch (anId) {");
 
+        // Iterate over classes and append case statement for each
         for (Class<?> cls : theClasses)
             printInvokeMethodForClass(cls);
 
@@ -280,29 +285,21 @@ public class StaticResolverGen {
      */
     public void printInvokeMethodForClass(Class aClass)
     {
+        // Get methods
+        JavaClass javaClass = _resolver.getJavaClassForClass(aClass);
+        JavaMethod[] methods = javaClass.getMethods().toArray(new JavaMethod[0]);
+
+        // Append comment for class
         String className = className(aClass);
         appendln("");
         append("        // Handle ").appendln(className);
 
-        JavaClass javaClass = _resolver.getJavaClassForClass(aClass);
-        JavaMethod[] methods = javaClass.getMethods().toArray(new JavaMethod[0]);
-        //Method[] methods = aClass.getDeclaredMethods();
-
-        for (int i = 0, iMax = methods.length; i < iMax; i++) {
-            JavaMethod method = methods[i];
+        // Iterate over methods
+        for (JavaMethod method : methods) {
             if (!isValidMethod(method)) continue;
-            if (method.getSuper() != null)
-                continue;
+            if (method.getSuper() != null) continue;
             printInvokeMethodForClassMethod(method);
         }
-    }
-
-    boolean isValidMethod(JavaMethod m)
-    {
-        if (!Modifier.isPublic(m.getModifiers())) return false;
-        if (!_whiteList.contains(m.getName())) return false;
-        if (_blackList.contains(m.getId())) return false;
-        return true;
     }
 
     /**
@@ -310,28 +307,31 @@ public class StaticResolverGen {
      */
     public void printInvokeMethodForClassMethod(JavaMethod aMethod)
     {
-        appendln("        case \"" + aMethod.getId() + "\":");
-
+        // Get method and return type
         Method meth = aMethod.getMethod();
         Class<?> returnType = meth.getReturnType();
 
-        // Preface
+        // Append case statement
+        appendln("        case \"" + aMethod.getId() + "\":");
+
+
+        // Append indent and return
         append("            ");
         if (returnType != void.class)
             append("return ");
 
-        // If static just do ClassName.
+        // If static just append "ClassName."
         String castClassName = meth.getDeclaringClass().getName();
         if (Modifier.isStatic(meth.getModifiers()))
             append(castClassName);
 
-        // Else If instance method, add cast: "((pkg.pkg.ClassName) anObj).name("
+        // Else if instance method, add cast: "((pkg.pkg.ClassName) anObj).name("
         else append("((").append(castClassName).append(") anObj)");
 
         // Append .name(
         append(".").append(meth.getName()).append("(");
 
-        // Parameters
+        // Iterate over parameters
         Class<?>[] paramTypes = meth.getParameterTypes();
         for (int i = 0, iMax = paramTypes.length; i < iMax; i++) {
             appendParamType(paramTypes[i], i);
@@ -344,31 +344,12 @@ public class StaticResolverGen {
         else appendln(");");
     }
 
-    public void appendParamType(Class<?> aClass, int anIndex)
-    {
-        if (aClass == double.class)
-            append("doubleVal(theArgs[").append(anIndex).append("])");
-        else if (aClass == int.class)
-            append("intVal(theArgs[").append(anIndex).append("])");
-        else if (aClass == float.class)
-            append("floatVal(theArgs[").append(anIndex).append("])");
-        else if (aClass == boolean.class)
-            append("boolVal(theArgs[").append(anIndex).append("])");
-        else if (aClass == Object.class)
-            append("theArgs[").append(anIndex).append("]");
-        else if (aClass == Object[].class)
-            append("(").append("Object[]").append(") ").append("theArgs[").append(anIndex).append("]");
-        else {
-            String className = className(aClass);
-            append("(").append(className).append(") ").append("theArgs[").append(anIndex).append("]");
-        }
-    }
-
     /**
      * Prints invokeConstructor() method.
      */
     public void printInvokeConstructorForClasses(Class<?>[] theClasses)
     {
+        // Append method header
         appendln("/**");
         appendln(" * Invokes constructors for given constructor id and args.");
         appendln(" */");
@@ -376,6 +357,7 @@ public class StaticResolverGen {
         appendln("{");
         appendln("    switch (anId) {");
 
+        // Iterate over classes and print invoke constructors for each
         for (Class<?> cls : theClasses)
             printInvokeConstructorForClass(cls);
 
@@ -392,6 +374,7 @@ public class StaticResolverGen {
      */
     public void printInvokeConstructorForClass(Class aClass)
     {
+        // Get constructors for class
         JavaClass javaClass = _resolver.getJavaClassForClass(aClass);
         JavaConstructor[] constructors = javaClass.getConstructors().toArray(new JavaConstructor[0]);
         Stream<JavaConstructor> constrStream = Stream.of(constructors);
@@ -400,14 +383,14 @@ public class StaticResolverGen {
         if (constructors.length == 0)
             return;
 
+        // Append comment
         String className = className(aClass);
         appendln("");
         append("        // Handle ").appendln(className);
 
-        for (int i = 0, iMax = constructors.length; i < iMax; i++) {
-            JavaConstructor constructor = constructors[i];
+        // Iterate over constructors and print invoke constructor for each
+        for (JavaConstructor constructor : constructors)
             printInvokeConstructorForConstructor(constructor);
-        }
     }
 
     /**
@@ -435,6 +418,63 @@ public class StaticResolverGen {
 
         // Append close
         appendln(");");
+    }
+
+    /**
+     * Appends a method/constructor parameter type.
+     */
+    private void appendParamType(Class<?> aClass, int anIndex)
+    {
+        if (aClass == double.class)
+            append("doubleVal(theArgs[").append(anIndex).append("])");
+        else if (aClass == int.class)
+            append("intVal(theArgs[").append(anIndex).append("])");
+        else if (aClass == float.class)
+            append("floatVal(theArgs[").append(anIndex).append("])");
+        else if (aClass == boolean.class)
+            append("boolVal(theArgs[").append(anIndex).append("])");
+        else if (aClass == Object.class)
+            append("theArgs[").append(anIndex).append("]");
+        else if (aClass == Object[].class)
+            append("(").append("Object[]").append(") ").append("theArgs[").append(anIndex).append("]");
+        else {
+            String className = className(aClass);
+            append("(").append(className).append(") ").append("theArgs[").append(anIndex).append("]");
+        }
+    }
+
+    /**
+     * Returns whether method should be included.
+     */
+    private boolean isValidMethod(Method m)
+    {
+        if (!Modifier.isPublic(m.getModifiers())) return false;
+        if (!_whiteList.contains(m.getName())) return false;
+        JavaClass javaClass = _resolver.getJavaClassForClass(m.getDeclaringClass());
+        if (_blackList.contains(new JavaMethod(_resolver, javaClass, m).getId())) return false;
+        return true;
+    }
+
+    /**
+     * Returns whether method should be included.
+     */
+    private boolean isValidMethod(JavaMethod m)
+    {
+        if (!Modifier.isPublic(m.getModifiers())) return false;
+        if (!_whiteList.contains(m.getName())) return false;
+        if (_blackList.contains(m.getId())) return false;
+        return true;
+    }
+
+    /**
+     * Returns whether constructor should be included.
+     */
+    private boolean isValidConstructor(JavaConstructor c)
+    {
+        if (!Modifier.isPublic(c.getModifiers())) return false;
+        if (c.getParamTypes().length == 0) return false;
+        if (_blackList.contains(c.getId())) return false;
+        return true;
     }
 
     // Append method
@@ -532,6 +572,7 @@ public class StaticResolverGen {
 
             java.io.PrintStream.class,
 
+            java.util.stream.Stream.class,
             java.util.stream.DoubleStream.class,
 
             snap.view.Button.class,
@@ -564,10 +605,13 @@ public class StaticResolverGen {
             "tanh", "toDegrees", "toRadians",
 
             // Arrays
+            "asList",
 
             // List
+            "get", "set",
 
             // Map
+            "put",
 
             // Random
             "nextInt", "nextDouble",
@@ -577,18 +621,21 @@ public class StaticResolverGen {
             // PrintStream
             "print", "println",
 
-            // DoubleStream
+            // Stream, DoubleStream
             "of", "map", "filter", "toArray",
 
             // Button
             "setTitle",
 
             // View
-            "setPrefWidth", "setPrefHeight", "setPrefSize", "setBorder", "setFill", "getAnim",
-            "setRotate", "setScaleX", "setScaleY", "setScale", "setTransX", "setTransY",
+            "getPrefWidth", "setPrefWidth", "getPrefHeight", "setPrefHeight", "getPrefSize", "setPrefSize",
+            "getBorder", "setBorder", "getFill", "setFill", "getEffect", "setEffect", "getOpacity", "setOpacity",
+            "getMargin", "setMargin", "getPadding", "setPadding", "getSpacing", "setSpacing",
+            "isVisible", "setVisible",
+            "setRotate", "setScaleX", "setScaleY", "setScale", "setTransX", "setTransY", "getAnim",
 
             // ViewAnim
-            "play",
+            "play", "setLoopCount", "setOnFinish",
 
             // ViewOwner
             "setWindowVisible",
