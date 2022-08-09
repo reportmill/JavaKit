@@ -10,7 +10,7 @@ import snap.view.*;
 public class JSTabPane extends ViewOwner {
 
     // The JavaShell
-    private JavaShell  _javaShell;
+    private JavaShellPane _javaShellPane;
 
     // The tabview
     private TabView  _tabView;
@@ -27,9 +27,9 @@ public class JSTabPane extends ViewOwner {
     /**
      * Creates a new PGTabPane for given Playground.
      */
-    public JSTabPane(JavaShell aPG)
+    public JSTabPane(JavaShellPane aPG)
     {
-        _javaShell = aPG;
+        _javaShellPane = aPG;
     }
 
     /**
@@ -54,7 +54,7 @@ public class JSTabPane extends ViewOwner {
     protected View createUI()
     {
         // Set TabOwners
-        JSConsole console = _javaShell.getConsole();
+        JSConsole console = _javaShellPane.getConsole();
         _tabOwners = new ViewOwner[]{console}; //, _appPane.getRunConsole(), _appPane.getDebugVarsPane(),
         //_appPane.getDebugExprsPane(), _appPane.getBreakpointsPanel(), _appPane.getSearchPane() };
 

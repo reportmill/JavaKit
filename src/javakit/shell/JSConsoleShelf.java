@@ -23,16 +23,17 @@ public class JSConsoleShelf extends ColView {
     /**
      * Updates the shelf.
      */
-    public void updateShelf(JavaShell javaShell)
+    public void updateShelf(JavaShellPane javaShellPane)
     {
+        // Get JavaShell and last executed line values
+        JavaShell javaShell = javaShellPane.getJavaShell();
+        Object[] lineValues = javaShell.getLineValues();
+
         // Remove children
         removeChildren();
 
-        // Get line vals
-        Object[] lineVals = javaShell._evaluator._lineVals;
-
-        // Iterate over LineVals and append string for each
-        for (Object val : lineVals) {
+        // Iterate over LineValues and append string for each
+        for (Object val : lineValues) {
 
             // Handle null
             if (val instanceof View)

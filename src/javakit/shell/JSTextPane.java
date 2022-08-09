@@ -19,7 +19,7 @@ import java.util.Arrays;
 public class JSTextPane extends TextPane {
 
     // The JavaShell
-    private JavaShell  _javaShell;
+    private JavaShellPane _javaShellPane;
 
     // The TextArea
     private TextArea  _textArea;
@@ -36,9 +36,9 @@ public class JSTextPane extends TextPane {
     /**
      * Constructor.
      */
-    public JSTextPane(JavaShell aJavaShell)
+    public JSTextPane(JavaShellPane aJavaShellPane)
     {
-        _javaShell = aJavaShell;
+        _javaShellPane = aJavaShellPane;
     }
 
     /**
@@ -112,7 +112,7 @@ public class JSTextPane extends TextPane {
     protected void respondUI(ViewEvent anEvent)
     {
         if (anEvent.isKeyRelease() && anEvent.isEnterKey())
-            runLater(() -> _javaShell.play());
+            runLater(() -> _javaShellPane.play());
 
         else super.respondUI(anEvent);
     }
@@ -170,12 +170,15 @@ public class JSTextPane extends TextPane {
          */
         void updateLines()
         {
+            // Get JavaShell and line values
+            JavaShell javaShell = _javaShellPane.getJavaShell();
+            Object[] lineValues = javaShell.getLineValues();
+
             // Get LineVals
             StringBuilder sb = new StringBuilder();
-            Object[] lineVals = _javaShell._evaluator._lineVals;
 
             // Iterate over LineVals and append string for each
-            for (Object val : lineVals) {
+            for (Object val : lineValues) {
 
                 // Handle null
                 if (val == null) continue;

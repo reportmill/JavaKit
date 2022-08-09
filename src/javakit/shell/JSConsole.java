@@ -11,10 +11,10 @@ import snap.viewx.ConsoleView;
 /**
  * A panel to process output.
  */
-public class JSConsole extends ViewOwner {
+public class JSConsole extends ViewOwner implements JavaShell.Console {
 
     // The JavaShell
-    private JavaShell  _javaShell;
+    private JavaShellPane  _javaShellPane;
 
     // The output graphics
     private JSConsoleShelf  _shelfView;
@@ -28,17 +28,9 @@ public class JSConsole extends ViewOwner {
     /**
      * Creates a new PGConsole.
      */
-    public JSConsole(JavaShell aPG)
+    public JSConsole(JavaShellPane aJSP)
     {
-        _javaShell = aPG;
-    }
-
-    /**
-     * Returns the JavaShell.
-     */
-    public JavaShell getJavaShell()
-    {
-        return _javaShell;
+        _javaShellPane = aJSP;
     }
 
     /**
@@ -74,11 +66,27 @@ public class JSConsole extends ViewOwner {
     }
 
     /**
+     * Returns the text length at any given point.
+     */
+    public int getTextLength()
+    {
+        return _consoleView.length();
+    }
+
+    /**
+     * Returns a substring of appended text.
+     */
+    public String getTextSubstring(int aStart, int anEnd)
+    {
+        return _consoleView.getText().substring(aStart, anEnd);
+    }
+
+    /**
      * Appends a view.
      */
     public void updateShelf()
     {
-        _shelfView.updateShelf(_javaShell);
+        _shelfView.updateShelf(_javaShellPane);
 
         if (_shelfView.getChildCount() > 0)
             _shelfViewMain.setVisible(true);
