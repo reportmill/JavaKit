@@ -311,7 +311,7 @@ public class Resolver {
     public Object invokeMethod(Object anObj, JavaMethod javaMethod, Object[] theArgs) throws Exception
     {
         String sig = javaMethod.getId();
-        Object value = StaticResolver.invokeMethod(anObj, sig, theArgs);
+        Object value = StaticResolver.invokeMethod(sig, anObj, theArgs);
         return value;
     }
 

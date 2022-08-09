@@ -59,7 +59,8 @@ public class JavaConstructor extends JavaExecutable {
             superMethod = this;
 
         // Set/return
-        return _super = superMethod;
+        _super = superMethod;
+        return _super != this ? _super : null;
     }
 
     /**

@@ -80,7 +80,8 @@ public class JavaMethod extends JavaExecutable {
             superMethod = this;
 
         // Set/return
-        return _super = superMethod;
+        _super = superMethod;
+        return _super != this ? _super : null;
     }
 
     /**
@@ -119,7 +120,7 @@ public class JavaMethod extends JavaExecutable {
         boolean  _varArgs;
 
         // For build all
-        private JavaMethod[]  _methods = new JavaMethod[20];
+        private JavaMethod[]  _methods = new JavaMethod[200];
         private int  _methodCount;
 
         /**

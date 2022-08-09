@@ -154,8 +154,14 @@ public class JSParser {
         stmtBlock.removeStatement(aStmt);
         stmtBlock.addStatement(varDeclStmt);
 
-        // Create bogus type from initializer
+        // Get initializer type
         JavaType initType = initializer.getEvalType();
+        if (initType == null) {
+            System.out.println("JSParser.fixIncompleteVarDecl: Failed to get init type for " + initializer.getString());
+            initType = _resolver.getJavaClassForClass(Object.class);
+        }
+
+        // Create bogus type from initializer
         JType type = new JType();
         type.setName(initType.getName());
         type.setStartToken(assignTo.getStartToken());
