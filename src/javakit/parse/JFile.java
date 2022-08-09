@@ -77,10 +77,7 @@ public class JFile extends JNode {
     /**
      * Returns the package declaration.
      */
-    public JPackageDecl getPackageDecl()
-    {
-        return _packageDecl;
-    }
+    public JPackageDecl getPackageDecl()  { return _packageDecl; }
 
     /**
      * Sets the package declaration.
@@ -101,10 +98,7 @@ public class JFile extends JNode {
     /**
      * Returns the import statements.
      */
-    public List<JImportDecl> getImportDecls()
-    {
-        return _importDecls;
-    }
+    public List<JImportDecl> getImportDecls()  { return _importDecls; }
 
     /**
      * Adds an import declaration.
@@ -126,10 +120,7 @@ public class JFile extends JNode {
     /**
      * Returns the JClassDecls for the file.
      */
-    public List<JClassDecl> getClassDecls()
-    {
-        return _classDecls;
-    }
+    public List<JClassDecl> getClassDecls()  { return _classDecls; }
 
     /**
      * Adds a JClassDecls for the file.
@@ -204,31 +195,33 @@ public class JFile extends JNode {
         // Iterate over imports to see if any can resolve name
         JImportDecl match = null;
         for (int i = _importDecls.size() - 1; i >= 0; i--) {
-            JImportDecl imp = _importDecls.get(i);
+            JImportDecl importDecl = _importDecls.get(i);
 
             // Get import name (just continue if null)
-            String iname = imp.getName();
-            if (iname == null) continue;
+            String importName = importDecl.getName();
+            if (importName == null) continue;
 
             // If import is static, see if it matches given name
-            if (imp.isStatic() && iname.endsWith(aName)) {
-                if (iname.length() == aName.length() || iname.charAt(iname.length() - aName.length() - 1) == '.') {
-                    match = imp;
+            if (importDecl.isStatic() && importName.endsWith(aName)) {
+                if (importName.length() == aName.length() || importName.charAt(importName.length() - aName.length() - 1) == '.') {
+                    match = importDecl;
                     break;
                 }
             }
 
             // If import is inclusive ("import xxx.*") and ImportName.aName is known class, return class name
-            else if (imp.isInclusive() && match == null) {
-                String cname = iname + '.' + aName;
-                if (isKnownClassName(cname) || imp.isClassName() && isKnownClassName(iname + '$' + aName))
-                    match = imp;
+            else if (importDecl.isInclusive() && match == null) {
+                String className = importName + '.' + aName;
+                if (isKnownClassName(className))
+                    match = importDecl;
+                if (importDecl.isClassName() && isKnownClassName(importName + '$' + aName))
+                    match = importDecl;
             }
 
             // Otherwise, see if import refers explicitly to class name
-            else if (iname.endsWith(aName)) {
-                if (iname.length() == aName.length() || iname.charAt(iname.length() - aName.length() - 1) == '.') {
-                    match = imp;
+            else if (importName.endsWith(aName)) {
+                if (importName.length() == aName.length() || importName.charAt(importName.length() - aName.length() - 1) == '.') {
+                    match = importDecl;
                     break;
                 }
             }
@@ -236,9 +229,12 @@ public class JFile extends JNode {
 
         // Remove match from UnusedImports and return
         if (match != null) {
-            if (match.isInclusive()) match.addFoundClassName(aName);
+            if (match.isInclusive())
+                match.addFoundClassName(aName);
             match._used = true;
         }
+
+        // Return
         return match;
     }
 
@@ -296,9 +292,12 @@ public class JFile extends JNode {
      */
     public JavaMember getImportClassMember(String aName, JavaType[] theParams)
     {
-        JImportDecl imp = getStaticImport(aName, theParams);
-        if (imp != null)
-            return imp.getImportMember(aName, theParams);
+        // If static import for name, look for member there
+        JImportDecl importDecl = getStaticImport(aName, theParams);
+        if (importDecl != null)
+            return importDecl.getImportMember(aName, theParams);
+
+        // Return not found
         return null;
     }
 
@@ -309,20 +308,21 @@ public class JFile extends JNode {
     {
         // Iterate over imports to see if any can resolve name
         for (int i = _importDecls.size() - 1; i >= 0; i--) {
-            JImportDecl imp = _importDecls.get(i);
+            JImportDecl importDecl = _importDecls.get(i);
 
             // If import is static ("import static xxx.*") and name/params is known field/method, return member
-            if (imp.isStatic()) {
-                JavaDecl mbr = imp.getImportMember(aName, theParams);
-                if (mbr != null) {
-                    if (imp.isInclusive()) imp.addFoundClassName(aName);
-                    imp._used = true;
-                    return imp;
+            if (importDecl.isStatic()) {
+                JavaMember member = importDecl.getImportMember(aName, theParams);
+                if (member != null) {
+                    if (importDecl.isInclusive())
+                        importDecl.addFoundClassName(aName);
+                    importDecl._used = true;
+                    return importDecl;
                 }
             }
         }
 
-        // Return null since import not found
+        // Return not found
         return null;
     }
 
@@ -331,11 +331,18 @@ public class JFile extends JNode {
      */
     public Set<JImportDecl> getUnusedImports()
     {
+        // If already set, just return
         if (_unusedImports != null) return _unusedImports;
+
+        // Resolve class names
         resolveClassNames(this);
-        Set<JImportDecl> uimps = new HashSet();
-        for (JImportDecl imp : getImportDecls()) if (!imp._used) uimps.add(imp);
-        return _unusedImports = uimps;
+        Set<JImportDecl> unusedImportDecls = new HashSet<>();
+        for (JImportDecl importDecl : getImportDecls())
+            if (!importDecl._used)
+                unusedImportDecls.add(importDecl);
+
+        // Set/return
+        return _unusedImports = unusedImportDecls;
     }
 
 /** Print expanded imports. */
@@ -375,10 +382,7 @@ public class JFile extends JNode {
     /**
      * Returns the exception if one was hit.
      */
-    public Exception getException()
-    {
-        return _exception;
-    }
+    public Exception getException()  { return _exception; }
 
     /**
      * Sets the exception.
@@ -406,5 +410,4 @@ public class JFile extends JNode {
         _classDecls = aJFile._classDecls;
         _exception = aJFile._exception;
     }
-
 }
