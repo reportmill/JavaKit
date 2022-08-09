@@ -77,7 +77,6 @@ public class StaticResolver {
                 mb.name("charAt").paramTypes(int.class).returnType(char.class).save();
                 mb.name("getBytes").returnType(byte[].class).save();
                 mb.name("getBytes").paramTypes(java.lang.String.class).returnType(byte[].class).save();
-                mb.name("getBytes").paramTypes(int.class,int.class,byte[].class,int.class).returnType(void.class).save();
                 mb.name("getBytes").paramTypes(java.nio.charset.Charset.class).returnType(byte[].class).save();
                 mb.name("equalsIgnoreCase").paramTypes(java.lang.String.class).returnType(boolean.class).save();
                 mb.name("compareToIgnoreCase").paramTypes(java.lang.String.class).returnType(int.class).save();
@@ -220,8 +219,7 @@ public class StaticResolver {
                 mb.name("hashCode").returnType(int.class).save();
                 mb.name("isEmpty").returnType(boolean.class).save();
                 mb.name("replace").paramTypes(java.lang.Object.class,java.lang.Object.class).returnType(java.lang.Object.class).save();
-                mb.name("replace").paramTypes(java.lang.Object.class,java.lang.Object.class,java.lang.Object.class).returnType(boolean.class).save();
-                return mb.name("replaceAll").paramTypes(java.util.function.BiFunction.class).returnType(void.class).buildAll();
+                return mb.name("replace").paramTypes(java.lang.Object.class,java.lang.Object.class,java.lang.Object.class).returnType(boolean.class).buildAll();
 
             // Handle java.util.Random
             case "java.util.Random":
@@ -245,17 +243,12 @@ public class StaticResolver {
                 mb.name("println").paramTypes(long.class).returnType(void.class).save();
                 mb.name("println").paramTypes(java.lang.Object.class).returnType(void.class).save();
                 mb.name("println").paramTypes(java.lang.String.class).returnType(void.class).save();
-                mb.name("println").paramTypes(char[].class).returnType(void.class).save();
                 mb.name("println").returnType(void.class).save();
                 mb.name("println").paramTypes(boolean.class).returnType(void.class).save();
                 mb.name("println").paramTypes(char.class).returnType(void.class).save();
                 mb.name("println").paramTypes(int.class).returnType(void.class).save();
-                mb.name("format").paramTypes(java.util.Locale.class,java.lang.String.class,java.lang.Object[].class).returnType(java.io.PrintStream.class).save();
-                mb.name("format").paramTypes(java.lang.String.class,java.lang.Object[].class).returnType(java.io.PrintStream.class).save();
-                mb.name("print").paramTypes(boolean.class).returnType(void.class).save();
                 mb.name("print").paramTypes(long.class).returnType(void.class).save();
                 mb.name("print").paramTypes(double.class).returnType(void.class).save();
-                mb.name("print").paramTypes(float.class).returnType(void.class).save();
                 mb.name("print").paramTypes(java.lang.Object.class).returnType(void.class).save();
                 mb.name("print").paramTypes(java.lang.String.class).returnType(void.class).save();
                 mb.name("print").paramTypes(char[].class).returnType(void.class).save();
@@ -378,8 +371,6 @@ public class StaticResolver {
                 return ((java.lang.String) anObj).getBytes();
             case "java.lang.String.getBytes(java.lang.String)":
                 return ((java.lang.String) anObj).getBytes((java.lang.String) theArgs[0]);
-            //case "java.lang.String.getBytes(int,int,byte[],int)":
-            //    ((java.lang.String) anObj).getBytes(intVal(theArgs[0]),intVal(theArgs[1]),(byte[]) theArgs[2],intVal(theArgs[3])); return null;
             case "java.lang.String.getBytes(java.nio.charset.Charset)":
                 return ((java.lang.String) anObj).getBytes((java.nio.charset.Charset) theArgs[0]);
             case "java.lang.String.equalsIgnoreCase(java.lang.String)":
@@ -642,8 +633,6 @@ public class StaticResolver {
                 return ((java.util.Map) anObj).replace(theArgs[0],theArgs[1]);
             case "java.util.Map.replace(java.lang.Object,java.lang.Object,java.lang.Object)":
                 return ((java.util.Map) anObj).replace(theArgs[0],theArgs[1],theArgs[2]);
-            //case "java.util.Map.replaceAll(java.util.function.BiFunction)":
-            //    ((java.util.Map) anObj).replaceAll((java.util.function.BiFunction) theArgs[0]); return null;
 
             // Handle java.util.Random
             case "java.util.Random.nextInt(int)":
@@ -678,8 +667,6 @@ public class StaticResolver {
                 ((java.io.PrintStream) anObj).println(theArgs[0]); return null;
             case "java.io.PrintStream.println(java.lang.String)":
                 ((java.io.PrintStream) anObj).println((java.lang.String) theArgs[0]); return null;
-            //case "java.io.PrintStream.println(char[])":
-            //    ((java.io.PrintStream) anObj).println((char[]) theArgs[0]); return null;
             case "java.io.PrintStream.println()":
                 ((java.io.PrintStream) anObj).println(); return null;
             case "java.io.PrintStream.println(boolean)":
@@ -688,18 +675,10 @@ public class StaticResolver {
                 ((java.io.PrintStream) anObj).println((char) theArgs[0]); return null;
             case "java.io.PrintStream.println(int)":
                 ((java.io.PrintStream) anObj).println(intVal(theArgs[0])); return null;
-            //case "java.io.PrintStream.format(java.util.Locale,java.lang.String,java.lang.Object[])":
-            //    return ((java.io.PrintStream) anObj).format((java.util.Locale) theArgs[0],(java.lang.String) theArgs[1],(Object[]) theArgs[2]);
-            //case "java.io.PrintStream.format(java.lang.String,java.lang.Object[])":
-            //    return ((java.io.PrintStream) anObj).format((java.lang.String) theArgs[0],(Object[]) theArgs[1]);
-            //case "java.io.PrintStream.print(boolean)":
-            //    ((java.io.PrintStream) anObj).print(boolVal(theArgs[0])); return null;
             case "java.io.PrintStream.print(long)":
                 ((java.io.PrintStream) anObj).print((long) theArgs[0]); return null;
             case "java.io.PrintStream.print(double)":
                 ((java.io.PrintStream) anObj).print(doubleVal(theArgs[0])); return null;
-            //case "java.io.PrintStream.print(float)":
-            //    ((java.io.PrintStream) anObj).print(floatVal(theArgs[0])); return null;
             case "java.io.PrintStream.print(java.lang.Object)":
                 ((java.io.PrintStream) anObj).print(theArgs[0]); return null;
             case "java.io.PrintStream.print(java.lang.String)":
@@ -820,14 +799,11 @@ public class StaticResolver {
                 cb.paramTypes(byte[].class,int.class,int.class,java.nio.charset.Charset.class).save();
                 cb.paramTypes(byte[].class,int.class,int.class,java.lang.String.class).save();
                 cb.paramTypes(java.lang.StringBuilder.class).save();
-                cb.paramTypes(java.lang.StringBuffer.class).save();
                 cb.paramTypes(byte[].class).save();
                 cb.paramTypes(int[].class,int.class,int.class).save();
                 cb.paramTypes(char[].class).save();
                 cb.paramTypes(java.lang.String.class).save();
-                cb.paramTypes(char[].class,int.class,int.class).save();
-                cb.paramTypes(byte[].class,int.class).save();
-                return cb.paramTypes(byte[].class,int.class,int.class,int.class).buildAll();
+                return cb.paramTypes(char[].class,int.class,int.class).buildAll();
 
             // Handle java.util.Random
             case "java.util.Random":
@@ -837,11 +813,7 @@ public class StaticResolver {
             case "java.io.PrintStream":
                 cb.paramTypes(java.io.OutputStream.class).save();
                 cb.paramTypes(java.io.OutputStream.class,boolean.class).save();
-                cb.paramTypes(java.io.OutputStream.class,boolean.class,java.lang.String.class).save();
-                cb.paramTypes(java.lang.String.class).save();
-                cb.paramTypes(java.lang.String.class,java.lang.String.class).save();
-                cb.paramTypes(java.io.File.class,java.lang.String.class).save();
-                return cb.paramTypes(java.io.File.class).buildAll();
+                return cb.paramTypes(java.io.OutputStream.class,boolean.class,java.lang.String.class).buildAll();
 
             // Handle snap.view.Button
             case "snap.view.Button":
@@ -879,8 +851,6 @@ public class StaticResolver {
                 return new java.lang.String((byte[]) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]),(java.lang.String) theArgs[3]);
             case "java.lang.String(java.lang.StringBuilder)":
                 return new java.lang.String((java.lang.StringBuilder) theArgs[0]);
-            //case "java.lang.String(java.lang.StringBuffer)":
-            //    return new java.lang.String((java.lang.StringBuffer) theArgs[0]);
             case "java.lang.String(byte[])":
                 return new java.lang.String((byte[]) theArgs[0]);
             case "java.lang.String(int[],int,int)":
@@ -891,10 +861,6 @@ public class StaticResolver {
                 return new java.lang.String((java.lang.String) theArgs[0]);
             case "java.lang.String(char[],int,int)":
                 return new java.lang.String((char[]) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]));
-            //case "java.lang.String(byte[],int)":
-            //    return new java.lang.String((byte[]) theArgs[0],intVal(theArgs[1]));
-            //case "java.lang.String(byte[],int,int,int)":
-            //    return new java.lang.String((byte[]) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]),intVal(theArgs[3]));
 
             // Handle java.util.Random
             case "java.util.Random(long)":
@@ -907,14 +873,6 @@ public class StaticResolver {
                 return new java.io.PrintStream((java.io.OutputStream) theArgs[0],boolVal(theArgs[1]));
             case "java.io.PrintStream(java.io.OutputStream,boolean,java.lang.String)":
                 return new java.io.PrintStream((java.io.OutputStream) theArgs[0],boolVal(theArgs[1]),(java.lang.String) theArgs[2]);
-            //case "java.io.PrintStream(java.lang.String)":
-            //    return new java.io.PrintStream((java.lang.String) theArgs[0]);
-            //case "java.io.PrintStream(java.lang.String,java.lang.String)":
-            //    return new java.io.PrintStream((java.lang.String) theArgs[0],(java.lang.String) theArgs[1]);
-            //case "java.io.PrintStream(java.io.File,java.lang.String)":
-            //    return new java.io.PrintStream((java.io.File) theArgs[0],(java.lang.String) theArgs[1]);
-            //case "java.io.PrintStream(java.io.File)":
-            //    return new java.io.PrintStream((java.io.File) theArgs[0]);
 
             // Handle snap.view.Button
             case "snap.view.Button(java.lang.String)":

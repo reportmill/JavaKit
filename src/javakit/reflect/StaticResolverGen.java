@@ -2,8 +2,6 @@ package javakit.reflect;
 import snap.web.WebFile;
 import snap.web.WebSite;
 import snap.web.WebURL;
-
-import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -110,13 +108,22 @@ public class StaticResolverGen {
         // Get methods
         Method[] methods = aClass.getDeclaredMethods();
         Stream<Method> methodsStream = Stream.of(methods);
-        methodsStream = methodsStream.filter(m -> Modifier.isPublic(m.getModifiers()) && _whiteList.contains(m.getName()));
+        methodsStream = methodsStream.filter(m -> isValidMethod(m));
         methods = methodsStream.toArray(size -> new Method[size]);
 
         for (int i = 0, iMax = methods.length; i < iMax; i++) {
             Method method = methods[i];
             printGetMethodsForClassForClassMethod(method, i + 1 == iMax);
         }
+    }
+
+    boolean isValidMethod(Method m)
+    {
+        if (!Modifier.isPublic(m.getModifiers())) return false;
+        if (!_whiteList.contains(m.getName())) return false;
+        JavaClass javaClass = _resolver.getJavaClassForClass(m.getDeclaringClass());
+        if (_blackList.contains(new JavaMethod(_resolver, javaClass, m).getId())) return false;
+        return true;
     }
 
     /**
@@ -191,7 +198,7 @@ public class StaticResolverGen {
         JavaClass javaClass = _resolver.getJavaClassForClass(aClass);
         JavaConstructor[] constructors = javaClass.getConstructors().toArray(new JavaConstructor[0]);
         Stream<JavaConstructor> constrStream = Stream.of(constructors);
-        constrStream = constrStream.filter(c -> Modifier.isPublic(c.getModifiers()) && c.getParamTypes().length > 0);
+        constrStream = constrStream.filter(c -> isValidConstructor(c));
         constructors = constrStream.toArray(size -> new JavaConstructor[size]);
         if (constructors.length == 0)
             return;
@@ -206,6 +213,14 @@ public class StaticResolverGen {
             if (!Modifier.isPublic(constructor.getModifiers())) continue;
             printGetConstructorsForClassForConstructor(constructor, i + 1 == iMax);
         }
+    }
+
+    boolean isValidConstructor(JavaConstructor c)
+    {
+        if (!Modifier.isPublic(c.getModifiers())) return false;
+        if (c.getParamTypes().length == 0) return false;
+        if (_blackList.contains(c.getId())) return false;
+        return true;
     }
 
     /**
@@ -275,12 +290,19 @@ public class StaticResolverGen {
 
         for (int i = 0, iMax = methods.length; i < iMax; i++) {
             JavaMethod method = methods[i];
-            if (!Modifier.isPublic(method.getModifiers())) continue;
-            if (!_whiteList.contains(method.getName())) continue;
+            if (!isValidMethod(method)) continue;
             if (method.getSuper() != null)
                 continue;
             printInvokeMethodForClassMethod(method);
         }
+    }
+
+    boolean isValidMethod(JavaMethod m)
+    {
+        if (!Modifier.isPublic(m.getModifiers())) return false;
+        if (!_whiteList.contains(m.getName())) return false;
+        if (_blackList.contains(m.getId())) return false;
+        return true;
     }
 
     /**
@@ -373,7 +395,7 @@ public class StaticResolverGen {
         JavaClass javaClass = _resolver.getJavaClassForClass(aClass);
         JavaConstructor[] constructors = javaClass.getConstructors().toArray(new JavaConstructor[0]);
         Stream<JavaConstructor> constrStream = Stream.of(constructors);
-        constrStream = constrStream.filter(c -> Modifier.isPublic(c.getModifiers()) && c.getParamTypes().length > 0);
+        constrStream = constrStream.filter(c -> isValidConstructor(c));
         constructors = constrStream.toArray(size -> new JavaConstructor[size]);
         if (constructors.length == 0)
             return;
@@ -572,4 +594,27 @@ public class StaticResolverGen {
             "setWindowVisible",
     };
     private static Set<String>  _whiteList = new HashSet<>(Arrays.asList(_whiteListStrings));
+
+    private static String[] _blackListStrings = {
+
+            "java.lang.String.getBytes(int,int,byte[],int)",
+
+            "java.util.Map.replaceAll(java.util.function.BiFunction)",
+
+            "java.io.PrintStream.println(char[])",
+            "java.io.PrintStream.format(java.util.Locale,java.lang.String,java.lang.Object[])",
+            "java.io.PrintStream.format(java.lang.String,java.lang.Object[])",
+            "java.io.PrintStream.print(boolean)",
+            "java.io.PrintStream.print(float)",
+
+            "java.lang.String(java.lang.StringBuffer)",
+            "java.lang.String(byte[],int)",
+            "java.lang.String(byte[],int,int,int)",
+            "java.io.PrintStream(java.lang.String)",
+            "java.io.PrintStream(java.lang.String,java.lang.String)",
+            "java.io.PrintStream(java.io.File,java.lang.String)",
+            "java.io.PrintStream(java.io.File)",
+    };
+    private static Set<String>  _blackList = new HashSet<>(Arrays.asList(_blackListStrings));
+
 }
