@@ -2,9 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import java.lang.reflect.Field;
 import java.util.*;
-
+import java.util.stream.Stream;
 import javakit.reflect.*;
 import snap.util.*;
 
@@ -12,38 +11,39 @@ import snap.util.*;
  * A Java member for ClassDecl.
  */
 public class JClassDecl extends JMemberDecl {
+
     // The type of class (Class, Interface, Enum, Annotation)
-    ClassType _classType = ClassType.Class;
+    protected ClassType  _classType = ClassType.Class;
 
     // TypeVars
-    List<JTypeVar> _typeVars;
+    protected List<JTypeVar>  _typeVars;
 
     // The extends list
-    List<JType> _extendsTypes = new ArrayList();
+    protected List<JType>  _extendsTypes = new ArrayList<>();
 
     // The implements list
-    List<JType> _implementsTypes = new ArrayList();
+    protected List<JType>  _implementsTypes = new ArrayList<>();
 
     // The list of fields, methods, enums annotations and child classes
-    List<JMemberDecl> _members = new ArrayList();
+    protected List<JMemberDecl>  _members = new ArrayList<>();
 
     // The enum constants (if ClassType Enum)
-    List<JEnumConst> _enumConstants = new ArrayList();
+    protected List<JEnumConst>  _enumConstants = new ArrayList<>();
 
     // The field declarations
-    JFieldDecl _fieldDecls[];
+    protected JFieldDecl[]  _fieldDecls;
 
     // The constructor declarations
-    JConstrDecl _constrDecls[];
+    protected JConstrDecl[]  _constrDecls;
 
     // The method declarations
-    JMethodDecl _methodDecls[];
+    protected JMethodDecl[]  _methodDecls;
 
     // An array of class declarations that are members of this class
-    JClassDecl _classDecls[];
+    protected JClassDecl[]  _classDecls;
 
     // The class type
-    public enum ClassType {Class, Interface, Enum, Annotation}
+    public enum ClassType { Class, Interface, Enum, Annotation }
 
     /**
      * Returns the simple name.
@@ -56,10 +56,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the JTypeVar(s).
      */
-    public List<JTypeVar> getTypeVars()
-    {
-        return _typeVars;
-    }
+    public List<JTypeVar> getTypeVars()  { return _typeVars; }
 
     /**
      * Sets the JTypeVar(s).
@@ -91,10 +88,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the implements list.
      */
-    public List<JType> getImplementsTypes()
-    {
-        return _implementsTypes;
-    }
+    public List<JType> getImplementsTypes()  { return _implementsTypes; }
 
     /**
      * Returns the implements list.
@@ -108,10 +102,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the list of enum constants.
      */
-    public List<JEnumConst> getEnumConstants()
-    {
-        return _enumConstants;
-    }
+    public List<JEnumConst> getEnumConstants()  { return _enumConstants; }
 
     /**
      * Adds an enum constant.
@@ -127,10 +118,15 @@ public class JClassDecl extends JMemberDecl {
      */
     public JavaClass getSuperClass()
     {
+        // Get extends class
         List<JType> extendsTypes = _extendsTypes;
         JType extendsType = extendsTypes.size() > 0 ? extendsTypes.get(0) : null;
         JavaClass extendsClass = extendsType != null ? extendsType.getEvalClass() : null;
-        return extendsClass != null ? extendsClass : getJavaClassForClass(Object.class);
+
+        // Return - if no ExtendsClass return Object.class
+        if (extendsClass == null)
+            return getJavaClassForClass(Object.class);
+        return extendsClass;
     }
 
     /**
@@ -150,42 +146,27 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the class type.
      */
-    public ClassType getClassType()
-    {
-        return _classType;
-    }
+    public ClassType getClassType()  { return _classType; }
 
     /**
      * Sets the class type.
      */
-    public void setClassType(ClassType aType)
-    {
-        _classType = aType;
-    }
+    public void setClassType(ClassType aType)  { _classType = aType; }
 
     /**
      * Returns whether class type is Class.
      */
-    public boolean isClass()
-    {
-        return getClassType() == ClassType.Class;
-    }
+    public boolean isClass()  { return _classType == ClassType.Class; }
 
     /**
      * Returns whether class type is Interface.
      */
-    public boolean isInterface()
-    {
-        return getClassType() == ClassType.Interface;
-    }
+    public boolean isInterface()  { return _classType == ClassType.Interface; }
 
     /**
      * Returns whether class type is Enum.
      */
-    public boolean isEnum()
-    {
-        return getClassType() == ClassType.Enum;
-    }
+    public boolean isEnum()  { return _classType == ClassType.Enum; }
 
     /**
      * Returns whether class is anonymous class.
@@ -219,7 +200,8 @@ public class JClassDecl extends JMemberDecl {
     {
         for (JMemberDecl md : _members) removeChild(md);
         _members = theMDs;
-        for (JMemberDecl md : _members) addChild(md, -1);
+        for (JMemberDecl md : _members)
+            addChild(md, -1);
     }
 
     /**
@@ -227,12 +209,16 @@ public class JClassDecl extends JMemberDecl {
      */
     public JFieldDecl[] getFieldDecls()
     {
+        // If already set, just return
         if (_fieldDecls != null) return _fieldDecls;
-        List<JFieldDecl> fds = new ArrayList();
-        for (JMemberDecl member : _members)
-            if (member instanceof JFieldDecl)
-                fds.add((JFieldDecl) member);
-        return _fieldDecls = fds.toArray(new JFieldDecl[fds.size()]);
+
+        // Get fields from members
+        Stream<JMemberDecl> membersStream = _members.stream();
+        Stream<JMemberDecl> fieldsStream = membersStream.filter(m -> m instanceof JFieldDecl);
+        JFieldDecl[] fields = fieldsStream.toArray(size -> new JFieldDecl[size]);
+
+        // Set/return
+        return _fieldDecls = fields;
     }
 
     /**
@@ -240,12 +226,16 @@ public class JClassDecl extends JMemberDecl {
      */
     public JConstrDecl[] getConstructorDecls()
     {
+        // If already set, just return
         if (_constrDecls != null) return _constrDecls;
-        List<JConstrDecl> cds = new ArrayList();
-        for (JMemberDecl member : _members)
-            if (member instanceof JConstrDecl)
-                cds.add((JConstrDecl) member);
-        return _constrDecls = cds.toArray(new JConstrDecl[cds.size()]);
+
+        // Get constructors from members
+        Stream<JMemberDecl> membersStream = _members.stream();
+        Stream<JMemberDecl> constructorsStream = membersStream.filter(m -> m instanceof JConstrDecl);
+        JConstrDecl[] constructors = constructorsStream.toArray(size -> new JConstrDecl[size]);
+
+        // Set/return
+        return _constrDecls = constructors;
     }
 
     /**
@@ -264,12 +254,22 @@ public class JClassDecl extends JMemberDecl {
      */
     public JMethodDecl[] getMethodDecls()
     {
+        // If already set, just return
         if (_methodDecls != null) return _methodDecls;
+
+        // Get from members
         List<JMethodDecl> mds = new ArrayList();
         for (JMemberDecl member : _members)
             if (member instanceof JMethodDecl && !(member instanceof JConstrDecl))
                 mds.add((JMethodDecl) member);
-        return _methodDecls = mds.toArray(new JMethodDecl[mds.size()]);
+
+        // Get constructors from members
+        Stream<JMemberDecl> membersStream = _members.stream();
+        Stream<JMemberDecl> methodsStream = membersStream.filter(m -> m instanceof JMethodDecl && !(m instanceof JConstrDecl));
+        JMethodDecl[] methods = methodsStream.toArray(size -> new JMethodDecl[size]);
+
+        // Set/return
+        return _methodDecls = methods;
     }
 
     /**
@@ -277,17 +277,19 @@ public class JClassDecl extends JMemberDecl {
      */
     public JMethodDecl[] getMethodDecls(String aName, boolean isStatic)
     {
-        List<JMethodDecl> mdecls = new ArrayList();
+        List<JMethodDecl> mdecls = new ArrayList<>();
         for (JMethodDecl md : getMethodDecls())
             if (md.getName().equals(aName) && md.getMods().isStatic() == isStatic)
                 mdecls.add(md);
-        return mdecls.toArray(new JMethodDecl[mdecls.size()]);
+
+        // Set/return
+        return mdecls.toArray(new JMethodDecl[0]);
     }
 
     /**
      * Returns the JMethodDecl for given name.
      */
-    public JMethodDecl getMethodDecl(String aName, Class theClasses[])
+    public JMethodDecl getMethodDecl(String aName, Class[] theClasses)
     {
         for (JMethodDecl md : getMethodDecls())
             if (md.getName().equals(aName))
@@ -300,10 +302,16 @@ public class JClassDecl extends JMemberDecl {
      */
     public JClassDecl[] getClassDecls()
     {
+        // If already set, just return
         if (_classDecls != null) return _classDecls;
-        List<JClassDecl> cds = new ArrayList();
-        for (JMemberDecl mbr : _members) getClassDecls(mbr, cds);
-        return _classDecls = cds.toArray(new JClassDecl[cds.size()]); // Return class declarations
+
+
+        List<JClassDecl> cds = new ArrayList<>();
+        for (JMemberDecl mbr : _members)
+            getClassDecls(mbr, cds);
+
+        // Set, return
+        return _classDecls = cds.toArray(new JClassDecl[0]); // Return class declarations
     }
 
     /**
@@ -311,8 +319,11 @@ public class JClassDecl extends JMemberDecl {
      */
     private void getClassDecls(JNode aNode, List<JClassDecl> theCDs)
     {
+        // Handle Class decl
         if (aNode instanceof JClassDecl)
             theCDs.add((JClassDecl) aNode);
+
+        // Otherwise recurse
         else for (JNode c : aNode.getChildren())
             getClassDecls(c, theCDs);
     }
@@ -325,9 +336,13 @@ public class JClassDecl extends JMemberDecl {
         int index = aName.indexOf('.');
         String name = index > 0 ? aName.substring(0, index) : aName;
         String remainder = index >= 0 ? aName.substring(index + 1) : null;
-        for (JClassDecl cd : getClassDecls())
-            if (cd.getSimpleName().equals(name))
-                return remainder != null ? cd.getClassDecl(remainder) : cd;
+
+        // Iterate over ClassDecls
+        for (JClassDecl classDecl : getClassDecls())
+            if (classDecl.getSimpleName().equals(name))
+                return remainder != null ? classDecl.getClassDecl(remainder) : classDecl;
+
+        // Return not found
         return null;
     }
 
@@ -336,18 +351,22 @@ public class JClassDecl extends JMemberDecl {
      */
     protected String getNameImpl()
     {
-        // If enclosing class, see if we are inner class
+        // If enclosing class,
         JClassDecl ecd = getEnclosingClassDecl();
+
+        // See if is inner class
         if (ecd != null) {
-            JClassDecl classDecls[] = ecd.getClassDecls();
+            JClassDecl[] classDecls = ecd.getClassDecls();
             for (int i = 0, iMax = classDecls.length, j = 1; i < iMax; i++) {
                 JClassDecl cd = classDecls[i];
-                if (cd == this) return Integer.toString(j);
-                if (cd.isAnonymousClass()) j++;
+                if (cd == this)
+                    return Integer.toString(j);
+                if (cd.isAnonymousClass())
+                    j++;
             }
         }
 
-        // Return null since not found
+        // Return not found
         System.err.println("JClassDecl.createName: Name not found");
         return null;
     }
@@ -355,10 +374,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the class declaration.
      */
-    public JavaClass getDecl()
-    {
-        return (JavaClass) super.getDecl();
-    }
+    public JavaClass getDecl()  { return (JavaClass) super.getDecl(); }
 
     /**
      * Returns the class declaration.
@@ -367,6 +383,8 @@ public class JClassDecl extends JMemberDecl {
     {
         // If enclosing class declaration, return ThatClassName$ThisName, otherwise return JFile.Name
         String className = getName();
+        if (className == null)
+            return null;
 
         // If enclosing class, get name from it
         JClassDecl enclosingClassDecl = getEnclosingClassDecl();
@@ -384,8 +402,13 @@ public class JClassDecl extends JMemberDecl {
                 className = packageName + '.' + className;
         }
 
-        // Return class name
-        return className != null ? getJavaClassForName(className) : null;
+        // Get class for name - if not found, use SuperClass (assume this class not compiled)
+        JavaClass javaClass = getJavaClassForName(className);
+        if (javaClass == null)
+            javaClass = getSuperClass();
+
+        // Return
+        return javaClass;
     }
 
     /**
@@ -429,7 +452,7 @@ public class JClassDecl extends JMemberDecl {
 
         // If it's "this", set class and return ClassField
         String name = aNode.getName();
-        boolean isId = aNode instanceof JExprId, isType = !isId;
+        boolean isId = aNode instanceof JExprId;
         if (name.equals("this"))
             return getDecl();
 

@@ -34,6 +34,10 @@ public class ResolverSys extends Resolver {
         // Get method
         Method meth = javaMethod.getMethod();
 
+        // If VarArgs, need to repackage args
+        if (meth.isVarArgs())
+            theArgs = new Object[] { theArgs };
+
         // Invoke
         return meth.invoke(anObj, theArgs);
     }

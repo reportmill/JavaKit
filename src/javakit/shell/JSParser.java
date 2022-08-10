@@ -5,6 +5,7 @@ import javakit.reflect.Resolver;
 import snap.parse.ParseHandler;
 import snap.parse.ParseRule;
 import snap.parse.Parser;
+import snap.util.ArrayUtils;
 
 /**
  * This class takes a Java text string and returns an array of JStmt (one for each line).
@@ -22,6 +23,20 @@ public class JSParser {
 
     // The Resolver
     private Resolver  _resolver;
+
+    // The base repl class name
+    private String  _replClassName = "Object";
+
+    // The array of imports
+    private String[]  _imports = DEFAULT_IMPORTS;
+
+    // Constants for imports
+    private static final String IMPORT1 = "java.util.*";
+    private static final String IMPORT2 = "java.util.stream.*";
+    private static final String IMPORT3 = "snap.view.*";
+    private static final String[] DEFAULT_IMPORTS = { IMPORT1, IMPORT2, IMPORT3 };
+
+
 
     /**
      * Constructor.
@@ -194,14 +209,32 @@ public class JSParser {
      */
     private String getJavaFileHeader()
     {
+        // Get import declarations string
+        String importsDecl = "";
+        for (String importDecl : _imports)
+            importsDecl += "import " + importDecl + ";\n";
+        importsDecl += '\n';
+
         // Construct class/method wrapper for statements
-        String importDecl1 = "import java.util.*;\n";
-        String importDecl2 = "import java.util.stream.*;\n";
-        String importDecl3 = "import snap.view.*;\n\n";
-        String importsDecl = importDecl1 + importDecl2 + importDecl3;
-        String classDecl = "public class JavaShellEvaluator {\n\n";
+        String classDecl = "public class JavaShellREPL extends " + _replClassName + " {\n\n";
         String methodDecl = "void body() {\n\n";
         return importsDecl + classDecl + methodDecl;
+    }
+
+    /**
+     * Sets the base repl class name.
+     */
+    public void setREPLClassName(String aName)
+    {
+        _replClassName = aName;
+    }
+
+    /**
+     * Adds an import.
+     */
+    public void addImport(String anImportStr)
+    {
+        _imports = ArrayUtils.add(_imports, anImportStr);
     }
 
     /**

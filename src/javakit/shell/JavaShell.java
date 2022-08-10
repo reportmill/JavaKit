@@ -3,7 +3,6 @@
  */
 package javakit.shell;
 import javakit.parse.JStmt;
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**
@@ -31,8 +30,8 @@ public class JavaShell {
     private PrintStream  _stdErr = System.err;
 
     // Proxy standard out/err to capture console
-    private PrintStream  _shellOut = new PGPrintStream(_stdOut);
-    private PrintStream  _shellErr = new PGPrintStream(_stdErr);
+    private PrintStream  _shellOut = new JavaShellUtils.ProxyPrintStream(this, _stdOut);
+    private PrintStream  _shellErr = new JavaShellUtils.ProxyPrintStream(this,_stdErr);
 
     /**
      * Creates a new PGEvaluator.
@@ -46,7 +45,7 @@ public class JavaShell {
         _stmtEval = new JSStmtEval();
 
         // Create default console
-        _console = new DefaultConsole();
+        _console = new JavaShellUtils.DefaultConsole();
     }
 
     /**
@@ -89,9 +88,7 @@ public class JavaShell {
                 _lineVals[i] = ""; continue; }
 
             // Evaluate statement
-            Object lineVal = _lineVals[i] = evalStatement(stmt);
-            if (lineVal instanceof Exception)
-                ((Exception) lineVal).printStackTrace();
+            _lineVals[i] = evalStatement(stmt);
         }
 
         // Restore System out/err
@@ -115,6 +112,7 @@ public class JavaShell {
 
         // Handle statement eval exception: Try expression
         catch (Exception e) {
+            e.printStackTrace();
             val = e;
         }
 
@@ -135,41 +133,19 @@ public class JavaShell {
     public Object[] getLineValues()  { return _lineVals; }
 
     /**
-     * A PrintStream to stand in for System.out and System.err.
+     * Sets the base repl class name.
      */
-    private class PGPrintStream extends PrintStream {
+    public void setREPLClassName(String aName)
+    {
+        _javaParser.setREPLClassName(aName);
+    }
 
-        /**
-         * Creates new PGPrintStream.
-         */
-        public PGPrintStream(OutputStream aPS)
-        {
-            super(aPS);
-        }
-
-        /**
-         * Override to send to ScanView.
-         */
-        public void write(int b)
-        {
-            super.write(b);
-            String str = String.valueOf(Character.valueOf((char) b));
-            if (this == _shellOut)
-                _console.appendOut(str);
-            else _console.appendErr(str);
-        }
-
-        /**
-         * Override to send to ScanView.
-         */
-        public void write(byte[] buf, int off, int len)
-        {
-            super.write(buf, off, len);
-            String str = new String(buf, off, len);
-            if (this == _shellOut)
-                _console.appendOut(str);
-            else _console.appendErr(str);
-        }
+    /**
+     * Adds an import.
+     */
+    public void addImport(String anImportStr)
+    {
+        _javaParser.addImport(anImportStr);
     }
 
     /**
@@ -201,32 +177,5 @@ public class JavaShell {
          * Returns a substring of appended text.
          */
         String getTextSubstring(int aStart, int anEnd);
-    }
-
-    /**
-     * This class implements JavaShell.Console.
-     */
-    private class DefaultConsole implements JavaShell.Console {
-
-        // Holds
-        private StringBuilder _sb = new StringBuilder();
-
-        @Override
-        public void clear()  { _sb.setLength(0); }
-
-        @Override
-        public void appendOut(String aStr)  { _sb.append(aStr); }
-
-        @Override
-        public void appendErr(String aStr)  { _sb.append(aStr); }
-
-        @Override
-        public int getTextLength()  { return _sb.length(); }
-
-        @Override
-        public String getTextSubstring(int aStart, int anEnd)
-        {
-            return _sb.substring(aStart, anEnd);
-        }
     }
 }
