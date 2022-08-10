@@ -311,7 +311,7 @@ public class Resolver {
     public Object invokeMethod(Object anObj, JavaMethod javaMethod, Object[] theArgs) throws Exception
     {
         String sig = javaMethod.getId();
-        Object value = StaticResolver.invokeMethod(sig, anObj, theArgs);
+        Object value = StaticResolver.shared().invokeMethod(sig, anObj, theArgs);
         return value;
     }
 
@@ -325,7 +325,7 @@ public class Resolver {
 
         // Invoke
         String sig = javaConstructor.getId();
-        Object newInstance = StaticResolver.invokeConstructor(sig, theArgs);
+        Object newInstance = StaticResolver.shared().invokeConstructor(sig, theArgs);
         return newInstance;
     }
 

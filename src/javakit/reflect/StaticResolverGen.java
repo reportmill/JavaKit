@@ -13,11 +13,20 @@ import java.util.stream.Stream;
  */
 public class StaticResolverGen {
 
+    // Package
+    protected static String _package = "javakit.reflect";
+
     // StringBuffer
-    private static StringBuffer _sb = new StringBuffer();
+    protected static StringBuffer _sb = new StringBuffer();
 
     // A resolver
     private static Resolver  _resolver = new ResolverSys(snap.view.View.class.getClassLoader());
+
+    // A set of white list method names
+    private static Set<String>  _whiteList;
+
+    // A set of black list member ids
+    private static Set<String>  _blackList;
 
     /**
      * Prints the preamble.
@@ -25,14 +34,13 @@ public class StaticResolverGen {
     public void printPreamble()
     {
         // Append imports
-        appendln("package javakit.reflect;");
+        append("package ").append(_package).appendln(";");
+        appendln("import javakit.reflect.*;");
         appendln("import javakit.reflect.JavaField.FieldBuilder;");
         appendln("import javakit.reflect.JavaMethod.MethodBuilder;");
         appendln("import javakit.reflect.JavaConstructor.ConstructorBuilder;");
         appendln("import snap.util.SnapUtils;");
         appendln("import java.io.PrintStream;");
-        appendln("import java.util.function.DoubleUnaryOperator;");
-        appendln("import java.util.stream.DoubleStream;");
 
         // Append class header
         appendln("");
@@ -46,6 +54,17 @@ public class StaticResolverGen {
         appendln("    private static MethodBuilder mb = new MethodBuilder();");
         appendln("    private static ConstructorBuilder cb = new ConstructorBuilder();");
         appendln("");
+        appendln("    // A chained StaticResolver");
+        appendln("    public StaticResolver  _next;");
+        appendln("");
+        appendln("    // The shared StaticResolver");
+        appendln("    private static StaticResolver  _shared = new StaticResolver();");
+        appendln("");
+        appendln("    /**");
+        appendln("     * Returns shared.");
+        appendln("     */");
+        appendln("    public static StaticResolver shared()  { return _shared; }");
+        appendln("");
     }
 
     /**
@@ -57,7 +76,7 @@ public class StaticResolverGen {
         appendln("    /**");
         appendln("     * Returns the declared fields for given class.");
         appendln("     */");
-        appendln("    public static JavaField[] getFieldsForClass(Resolver aResolver, String aClassName)");
+        appendln("    public JavaField[] getFieldsForClass(Resolver aResolver, String aClassName)");
         appendln("    {");
         appendln("        fb.init(aResolver, aClassName);");
         appendln("");
@@ -73,7 +92,9 @@ public class StaticResolverGen {
         // Append method trailer
         appendln("");
         appendln("            // Handle anything else");
-        appendln("            default: return new JavaField[0];");
+        appendln("            default:");
+        appendln("                if (_next != null) return _next.getFieldsForClass(aResolver, aClassName);");
+        appendln("                return new JavaField[0];");
         appendln("        }");
         appendln("    }");
         appendln("");
@@ -88,7 +109,7 @@ public class StaticResolverGen {
         appendln("/**");
         appendln(" * Returns the declared methods for given class.");
         appendln(" */");
-        appendln("public static JavaMethod[] getMethodsForClass(Resolver aResolver, String aClassName)");
+        appendln("public JavaMethod[] getMethodsForClass(Resolver aResolver, String aClassName)");
         appendln("{");
         appendln("    mb.init(aResolver, aClassName);");
         appendln("");
@@ -101,7 +122,9 @@ public class StaticResolverGen {
         // Append method trailer
         appendln("");
         appendln("        // Handle anything else");
-        appendln("        default: return new JavaMethod[0];");
+        appendln("        default:");
+        appendln("            if (_next != null) return _next.getMethodsForClass(aResolver, aClassName);");
+        appendln("            return new JavaMethod[0];");
         appendln("    }");
         appendln("}");
     }
@@ -165,6 +188,10 @@ public class StaticResolverGen {
             append(".returnType(").append(className).append(".class").append(")");
         }
 
+        // Append varArgs
+        if (aMethod.isVarArgs())
+            append(".varArgs()");
+
         // Append Save() or BuildAll()
         if (isLast)
             appendln(".buildAll();");
@@ -180,7 +207,7 @@ public class StaticResolverGen {
         appendln("/**");
         appendln(" * Returns the declared constructors for given class.");
         appendln(" */");
-        appendln("public static JavaConstructor[] getConstructorsForClass(Resolver aResolver, String aClassName)");
+        appendln("public JavaConstructor[] getConstructorsForClass(Resolver aResolver, String aClassName)");
         appendln("{");
         appendln("    cb.init(aResolver, aClassName);");
         appendln("");
@@ -193,7 +220,9 @@ public class StaticResolverGen {
         // Append method trailer
         appendln("");
         appendln("        // Handle anything else");
-        appendln("        default: return cb.save().buildAll();");
+        appendln("        default:");
+        appendln("            if (_next != null) return _next.getConstructorsForClass(aResolver, aClassName);");
+        appendln("            return cb.save().buildAll();");
         appendln("    }");
         appendln("}");
     }
@@ -264,7 +293,7 @@ public class StaticResolverGen {
         appendln("/**");
         appendln(" * Invokes methods for given method id, object and args.");
         appendln(" */");
-        appendln("public static Object invokeMethod(String anId, Object anObj, Object ... theArgs) throws Exception");
+        appendln("public Object invokeMethod(String anId, Object anObj, Object ... theArgs) throws Exception");
         appendln("{");
         appendln("    switch (anId) {");
 
@@ -275,7 +304,9 @@ public class StaticResolverGen {
         // Append trailer
         appendln("");
         appendln("        // Handle anything else");
-        appendln("        default: throw new NoSuchMethodException(\"Unknown method: \" + anId);");
+        appendln("        default:");
+        appendln("            if (_next != null) return _next.invokeMethod(anId, anObj, theArgs);");
+        appendln("            throw new NoSuchMethodException(\"Unknown method: \" + anId);");
         appendln("    }");
         appendln("}");
     }
@@ -314,7 +345,6 @@ public class StaticResolverGen {
         // Append case statement
         appendln("        case \"" + aMethod.getId() + "\":");
 
-
         // Append indent and return
         append("            ");
         if (returnType != void.class)
@@ -331,11 +361,17 @@ public class StaticResolverGen {
         // Append .name(
         append(".").append(meth.getName()).append("(");
 
-        // Iterate over parameters
-        Class<?>[] paramTypes = meth.getParameterTypes();
-        for (int i = 0, iMax = paramTypes.length; i < iMax; i++) {
-            appendParamType(paramTypes[i], i);
-            if (i + 1 < iMax) append(",");
+        // Handle VarArgs
+        if (aMethod.isVarArgs())
+            append("theArgs");
+
+        // Otherwise, iterate over parameters
+        else {
+            Class<?>[] paramTypes = meth.getParameterTypes();
+            for (int i = 0, iMax = paramTypes.length; i < iMax; i++) {
+                appendParamType(paramTypes[i], i);
+                if (i + 1 < iMax) append(",");
+            }
         }
 
         // Append Save()/BuildAll()
@@ -353,7 +389,7 @@ public class StaticResolverGen {
         appendln("/**");
         appendln(" * Invokes constructors for given constructor id and args.");
         appendln(" */");
-        appendln("public static Object invokeConstructor(String anId, Object ... theArgs) throws Exception");
+        appendln("public Object invokeConstructor(String anId, Object ... theArgs) throws Exception");
         appendln("{");
         appendln("    switch (anId) {");
 
@@ -364,7 +400,9 @@ public class StaticResolverGen {
         // Append trailer
         appendln("");
         appendln("        // Handle anything else");
-        appendln("        default: throw new NoSuchMethodException(\"Unknown constructor: \" + anId);");
+        appendln("        default:");
+        appendln("            if (_next != null) return _next.invokeConstructor(anId, theArgs);");
+        appendln("            throw new NoSuchMethodException(\"Unknown constructor: \" + anId);");
         appendln("    }");
         appendln("}");
     }
@@ -525,20 +563,32 @@ public class StaticResolverGen {
     }
 
     /**
+     * Generate StaticResolver for classes.
+     */
+    public static void generateStaticResolverForClasses(Class<?>[] theClasses, String[] whiteList, String[] blackList)
+    {
+        // Set WhiteList, BlackList
+        _whiteList = new HashSet<>(Arrays.asList(whiteList));
+        _blackList = new HashSet<>(Arrays.asList(blackList));
+
+        // Generate
+        StaticResolverGen codeGen = new StaticResolverGen();
+        codeGen.printPreamble();
+        codeGen.printGetFieldsForClass();
+        codeGen.printGetMethodsForClassForClasses(theClasses);
+        codeGen.printInvokeMethodForClasses(theClasses);
+        codeGen.printGetConstructorsForClassForClasses(theClasses);
+        codeGen.printInvokeConstructorForClasses(theClasses);
+        codeGen.printPostamble();
+    }
+
+    /**
      * Standard main implementation.
      */
     public static void main(String[] args)
     {
-        //printClassesForPackage("/java/util");
 
-        StaticResolverGen codeGen = new StaticResolverGen();
-        codeGen.printPreamble();
-        codeGen.printGetFieldsForClass();
-        codeGen.printGetMethodsForClassForClasses(_javaUtilClasses);
-        codeGen.printInvokeMethodForClasses(_javaUtilClasses);
-        codeGen.printGetConstructorsForClassForClasses(_javaUtilClasses);
-        codeGen.printInvokeConstructorForClasses(_javaUtilClasses);
-        codeGen.printPostamble();
+        generateStaticResolverForClasses(_javaUtilClasses, _whiteListStrings, _blackListStrings);
 
         WebFile webFile = WebURL.getURL("/tmp/StaticResolver.java").createFile(false);
         webFile.setText(_sb.toString());
@@ -582,7 +632,7 @@ public class StaticResolverGen {
     };
 
     // WhiteList
-    private static String[] _whiteListStrings = {
+    protected static String[] _whiteListStrings = {
 
             // Object
             "clone", "equals", "getClass", "hashCode", "toString",
@@ -640,8 +690,6 @@ public class StaticResolverGen {
             // ViewOwner
             "setWindowVisible",
     };
-    private static Set<String>  _whiteList = new HashSet<>(Arrays.asList(_whiteListStrings));
-
     private static String[] _blackListStrings = {
 
             "java.lang.String.getBytes(int,int,byte[],int)",
@@ -662,6 +710,4 @@ public class StaticResolverGen {
             "java.io.PrintStream(java.io.File,java.lang.String)",
             "java.io.PrintStream(java.io.File)",
     };
-    private static Set<String>  _blackList = new HashSet<>(Arrays.asList(_blackListStrings));
-
 }

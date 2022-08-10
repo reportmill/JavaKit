@@ -4,8 +4,6 @@ import javakit.reflect.JavaMethod.MethodBuilder;
 import javakit.reflect.JavaConstructor.ConstructorBuilder;
 import snap.util.SnapUtils;
 import java.io.PrintStream;
-import java.util.function.DoubleUnaryOperator;
-import java.util.stream.DoubleStream;
 
 /**
  * Provide reflection info for TeaVM.
@@ -17,10 +15,21 @@ public class StaticResolver {
     private static MethodBuilder mb = new MethodBuilder();
     private static ConstructorBuilder cb = new ConstructorBuilder();
 
+    // A chained StaticResolver
+    public StaticResolver  _next;
+
+    // The shared StaticResolver
+    private static StaticResolver  _shared = new StaticResolver();
+
+    /**
+     * Returns shared.
+     */
+    public static StaticResolver shared()  { return _shared; }
+
     /**
      * Returns the declared fields for given class.
      */
-    public static JavaField[] getFieldsForClass(Resolver aResolver, String aClassName)
+    public JavaField[] getFieldsForClass(Resolver aResolver, String aClassName)
     {
         fb.init(aResolver, aClassName);
 
@@ -32,14 +41,16 @@ public class StaticResolver {
                 return fb.name("err").type(PrintStream.class).buildAll();
 
             // Handle anything else
-            default: return new JavaField[0];
+            default:
+                if (_next != null) return _next.getFieldsForClass(aResolver, aClassName);
+                return new JavaField[0];
         }
     }
 
     /**
      * Returns the declared methods for given class.
      */
-    public static JavaMethod[] getMethodsForClass(Resolver aResolver, String aClassName)
+    public JavaMethod[] getMethodsForClass(Resolver aResolver, String aClassName)
     {
         mb.init(aResolver, aClassName);
 
@@ -299,18 +310,18 @@ public class StaticResolver {
                 mb.name("setPrefSize").paramTypes(snap.geom.Size.class).returnType(void.class).save();
                 mb.name("setPrefSize").paramTypes(double.class,double.class).returnType(void.class).save();
                 mb.name("getBorder").returnType(snap.gfx.Border.class).save();
-                mb.name("setBorder").paramTypes(snap.gfx.Color.class,double.class).returnType(void.class).save();
                 mb.name("setBorder").paramTypes(snap.gfx.Border.class).returnType(void.class).save();
+                mb.name("setBorder").paramTypes(snap.gfx.Color.class,double.class).returnType(void.class).save();
                 mb.name("getEffect").returnType(snap.gfx.Effect.class).save();
                 mb.name("setEffect").paramTypes(snap.gfx.Effect.class).returnType(void.class).save();
                 mb.name("getOpacity").returnType(double.class).save();
                 mb.name("setOpacity").paramTypes(double.class).returnType(void.class).save();
                 mb.name("getMargin").returnType(snap.geom.Insets.class).save();
-                mb.name("setMargin").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
                 mb.name("setMargin").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
+                mb.name("setMargin").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
                 mb.name("getPadding").returnType(snap.geom.Insets.class).save();
-                mb.name("setPadding").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
                 mb.name("setPadding").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
+                mb.name("setPadding").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
                 mb.name("getSpacing").returnType(double.class).save();
                 mb.name("setSpacing").paramTypes(double.class).returnType(void.class).save();
                 mb.name("isVisible").returnType(boolean.class).save();
@@ -341,8 +352,8 @@ public class StaticResolver {
                 mb.name("setTransX").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setTransY").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setLoopCount").paramTypes(int.class).returnType(snap.view.ViewAnim.class).save();
-                mb.name("setOnFinish").paramTypes(java.lang.Runnable.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setOnFinish").paramTypes(java.util.function.Consumer.class).returnType(snap.view.ViewAnim.class).save();
+                mb.name("setOnFinish").paramTypes(java.lang.Runnable.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("toString").returnType(java.lang.String.class).save();
                 return mb.name("isEmpty").returnType(boolean.class).buildAll();
 
@@ -351,13 +362,15 @@ public class StaticResolver {
                 return mb.name("setWindowVisible").paramTypes(boolean.class).returnType(void.class).buildAll();
 
             // Handle anything else
-            default: return new JavaMethod[0];
+            default:
+                if (_next != null) return _next.getMethodsForClass(aResolver, aClassName);
+                return new JavaMethod[0];
         }
     }
     /**
      * Invokes methods for given method id, object and args.
      */
-    public static Object invokeMethod(String anId, Object anObj, Object ... theArgs) throws Exception
+    public Object invokeMethod(String anId, Object anObj, Object ... theArgs) throws Exception
     {
         switch (anId) {
 
@@ -808,10 +821,10 @@ public class StaticResolver {
                 ((snap.view.View) anObj).setPrefSize(doubleVal(theArgs[0]),doubleVal(theArgs[1])); return null;
             case "snap.view.View.getBorder()":
                 return ((snap.view.View) anObj).getBorder();
-            case "snap.view.View.setBorder(snap.gfx.Color,double)":
-                ((snap.view.View) anObj).setBorder((snap.gfx.Color) theArgs[0],doubleVal(theArgs[1])); return null;
             case "snap.view.View.setBorder(snap.gfx.Border)":
                 ((snap.view.View) anObj).setBorder((snap.gfx.Border) theArgs[0]); return null;
+            case "snap.view.View.setBorder(snap.gfx.Color,double)":
+                ((snap.view.View) anObj).setBorder((snap.gfx.Color) theArgs[0],doubleVal(theArgs[1])); return null;
             case "snap.view.View.getEffect()":
                 return ((snap.view.View) anObj).getEffect();
             case "snap.view.View.setEffect(snap.gfx.Effect)":
@@ -822,16 +835,16 @@ public class StaticResolver {
                 ((snap.view.View) anObj).setOpacity(doubleVal(theArgs[0])); return null;
             case "snap.view.View.getMargin()":
                 return ((snap.view.View) anObj).getMargin();
-            case "snap.view.View.setMargin(double,double,double,double)":
-                ((snap.view.View) anObj).setMargin(doubleVal(theArgs[0]),doubleVal(theArgs[1]),doubleVal(theArgs[2]),doubleVal(theArgs[3])); return null;
             case "snap.view.View.setMargin(snap.geom.Insets)":
                 ((snap.view.View) anObj).setMargin((snap.geom.Insets) theArgs[0]); return null;
+            case "snap.view.View.setMargin(double,double,double,double)":
+                ((snap.view.View) anObj).setMargin(doubleVal(theArgs[0]),doubleVal(theArgs[1]),doubleVal(theArgs[2]),doubleVal(theArgs[3])); return null;
             case "snap.view.View.getPadding()":
                 return ((snap.view.View) anObj).getPadding();
-            case "snap.view.View.setPadding(snap.geom.Insets)":
-                ((snap.view.View) anObj).setPadding((snap.geom.Insets) theArgs[0]); return null;
             case "snap.view.View.setPadding(double,double,double,double)":
                 ((snap.view.View) anObj).setPadding(doubleVal(theArgs[0]),doubleVal(theArgs[1]),doubleVal(theArgs[2]),doubleVal(theArgs[3])); return null;
+            case "snap.view.View.setPadding(snap.geom.Insets)":
+                ((snap.view.View) anObj).setPadding((snap.geom.Insets) theArgs[0]); return null;
             case "snap.view.View.getSpacing()":
                 return ((snap.view.View) anObj).getSpacing();
             case "snap.view.View.setSpacing(double)":
@@ -886,10 +899,10 @@ public class StaticResolver {
                 return ((snap.view.ViewAnim) anObj).setTransY(doubleVal(theArgs[0]));
             case "snap.view.ViewAnim.setLoopCount(int)":
                 return ((snap.view.ViewAnim) anObj).setLoopCount(intVal(theArgs[0]));
-            case "snap.view.ViewAnim.setOnFinish(java.lang.Runnable)":
-                return ((snap.view.ViewAnim) anObj).setOnFinish((java.lang.Runnable) theArgs[0]);
             case "snap.view.ViewAnim.setOnFinish(java.util.function.Consumer)":
                 return ((snap.view.ViewAnim) anObj).setOnFinish((java.util.function.Consumer) theArgs[0]);
+            case "snap.view.ViewAnim.setOnFinish(java.lang.Runnable)":
+                return ((snap.view.ViewAnim) anObj).setOnFinish((java.lang.Runnable) theArgs[0]);
             case "snap.view.ViewAnim.isEmpty()":
                 return ((snap.view.ViewAnim) anObj).isEmpty();
 
@@ -898,13 +911,15 @@ public class StaticResolver {
                 ((snap.view.ViewOwner) anObj).setWindowVisible(boolVal(theArgs[0])); return null;
 
             // Handle anything else
-            default: throw new NoSuchMethodException("Unknown method: " + anId);
+            default:
+                if (_next != null) return _next.invokeMethod(anId, anObj, theArgs);
+                throw new NoSuchMethodException("Unknown method: " + anId);
         }
     }
     /**
      * Returns the declared constructors for given class.
      */
-    public static JavaConstructor[] getConstructorsForClass(Resolver aResolver, String aClassName)
+    public JavaConstructor[] getConstructorsForClass(Resolver aResolver, String aClassName)
     {
         cb.init(aResolver, aClassName);
 
@@ -947,13 +962,15 @@ public class StaticResolver {
                 return cb.paramTypes(snap.view.View.class).buildAll();
 
             // Handle anything else
-            default: return cb.save().buildAll();
+            default:
+                if (_next != null) return _next.getConstructorsForClass(aResolver, aClassName);
+                return cb.save().buildAll();
         }
     }
     /**
      * Invokes constructors for given constructor id and args.
      */
-    public static Object invokeConstructor(String anId, Object ... theArgs) throws Exception
+    public Object invokeConstructor(String anId, Object ... theArgs) throws Exception
     {
         switch (anId) {
 
@@ -1006,7 +1023,9 @@ public class StaticResolver {
                 return new snap.view.ViewOwner((snap.view.View) theArgs[0]);
 
             // Handle anything else
-            default: throw new NoSuchMethodException("Unknown constructor: " + anId);
+            default:
+                if (_next != null) return _next.invokeConstructor(anId, theArgs);
+                throw new NoSuchMethodException("Unknown constructor: " + anId);
         }
     }
 

@@ -179,7 +179,7 @@ public class JavaClassUpdater {
     {
         // Hack to use StaticResolver for browser
         if (_resolver.isTeaVM) {
-            JavaField[] fields = StaticResolver.getFieldsForClass(_resolver, realClass.getName());
+            JavaField[] fields = StaticResolver.shared().getFieldsForClass(_resolver, realClass.getName());
             _javaClass._fieldDecls = Arrays.asList(fields);
             return;
         }
@@ -206,7 +206,7 @@ public class JavaClassUpdater {
     {
         // Hack to use StaticResolver for browser
         if (_resolver.isTeaVM) {
-            JavaMethod[] methods = StaticResolver.getMethodsForClass(_resolver, realClass.getName());
+            JavaMethod[] methods = StaticResolver.shared().getMethodsForClass(_resolver, realClass.getName());
             _javaClass._methDecls = Arrays.asList(methods);
             return;
         }
@@ -235,7 +235,7 @@ public class JavaClassUpdater {
     {
         // Hack to use StaticResolver for browser
         if (_resolver.isTeaVM) {
-            JavaConstructor[] constructors = StaticResolver.getConstructorsForClass(_resolver, realClass.getName());
+            JavaConstructor[] constructors = StaticResolver.shared().getConstructorsForClass(_resolver, realClass.getName());
             _javaClass._constrDecls = Arrays.asList(constructors);
             return;
         }

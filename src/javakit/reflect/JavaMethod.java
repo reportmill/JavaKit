@@ -87,7 +87,7 @@ public class JavaMethod extends JavaExecutable {
     /**
      * Returns a signature.
      */
-    public static String getSigForParts(JavaClass aClass, String aName, JavaType[] paramTypes)
+    public static String getSigForParts(JavaClass aClass, String aName, JavaType[] paramTypes, boolean varArgs)
     {
         // Basic "pkg.pkg.ClassName.MethodName()"
         String prefix = aClass.getId() + '.' + aName;
@@ -144,7 +144,7 @@ public class JavaMethod extends JavaExecutable {
         public MethodBuilder returnType(Type returnType)  { _returnType = _resolver.getJavaTypeForType(returnType); return this; }
         public MethodBuilder typeVars(String aName)  { return this; }
         public MethodBuilder isDefault(boolean isDefault)  { _default = isDefault; return this; }
-        public MethodBuilder isVarArgs(boolean varArgs)  { _varArgs = varArgs; return this; }
+        public MethodBuilder varArgs()  { _varArgs = true; return this; }
 
         /**
          * Build.
@@ -153,7 +153,7 @@ public class JavaMethod extends JavaExecutable {
         {
             JavaMethod m = new JavaMethod(_resolver, _declaringClass, null);
             m._mods = _mods;
-            m._id = getSigForParts(_declaringClass, _name, _paramTypes);
+            m._id = getSigForParts(_declaringClass, _name, _paramTypes, _varArgs);
             m._name = m._simpleName = _name;
             m._declaringClass = _declaringClass;
             m._paramTypes = _paramTypes;
