@@ -242,22 +242,27 @@ public class JavaWriter {
     /**
      * Writes a JVarDecl.
      */
-    public void writeJVarDecl(JVarDecl aVD)
+    public void writeJVarDecl(JVarDecl aVarDecl)
     {
         // Write type
-        String tstr = getTypeString(aVD.getType());
-        for (int i = 0, iMax = aVD.getArrayCount(); i < iMax; i++) tstr += "[]";
-        append(tstr).append(' ');
+        JType varDeclType = aVarDecl.getType();
+        if (varDeclType != null) {
+            String tstr = getTypeString(varDeclType);
+            for (int i = 0, iMax = aVarDecl.getArrayCount(); i < iMax; i++)
+                tstr += "[]";
+            append(tstr).append(' ');
+        }
 
         // Write name
-        JExprId name = aVD.getId();
-        writeJExprId(name);
+        JExprId nameExpr = aVarDecl.getId();
+        if (nameExpr != null)
+            writeJExprId(nameExpr);
 
         // Write initializer
-        JExpr init = aVD.getInitializer();
-        if (init != null) {
+        JExpr initExpr = aVarDecl.getInitializer();
+        if (initExpr != null) {
             append(" = ");
-            writeJExpr(init);
+            writeJExpr(initExpr);
         }
     }
 

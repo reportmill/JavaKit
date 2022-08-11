@@ -38,7 +38,8 @@ public class StaticResolverGen {
     {
         // Append imports
         append("package ").append(_package).appendln(";");
-        appendln("import javakit.reflect.*;");
+        if (!_isRoot)
+            appendln("import javakit.reflect.*;");
         appendln("import javakit.reflect.JavaField.FieldBuilder;");
         appendln("import javakit.reflect.JavaMethod.MethodBuilder;");
         appendln("import javakit.reflect.JavaConstructor.ConstructorBuilder;");
@@ -51,7 +52,8 @@ public class StaticResolverGen {
         appendln("/**");
         appendln(" * Provide reflection info for TeaVM.");
         appendln(" */");
-        appendln("public class StaticResolver {");
+        append("public class StaticResolver "); if (_isRoot) appendln("{");
+        if (!_isRoot) append("extends ").append(javakit.reflect.StaticResolver.class.getName()).appendln(" {");
         appendln("");
         appendln("    // Shared field, method, constructor builders");
         appendln("    private static FieldBuilder fb = new FieldBuilder();");
@@ -571,21 +573,20 @@ public class StaticResolverGen {
     /**
      * Generate StaticResolver for classes.
      */
-    public static void generateStaticResolverForClasses(Class<?>[] theClasses, String[] whiteList, String[] blackList)
+    public void generateStaticResolverForClasses(Class<?>[] theClasses, String[] whiteList, String[] blackList)
     {
         // Set WhiteList, BlackList
         _whiteList = new HashSet<>(Arrays.asList(whiteList));
         _blackList = new HashSet<>(Arrays.asList(blackList));
 
         // Generate
-        StaticResolverGen codeGen = new StaticResolverGen();
-        codeGen.printPreamble();
-        codeGen.printGetFieldsForClass();
-        codeGen.printGetMethodsForClassForClasses(theClasses);
-        codeGen.printInvokeMethodForClasses(theClasses);
-        codeGen.printGetConstructorsForClassForClasses(theClasses);
-        codeGen.printInvokeConstructorForClasses(theClasses);
-        codeGen.printPostamble();
+        printPreamble();
+        printGetFieldsForClass();
+        printGetMethodsForClassForClasses(theClasses);
+        printInvokeMethodForClasses(theClasses);
+        printGetConstructorsForClassForClasses(theClasses);
+        printInvokeConstructorForClasses(theClasses);
+        printPostamble();
     }
 
     /**
@@ -594,7 +595,8 @@ public class StaticResolverGen {
     public static void main(String[] args)
     {
 
-        generateStaticResolverForClasses(_javaUtilClasses, _whiteListStrings, _blackListStrings);
+        StaticResolverGen codeGen = new StaticResolverGen();
+        codeGen.generateStaticResolverForClasses(_javaUtilClasses, _whiteListStrings, _blackListStrings);
 
         WebFile webFile = WebURL.getURL("/tmp/StaticResolver.java").createFile(false);
         webFile.setText(_sb.toString());
@@ -630,6 +632,8 @@ public class StaticResolverGen {
 
             java.util.stream.Stream.class,
             java.util.stream.DoubleStream.class,
+
+            java.util.function.DoubleUnaryOperator.class,
 
             snap.view.Button.class,
             snap.view.View.class,
@@ -680,6 +684,9 @@ public class StaticResolverGen {
             // Stream, DoubleStream
             "of", "map", "filter", "toArray",
 
+            // DoubleUnaryOperator
+            "applyAsDouble",
+
             // Button
             "setTitle",
 
@@ -698,22 +705,31 @@ public class StaticResolverGen {
     };
     private static String[] _blackListStrings = {
 
+            // String
+            "java.lang.String(java.lang.String)",
+            "java.lang.String(byte[],int,int,int)",
+            "java.lang.String(java.lang.StringBuffer)",
+            "java.lang.String(byte[],int)",
             "java.lang.String.getBytes(int,int,byte[],int)",
+            "java.lang.String.join(java.lang.CharSequence,java.lang.CharSequence[])",
+            "java.lang.String.format(java.util.Locale,java.lang.String,java.lang.Object[])",
+            "java.lang.String.format(java.lang.String,java.lang.Object[])",
 
+            // Map
             "java.util.Map.replaceAll(java.util.function.BiFunction)",
 
+            // PrintStream
             "java.io.PrintStream.println(char[])",
             "java.io.PrintStream.format(java.util.Locale,java.lang.String,java.lang.Object[])",
             "java.io.PrintStream.format(java.lang.String,java.lang.Object[])",
             "java.io.PrintStream.print(boolean)",
             "java.io.PrintStream.print(float)",
-
-            "java.lang.String(java.lang.StringBuffer)",
-            "java.lang.String(byte[],int)",
-            "java.lang.String(byte[],int,int,int)",
             "java.io.PrintStream(java.lang.String)",
             "java.io.PrintStream(java.lang.String,java.lang.String)",
             "java.io.PrintStream(java.io.File,java.lang.String)",
             "java.io.PrintStream(java.io.File)",
+
+            // DoubleStream
+            "java.util.stream.DoubleStream.of(double[])"
     };
 }
