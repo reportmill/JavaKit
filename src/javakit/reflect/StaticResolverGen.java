@@ -13,6 +13,9 @@ import java.util.stream.Stream;
  */
 public class StaticResolverGen {
 
+    // Whether this is root generator
+    private boolean  _isRoot = getClass() == StaticResolverGen.class;
+
     // Package
     protected static String _package = "javakit.reflect";
 
@@ -39,7 +42,8 @@ public class StaticResolverGen {
         appendln("import javakit.reflect.JavaField.FieldBuilder;");
         appendln("import javakit.reflect.JavaMethod.MethodBuilder;");
         appendln("import javakit.reflect.JavaConstructor.ConstructorBuilder;");
-        appendln("import snap.util.SnapUtils;");
+        if (_isRoot)
+            appendln("import snap.util.SnapUtils;");
         appendln("import java.io.PrintStream;");
 
         // Append class header
@@ -530,12 +534,14 @@ public class StaticResolverGen {
      */
     public void printPostamble()
     {
-        appendln("");
-        appendln("    // Conveniences");
-        appendln("    private static boolean boolVal(Object anObj)  { return SnapUtils.boolValue(anObj); }");
-        appendln("    private static int intVal(Object anObj)  { return SnapUtils.intValue(anObj); }");
-        appendln("    private static double doubleVal(Object anObj)  { return SnapUtils.doubleValue(anObj); }");
-        appendln("    private static float floatVal(Object anObj)  { return SnapUtils.floatValue(anObj); }");
+        if (_isRoot) {
+            appendln("");
+            appendln("    // Conveniences");
+            appendln("    protected static boolean boolVal(Object anObj)  { return SnapUtils.boolValue(anObj); }");
+            appendln("    protected static int intVal(Object anObj)  { return SnapUtils.intValue(anObj); }");
+            appendln("    protected static double doubleVal(Object anObj)  { return SnapUtils.doubleValue(anObj); }");
+            appendln("    protected static float floatVal(Object anObj)  { return SnapUtils.floatValue(anObj); }");
+        }
         appendln("}");
     }
 

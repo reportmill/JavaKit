@@ -745,7 +745,11 @@ public class JavaParser extends JavaParserStmt {
             "ArrayDimsAndInits", "PrimarySuffix", "MemberSelector", "UnaryExprNotPlusMinus", "CastLook", "CastExpr", "PostfixExpr",
             "ShiftRightUnsigned", "ShiftRight", "SingleMemberAnnotation", "MarkerAnnotation", "ImportDecl", "TypeDecl",
             "JavaFileImports",
-            "boolean", "char", "byte", "short", "int", "long", "float", "double" };
+            "boolean", "char", "byte", "short", "int", "long", "float", "double",
+            "public", "private", "protected", "static", "default", "abstract",
+            "this", "super", "extends", "implements", "interface", "...",
+            "+", "-", "*", "/", "++", "--", "==", "+=", "-=", "{", "[", "->",
+    };
     public static String[] _allRuleNamesIntern = Stream.of(_allRuleNames).map(s -> s.intern()).toArray(size -> new String[size]);
 
 }

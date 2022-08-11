@@ -123,9 +123,14 @@ public class JClassDecl extends JMemberDecl {
         JType extendsType = extendsTypes.size() > 0 ? extendsTypes.get(0) : null;
         JavaClass extendsClass = extendsType != null ? extendsType.getEvalClass() : null;
 
-        // Return - if no ExtendsClass return Object.class
-        if (extendsClass == null)
+        // If no ExtendsClass return Object.class (but complain if it was declared but not found)
+        if (extendsClass == null) {
+            if (extendsType != null)
+                System.err.println("JClassDecl: Couldn't find superclass: " + extendsType.getName());
             return getJavaClassForClass(Object.class);
+        }
+
+        // Return
         return extendsClass;
     }
 

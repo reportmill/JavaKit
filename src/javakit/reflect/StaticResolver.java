@@ -1030,8 +1030,8 @@ public class StaticResolver {
     }
 
     // Conveniences
-    private static boolean boolVal(Object anObj)  { return SnapUtils.boolValue(anObj); }
-    private static int intVal(Object anObj)  { return SnapUtils.intValue(anObj); }
-    private static double doubleVal(Object anObj)  { return SnapUtils.doubleValue(anObj); }
-    private static float floatVal(Object anObj)  { return SnapUtils.floatValue(anObj); }
+    protected static boolean boolVal(Object anObj)  { return SnapUtils.boolValue(anObj); }
+    protected static int intVal(Object anObj)  { return SnapUtils.intValue(anObj); }
+    protected static double doubleVal(Object anObj)  { return SnapUtils.doubleValue(anObj); }
+    protected static float floatVal(Object anObj)  { return SnapUtils.floatValue(anObj); }
 }
