@@ -110,7 +110,6 @@ public class StaticResolverGen {
         appendln("                return new JavaField[0];");
         appendln("        }");
         appendln("    }");
-        appendln("");
     }
 
     /**
@@ -119,6 +118,7 @@ public class StaticResolverGen {
     public void printGetMethodsForClassForClasses(Class<?>[] theClasses)
     {
         // Append method header
+        appendln("");
         appendln("/**");
         appendln(" * Returns the declared methods for given class.");
         appendln(" */");
@@ -217,6 +217,7 @@ public class StaticResolverGen {
     public void printGetConstructorsForClassForClasses(Class<?>[] theClasses)
     {
         // Append method header
+        appendln("");
         appendln("/**");
         appendln(" * Returns the declared constructors for given class.");
         appendln(" */");
@@ -303,6 +304,7 @@ public class StaticResolverGen {
     public void printInvokeMethodForClasses(Class<?>[] theClasses)
     {
         // Append method header
+        appendln("");
         appendln("/**");
         appendln(" * Invokes methods for given method id, object and args.");
         appendln(" */");
@@ -341,7 +343,8 @@ public class StaticResolverGen {
         // Iterate over methods
         for (JavaMethod method : methods) {
             if (!isValidMethod(method)) continue;
-            if (method.getSuper() != null) continue;
+            JavaMethod methSuper = method.getSuper();
+            if (methSuper != null && methSuper.isPublic()) continue;
             printInvokeMethodForClassMethod(method);
         }
     }
@@ -399,6 +402,7 @@ public class StaticResolverGen {
     public void printInvokeConstructorForClasses(Class<?>[] theClasses)
     {
         // Append method header
+        appendln("");
         appendln("/**");
         appendln(" * Invokes constructors for given constructor id and args.");
         appendln(" */");
@@ -511,7 +515,7 @@ public class StaticResolverGen {
      */
     private boolean isValidMethod(JavaMethod m)
     {
-        if (!Modifier.isPublic(m.getModifiers())) return false;
+        if (!m.isPublic()) return false;
         if (!_whiteList.contains(m.getName())) return false;
         if (_blackList.contains(m.getId())) return false;
         return true;
@@ -522,7 +526,7 @@ public class StaticResolverGen {
      */
     private boolean isValidConstructor(JavaConstructor c)
     {
-        if (!Modifier.isPublic(c.getModifiers())) return false;
+        if (!c.isPublic()) return false;
         if (c.getParamTypes().length == 0) return false;
         if (_blackList.contains(c.getId())) return false;
         return true;

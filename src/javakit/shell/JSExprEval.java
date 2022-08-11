@@ -4,6 +4,7 @@
 package javakit.shell;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import javakit.parse.*;
 import javakit.reflect.*;
@@ -652,6 +653,21 @@ public class JSExprEval {
         if (aClass == DoubleUnaryOperator.class) {
             return (DoubleUnaryOperator) d -> {
                 setLocalVarValue("d", d);
+                try {
+                    Object value = evalExpr(anOR, contentExpr);
+                    return SnapUtils.doubleValue(value);
+                }
+                catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        }
+
+        // Handle DoubleBinaryOperator
+        if (aClass == DoubleBinaryOperator.class) {
+            return (DoubleBinaryOperator) (x,y) -> {
+                setLocalVarValue("a", x);
+                setLocalVarValue("b", y);
                 try {
                     Object value = evalExpr(anOR, contentExpr);
                     return SnapUtils.doubleValue(value);

@@ -50,6 +50,11 @@ public class JavaMember extends JavaDecl {
     public int getModifiers()  { return _mods; }
 
     /**
+     * Returns whether member is public.
+     */
+    public boolean isPublic()  { return Modifier.isPublic(_mods); }
+
+    /**
      * Returns the full name.
      */
     @Override
