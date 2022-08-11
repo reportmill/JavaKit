@@ -40,11 +40,12 @@ public class StaticResolverGen {
         append("package ").append(_package).appendln(";");
         if (!_isRoot)
             appendln("import javakit.reflect.*;");
-        appendln("import javakit.reflect.JavaField.FieldBuilder;");
-        appendln("import javakit.reflect.JavaMethod.MethodBuilder;");
-        appendln("import javakit.reflect.JavaConstructor.ConstructorBuilder;");
-        if (_isRoot)
+        if (_isRoot) {
+            appendln("import javakit.reflect.JavaField.FieldBuilder;");
+            appendln("import javakit.reflect.JavaMethod.MethodBuilder;");
+            appendln("import javakit.reflect.JavaConstructor.ConstructorBuilder;");
             appendln("import snap.util.SnapUtils;");
+        }
         appendln("import java.io.PrintStream;");
 
         // Append class header
@@ -52,25 +53,31 @@ public class StaticResolverGen {
         appendln("/**");
         appendln(" * Provide reflection info for TeaVM.");
         appendln(" */");
-        append("public class StaticResolver "); if (_isRoot) appendln("{");
-        if (!_isRoot) append("extends ").append(javakit.reflect.StaticResolver.class.getName()).appendln(" {");
-        appendln("");
-        appendln("    // Shared field, method, constructor builders");
-        appendln("    private static FieldBuilder fb = new FieldBuilder();");
-        appendln("    private static MethodBuilder mb = new MethodBuilder();");
-        appendln("    private static ConstructorBuilder cb = new ConstructorBuilder();");
-        appendln("");
-        appendln("    // A chained StaticResolver");
-        appendln("    public StaticResolver  _next;");
-        appendln("");
-        appendln("    // The shared StaticResolver");
-        appendln("    private static StaticResolver  _shared = new StaticResolver();");
-        appendln("");
-        appendln("    /**");
-        appendln("     * Returns shared.");
-        appendln("     */");
-        appendln("    public static StaticResolver shared()  { return _shared; }");
-        appendln("");
+        if (_isRoot) {
+            appendln("public class StaticResolver {");
+            appendln("");
+            appendln("    // Shared field, method, constructor builders");
+            appendln("    protected static FieldBuilder fb = new FieldBuilder();");
+            appendln("    protected static MethodBuilder mb = new MethodBuilder();");
+            appendln("    protected static ConstructorBuilder cb = new ConstructorBuilder();");
+            appendln("");
+            appendln("    // A chained StaticResolver");
+            appendln("    public StaticResolver  _next;");
+            appendln("");
+            appendln("    // The shared StaticResolver");
+            appendln("    private static StaticResolver  _shared = new StaticResolver();");
+            appendln("");
+            appendln("    /**");
+            appendln("     * Returns shared.");
+            appendln("     */");
+            appendln("    public static StaticResolver shared()  { return _shared; }");
+            appendln("");
+        }
+        else {
+            append("public class StaticResolver ");
+            append("extends ").append(javakit.reflect.StaticResolver.class.getName()).appendln(" {");
+            appendln("");
+        }
     }
 
     /**
@@ -634,6 +641,7 @@ public class StaticResolverGen {
             java.util.stream.DoubleStream.class,
 
             java.util.function.DoubleUnaryOperator.class,
+            java.util.function.DoubleBinaryOperator.class,
 
             snap.view.Button.class,
             snap.view.View.class,
@@ -684,7 +692,7 @@ public class StaticResolverGen {
             // Stream, DoubleStream
             "of", "map", "filter", "toArray",
 
-            // DoubleUnaryOperator
+            // DoubleUnaryOperator, DoubleBinaryOperator
             "applyAsDouble",
 
             // Button
