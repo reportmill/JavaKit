@@ -377,13 +377,20 @@ public class StaticResolverGen {
         // Append .name(
         append(".").append(meth.getName()).append("(");
 
+        // Get parameterTypes
+        Class<?>[] paramTypes = meth.getParameterTypes();
+
         // Handle VarArgs
-        if (aMethod.isVarArgs())
+        if (aMethod.isVarArgs()) {
+            if (paramTypes[0] != Object[].class) {
+                String className = className(paramTypes[0]);
+                append("(").append(className).append(") ");
+            }
             append("theArgs");
+        }
 
         // Otherwise, iterate over parameters
         else {
-            Class<?>[] paramTypes = meth.getParameterTypes();
             for (int i = 0, iMax = paramTypes.length; i < iMax; i++) {
                 appendParamType(paramTypes[i], i);
                 if (i + 1 < iMax) append(",");
@@ -618,6 +625,7 @@ public class StaticResolverGen {
     private static Class[]  _javaUtilClasses = {
 
             java.lang.Object.class,
+            java.lang.Class.class,
             java.lang.String.class,
             java.lang.Number.class,
             //java.lang.StringBuffer.class,
@@ -647,8 +655,11 @@ public class StaticResolverGen {
             java.util.function.DoubleUnaryOperator.class,
             java.util.function.DoubleBinaryOperator.class,
 
-            snap.view.Button.class,
             snap.view.View.class,
+            snap.view.ChildView.class,
+            snap.view.Button.class,
+            snap.view.Label.class,
+
             snap.view.ViewAnim.class,
             snap.view.ViewOwner.class,
     };
@@ -658,6 +669,9 @@ public class StaticResolverGen {
 
             // Object
             "clone", "equals", "getClass", "hashCode", "toString",
+
+            // Class
+            "getName", "getSimpleName",
 
             // String
             "charAt", "compareTo", "compareToIgnoreCase", "concat", "contains", "endsWith", "equals", "equalsIgnoreCase",
@@ -708,6 +722,10 @@ public class StaticResolverGen {
             "getMargin", "setMargin", "getPadding", "setPadding", "getSpacing", "setSpacing",
             "isVisible", "setVisible",
             "setRotate", "setScaleX", "setScaleY", "setScale", "setTransX", "setTransY", "getAnim",
+            "setText",
+
+            // ChildView
+            "getChild", "addChild", "removeChild", "setChildren", "removeChildren",
 
             // ViewAnim
             "play", "setLoopCount", "setOnFinish",
