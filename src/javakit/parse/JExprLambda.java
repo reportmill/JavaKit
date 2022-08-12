@@ -62,11 +62,26 @@ public class JExprLambda extends JExpr {
     /**
      * Returns the list of parameter classes.
      */
+    public String[] getParamNames()
+    {
+        // Iterate over params and get EvalClass for each
+        String[] paramNames = new String[_params.size()];
+        for (int i = 0, iMax = _params.size(); i < iMax; i++) {
+            JVarDecl varDecl = _params.get(i);
+            paramNames[i] = varDecl.getName();
+        }
+
+        // Return
+        return paramNames;
+    }
+
+    /**
+     * Returns the list of parameter classes.
+     */
     public JavaClass[] getParamTypes()
     {
-        JavaClass[] paramTypes = new JavaClass[_params.size()];
-
         // Iterate over params and get EvalClass for each
+        JavaClass[] paramTypes = new JavaClass[_params.size()];
         for (int i = 0, iMax = _params.size(); i < iMax; i++) {
             JVarDecl varDecl = _params.get(i);
             paramTypes[i] = varDecl.getEvalClass();

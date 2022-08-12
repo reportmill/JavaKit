@@ -20,7 +20,7 @@ public class JSExprEval {
     protected Object  _thisObj;
 
     // A map of local variables
-    private Map<String, Object>  _locals = new HashMap<>();
+    private JSVarStack _varStack = new JSVarStack();
 
     // A Resolver
     protected Resolver  _resolver;
@@ -504,9 +504,6 @@ public class JSExprEval {
      */
     private Object evalLambdaExpr(Object anOR, JExprLambda aLambdaExpr) throws Exception
     {
-        // Get the content expression
-        JExpr contentExpr = aLambdaExpr.getExpr();
-
         // Get lambda class
         JavaClass lambdaClass = aLambdaExpr.getEvalClass();
         if (lambdaClass == null)
@@ -516,7 +513,7 @@ public class JSExprEval {
         Class<?> realClass = lambdaClass.getRealClass();
 
         // Get/return lambda of lambda class that wraps given expression
-        Object wrappedLambda = getWrappedLambdaExpression(anOR, contentExpr, realClass);
+        Object wrappedLambda = getWrappedLambdaExpression(anOR, aLambdaExpr, realClass);
         return wrappedLambda;
     }
 
@@ -542,7 +539,7 @@ public class JSExprEval {
      */
     public boolean isLocalVar(String aName)
     {
-        return _locals.keySet().contains(aName);
+        return _varStack.isLocalVar(aName);
     }
 
     /**
@@ -550,10 +547,7 @@ public class JSExprEval {
      */
     public Object getLocalVarValue(String aName)
     {
-        return _locals.get(aName);
-        // StackFrame frame = anApp.getCurrentFrame();
-        // LocalVariable lvar = frame.visibleVariableByName(name);
-        // if (lvar != null) return frame.getValue(lvar);
+        return _varStack.getLocalVarValue(aName);
     }
 
     /**
@@ -561,7 +555,7 @@ public class JSExprEval {
      */
     public void setLocalVarValue(String aName, Object aValue)
     {
-        _locals.put(aName, aValue);
+        _varStack.setLocalVarValue(aName, aValue);
     }
 
     /**
@@ -569,18 +563,7 @@ public class JSExprEval {
      */
     public void setLocalVarArrayValueAtIndex(String aName, Object aValue, int anIndex)
     {
-        // Get array
-        Object array = getLocalVarValue(aName);
-
-        // Make sure value is right type
-        if (SnapUtils.isTeaVM) {
-            Class<?> cls = array.getClass().getComponentType();
-            if (cls.isPrimitive())
-                aValue = castOrConvertValueToPrimitiveClass(aValue, cls);
-        }
-
-        // Set value
-        Array.set(array, anIndex, aValue);
+        _varStack.setLocalVarArrayValueAtIndex(aName, aValue, anIndex);
     }
 
     /**
@@ -647,18 +630,29 @@ public class JSExprEval {
     /**
      * Returns a wrapped lambda expression for given class.
      */
-    private Object getWrappedLambdaExpression(Object anOR, JExpr contentExpr, Class<?> aClass)
+    private Object getWrappedLambdaExpression(Object anOR, JExprLambda lambdaExpr, Class<?> aClass)
     {
+        // Get param names and content expression
+        String[] paramNames = lambdaExpr.getParamNames();
+        String paramName0 = paramNames.length > 0 ? paramNames[0] : null;
+        String paramName1 = paramNames.length > 1 ? paramNames[1] : null;
+        JExpr contentExpr = lambdaExpr.getExpr();
+        Map<String,Object> stackFrame = _varStack.newFrame();
+
         // Handle DoubleUnaryOperator
         if (aClass == DoubleUnaryOperator.class) {
             return (DoubleUnaryOperator) d -> {
-                setLocalVarValue("d", d);
+                _varStack.pushStackFrame(stackFrame);
+                _varStack.setLocalVarValue(paramName0, d);
                 try {
                     Object value = evalExpr(anOR, contentExpr);
                     return SnapUtils.doubleValue(value);
                 }
                 catch (Exception e) {
                     throw new RuntimeException(e);
+                }
+                finally {
+                    _varStack.popStackFrame();
                 }
             };
         }
@@ -666,14 +660,18 @@ public class JSExprEval {
         // Handle DoubleBinaryOperator
         if (aClass == DoubleBinaryOperator.class) {
             return (DoubleBinaryOperator) (x,y) -> {
-                setLocalVarValue("a", x);
-                setLocalVarValue("b", y);
+                _varStack.pushStackFrame(stackFrame);
+                _varStack.setLocalVarValue(paramName0, x);
+                _varStack.setLocalVarValue(paramName1, y);
                 try {
                     Object value = evalExpr(anOR, contentExpr);
                     return SnapUtils.doubleValue(value);
                 }
                 catch (Exception e) {
                     throw new RuntimeException(e);
+                }
+                finally {
+                    _varStack.popStackFrame();
                 }
             };
         }
