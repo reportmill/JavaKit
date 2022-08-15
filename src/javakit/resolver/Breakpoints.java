@@ -128,7 +128,7 @@ public class Breakpoints extends SnapList<Breakpoint> {
      */
     protected WebFile getFile()
     {
-        WebFile file = _proj.getSite().getSandbox().getFile("/settings/breakpoints");
+        WebFile file = _proj.getSite().getSandbox().getFileForPath("/settings/breakpoints");
         if (file == null) file = _proj.getSite().getSandbox().createFile("/settings/breakpoints", false);
         return file;
     }

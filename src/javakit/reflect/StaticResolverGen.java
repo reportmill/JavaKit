@@ -575,9 +575,9 @@ public class StaticResolverGen {
         WebSite jreSite = jreURL.getSite();
 
         // Get class files
-        WebFile pkgDir = jreSite.getFile(packageName);
-        List<WebFile> files = pkgDir.getFiles();
-        Stream<WebFile> filesStream = files.stream();
+        WebFile pkgDir = jreSite.getFileForPath(packageName);
+        WebFile[] files = pkgDir.getFiles();
+        Stream<WebFile> filesStream = Stream.of(files);
         Stream<WebFile> classFilesStream = filesStream.filter(f -> f.getType().equals("class") && f.getName().indexOf('$') <0);
         WebFile[] classFiles = classFilesStream.toArray(size -> new WebFile[size]);
 

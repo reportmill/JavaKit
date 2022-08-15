@@ -212,7 +212,7 @@ public class Project {
      */
     public WebFile getFile(String aPath)
     {
-        return _site.getFile(aPath);
+        return _site.getFileForPath(aPath);
     }
 
     /**

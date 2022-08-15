@@ -105,7 +105,7 @@ public class BuildIssues extends SnapList<BuildIssue> {
      */
     public void remove(WebFile aFile)
     {
-        BuildIssue issues[] = getIssues(aFile);
+        BuildIssue[] issues = getIssues(aFile);
         for (BuildIssue i : issues) remove(i);
     }
 
@@ -132,7 +132,7 @@ public class BuildIssues extends SnapList<BuildIssue> {
     {
         // If file, iterate over file issues
         if (aFile.isFile()) {
-            BuildIssue list[] = getIssues(aFile);
+            BuildIssue[] list = getIssues(aFile);
             if (list.length == 0) return null;
             for (BuildIssue item : list)
                 if (item.getKind() == BuildIssue.Kind.Error)

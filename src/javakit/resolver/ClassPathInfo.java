@@ -59,8 +59,8 @@ public class ClassPathInfo {
         if (pkgDir == null) return Collections.emptyList();
 
         // Get all class files with prefix
-        List<WebFile> packageDirFiles = pkgDir.getFiles();
-        Stream<WebFile> packageDirFilesStream = packageDirFiles.stream();
+        WebFile[] packageDirFiles = pkgDir.getFiles();
+        Stream<WebFile> packageDirFilesStream = Stream.of(packageDirFiles);
         Stream<WebFile> packageDirFilesWithPrefixStream = packageDirFilesStream.filter(f -> isFilePrefixed(f, aPrefix));
 
         // Get class names for class files
@@ -81,7 +81,7 @@ public class ClassPathInfo {
         if (pkgDir == null) return Collections.emptyList();
 
         // Get package dir files for package files
-        List<WebFile> packageFiles = pkgDir.getFiles();
+        List<WebFile> packageFiles = Arrays.asList(pkgDir.getFiles());
         List<WebFile> childPackageDirs = getChildPackageDirsForPrefix(packageFiles, aPrefix);
 
         // Get package names for package children dir files and return
@@ -166,7 +166,7 @@ public class ClassPathInfo {
         String path = "/" + aName.replace('.', '/');
         WebSite[] sites = getSites();
         for (WebSite site : sites) {
-            WebFile file = site.getFile(path);
+            WebFile file = site.getFileForPath(path);
             if (file != null)
                 return file;
         }
@@ -220,7 +220,7 @@ public class ClassPathInfo {
     private void getAll(WebFile aDir, List<WebFile> classFiles, List<WebFile> packageDirs)
     {
         // Get directory files
-        List<WebFile> dirFiles = aDir.getFiles();
+        WebFile[] dirFiles = aDir.getFiles();
 
         // Iterate over dir files and add to ClassFiles or PackageDirs
         for (WebFile file : dirFiles) {

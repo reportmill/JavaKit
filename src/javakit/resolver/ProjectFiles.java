@@ -46,7 +46,7 @@ public class ProjectFiles {
 
         // Get dir file from Project.Site
         WebSite projSite = _proj.getSite();
-        WebFile srcDir = path != null ? projSite.getFile(path) : projSite.getRootDir();
+        WebFile srcDir = path != null ? projSite.getFileForPath(path) : projSite.getRootDir();
         if (srcDir == null)
             srcDir = projSite.createFile(path, true);
 
@@ -69,7 +69,7 @@ public class ProjectFiles {
 
         // Get dir file from Project.Site
         WebSite projSite = _proj.getSite();
-        WebFile bldDir = path != null ? projSite.getFile(path) : projSite.getRootDir();
+        WebFile bldDir = path != null ? projSite.getFileForPath(path) : projSite.getRootDir();
         if (bldDir == null)
             bldDir = projSite.createFile(path, true);
 
@@ -116,7 +116,7 @@ public class ProjectFiles {
 
         // Get file from site
         WebSite projSite = _proj.getSite();
-        WebFile file = projSite.getFile(path);
+        WebFile file = projSite.getFileForPath(path);
 
         // If file still not found, maybe create
         if (file == null && doCreate)
@@ -147,7 +147,7 @@ public class ProjectFiles {
 
         // Get file from site
         WebSite projSite = _proj.getSite();
-        WebFile file = projSite.getFile(path);
+        WebFile file = projSite.getFileForPath(path);
 
         // If file still not found, maybe create and return
         if (file == null && doCreate)
@@ -235,7 +235,7 @@ public class ProjectFiles {
 
         // Get Package dir files
         WebFile pkgDir = classFile.getParent();
-        List<WebFile> pkgDirFiles = pkgDir.getFiles();
+        WebFile[] pkgDirFiles = pkgDir.getFiles();
 
         // Get prefix that inner class files should have
         String classNamePrefix = classFile.getSimpleName() + '$';
