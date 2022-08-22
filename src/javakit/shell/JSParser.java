@@ -5,15 +5,11 @@ import javakit.reflect.Resolver;
 import snap.parse.ParseHandler;
 import snap.parse.ParseRule;
 import snap.parse.Parser;
-import snap.util.ArrayUtils;
 
 /**
  * This class takes a Java text string and returns an array of JStmt (one for each line).
  */
 public class JSParser {
-
-    // A parser to parse expressions
-    private static JavaParser  _javaParser;
 
     // A parser to parse expressions
     private static Parser  _stmtParser;
@@ -24,20 +20,6 @@ public class JSParser {
     // The Resolver
     private Resolver  _resolver;
 
-    // The base repl class name
-    private String  _replClassName = "Object";
-
-    // The array of imports
-    private String[]  _imports = DEFAULT_IMPORTS;
-
-    // Constants for imports
-    private static final String IMPORT1 = "java.util.*";
-    private static final String IMPORT2 = "java.util.stream.*";
-    private static final String IMPORT3 = "snap.view.*";
-    private static final String[] DEFAULT_IMPORTS = { IMPORT1, IMPORT2, IMPORT3 };
-
-
-
     /**
      * Constructor.
      */
@@ -46,9 +28,9 @@ public class JSParser {
         super();
 
         // Get parsers
-        _javaParser = JavaParser.getShared();
+        JavaParser javaParser = JavaParser.getShared();
         _stmtParser = new StmtParser();
-        _exprParser = _javaParser.getExprParser();
+        _exprParser = javaParser.getExprParser();
 
         // Create Resolver
         _resolver = Resolver.newResolverForClassLoader(getClass().getClassLoader());
@@ -57,17 +39,20 @@ public class JSParser {
     /**
      * Parses given Java text string and return an array of JStmt for each line.
      */
-    public JStmt[] parseJavaText(String javaText)
+    public JStmt[] parseJavaText(JavaText javaText)
     {
         // Get header text for java file
-        String javaHeader = getJavaFileHeader();
+        String javaHeader = javaText.getHeaderText();
 
         // Split text into lines
-        String[] javaLines = javaText.split("\n");
+        String[] javaLines = javaText.getBodyLines();
         JStmt[] statements = new JStmt[javaLines.length];
 
+        // Get empty JFile
+        JFile javaFile = javaText.getEmptyJFile();
+        javaFile.setResolver(_resolver);
+
         // Get JavaFile and body method
-        JFile javaFile = getJavaFile();
         JClassDecl classDecl = javaFile.getClassDecl();
         JMethodDecl methodDecl = classDecl.getMethodDecl("body", null);
         JStmtBlock stmtBlock = methodDecl.getBlock();
@@ -184,57 +169,6 @@ public class JSParser {
         type.setPrimitive(initType.isPrimitive());
         type.setParent(varDecl);
         varDecl.setType(type);
-    }
-
-    /**
-     * Returns a JavaFile.
-     */
-    private JFile getJavaFile()
-    {
-        // Construct class/method wrapper for statements
-        String javaHeader = getJavaFileHeader();
-        String javaText = javaHeader + "\n}\n}";
-
-        // Parse JavaText to JFile
-        _javaParser.setInput(javaText);
-        JFile jfile = _javaParser.parseCustom(JFile.class);
-        jfile.setResolver(_resolver);
-
-        // Return
-        return jfile;
-    }
-
-    /**
-     * Returns the Java file header text.
-     */
-    private String getJavaFileHeader()
-    {
-        // Get import declarations string
-        String importsDecl = "";
-        for (String importDecl : _imports)
-            importsDecl += "import " + importDecl + ";\n";
-        importsDecl += '\n';
-
-        // Construct class/method wrapper for statements
-        String classDecl = "public class JavaShellREPL extends " + _replClassName + " {\n\n";
-        String methodDecl = "void body() {\n\n";
-        return importsDecl + classDecl + methodDecl;
-    }
-
-    /**
-     * Sets the base repl class name.
-     */
-    public void setREPLClassName(String aName)
-    {
-        _replClassName = aName;
-    }
-
-    /**
-     * Adds an import.
-     */
-    public void addImport(String anImportStr)
-    {
-        _imports = ArrayUtils.add(_imports, anImportStr);
     }
 
     /**

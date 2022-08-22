@@ -64,10 +64,10 @@ public class JavaShell {
     /**
      * Evaluate string.
      */
-    public void runJavaCode(String aStr)
+    public void runJavaCode(JavaText javaText)
     {
         // Parse Java text to statements
-        JStmt[] javaStmts = _javaParser.parseJavaText(aStr);
+        JStmt[] javaStmts = _javaParser.parseJavaText(javaText);
 
         // Set System out/err to catch console output
         System.setOut(_shellOut);
@@ -131,22 +131,6 @@ public class JavaShell {
      * Returns the resulting line values from last execution.
      */
     public Object[] getLineValues()  { return _lineVals; }
-
-    /**
-     * Sets the base repl class name.
-     */
-    public void setREPLClassName(String aName)
-    {
-        _javaParser.setREPLClassName(aName);
-    }
-
-    /**
-     * Adds an import.
-     */
-    public void addImport(String anImportStr)
-    {
-        _javaParser.addImport(anImportStr);
-    }
 
     /**
      * An interface to capture console output.

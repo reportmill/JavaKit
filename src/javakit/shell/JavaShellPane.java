@@ -13,6 +13,9 @@ public class JavaShellPane extends ViewOwner {
     // A JavaShell
     protected JavaShell  _javaShell;
 
+    // The JavaText
+    private JavaText  _javaText;
+
     // The Console
     protected JSConsole  _console;
 
@@ -29,6 +32,9 @@ public class JavaShellPane extends ViewOwner {
     {
         // Create JavaShell
         _javaShell = new JavaShell();
+
+        // Create JavaText
+        _javaText = new JavaText();
 
         // Create console
         _console = new JSConsole(this);
@@ -51,10 +57,11 @@ public class JavaShellPane extends ViewOwner {
     public void play()
     {
         // Get Java text
-        String javaText = _textPane.getTextArea().getText();
+        String javaBodyText = _textPane.getTextArea().getText();
+        _javaText.setBodyText(javaBodyText);
 
         // Run the Java text
-        _javaShell.runJavaCode(javaText);
+        _javaShell.runJavaCode(_javaText);
 
         // Update lines
         _textPane._evalView.updateLines();
