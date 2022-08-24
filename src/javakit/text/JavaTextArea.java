@@ -669,14 +669,14 @@ public class JavaTextArea extends TextArea {
     {
         // Do normal version and update TextPane.TextModified (just return if not chars change)
         super.richTextPropChange(anEvent);
-        if (anEvent.getPropertyName() != BaseText.Chars_Prop) return;
+        if (anEvent.getPropertyName() != TextDoc.Chars_Prop) return;
 
         // Set TextPane modified
         JavaTextPane tp = getTextPane();
         if (tp != null) tp.setTextModified(getUndoer().hasUndos());
 
         // Call didAddChars/didRemoveChars
-        BaseTextUtils.CharsChange cc = (BaseTextUtils.CharsChange) anEvent;
+        TextDocUtils.CharsChange cc = (TextDocUtils.CharsChange) anEvent;
         int start = anEvent.getIndex();
         CharSequence oval = cc.getOldValue(), nval = cc.getNewValue();
         if (nval != null) didAddChars(start, nval);

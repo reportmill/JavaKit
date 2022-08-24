@@ -155,7 +155,7 @@ public class JavaTextBox extends TextBox {
     /**
      * Create and return TextBoxLine for given RichTextLine, start char index and line index.
      */
-    protected TextBoxLine createLine(BaseTextLine aTextLine, int aStart, int aLineIndex)
+    protected TextBoxLine createLine(TextLine aTextLine, int aStart, int aLineIndex)
     {
         // Get iteration variables
         TextStyle style = aTextLine.getRun(0).getStyle();
@@ -288,7 +288,7 @@ public class JavaTextBox extends TextBox {
         /**
          * Creates a new JavaTextLine.
          */
-        public JavaTextLine(TextBox aBox, TextStyle aStartStyle, BaseTextLine aTextLine, int theRTLStart)
+        public JavaTextLine(TextBox aBox, TextStyle aStartStyle, TextLine aTextLine, int theRTLStart)
         {
             super(aBox, aStartStyle, aTextLine, theRTLStart);
         }
