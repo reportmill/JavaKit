@@ -127,7 +127,6 @@ public class JSTextPane extends TextPane {
          */
         public LineNumView()
         {
-            setPlainText(true);
             setDefaultLineStyle(TextLineStyle.DEFAULT.copyFor(HPos.RIGHT));
             setFill(new Color("#f7f7f7"));
             setTextFill(new Color(.6f));

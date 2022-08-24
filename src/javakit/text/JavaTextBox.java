@@ -42,7 +42,6 @@ public class JavaTextBox extends TextBox {
      */
     public JavaTextBox()
     {
-        getTextDoc().setPlainText(true);
     }
 
     /**
