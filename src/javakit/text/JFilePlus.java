@@ -54,7 +54,7 @@ public class JFilePlus extends JFile {
         if (aStmt != null) { //System.out.println("Replacing: " + aStmt.getString().replace("\n", "  "));
 
             // Parse new JStmtBlock (create empty one if there wasn't enough in block to create it)
-            _stmtParser.setInput(_jtbox.getRichText());
+            _stmtParser.setInput(_jtbox.getTextDoc());
             _stmtParser.setCharIndex(aStmt.getStart());
             JStmtBlock stmt2 = null;
             try {

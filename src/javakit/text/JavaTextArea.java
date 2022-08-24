@@ -665,10 +665,10 @@ public class JavaTextArea extends TextArea {
     /**
      * Override to setTextModified.
      */
-    protected void richTextPropChange(PropChange anEvent)
+    protected void textDocDidPropChange(PropChange anEvent)
     {
         // Do normal version and update TextPane.TextModified (just return if not chars change)
-        super.richTextPropChange(anEvent);
+        super.textDocDidPropChange(anEvent);
         if (anEvent.getPropertyName() != TextDoc.Chars_Prop) return;
 
         // Set TextPane modified

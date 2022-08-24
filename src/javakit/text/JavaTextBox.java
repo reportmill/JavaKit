@@ -42,7 +42,7 @@ public class JavaTextBox extends TextBox {
      */
     public JavaTextBox()
     {
-        getRichText().setPlainText(true);
+        getTextDoc().setPlainText(true);
     }
 
     /**
@@ -143,7 +143,7 @@ public class JavaTextBox extends TextBox {
 
         // If unterminated comment state changed, update successive lines until it stops
         if (utermComment != getLineAt(endNew).isUnterminatedComment()) {
-            int start = getLineAt(endNew).getEnd(), end = getRichText().indexOf("*/", start);
+            int start = getLineAt(endNew).getEnd(), end = getTextDoc().indexOf("*/", start);
             if (end < 0) end = length();
             super.updateLines(start, end, end);
         }
@@ -153,7 +153,7 @@ public class JavaTextBox extends TextBox {
     }
 
     /**
-     * Create and return TextBoxLine for given RichTextLine, start char index and line index.
+     * Create and return TextBoxLine for given TextLine, start char index and line index.
      */
     protected TextBoxLine createLine(TextLine aTextLine, int aStart, int aLineIndex)
     {

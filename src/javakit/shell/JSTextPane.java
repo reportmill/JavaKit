@@ -79,11 +79,11 @@ public class JSTextPane extends TextPane {
 
         _textArea = getTextArea();
         _textArea.setGrowWidth(true);
-        _textArea.getRichText().setDefaultStyle(new TextStyle(getDefaultFont()));
+        _textArea.getTextDoc().setDefaultStyle(new TextStyle(getDefaultFont()));
         enableEvents(_textArea, KeyRelease);
         ScrollView scroll = _textArea.getParent(ScrollView.class);
 
-        _textArea.getRichText().addPropChangeListener(pce -> _lineNumView.updateLines());
+        _textArea.getTextDoc().addPropChangeListener(pce -> _lineNumView.updateLines());
         _lineNumView.updateLines();
 
         RectView rview = new RectView(0, 0, 1, 300);
