@@ -72,7 +72,7 @@ public class JSConsoleView extends ConsoleView {
         if (length() > 100000) return;
 
         // Get default style modified for color
-        TextStyle style = getStyleAt(length());
+        TextStyle style = getStyleForCharIndex(length());
         style = style.copyFor(aColor);
 
         // Look for a StackFrame reference: " at java.pkg.Class(Class.java:55)" and add as link if found
