@@ -328,7 +328,7 @@ public class JavaTextArea extends TextArea {
             char c1 = ind > 0 ? charAt(ind - 1) : 0, c2 = ind < length() ? charAt(ind) : 0;
             if (c2 == '{' || c2 == '}') {    // || c2=='(' || c2==')'
                 JNode jnode = getJFile().getNodeAtCharIndex(ind);
-                ind2 = c2 == '}' || c2 == ')' ? jnode.getStart() : jnode.getEnd() - 1;
+                ind2 = c2 == '}' ? jnode.getStart() : jnode.getEnd() - 1;
                 if (ind2 + 1 > length()) {
                     System.err.println("JavaTextArea.paintBack: Invalid-A " + ind2);
                     ind2 = -1;
@@ -337,7 +337,7 @@ public class JavaTextArea extends TextArea {
 
             else if (c1 == '{' || c1 == '}') {  //  || c1=='(' || c1==')'
                 JNode jnode = getJFile().getNodeAtCharIndex(ind - 1);
-                ind2 = c1 == '}' || c1 == ')' ? jnode.getStart() : jnode.getEnd() - 1;
+                ind2 = c1 == '}' ? jnode.getStart() : jnode.getEnd() - 1;
                 if (ind2 + 1 > length()) {
                     System.err.println("JavaTextArea.paintBack: Invalid-B" + ind2);
                     ind2 = -1;
@@ -608,27 +608,33 @@ public class JavaTextArea extends TextArea {
     {
         // Do normal version and update TextPane.TextModified (just return if not chars change)
         super.textDocDidPropChange(anEvent);
-        if (anEvent.getPropertyName() != TextDoc.Chars_Prop) return;
+        if (anEvent.getPropertyName() != TextDoc.Chars_Prop)
+            return;
 
         // Call didAddChars/didRemoveChars
-        TextDocUtils.CharsChange cc = (TextDocUtils.CharsChange) anEvent;
-        int start = anEvent.getIndex();
-        CharSequence oval = cc.getOldValue(), nval = cc.getNewValue();
-        if (nval != null) didAddChars(start, nval);
-        else didRemoveChars(start, oval);
+        TextDocUtils.CharsChange charsChange = (TextDocUtils.CharsChange) anEvent;
+        int charIndex = anEvent.getIndex();
+        CharSequence addChars = charsChange.getNewValue();
+        CharSequence removeChars = charsChange.getOldValue();
+        if (addChars != null)
+            didAddChars(addChars, charIndex);
+        else didRemoveChars(removeChars, charIndex);
     }
 
     /**
      * Called when characters are added.
      */
-    protected void didAddChars(int aStart, CharSequence theChars)
+    protected void didAddChars(CharSequence theChars, int charIndex)
     {
         // Iterate over BuildIssues and shift start/end for removed chars
-        int len = theChars.length(), endNew = aStart + len;
-        for (BuildIssue is : getBuildIssues()) {
-            int istart = is.getStart(), iend = is.getEnd();
-            if (aStart <= istart) is.setStart(istart + len);
-            if (aStart < iend) is.setEnd(iend + len);
+        int charsLength = theChars.length();
+        for (BuildIssue buildIssue : getBuildIssues()) {
+            int buildIssueStart = buildIssue.getStart();
+            if (charIndex <= buildIssueStart)
+                buildIssue.setStart(buildIssueStart + charsLength);
+            int buildIssueEnd = buildIssue.getEnd();
+            if (charIndex < buildIssueEnd)
+                buildIssue.setEnd(buildIssueEnd + charsLength);
         }
 
         // Iterate over Breakpoints and shift start/end for removed chars
@@ -643,16 +649,21 @@ public class JavaTextArea extends TextArea {
     /**
      * Called when characters are removed.
      */
-    protected void didRemoveChars(int aStart, CharSequence theChars)
+    protected void didRemoveChars(CharSequence theChars, int charIndex)
     {
         // See if we need to shift BuildIssues
-        int endOld = aStart + theChars.length();
-        for (BuildIssue is : getBuildIssues()) {
-            int istart = is.getStart(), iend = is.getEnd(), start = istart, end = iend;
-            if (aStart < istart) start = istart - (Math.min(istart, endOld) - aStart);
-            if (aStart < iend) end = iend - (Math.min(iend, endOld) - aStart);
-            is.setStart(start);
-            is.setEnd(end);
+        int endOld = charIndex + theChars.length();
+        for (BuildIssue buildIssue : getBuildIssues()) {
+            int buildIssueStart = buildIssue.getStart();
+            int buildIssueEnd = buildIssue.getEnd();
+            int start = buildIssueStart;
+            int end = buildIssueEnd;
+            if (charIndex < buildIssueStart)
+                start = buildIssueStart - (Math.min(buildIssueStart, endOld) - charIndex);
+            if (charIndex < buildIssueEnd)
+                end = buildIssueEnd - (Math.min(buildIssueEnd, endOld) - charIndex);
+            buildIssue.setStart(start);
+            buildIssue.setEnd(end);
         }
 
         // Get number of newlines removed (in chars)

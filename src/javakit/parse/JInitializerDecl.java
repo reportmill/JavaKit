@@ -4,14 +4,15 @@
 package javakit.parse;
 
 /**
- * A JMemberDecl for Initializers.
+ * A JMemberDecl for Initializer declarations.
  */
-public class JClassStaticDecl extends JMemberDecl {
+public class JInitializerDecl extends JMemberDecl {
+
     // Whether initializer is static
-    boolean isStatic;
+    protected boolean  isStatic;
 
     // The Block statement of statements
-    JStmtBlock _block;
+    protected JStmtBlock  _block;
 
     /**
      * Returns whether is static.

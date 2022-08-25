@@ -384,7 +384,8 @@ public class JavaParser extends JavaParserStmt {
     /**
      * Initializer Handler.
      */
-    public static class InitializerHandler extends JNodeParseHandler<JClassStaticDecl> {
+    public static class InitializerHandler extends JNodeParseHandler<JInitializerDecl> {
+
         /**
          * ParseHandler method.
          */
@@ -399,7 +400,7 @@ public class JavaParser extends JavaParserStmt {
                 getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
         }
 
-        protected Class<JClassStaticDecl> getPartClass()  { return JClassStaticDecl.class; }
+        protected Class<JInitializerDecl> getPartClass()  { return JInitializerDecl.class; }
     }
 
     /**

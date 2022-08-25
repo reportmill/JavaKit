@@ -39,6 +39,9 @@ public class JClassDecl extends JMemberDecl {
     // The method declarations
     protected JMethodDecl[]  _methodDecls;
 
+    // The initializer declarations
+    protected JInitializerDecl[]  _initDecls;
+
     // An array of class declarations that are members of this class
     protected JClassDecl[]  _classDecls;
 
@@ -145,6 +148,8 @@ public class JClassDecl extends JMemberDecl {
             if (interfaceClass != null)
                 interfaceClasses.add(interfaceClass);
         }
+
+        // Return array
         return interfaceClasses.toArray(new JavaClass[0]);
     }
 
@@ -262,12 +267,6 @@ public class JClassDecl extends JMemberDecl {
         // If already set, just return
         if (_methodDecls != null) return _methodDecls;
 
-        // Get from members
-        List<JMethodDecl> mds = new ArrayList();
-        for (JMemberDecl member : _members)
-            if (member instanceof JMethodDecl && !(member instanceof JConstrDecl))
-                mds.add((JMethodDecl) member);
-
         // Get constructors from members
         Stream<JMemberDecl> membersStream = _members.stream();
         Stream<JMemberDecl> methodsStream = membersStream.filter(m -> m instanceof JMethodDecl && !(m instanceof JConstrDecl));
@@ -303,6 +302,23 @@ public class JClassDecl extends JMemberDecl {
     }
 
     /**
+     * Returns the class initializer declarations.
+     */
+    public JInitializerDecl[] getInitDecls()
+    {
+        // If already set, just return
+        if (_initDecls != null) return _initDecls;
+
+        // Get constructors from members
+        Stream<JMemberDecl> membersStream = _members.stream();
+        Stream<JMemberDecl> methodsStream = membersStream.filter(m -> m instanceof JInitializerDecl);
+        JInitializerDecl[] initDecls = methodsStream.toArray(size -> new JInitializerDecl[size]);
+
+        // Set/return
+        return _initDecls = initDecls;
+    }
+
+    /**
      * Returns the class constructor declarations.
      */
     public JClassDecl[] getClassDecls()
@@ -310,7 +326,7 @@ public class JClassDecl extends JMemberDecl {
         // If already set, just return
         if (_classDecls != null) return _classDecls;
 
-
+        // Get class decls from members
         List<JClassDecl> cds = new ArrayList<>();
         for (JMemberDecl mbr : _members)
             getClassDecls(mbr, cds);
