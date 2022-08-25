@@ -24,14 +24,6 @@ public class JavaTextBox extends TextBox {
     // The Java file
     JFilePlus _jfile;
 
-    // Images
-    public static Image LVarImage = Image.get(JavaTextBox.class, "LocalVariable.png");
-    public static Image FieldImage = Image.get(JavaTextBox.class, "PublicField.png");
-    public static Image MethodImage = Image.get(JavaTextBox.class, "PublicMethod.png");
-    public static Image ClassImage = Image.get(JavaTextBox.class, "PublicClass.png");
-    public static Image PackageImage = Image.get(JavaTextBox.class, "Package.png");
-    public static Image CodeImage = Image.get(JavaTextBox.class, "Code.png");
-
     // Colors
     static Color _commentColor = new Color("#3F7F5F"); //336633
     static Color _reservedWordColor = new Color("#660033");
@@ -67,7 +59,8 @@ public class JavaTextBox extends TextBox {
         JFile jfile = _parser.getJavaFile(javaStr);
 
         // Set SourceFile
-        WebFile sourceFile = getSourceFile();
+        TextDoc textDoc = getTextDoc();
+        WebFile sourceFile = textDoc.getSourceFile();
         jfile.setSourceFile(sourceFile);
 
         // Return (wrapped in JFilePlus)

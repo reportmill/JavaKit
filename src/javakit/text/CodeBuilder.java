@@ -2,14 +2,11 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.text;
-
 import java.lang.reflect.Method;
 import java.util.*;
-
 import javakit.parse.JNode;
 import javakit.parse.JStmtBlock;
 import javakit.reflect.JavaClass;
-import javakit.reflect.JavaMethod;
 import snap.geom.*;
 import snap.text.*;
 import snap.view.*;
@@ -182,7 +179,7 @@ public class CodeBuilder extends ViewOwner {
         CodeBlock cb = aCell.getItem();
         if (cb == null) return;
         aCell.setText(cb.getString());
-        aCell.setImage(JavaTextBox.CodeImage);
+        aCell.setImage(JavaTextUtils.CodeImage);
         aCell.getGraphic().setPadding(4, 4, 4, 4);
     }
 

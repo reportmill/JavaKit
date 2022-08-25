@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.text;
-
 import java.util.List;
 
 import javakit.parse.JFile;
@@ -168,10 +167,17 @@ public class JavaPopupList extends PopupList<JavaDecl> {
      */
     protected void configureCell(ListCell<JavaDecl> aCell)
     {
+        // Get cell item
         JavaDecl item = aCell.getItem();
         if (item == null) return;
-        aCell.setText(item.getSuggestionString());
-        aCell.setImage(getSuggestionImage(item));
+
+        // Get/set cell text
+        String cellText = item.getSuggestionString();
+        aCell.setText(cellText);
+
+        // Get/set cell image
+        Image cellImage = JavaTextUtils.getImageForJavaDecl(item);
+        aCell.setImage(cellImage);
     }
 
     /**
@@ -180,26 +186,5 @@ public class JavaPopupList extends PopupList<JavaDecl> {
     protected void fireActionEvent(ViewEvent anEvent)
     {
         applySuggestion();
-    }
-
-    /**
-     * Returns an icon for suggestion.
-     */
-    public static Image getSuggestionImage(JavaDecl aDecl)
-    {
-        switch (aDecl.getType()) {
-            case VarDecl:
-                return JavaTextBox.LVarImage;
-            case Field:
-                return JavaTextBox.FieldImage;
-            case Method:
-                return JavaTextBox.MethodImage;
-            case Class:
-                return JavaTextBox.ClassImage;
-            case Package:
-                return JavaTextBox.PackageImage;
-            default:
-                return null;
-        }
     }
 }
