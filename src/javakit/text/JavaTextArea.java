@@ -763,7 +763,8 @@ public class JavaTextArea extends TextArea {
     public List<Breakpoint> getBreakpoints()
     {
         Breakpoints breakpoints = getProjBreakpoints(); if (breakpoints == null) return null;
-        WebFile file = getSourceFile(); if (file == null) return null;
+        TextDoc textDoc = getTextDoc();
+        WebFile file = textDoc.getSourceFile(); if (file == null) return null;
         return breakpoints.get(file);
     }
 
@@ -773,7 +774,8 @@ public class JavaTextArea extends TextArea {
     public void addBreakpoint(int aLine)
     {
         Breakpoints breakpoints = getProjBreakpoints(); if (breakpoints == null) return;
-        WebFile file = getSourceFile();
+        TextDoc textDoc = getTextDoc();
+        WebFile file = textDoc.getSourceFile();
         breakpoints.addBreakpoint(file, aLine);
     }
 
