@@ -40,9 +40,6 @@ public class JavaTextArea extends TextArea {
     // A PopupList to show code completion stuff
     protected JavaPopupList  _popup;
 
-    // The code builder
-    protected CodeBuilder  _codeBuilder;
-
     // Constants for properties
     public static final String SelectedNode_Prop = "SelectedNode";
 
@@ -124,18 +121,6 @@ public class JavaTextArea extends TextArea {
                 javaPopup.setItems(sugs);
             else javaPopup.hide();
         }
-
-        // If CodeBuilder Visible, update CodeBlocks
-        if (getCodeBuilder().isVisible())
-            getCodeBuilder().setCodeBlocks();
-    }
-
-    /**
-     * Returns the CodeBuilder.
-     */
-    public CodeBuilder getCodeBuilder()
-    {
-        return _codeBuilder != null ? _codeBuilder : (_codeBuilder = new CodeBuilder(this));
     }
 
     /**

@@ -33,6 +33,9 @@ public class JavaTextPane extends TextPane {
     // The OverView
     private OverviewPane  _overviewPane;
 
+    // The code builder
+    private CodeBuilder  _codeBuilder;
+
     /**
      * Returns the JavaTextArea.
      */
@@ -62,7 +65,12 @@ public class JavaTextPane extends TextPane {
      */
     public CodeBuilder getCodeBuilder()
     {
-        return getTextArea().getCodeBuilder();
+        // If already set, just return
+        if (_codeBuilder != null) return _codeBuilder;
+
+        // Get, set, return
+        CodeBuilder codeBuilder = new CodeBuilder(this);
+        return _codeBuilder = codeBuilder;
     }
 
     /**
@@ -468,8 +476,14 @@ public class JavaTextPane extends TextPane {
     private void javaTextAreaDidPropChange(PropChange aPC)
     {
         String propName = aPC.getPropName();
-        if (propName == JavaTextArea.SelectedNode_Prop)
+        if (propName == JavaTextArea.SelectedNode_Prop) {
+
             resetLater();
+
+            // If CodeBuilder Visible, update CodeBlocks
+            if (_codeBuilder != null && _codeBuilder.isVisible())
+                _codeBuilder.setCodeBlocks();
+        }
     }
 
     /**

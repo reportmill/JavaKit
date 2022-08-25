@@ -17,32 +17,32 @@ import snap.view.*;
 public class CodeBuilder extends ViewOwner {
 
     // The JavaTextArea this inspector works for.
-    JavaTextArea _textArea;
+    private JavaTextArea  _textArea;
 
     // The selected node
-    JNode _node;
+    private JNode  _node;
 
     // The suggestion list
-    ListView<CodeBlock> _suggestionsList;
+    private ListView<CodeBlock>  _suggestionsList;
 
     // The dragging CodeBlock
-    CodeBlock _dragCodeBlock;
+    private CodeBlock  _dragCodeBlock;
 
     // The current drag point
-    Point _dragPoint;
+    private Point  _dragPoint;
 
     // The current node at drag point
-    JNode _dragNode, _dragBlock;
+    private JNode  _dragNode, _dragBlock;
 
     // The drag text
-    TextBox _dragText;
+    private TextBox _dragText;
 
     /**
      * Creates a new JavaInspector.
      */
-    public CodeBuilder(JavaTextArea aJavaTextArea)
+    public CodeBuilder(JavaTextPane aJTP)
     {
-        _textArea = aJavaTextArea;
+        _textArea = aJTP.getTextArea();
     }
 
     /**
@@ -110,11 +110,11 @@ public class CodeBuilder extends ViewOwner {
         label.setName("ClassText");
         label.setPrefHeight(24);
         label.setPadding(5, 5, 5, 5);
-        ListView slist = new ListView();
-        slist.setName("SuggestionsList");
-        slist.setGrowHeight(true);
-        slist.setRowHeight(22);
-        ScrollView spane = new ScrollView(slist);
+        ListView<?> listView = new ListView<>();
+        listView.setName("SuggestionsList");
+        listView.setGrowHeight(true);
+        listView.setRowHeight(22);
+        ScrollView spane = new ScrollView(listView);
         spane.setGrowHeight(true);
         ColView vbox = new ColView();
         vbox.setChildren(label, spane);
@@ -193,11 +193,12 @@ public class CodeBuilder extends ViewOwner {
 
         // Set DragPoint and register TextArea to repaint
         _dragPoint = new Point(anX, aY);
-        getTextArea().repaint();
+        JavaTextArea textArea = getTextArea();
+        textArea.repaint();
 
         // Set DragNode
-        int index = getTextArea().getCharIndex(anX, aY);
-        _dragNode = getTextArea().getJFile().getNodeAtCharIndex(index);
+        int index = textArea.getCharIndex(anX, aY);
+        _dragNode = textArea.getJFile().getNodeAtCharIndex(index);
 
         // Get DragBlock
         _dragBlock = _dragNode;
@@ -221,7 +222,6 @@ public class CodeBuilder extends ViewOwner {
 
         // If DragText needs to be reset, create and reset
         if (_dragText == null || !_dragText.getString().equals(dragString)) {
-            JavaTextArea textArea = getTextArea();
             JavaTextBox text = textArea.getTextBox();
             _dragText = textArea.createTextBox();
             _dragText.setX(text.getX());
@@ -346,14 +346,22 @@ public class CodeBuilder extends ViewOwner {
     /**
      * Returns the number of indent spaces for line at given index.
      */
-    public int getIndent(int anIndex)
+    public int getIndentCount(int anIndex)
     {
         if (anIndex == 0) return 0;
-        TextBoxLine line = getTextArea().getTextBox().getLine(anIndex - 1);
-        int c = 0;
-        while (c < line.length() && Character.isWhitespace(line.charAt(c))) c++;
-        if (!line.getString().trim().endsWith(";")) c += 4;
-        return c;
+
+        JavaTextArea textArea = getTextArea();
+        JavaTextBox textBox = textArea.getTextBox();
+        TextBoxLine line = textBox.getLine(anIndex - 1);
+
+        int indentCount = 0;
+        while (indentCount < line.length() && Character.isWhitespace(line.charAt(indentCount)))
+            indentCount++;
+        if (!line.getString().trim().endsWith(";"))
+            indentCount += 4;
+
+        // Return
+        return indentCount;
     }
 
     /**
@@ -361,9 +369,9 @@ public class CodeBuilder extends ViewOwner {
      */
     public String getIndentString(int anIndex)
     {
-        int c = getIndent(anIndex);
+        int indentCount = getIndentCount(anIndex);
         StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < c; i++) sb.append(' ');
+        for (int i = 0; i < indentCount; i++) sb.append(' ');
         return sb.toString();
     }
 }
