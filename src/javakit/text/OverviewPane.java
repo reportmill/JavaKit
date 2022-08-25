@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.text;
-
 import java.util.*;
 
 import snap.geom.*;
@@ -16,24 +15,32 @@ import snap.view.*;
  */
 public class OverviewPane extends View {
 
+    // The JavaTextPane holding this Overview
+    private JavaTextPane  _textPane;
+
     // The JavaTextArea
-    JavaTextArea _textArea;
+    private JavaTextArea  _textArea;
 
     // The list of markers
-    List<Marker> _markers;
+    private Marker<?>[]  _markers;
 
     // The last mouse point
-    double _mx, _my;
+    private double  _mx, _my;
 
     // Colors
-    static final Color _error = new Color(236, 175, 205), _errorBorder = new Color(248, 50, 147);
-    static final Color _warning = new Color(252, 240, 203), _warningBorder = new Color(246, 209, 95);
+    private static final Color _error = new Color(236, 175, 205), _errorBorder = new Color(248, 50, 147);
+    private static final Color _warning = new Color(252, 240, 203), _warningBorder = new Color(246, 209, 95);
 
     /**
      * Creates a new OverviewPane.
      */
-    public OverviewPane()
+    public OverviewPane(JavaTextPane aJTP)
     {
+        // Set vars
+        _textPane = aJTP;
+        _textArea = aJTP.getTextArea();
+
+        // Configure
         enableEvents(MouseMove, MouseRelease);
         setToolTipEnabled(true);
         setPrefWidth(14);
@@ -48,39 +55,36 @@ public class OverviewPane extends View {
     }
 
     /**
-     * Sets the JavaTextArea.
-     */
-    public void setTextArea(JavaTextArea aJTA)
-    {
-        _textArea = aJTA;
-    }
-
-    /**
      * Sets the JavaTextArea selection.
      */
     public void setTextSel(int aStart, int anEnd)
     {
-        _textArea._textPane.setTextSel(aStart, anEnd);
+        _textPane.setTextSel(aStart, anEnd);
     }
 
     /**
      * Returns the list of markers.
      */
-    public List<Marker> getMarkers()
+    public Marker<?>[] getMarkers()
     {
-        return _markers != null ? _markers : (_markers = createMarkers());
+        // If already set, just return
+        if (_markers != null) return _markers;
+
+        // Get, set, return
+        Marker<?>[] markers = createMarkers();
+        return _markers = markers;
     }
 
     /**
      * Returns the list of markers.
      */
-    protected List<Marker> createMarkers()
+    protected Marker<?>[] createMarkers()
     {
         // Create list
-        List<Marker> markers = new ArrayList();
+        List<Marker<?>> markers = new ArrayList<>();
 
         // Add markers for TextArea.JavaSource.BuildIssues
-        BuildIssue buildIssues[] = _textArea.getBuildIssues();
+        BuildIssue[] buildIssues = _textArea.getBuildIssues();
         for (BuildIssue issue : buildIssues)
             markers.add(new BuildIssueMarker(issue));
 
@@ -90,7 +94,7 @@ public class OverviewPane extends View {
             markers.add(new TokenMarker(token));
 
         // Return markers
-        return markers;
+        return markers.toArray(new Marker<?>[0]);
     }
 
     /**
@@ -107,15 +111,17 @@ public class OverviewPane extends View {
      */
     protected void processEvent(ViewEvent anEvent)
     {
-        // Handle MosueClicked
+        // Handle MouseClicked
         if (anEvent.isMouseClick()) {
-            for (Marker m : getMarkers()) {
-                if (m.contains(anEvent.getX(), anEvent.getY())) {
-                    setTextSel(m.getSelStart(), m.getSelEnd());
+            for (Marker<?> marker : getMarkers()) {
+                if (marker.contains(anEvent.getX(), anEvent.getY())) {
+                    setTextSel(marker.getSelStart(), marker.getSelEnd());
                     return;
                 }
             }
-            TextBoxLine line = _textArea.getTextBox().getLineForY(anEvent.getY() / getHeight() * _textArea.getHeight());
+
+            TextBox textBox = _textArea.getTextBox();
+            TextBoxLine line = textBox.getLineForY(anEvent.getY() / getHeight() * _textArea.getHeight());
             setTextSel(line.getStart(), line.getEnd());
         }
 
@@ -123,11 +129,12 @@ public class OverviewPane extends View {
         if (anEvent.isMouseMove()) {
             _mx = anEvent.getX();
             _my = anEvent.getY();
-            for (Marker m : getMarkers())
-                if (m.contains(_mx, _my)) {
+            for (Marker<?> marker : getMarkers()) {
+                if (marker.contains(_mx, _my)) {
                     setCursor(Cursor.HAND);
                     return;
                 }
+            }
             setCursor(Cursor.DEFAULT);
         }
     }
@@ -137,14 +144,17 @@ public class OverviewPane extends View {
      */
     protected void paintFront(Painter aPntr)
     {
-        double th = _textArea.getHeight(), h = Math.min(getHeight(), th);
+        double textH = _textArea.getHeight();
+        double markerH = Math.min(getHeight(), textH);
+
         aPntr.setStroke(Stroke.Stroke1);
-        for (Marker m : getMarkers()) {
-            m.setY(m._y / th * h);
-            aPntr.setPaint(m.getColor());
-            aPntr.fill(m);
-            aPntr.setPaint(m.getStrokeColor());
-            aPntr.draw(m);
+
+        for (Marker<?> marker : getMarkers()) {
+            marker.setY(marker._y / textH * markerH);
+            aPntr.setPaint(marker.getColor());
+            aPntr.fill(marker);
+            aPntr.setPaint(marker.getStrokeColor());
+            aPntr.draw(marker);
         }
     }
 
@@ -153,10 +163,13 @@ public class OverviewPane extends View {
      */
     public String getToolTip(ViewEvent anEvent)
     {
-        for (Marker marker : getMarkers())
+        for (Marker<?> marker : getMarkers()) {
             if (marker.contains(_mx, _my))
                 return marker.getToolTip();
-        TextBoxLine line = _textArea.getTextBox().getLineForY(_my / getHeight() * _textArea.getHeight());
+        }
+
+        TextBox textBox = _textArea.getTextBox();
+        TextBoxLine line = textBox.getLineForY(_my / getHeight() * _textArea.getHeight());
         return "Line: " + (line.getIndex() + 1);
     }
 
@@ -265,7 +278,7 @@ public class OverviewPane extends View {
     /**
      * The class that describes a overview marker.
      */
-    public class TokenMarker extends Marker<TextBoxToken> {
+    public static class TokenMarker extends Marker<TextBoxToken> {
 
         /**
          * Creates a new TokenMarker.
@@ -314,7 +327,7 @@ public class OverviewPane extends View {
          */
         public String getToolTip()
         {
-            return "Occurrence of \'" + _target.getString() + "\'";
+            return "Occurrence of '" + _target.getString() + "'";
         }
     }
 }

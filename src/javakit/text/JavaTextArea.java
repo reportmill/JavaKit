@@ -7,7 +7,6 @@ import javakit.parse.*;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.NodeMatcher;
-import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
 import javakit.resolver.*;
@@ -19,9 +18,6 @@ import snap.web.WebFile;
  * A TextArea subclass for Java source editing.
  */
 public class JavaTextArea extends TextArea {
-
-    // The max column
-    private int  _printMarginColumn = 120;
 
     // Whether to draw line for print margin column
     private boolean  _showPrintMargin = true;
@@ -44,17 +40,11 @@ public class JavaTextArea extends TextArea {
     // A PopupList to show code completion stuff
     protected JavaPopupList  _popup;
 
-    // The TextPane
-    protected JavaTextPane  _textPane;
-
     // The code builder
     protected CodeBuilder  _codeBuilder;
 
-    // The RowHeader
-    protected RowHeader  _rowHeader;
-
-    // The OverviewPane
-    protected OverviewPane  _overviewPane;
+    // Constants for properties
+    public static final String SelectedNode_Prop = "SelectedNode";
 
     /**
      * Creates a new JavaTextArea.
@@ -66,28 +56,14 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the Java text pane.
-     */
-    public JavaTextPane getTextPane()
-    {
-        return _textPane;
-    }
-
-    /**
      * Override to return text as JavaText.
      */
-    public JavaTextBox getTextBox()
-    {
-        return (JavaTextBox) super.getTextBox();
-    }
+    public JavaTextBox getTextBox()  { return (JavaTextBox) super.getTextBox(); }
 
     /**
      * Override to create JavaText.
      */
-    protected TextBox createTextBox()
-    {
-        return new JavaTextBox();
-    }
+    protected TextBox createTextBox()  { return new JavaTextBox(); }
 
     /**
      * Returns the code completion popup.
@@ -163,20 +139,9 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the max column index that text should not exceed.
-     */
-    public int getPrintMarginColumn()
-    {
-        return _printMarginColumn;
-    }
-
-    /**
      * Returns whether to draw line for print margin column.
      */
-    public boolean getShowPrintMargin()
-    {
-        return _showPrintMargin;
-    }
+    public boolean getShowPrintMargin()  { return _showPrintMargin; }
 
     /**
      * Selects a given line number.
@@ -193,15 +158,20 @@ public class JavaTextArea extends TextArea {
      */
     public Font getDefaultFont()
     {
-        if (_defaultFont == null) {
-            String names[] = {"Monaco", "Consolas", "Courier"};
-            for (int i = 0; i < names.length; i++) {
-                _defaultFont = new Font(names[i], 10);
-                if (_defaultFont.getFamily().startsWith(names[i]))
-                    break;
-            }
+        // If already set, just return
+        if (_defaultFont != null) return _defaultFont;
+
+        // Get
+        Font defaultFont = Font.Arial10;
+        String[] names = { "Monaco", "Consolas", "Courier" };
+        for (String name : names) {
+            defaultFont = new Font(name, 10);
+            if (defaultFont.getFamily().startsWith(name))
+                break;
         }
-        return _defaultFont;
+
+        // Set, return
+        return _defaultFont = defaultFont;
     }
 
     /**
@@ -209,7 +179,8 @@ public class JavaTextArea extends TextArea {
      */
     public JFile getJFile()
     {
-        return getTextBox().getJFile();
+        JavaTextBox textBox = getTextBox();
+        return textBox.getJFile();
     }
 
     /**
@@ -235,17 +206,21 @@ public class JavaTextArea extends TextArea {
      */
     public void setSelectedNode(JNode aNode)
     {
-        // If new node, set, update tokens and repaint
-        if (aNode != getSelectedNode()) {
-            _selNode = _deepNode = aNode;
-            setSelectedTokensForNode(aNode);
-            repaintAll();
-        }
+        // If already set, just return
+        if (aNode == getSelectedNode()) return;
 
-        // Update SelectedNode
+        // Set value
+        JNode oldSelNode = _selNode;
+        _selNode = _deepNode = aNode;
+
+        // Reset tokens
+        setSelectedTokensForNode(aNode);
+
+        // Reset PopupList
         updatePopupList();
-        JavaTextPane tp = getTextPane();
-        if (tp != null) tp.resetLater();
+
+        // Fire prop change
+        firePropChange(SelectedNode_Prop, oldSelNode, _selNode);
     }
 
     /**
@@ -281,12 +256,12 @@ public class JavaTextArea extends TextArea {
     protected void setSelectedTokensForNode(JNode aNode)
     {
         // Create list for tokens
-        List<TextBoxToken> tokens = new ArrayList();
+        List<TextBoxToken> tokens = new ArrayList<>();
 
         // If node is JType, select all of them
         JavaDecl decl = aNode != null ? aNode.getDecl() : null;
         if (decl != null) {
-            List<JNode> others = new ArrayList();
+            List<JNode> others = new ArrayList<>();
             NodeMatcher.getMatches(aNode.getFile(), decl, others);
             for (JNode other : others) {
                 TextBoxToken tt = (TextBoxToken) other.getStartToken();
@@ -316,34 +291,6 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Sets the text that is to be edited.
-     */
-    public void setText(String aString)
-    {
-        super.setText(aString);
-        repaintAll();
-    }
-
-    /**
-     * Replaces the current selection with the given string.
-     */
-    public void replaceChars(String aStr, TextStyle aStyle, int aStart, int anEnd, boolean doUpdateSel)
-    {
-        super.replaceChars(aStr, aStyle, aStart, anEnd, doUpdateSel);
-        repaintAll();
-    }
-
-    /**
-     * Repaint text and reset/repaint Overview/RowHeader.
-     */
-    public void repaintAll()
-    {
-        repaint();
-        if (_overviewPane != null) _overviewPane.resetAll();
-        if (_rowHeader != null) _rowHeader.resetAll();
-    }
-
-    /**
      * Override to draw print margin.
      */
     protected void paintBack(Painter aPntr)
@@ -360,22 +307,30 @@ public class JavaTextArea extends TextArea {
         }
 
         // Underline build issues
-        BuildIssue issues[] = getBuildIssues();
+        BuildIssue[] issues = getBuildIssues();
         for (BuildIssue issue : issues) {
-            int istart = issue.getStart(), iend = issue.getEnd();
-            if (iend < istart || iend > length()) continue;
+
+            int istart = issue.getStart();
+            int iend = issue.getEnd();
+            if (iend < istart || iend > length())
+                continue;
+
             TextBoxLine line = getLineAt(iend);
             int lstart = line.getStart();
-            if (istart < lstart) istart = lstart;
+            if (istart < lstart)
+                istart = lstart;
             TextBoxToken token = getTokenAt(istart);
             if (token != null) {
                 int tend = token.getLine().getStart() + token.getEnd();
-                if (iend < tend) iend = tend;
+                if (iend < tend)
+                    iend = tend;
             }
-            if (istart == iend && iend < line.getEnd()) iend++; // If possible, make sure we underline at least one char
+
+            // If possible, make sure we underline at least one char
+            if (istart == iend && iend < line.getEnd()) iend++;
             int yb = (int) Math.round(line.getBaseline()) + 2;
-            double x1 = line.getXForChar(istart - lstart), x2 = line.getXForChar(iend - lstart);
-            Line inode = new Line(x1, yb, x2, yb);
+            double x1 = line.getXForChar(istart - lstart);
+            double x2 = line.getXForChar(iend - lstart);
             aPntr.setPaint(issue.isError() ? Color.RED : new Color(244, 198, 60));
             aPntr.setStroke(Stroke.StrokeDash1);
             aPntr.drawLine(x1, yb, x2, yb);
@@ -393,7 +348,9 @@ public class JavaTextArea extends TextArea {
                     System.err.println("JavaTextArea.paintBack: Invalid-A " + ind2);
                     ind2 = -1;
                 }
-            } else if (c1 == '{' || c1 == '}') {  //  || c1=='(' || c1==')'
+            }
+
+            else if (c1 == '{' || c1 == '}') {  //  || c1=='(' || c1==')'
                 JNode jnode = getJFile().getNodeAtCharIndex(ind - 1);
                 ind2 = c1 == '}' || c1 == ')' ? jnode.getStart() : jnode.getEnd() - 1;
                 if (ind2 + 1 > length()) {
@@ -401,6 +358,7 @@ public class JavaTextArea extends TextArea {
                     ind2 = -1;
                 }
             }
+
             if (ind2 >= 0) {
                 TextBoxLine line = getLineAt(ind2);
                 int s1 = ind2 - line.getStart(), s2 = ind2 + 1 - line.getStart();
@@ -486,28 +444,24 @@ public class JavaTextArea extends TextArea {
 
         // Handle insertion of paired chars (parens, quotes, square brackets) - TODO: Don't do if in string/comment
         if (charDefined && !commandDown && !controlDown) {
+
             String closer = null;
             switch (keyChar) {
-                case '\'':
-                    closer = "'";
-                    break; // TODO: need inComment() check
-                case '"':
-                    closer = "\"";
-                    break;
-                case '(':
-                    closer = ")";
-                    break;
-                case '[':
-                    closer = "]";
-                    break;
+                case '\'': closer = "'"; break; // TODO: need inComment() check
+                case '"': closer = "\""; break;
+                case '(': closer = ")"; break;
+                case '[': closer = "]"; break;
                 case '}':
-                    TextBoxLine line = getSel().getStartLine(), line2 = line.getPrevLine();
-                    int indent = getIndent(line), indent2 = line2 != null ? getIndent(line2) : 0;
+                    TextBoxLine line = getSel().getStartLine();
+                    TextBoxLine line2 = line.getPrevLine();
+                    int indent = getIndent(line);
+                    int indent2 = line2 != null ? getIndent(line2) : 0;
                     if (line.getString().trim().startsWith("}") && indent > indent2 && indent > 4) {
                         delete(line.getStart(), line.getStart() + (indent - indent2), false);
                         setSel(getSelStart() - 4);
                     }
             }
+
             if (closer != null) {
                 int i = getSelStart();
                 replaceChars(closer, null, i, i, false);
@@ -671,10 +625,6 @@ public class JavaTextArea extends TextArea {
         super.textDocDidPropChange(anEvent);
         if (anEvent.getPropertyName() != TextDoc.Chars_Prop) return;
 
-        // Set TextPane modified
-        JavaTextPane tp = getTextPane();
-        if (tp != null) tp.setTextModified(getUndoer().hasUndos());
-
         // Call didAddChars/didRemoveChars
         TextDocUtils.CharsChange cc = (TextDocUtils.CharsChange) anEvent;
         int start = anEvent.getIndex();
@@ -793,7 +743,7 @@ public class JavaTextArea extends TextArea {
      */
     public int getProgramCounterLine()
     {
-        JavaTextPane tpane = getTextPane();
-        return tpane != null ? tpane.getProgramCounterLine() : -1;
+        JavaTextPane javaTextPane = getOwner(JavaTextPane.class); if (javaTextPane == null) return -1;
+        return javaTextPane.getProgramCounterLine();
     }
 }

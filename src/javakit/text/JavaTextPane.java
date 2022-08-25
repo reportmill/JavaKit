@@ -2,12 +2,13 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.text;
-
 import javakit.parse.*;
 import javakit.reflect.JavaDecl;
 import javakit.resolver.Project;
 import snap.gfx.*;
+import snap.props.PropChange;
 import snap.props.Undoer;
+import snap.text.TextDoc;
 import snap.util.*;
 import snap.view.*;
 import snap.viewx.TextPane;
@@ -21,10 +22,16 @@ import snap.web.WebURL;
 public class JavaTextPane extends TextPane {
 
     // The JavaTextArea
-    JavaTextArea _textArea;
+    private JavaTextArea  _textArea;
 
     // The SplitView
-    SplitView _splitView;
+    private SplitView  _splitView;
+
+    // The RowHeader
+    private RowHeader  _rowHeader;
+
+    // The OverView
+    private OverviewPane  _overviewPane;
 
     /**
      * Returns the JavaTextArea.
@@ -96,9 +103,13 @@ public class JavaTextPane extends TextPane {
 
         // Get TextArea and start listening for events (KeyEvents, MouseReleased, DragOver/Exit/Drop)
         _textArea = getTextArea();
-        _textArea._textPane = this;
         _textArea.setGrowWidth(true);
         enableEvents(_textArea, KeyPress, KeyRelease, KeyType, MousePress, MouseRelease, DragOver, DragExit, DragDrop);
+        _textArea.addPropChangeListener(pc -> javaTextAreaDidPropChange(pc));
+
+        // Start listening to TextArea doc
+        TextDoc textDoc = _textArea.getTextDoc();
+        textDoc.addPropChangeListener(pc -> textDocDidPropChange(pc));
 
         // Reset TextArea font
         double fontSize = Prefs.get().getDouble("JavaFontSize", 12);
@@ -106,28 +117,24 @@ public class JavaTextPane extends TextPane {
         _textArea.setFont(new Font(_textArea.getDefaultFont().getName(), fontSize));
 
         // Get TextArea.RowHeader and configure
-        RowHeader rowHeader = createRowHeader();
-        rowHeader.setTextArea(_textArea);
-        _textArea._rowHeader = rowHeader;
+        _rowHeader = new RowHeader(this);
 
         // Get ScrollView and add RowHeader
-        ScrollView spane = getView("ScrollView", ScrollView.class);
-        spane.setGrowWidth(true);
-        RowView hbox = new RowView();
-        hbox.setFillHeight(true);
-        hbox.setChildren(rowHeader, _textArea);
-        spane.setContent(hbox);
+        ScrollView scrollView = getView("ScrollView", ScrollView.class);
+        scrollView.setGrowWidth(true);
+        RowView scrollViewContent = new RowView();
+        scrollViewContent.setFillHeight(true);
+        scrollViewContent.setChildren(_rowHeader, _textArea);
+        scrollView.setContent(scrollViewContent);
 
         // Get SplitView and add ScrollView and CodeBuilder
         _splitView = new SplitView();
-        _splitView.addItem(spane);
+        _splitView.addItem(scrollView);
         getUI(BorderView.class).setCenter(_splitView);
 
         // Get OverviewPane and set JavaTextArea
-        OverviewPane overviewPane = createOverviewPane();
-        overviewPane.setTextArea(_textArea);
-        _textArea._overviewPane = overviewPane;
-        getUI(BorderView.class).setRight(overviewPane);
+        _overviewPane = new OverviewPane(this);
+        getUI(BorderView.class).setRight(_overviewPane);
     }
 
     /**
@@ -306,19 +313,22 @@ public class JavaTextPane extends TextPane {
     public String getJavaDocText()
     {
         // Get class name for selected JNode
-        Class cls = _textArea.getSelectedNodeClass();
-        if (cls == null)
+        Class<?> selNodeClass = _textArea.getSelectedNodeClass();
+        if (selNodeClass == null)
             return null;
-        if (cls.isArray())
-            cls = cls.getComponentType();
+        if (selNodeClass.isArray())
+            selNodeClass = selNodeClass.getComponentType();
 
         // Iterate up through class parents until URL found or null
-        while (cls != null) {
-            String url = getJavaDocURL(cls);
-            if (url != null) return cls.getSimpleName() + " Doc";
-            Class scls = cls.getSuperclass();
-            cls = scls != null && scls != Object.class ? scls : null;
+        while (selNodeClass != null) {
+            String url = getJavaDocURL(selNodeClass);
+            if (url != null)
+                return selNodeClass.getSimpleName() + " Doc";
+            Class<?> superclass = selNodeClass.getSuperclass();
+            selNodeClass = superclass != null && superclass != Object.class ? superclass : null;
         }
+
+        // Return not found
         return null;
     }
 
@@ -328,46 +338,51 @@ public class JavaTextPane extends TextPane {
     public String getJavaDocURL()
     {
         // Get class name for selected JNode
-        Class cls = _textArea.getSelectedNodeClass();
-        if (cls == null) return null;
-        if (cls.isArray()) cls = cls.getComponentType();
+        Class<?> selNodeClass = _textArea.getSelectedNodeClass();
+        if (selNodeClass == null)
+            return null;
+        if (selNodeClass.isArray())
+            selNodeClass = selNodeClass.getComponentType();
 
         // Iterate up through class parents until URL found or null
-        while (cls != null) {
-            String url = getJavaDocURL(cls);
-            if (url != null) return url;
-            Class scls = cls.getSuperclass();
-            cls = scls != null && scls != Object.class ? scls : null;
+        while (selNodeClass != null) {
+            String url = getJavaDocURL(selNodeClass);
+            if (url != null)
+                return url;
+            Class<?> superClass = selNodeClass.getSuperclass();
+            selNodeClass = superClass != null && superClass != Object.class ? superClass : null;
         }
+
+        // Return not found
         return null;
     }
 
     /**
      * Returns the JavaDoc url for currently selected type.
      */
-    public String getJavaDocURL(Class aClass)
+    public String getJavaDocURL(Class<?> aClass)
     {
         // Get class name for selected JNode
-        String cname = aClass.getName();
+        String className = aClass.getName();
 
         // Handle reportmill class
         String url = null;
-        if (cname.startsWith("snap."))
-            url = "http://reportmill.com/snap1/javadoc/index.html?" + cname.replace('.', '/') + ".html";
-        else if (cname.startsWith("com.reportmill."))
-            url = "http://reportmill.com/rm14/javadoc/index.html?" + cname.replace('.', '/') + ".html";
+        if (className.startsWith("snap."))
+            url = "http://reportmill.com/snap1/javadoc/index.html?" + className.replace('.', '/') + ".html";
+        else if (className.startsWith("com.reportmill."))
+            url = "http://reportmill.com/rm14/javadoc/index.html?" + className.replace('.', '/') + ".html";
 
             // Handle standard java classes
-        else if (cname.startsWith("java.") || cname.startsWith("javax."))
-            url = "http://docs.oracle.com/javase/8/docs/api/index.html?" + cname.replace('.', '/') + ".html";
+        else if (className.startsWith("java.") || className.startsWith("javax."))
+            url = "http://docs.oracle.com/javase/8/docs/api/index.html?" + className.replace('.', '/') + ".html";
 
             // Handle JavaFX classes
-        else if (cname.startsWith("javafx."))
-            url = "http://docs.oracle.com/javafx/2/api/index.html?" + cname.replace('.', '/') + ".html";
+        else if (className.startsWith("javafx."))
+            url = "http://docs.oracle.com/javafx/2/api/index.html?" + className.replace('.', '/') + ".html";
 
             // Handle Greenfoot classes
-        else if (cname.startsWith("greenfoot."))
-            url = "https://www.greenfoot.org/files/javadoc/index.html?" + cname.replace('.', '/') + ".html";
+        else if (className.startsWith("greenfoot."))
+            url = "https://www.greenfoot.org/files/javadoc/index.html?" + className.replace('.', '/') + ".html";
 
         // Return url
         return url;
@@ -415,22 +430,6 @@ public class JavaTextPane extends TextPane {
     }
 
     /**
-     * Creates the RowHeader.
-     */
-    protected RowHeader createRowHeader()
-    {
-        return new RowHeader();
-    }
-
-    /**
-     * Creates the OverviewPane.
-     */
-    protected OverviewPane createOverviewPane()
-    {
-        return new OverviewPane();
-    }
-
-    /**
      * Sets the TextSelection.
      */
     public void setTextSel(int aStart, int anEnd)
@@ -441,37 +440,60 @@ public class JavaTextPane extends TextPane {
     /**
      * Open declaration.
      */
-    public void openDeclaration(JNode aNode)
-    {
-    }
+    public void openDeclaration(JNode aNode)  { }
 
     /**
      * Open a super declaration.
      */
-    public void openSuperDeclaration(JMemberDecl aMemberDecl)
-    {
-    }
+    public void openSuperDeclaration(JMemberDecl aMemberDecl)  { }
 
     /**
      * Show References.
      */
-    public void showReferences(JNode aNode)
-    {
-    }
+    public void showReferences(JNode aNode)  { }
 
     /**
      * Show declarations.
      */
-    public void showDeclarations(JNode aNode)
-    {
-    }
+    public void showDeclarations(JNode aNode)  { }
 
     /**
      * Returns the ProgramCounter line.
      */
-    public int getProgramCounterLine()
+    public int getProgramCounterLine()  { return -1; }
+
+    /**
+     * Called when JavaTextArea changes.
+     */
+    private void javaTextAreaDidPropChange(PropChange aPC)
     {
-        return -1;
+        String propName = aPC.getPropName();
+        if (propName == JavaTextArea.SelectedNode_Prop)
+            resetLater();
+    }
+
+    /**
+     * Called when TextDoc changes.
+     */
+    private void textDocDidPropChange(PropChange aPC)
+    {
+        String propName = aPC.getPropName();
+        if (propName == TextDoc.Chars_Prop) {
+            boolean hasUndos = getTextArea().getUndoer().hasUndos();
+            setTextModified(hasUndos);
+            _rowHeader.resetAll();
+            _overviewPane.resetAll();
+        }
+    }
+
+    /**
+     * Called when a build/break-point marker changes.
+     */
+    public void buildIssueOrBreakPointMarkerChanged()
+    {
+        _rowHeader.resetAll();
+        _overviewPane.resetAll();
+        _textArea.repaint();
     }
 
     /**
@@ -480,7 +502,8 @@ public class JavaTextPane extends TextPane {
     public static void main(String[] args)
     {
         // Get Scratch Site
-        WebSite scratchSite = WebURL.getURL("/tmp/ScratchProj").getAsSite();
+        WebURL scratchSiteURL = WebURL.getURL("/tmp/ScratchProj");
+        WebSite scratchSite = scratchSiteURL.getAsSite();
         Project proj = new Project(scratchSite);
 
         // Get test file
@@ -488,7 +511,8 @@ public class JavaTextPane extends TextPane {
 
         // Create JavaPane and show
         JavaTextPane javaPane = new JavaTextPane();
-        javaPane.getTextArea().setSource(testFile);
+        JavaTextArea javaTextArea = javaPane.getTextArea();
+        javaTextArea.setSource(testFile);
         javaPane.getUI().setPrefHeight(800);
         javaPane.setWindowVisible(true);
     }

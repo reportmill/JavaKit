@@ -2,17 +2,15 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.text;
-
 import java.util.*;
-
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
-import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaExecutable;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
 import javakit.resolver.*;
+import snap.util.ArrayUtils;
 import snap.view.*;
 
 /**
@@ -20,14 +18,17 @@ import snap.view.*;
  */
 public class RowHeader extends View {
 
+    // The JavaTextPane that contains this RowHeader
+    private JavaTextPane  _textPane;
+
     // The JavaTextArea
-    JavaTextArea _textArea;
+    private JavaTextArea  _textArea;
 
     // The list of markers
-    List<Marker> _markers;
+    private Marker<?>[] _markers;
 
     // The last mouse moved position
-    double _mx, _my;
+    private double  _mx, _my;
 
     // Width of this component
     public static final int WIDTH = 12;
@@ -42,8 +43,13 @@ public class RowHeader extends View {
     /**
      * Creates a new RowHeader.
      */
-    public RowHeader()
+    public RowHeader(JavaTextPane aJTP)
     {
+        // Set ivars
+        _textPane = aJTP;
+        _textArea = aJTP.getTextArea();
+
+        // Config
         enableEvents(MouseMove, MouseRelease);
         setToolTipEnabled(true);
         setFill(new Color(233, 233, 233));
@@ -53,18 +59,15 @@ public class RowHeader extends View {
     /**
      * Returns the JavaTextArea.
      */
-    public JavaTextArea getTextArea()
+    public JavaTextPane getTextPane()
     {
-        return _textArea;
+        return _textPane;
     }
 
     /**
-     * Sets the JavaTextArea.
+     * Returns the JavaTextArea.
      */
-    public void setTextArea(JavaTextArea aJTA)
-    {
-        _textArea = aJTA;
-    }
+    public JavaTextArea getTextArea()  { return _textArea; }
 
     /**
      * Sets the JavaTextArea selection.
@@ -75,20 +78,25 @@ public class RowHeader extends View {
     }
 
     /**
-     * Returns the list of markers.
+     * Returns the markers.
      */
-    public List<Marker> getMarkers()
+    public Marker<?>[] getMarkers()
     {
-        return _markers != null ? _markers : (_markers = createMarkers());
+        // If already set, just return
+        if (_markers != null) return _markers;
+
+        // Get, set, return
+        Marker<?>[] markers = createMarkers();
+        return _markers = markers;
     }
 
     /**
      * Returns the list of markers.
      */
-    protected List<Marker> createMarkers()
+    protected Marker<?>[] createMarkers()
     {
         // Create list
-        List<Marker> markers = new ArrayList();
+        List<Marker<?>> markers = new ArrayList<>();
 
         // Add markers for member Overrides/Implements
         JClassDecl cd = _textArea.getJFile().getClassDecl();
@@ -96,7 +104,7 @@ public class RowHeader extends View {
             getSuperMemberMarkers(cd, markers);
 
         // Add markers for BuildIssues
-        BuildIssue buildIssues[] = _textArea.getBuildIssues();
+        BuildIssue[] buildIssues = _textArea.getBuildIssues();
         for (BuildIssue issue : buildIssues)
             if (issue.getEnd() < _textArea.length())
                 markers.add(new BuildIssueMarker(issue));
@@ -112,13 +120,13 @@ public class RowHeader extends View {
         }
 
         // Return markers
-        return markers;
+        return markers.toArray(new Marker[0]);
     }
 
     /**
      * Loads a list of SuperMemberMarkers for a class declaration (recursing for inner classes).
      */
-    private void getSuperMemberMarkers(JClassDecl aCD, List<Marker> theMarkers)
+    private void getSuperMemberMarkers(JClassDecl aCD, List<Marker<?>> theMarkers)
     {
         for (JMemberDecl md : aCD.getMemberDecls()) {
             if (md.getSuperDecl() != null && md.getEnd() < _textArea.length())
@@ -146,41 +154,44 @@ public class RowHeader extends View {
         if (anEvent.isMouseClick()) {
 
             // Get reversed markers (so click effects top marker)
-            List<Marker> markers = new ArrayList(getMarkers());
-            Collections.reverse(markers);
+            Marker<?>[] markers = getMarkers().clone();
+            ArrayUtils.reverse(markers);
             double x = anEvent.getX(), y = anEvent.getY();
 
             // Handle double click
             if (anEvent.getClickCount() == 2) {
-                for (Marker marker : markers)
+                for (Marker<?> marker : markers) {
                     if (marker.contains(x, y) && marker instanceof BreakpointMarker) {
                         marker.mouseClicked(anEvent);
                         return;
                     }
+                }
                 TextBoxLine line = _textArea.getTextBox().getLineForY(anEvent.getY());
-                int index = line.getIndex();
-                _textArea.addBreakpoint(index);
+                int lineIndex = line.getIndex();
+                _textArea.addBreakpoint(lineIndex);
                 resetAll();
                 return;
             }
 
             // Handle normal click
-            for (Marker marker : markers)
+            for (Marker<?> marker : markers) {
                 if (marker.contains(x, y)) {
                     marker.mouseClicked(anEvent);
                     return;
                 }
+            }
         }
 
         // Handle MouseMoved
         else if (anEvent.isMouseMove()) {
             _mx = anEvent.getX();
             _my = anEvent.getY();
-            for (Marker marker : getMarkers())
+            for (Marker<?> marker : getMarkers()) {
                 if (marker.contains(_mx, _my)) {
                     setCursor(Cursor.HAND);
                     return;
                 }
+            }
             setCursor(Cursor.DEFAULT);
         }
     }
@@ -190,9 +201,8 @@ public class RowHeader extends View {
      */
     protected void paintFront(Painter aPntr)
     {
-        double th = _textArea.getHeight(), h = Math.min(getHeight(), th);
         aPntr.setStroke(Stroke.Stroke1);
-        for (Marker m : getMarkers())
+        for (Marker<?> m : getMarkers())
             aPntr.drawImage(m._image, m.x, m.y);
     }
 
@@ -201,7 +211,7 @@ public class RowHeader extends View {
      */
     public String getToolTip(ViewEvent anEvent)
     {
-        for (Marker marker : getMarkers())
+        for (Marker<?> marker : getMarkers())
             if (marker.contains(_mx, _my))
                 return marker.getToolTip();
         return null;
@@ -283,9 +293,7 @@ public class RowHeader extends View {
          */
         public void mouseClicked(ViewEvent anEvent)
         {
-            JavaTextPane tp = _textArea.getTextPane();
-            if (tp == null) return;
-            tp.openSuperDeclaration(_target);
+            _textPane.openSuperDeclaration(_target);
         }
     }
 
@@ -355,7 +363,8 @@ public class RowHeader extends View {
          */
         public void mouseClicked(ViewEvent anEvent)
         {
-            if (anEvent.getClickCount() == 2) _textArea.removeBreakpoint(_target);
+            if (anEvent.getClickCount() == 2)
+                _textArea.removeBreakpoint(_target);
             resetAll();
         }
     }
