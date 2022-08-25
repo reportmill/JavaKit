@@ -272,7 +272,7 @@ public class JavaTextDoc extends TextDoc {
 
             // Set TextBox char range
             TextBox textBox = _textArea.getTextBox();
-            textBox.setStart(getStartCharIndex());
+            textBox.setStartCharIndex(getStartCharIndex());
             textBox.setEndCharIndex(getEndCharIndex());
         }
 
