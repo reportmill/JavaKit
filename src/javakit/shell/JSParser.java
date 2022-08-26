@@ -1,6 +1,5 @@
 package javakit.shell;
 import javakit.parse.*;
-import javakit.reflect.JavaType;
 import javakit.reflect.Resolver;
 import snap.parse.ParseHandler;
 import snap.parse.ParseRule;
@@ -70,12 +69,26 @@ public class JSParser {
                 stmtBlock.addStatement(stmt);
 
                 // Fix expression statement is really an incomplete variable decl, fix it
-                if (isIncompleteVarDecl(stmt))
-                    fixIncompleteVarDecl(stmt, stmtBlock);
+                if (JavaShellUtils.isIncompleteVarDecl(stmt))
+                    JavaShellUtils.fixIncompleteVarDecl(stmt, stmtBlock);
             }
         }
 
         // Return
+        return statements;
+    }
+
+    /**
+     * Parses given Java text string and return an array of JStmt for each line.
+     */
+    public JStmt[] parseJavaText(JavaTextDoc javaDoc)
+    {
+        // Get file and set Resolver
+        JFile jfile = javaDoc.getJFile();
+        jfile.setResolver(_resolver);
+
+        // Return statements
+        JStmt[] statements = javaDoc.getStatementsForJavaNode(jfile);
         return statements;
     }
 
@@ -110,65 +123,6 @@ public class JSParser {
             System.out.println("JSParser: Parse failed: " + e);
             return null;
         }
-    }
-
-    /**
-     * Returns whether expression statement is really a variable decl without type.
-     */
-    private boolean isIncompleteVarDecl(JStmt aStmt)
-    {
-        if (aStmt instanceof JStmtExpr) {
-            JStmtExpr exprStmt = (JStmtExpr) aStmt;
-            JExpr expr = exprStmt.getExpr();
-            if (expr instanceof JExprMath && ((JExprMath) expr).getOp() == JExprMath.Op.Assign) {
-                JExprMath assignExpr = (JExprMath) expr;
-                JExpr assignTo = assignExpr.getOperand(0);
-                if (assignTo.getDecl() == null)
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Fixes incomplete VarDecl.
-     */
-    private void fixIncompleteVarDecl(JStmt aStmt, JStmtBlock stmtBlock)
-    {
-        // Get expr statement, assign expression and assign-to expression
-        JStmtExpr exprStmt = (JStmtExpr) aStmt;
-        JExprMath assignExpr = (JExprMath) exprStmt.getExpr();
-        JExpr assignTo = assignExpr.getOperand(0);
-
-        // Create VarDecl from Id and initializer
-        JVarDecl varDecl = new JVarDecl();
-        varDecl.setId((JExprId) assignTo);
-        JExpr initializer = assignExpr.getOperand(1);
-        varDecl.setInitializer(initializer);
-
-        // Create VarDeclStatement and add VarDecl
-        JStmtVarDecl varDeclStmt = new JStmtVarDecl();
-        varDeclStmt.addVarDecl(varDecl);
-
-        // Replace statements
-        stmtBlock.removeStatement(aStmt);
-        stmtBlock.addStatement(varDeclStmt);
-
-        // Get initializer type
-        JavaType initType = initializer.getEvalType();
-        if (initType == null) {
-            System.out.println("JSParser.fixIncompleteVarDecl: Failed to get init type for " + initializer.getString());
-            initType = _resolver.getJavaClassForClass(Object.class);
-        }
-
-        // Create bogus type from initializer
-        JType type = new JType();
-        type.setName(initType.getName());
-        type.setStartToken(assignTo.getStartToken());
-        type.setEndToken(assignTo.getEndToken());
-        type.setPrimitive(initType.isPrimitive());
-        type.setParent(varDecl);
-        varDecl.setType(type);
     }
 
     /**

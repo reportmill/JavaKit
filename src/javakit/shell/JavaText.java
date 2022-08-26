@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.shell;
 import javakit.parse.JFile;
 import javakit.parse.JavaParser;
@@ -36,10 +39,22 @@ public class JavaText {
      */
     public String getText()
     {
+        // Get header text
         String headerText = getHeaderText();
+
+        // Get tail
+        String tailText = "\n}";
+
+        // Get body text
         String bodyText = getBodyText();
-        String tailText = "\n}\n}";
-        return headerText + bodyText + tailText;
+        String bodyTextAll = "";
+        if (bodyText != null) {
+            bodyTextAll = "void body() {\n\n" + bodyText;
+            tailText = "\n}\n}";
+        }
+
+        // Return
+        return headerText + bodyTextAll + tailText;
     }
 
     /**
@@ -69,10 +84,11 @@ public class JavaText {
             importsDecl += "import " + importDecl + ";\n";
         importsDecl += '\n';
 
-        // Construct class/method wrapper for statements
+        // Get class decl string
         String classDecl = "public class JavaShellREPL extends " + _superClassName + " {\n\n";
-        String methodDecl = "void body() {\n\n";
-        return importsDecl + classDecl + methodDecl;
+
+        // Return
+        return importsDecl + classDecl;
     }
 
     /**

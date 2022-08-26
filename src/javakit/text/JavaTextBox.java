@@ -61,7 +61,8 @@ public class JavaTextBox extends TextBox {
         // Set SourceFile
         TextDoc textDoc = getTextDoc();
         WebFile sourceFile = textDoc.getSourceFile();
-        jfile.setSourceFile(sourceFile);
+        if (sourceFile != null)
+            jfile.setSourceFile(sourceFile);
 
         // Return (wrapped in JFilePlus)
         JFilePlus jfilePlus = new JFilePlus(this, jfile);
@@ -99,9 +100,9 @@ public class JavaTextBox extends TextBox {
     /**
      * Override to return JavaTextLine.
      */
-    public JavaTextLine getLineAt(int anIndex)
+    public JavaTextLine getLineForCharIndex(int anIndex)
     {
-        return (JavaTextLine) super.getLineAt(anIndex);
+        return (JavaTextLine) super.getLineForCharIndex(anIndex);
     }
 
     /**
@@ -127,21 +128,26 @@ public class JavaTextBox extends TextBox {
         int length = boxlen();
 
         // Get whether last line in update range has unterminated comment
-        boolean utermComment = getLineCount() > 0 && getLineAt(endOld).isUnterminatedComment();
+        boolean utermComment = getLineCount() > 0 && getLineForCharIndex(endOld).isUnterminatedComment();
 
         // Do normal version (just return if setting everything)
         super.updateLines(aStart, endOld, endNew);
-        if (isAdd && length == 0) return;
+        if (isAdd && length == 0)
+            return;
 
         // If unterminated comment state changed, update successive lines until it stops
-        if (utermComment != getLineAt(endNew).isUnterminatedComment()) {
-            int start = getLineAt(endNew).getEnd(), end = getTextDoc().indexOf("*/", start);
-            if (end < 0) end = length();
+        JavaTextBox.JavaTextLine newEndLine = getLineForCharIndex(endNew);
+        if (utermComment != newEndLine.isUnterminatedComment()) {
+            int start = newEndLine.getEnd();
+            int end = getTextDoc().indexOf("*/", start);
+            if (end < 0)
+                end = length();
             super.updateLines(start, end, end);
         }
 
         // Update JFile
-        getJFile().updateChars(aStart, endOld, endNew);
+        JFilePlus jfilePlus = getJFile();
+        jfilePlus.updateChars(aStart, endOld, endNew);
     }
 
     /**
@@ -461,7 +467,7 @@ public class JavaTextBox extends TextBox {
          */
         public void setCharIndex(int aStart)
         {
-            _line = getLineAt(aStart);
+            _line = getLineForCharIndex(aStart);
             _tokenIndex = 0;
             while (_tokenIndex < _line.getTokenCount()) {
                 if (aStart < _line.getToken(_tokenIndex).getEnd() + _line.getStart())

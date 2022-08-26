@@ -1,13 +1,15 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.shell;
 import javakit.parse.*;
-import javakit.text.JavaTextArea;
 import snap.props.PropChange;
-import snap.text.TextBox;
 import snap.text.TextDoc;
 import snap.text.TextDocUtils;
 import snap.text.TextLine;
 import snap.util.ArrayUtils;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -19,7 +21,7 @@ public class JavaTextDoc extends TextDoc {
     private JFile  _jfile;
 
     // The blocks
-    private Block[]  _blocks = new Block[0];
+    private JavaTextDocBlock[]  _blocks = new JavaTextDocBlock[0];
 
     /**
      * Constructor.
@@ -39,7 +41,8 @@ public class JavaTextDoc extends TextDoc {
 
         // Get parsed java file
         JavaParser javaParser = JavaParser.getShared();
-        JFile jfile = javaParser.getJavaFile(this);
+        String javaStr = getString();
+        JFile jfile = javaParser.getJavaFile(javaStr);
 
         // Set, return
         return _jfile = jfile;
@@ -60,7 +63,7 @@ public class JavaTextDoc extends TextDoc {
 
         // Iterate over init decls statement blocks and create block
         for (JStmtBlock blockStmt : initDeclsBlocks) {
-            Block block = new Block(blockStmt);
+            JavaTextDocBlock block = new JavaTextDocBlock(this, blockStmt);
             addBlock(block);
         }
     }
@@ -68,7 +71,7 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Returns the blocks.
      */
-    public Block[] getBlocks()  { return _blocks; }
+    public JavaTextDocBlock[] getBlocks()  { return _blocks; }
 
     /**
      * Returns the number of blocks.
@@ -78,12 +81,12 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Returns the individual block at given index.
      */
-    public Block getBlock(int anIndex)  { return _blocks[anIndex]; }
+    public JavaTextDocBlock getBlock(int anIndex)  { return _blocks[anIndex]; }
 
     /**
      * Adds a block at end of blocks.
      */
-    public void addBlock(Block aBlock)
+    public void addBlock(JavaTextDocBlock aBlock)
     {
         addBlock(aBlock, getBlockCount());
     }
@@ -91,7 +94,7 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Adds a block at given index.
      */
-    public void addBlock(Block aBlock, int anIndex)
+    public void addBlock(JavaTextDocBlock aBlock, int anIndex)
     {
         _blocks = ArrayUtils.add(_blocks, aBlock, anIndex);
     }
@@ -99,17 +102,35 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Removes the block at given index.
      */
-    public Block removeBlock(int anIndex)
+    public JavaTextDocBlock removeBlock(int anIndex)
     {
-        Block block = getBlock(anIndex);
+        // Remove from array
+        JavaTextDocBlock block = getBlock(anIndex);
         _blocks = ArrayUtils.remove(_blocks, anIndex);
+
+        // Delete text
+        int startCharIndex = block.getStartCharIndex();
+        int endCharIndex = block.getEndCharIndex();
+        removeChars(startCharIndex, endCharIndex);
+
+        // Return
         return block;
+    }
+
+    /**
+     * Removes the given block.
+     */
+    public void removeBlock(JavaTextDocBlock aBlock)
+    {
+        int index = ArrayUtils.indexOfId(_blocks, aBlock);
+        if (index >= 0)
+            removeBlock(index);
     }
 
     /**
      * Returns the last block.
      */
-    public Block getBlockLast()
+    public JavaTextDocBlock getBlockLast()
     {
         int blockCount = getBlockCount();
         return blockCount > 0 ? getBlock(blockCount - 1) : null;
@@ -118,22 +139,22 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Returns the empty block at end.
      */
-    public Block getEmptyBlock()
+    public JavaTextDocBlock getEmptyBlock()
     {
         // Iterate over blocks and return empty one
-        Block lastBlock = getBlockLast();
+        JavaTextDocBlock lastBlock = getBlockLast();
         if (lastBlock != null && lastBlock.getString().length() == 0)
             return lastBlock;
 
         // Otherwise add empty and return
-        Block emptyBlock = addEmptyBock();
+        JavaTextDocBlock emptyBlock = addEmptyBlock();
         return emptyBlock;
     }
 
     /**
      * Adds an empty block at end.
      */
-    public Block addEmptyBock()
+    public JavaTextDocBlock addEmptyBlock()
     {
         // Get char index of closing '}' in Class decl (really get line start for closing char)
         JFile jFile = getJFile();
@@ -150,7 +171,7 @@ public class JavaTextDoc extends TextDoc {
         JStmtBlock lastBlock = initBlocks[initBlocks.length - 1];
 
         // Create/add new block
-        Block newBlock = new Block(lastBlock);
+        JavaTextDocBlock newBlock = new JavaTextDocBlock(this, lastBlock);
         addBlock(newBlock);
         return newBlock;
     }
@@ -172,6 +193,44 @@ public class JavaTextDoc extends TextDoc {
 
         // Return
         return stmtBlocks;
+    }
+
+    /**
+     * Returns an array of statements for given JFile.
+     */
+    public JStmt[] getStatementsForJavaNode(JNode aJNode)
+    {
+        int childCount = aJNode.getChildCount();
+        JNode lastChild = aJNode.getChild(childCount - 1);
+        int lastLineIndex = lastChild.getEndToken().getLineIndex();
+        JStmt[] stmtArray = new JStmt[lastLineIndex];
+
+        getStatementsForJavaNode(aJNode, stmtArray);
+        return stmtArray;
+    }
+
+    /**
+     * Returns an array of statements for given JFile.
+     */
+    private void getStatementsForJavaNode(JNode aJNode, JStmt[] stmtArray)
+    {
+        if (aJNode instanceof JStmt) {
+
+            // Get statement - If partial VarDecl if needed
+            JStmt stmt = (JStmt) aJNode;
+            if (JavaShellUtils.isIncompleteVarDecl(stmt)) {
+                JStmtBlock blockStmt = stmt.getParent(JStmtBlock.class);
+                JavaShellUtils.fixIncompleteVarDecl(stmt, blockStmt);
+            }
+            int lineIndex = stmt.getLineIndex();
+            stmtArray[lineIndex] = (JStmt) aJNode;
+            return;
+        }
+
+        // Get node children
+        List<JNode> children = aJNode.getChildren();
+        for (JNode child : children)
+            getStatementsForJavaNode(child, stmtArray);
     }
 
     /**
@@ -205,86 +264,12 @@ public class JavaTextDoc extends TextDoc {
         //else textDidRemoveChars(removeChars, charIndex);
 
         // Reset blocks
-        Block[] blocks = getBlocks();
-        for (Block block : blocks) {
+        JavaTextDocBlock[] blocks = getBlocks();
+        for (JavaTextDocBlock block : blocks) {
             if (charIndex < block.getStartCharIndex() && block._textArea != null)
                 block.resetTextBoxRange();
             else break;
         }
     }
 
-    /**
-     * This class represents a block of code in the TextDoc.
-     */
-    public class Block {
-
-        // The start/end line of block
-        private TextLine  _startLine, _endLine;
-
-        // The JavaTextArea
-        private JavaTextArea  _textArea;
-
-        /**
-         * Constructor.
-         */
-        public Block(JStmtBlock blockStmt)
-        {
-            int startCharIndex = blockStmt.getStart();
-            int endCharIndex = blockStmt.getEnd();
-            _startLine = getLineForCharIndex(startCharIndex);
-            _endLine = getLineForCharIndex(endCharIndex);
-        }
-
-        /**
-         * Returns the start char index.
-         */
-        public int getStartCharIndex()  { return _startLine.getEnd(); }
-
-        /**
-         * Returns the end char index.
-         */
-        public int getEndCharIndex()  { return _endLine.getStart(); }
-
-        /**
-         * Returns a JavaTextArea.
-         */
-        public JavaTextArea getTextArea()
-        {
-            // If already set, just return
-            if (_textArea != null) return _textArea;
-
-            // Create/config
-            JavaTextArea textArea = new JavaTextArea();
-            textArea.setTextDoc(JavaTextDoc.this);
-            resetTextBoxRange();
-
-            // Set/return
-            return _textArea = textArea;
-        }
-
-        /**
-         * Resets the TextBox start/end char index.
-         */
-        public void resetTextBoxRange()
-        {
-            // If no TextArea, just return
-            if (_textArea == null) return;
-
-            // Set TextBox char range
-            TextBox textBox = _textArea.getTextBox();
-            textBox.setStartCharIndex(getStartCharIndex());
-            textBox.setEndCharIndex(getEndCharIndex());
-        }
-
-        /**
-         * Returns the string for block.
-         */
-        public String getString()
-        {
-            int startCharIndex = getStartCharIndex();
-            int endCharIndex = getEndCharIndex();
-            String str = JavaTextDoc.this.subSequence(startCharIndex, endCharIndex).toString().trim();
-            return str;
-        }
-    }
 }

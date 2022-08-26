@@ -97,6 +97,41 @@ public class JavaShell {
     }
 
     /**
+     * Evaluate string.
+     */
+    public void runJavaCode(JavaTextDoc javaDoc)
+    {
+        // Parse Java text to statements
+        JStmt[] javaStmts = _javaParser.parseJavaText(javaDoc);
+
+        // Set System out/err to catch console output
+        System.setOut(_shellOut);
+        System.setErr(_shellErr);
+
+        // Clear console
+        _console.clear();
+
+        // Get line vals for statements
+        _lineVals = new Object[javaStmts.length];
+
+        // Iterate over lines and eval each
+        for (int i = 0, iMax = javaStmts.length; i < iMax; i++) {
+
+            // Get Statement (if null, just set empty string value and continue)
+            JStmt stmt = javaStmts[i];
+            if (stmt == null) {
+                _lineVals[i] = ""; continue; }
+
+            // Evaluate statement
+            _lineVals[i] = evalStatement(stmt);
+        }
+
+        // Restore System out/err
+        System.setOut(_stdOut);
+        System.setErr(_stdErr);
+    }
+
+    /**
      * Evaluate JStmt.
      */
     protected Object evalStatement(JStmt aStmt)
