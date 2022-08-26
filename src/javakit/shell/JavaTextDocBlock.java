@@ -54,6 +54,16 @@ public class JavaTextDocBlock {
     public int getEndCharIndex()  { return _endLine.getStart(); }
 
     /**
+     * Returns the length.
+     */
+    public int length()
+    {
+        int startCharIndex = getStartCharIndex();
+        int endCharIndex = getEndCharIndex();
+        return endCharIndex - startCharIndex;
+    }
+
+    /**
      * Returns the number of lines.
      */
     public int getLineCount()
