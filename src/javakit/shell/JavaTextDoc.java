@@ -164,7 +164,7 @@ public class JavaTextDoc extends TextDoc {
         endCharIndex = endLine.getStart();
 
         // Add block chars
-        addChars("{\n}\n\n", null, endCharIndex);
+        addChars("{\n\n}\n\n", null, endCharIndex);
 
         // Get new last init decl statement block
         JStmtBlock[] initBlocks = getInitDeclBlocks();
@@ -214,7 +214,7 @@ public class JavaTextDoc extends TextDoc {
      */
     private void getStatementsForJavaNode(JNode aJNode, JStmt[] stmtArray)
     {
-        if (aJNode instanceof JStmt) {
+        if (aJNode instanceof JStmt && !(aJNode instanceof JStmtBlock)) {
 
             // Get statement - If partial VarDecl if needed
             JStmt stmt = (JStmt) aJNode;
@@ -255,21 +255,6 @@ public class JavaTextDoc extends TextDoc {
     {
         // Clear JFile
         _jfile = null;
-
-        // Call didAddChars/didRemoveChars
-        int charIndex = aCharsChange.getIndex();
-        //CharSequence addChars = aCharsChange.getNewValue();
-        //CharSequence removeChars = aCharsChange.getOldValue();
-        //if (addChars != null) textDidAddChars(addChars, charIndex);
-        //else textDidRemoveChars(removeChars, charIndex);
-
-        // Reset blocks
-        JavaTextDocBlock[] blocks = getBlocks();
-        for (JavaTextDocBlock block : blocks) {
-            if (charIndex < block.getStartCharIndex() && block._textArea != null)
-                block.resetTextBoxRange();
-            else break;
-        }
     }
 
 }

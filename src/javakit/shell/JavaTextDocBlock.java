@@ -1,7 +1,7 @@
 package javakit.shell;
 import javakit.parse.JStmtBlock;
 import javakit.text.JavaTextArea;
-import snap.text.TextBox;
+import snap.text.SubText;
 import snap.text.TextLine;
 
 /**
@@ -64,16 +64,6 @@ public class JavaTextDocBlock {
     }
 
     /**
-     * Returns the number of lines.
-     */
-    public int getLineCount()
-    {
-        int startLineIndex = _startLine.getIndex();
-        int endLineIndex = _endLine.getIndex();
-        return endLineIndex - startLineIndex;
-    }
-
-    /**
      * Returns a JavaTextArea.
      */
     public JavaTextArea getTextArea()
@@ -81,29 +71,19 @@ public class JavaTextDocBlock {
         // If already set, just return
         if (_textArea != null) return _textArea;
 
+        // Get SubText
+        int startCharIndex = getStartCharIndex();
+        int endCharIndex = getEndCharIndex();
+        SubText subText = new SubText(_javaDoc, startCharIndex, endCharIndex);
+
         // Create/config
         _textArea = new JavaTextArea();
-        _textArea.setTextDoc(_javaDoc);
-        resetTextBoxRange();
+        _textArea.setRoundingRadius(4);
+        _textArea.setShowPrintMargin(false);
+        _textArea.setTextDoc(subText);
 
         // Return
         return _textArea;
-    }
-
-    /**
-     * Resets the TextBox start/end char index.
-     */
-    public void resetTextBoxRange()
-    {
-        // If no TextArea, just return
-        if (_textArea == null) return;
-
-        // Set TextBox char range
-        TextBox textBox = _textArea.getTextBox();
-        int startCharIndex = getStartCharIndex();
-        int endCharIndex = getEndCharIndex();
-        textBox.setStartCharIndex(startCharIndex);
-        textBox.setEndCharIndex(endCharIndex);
     }
 
     /**
