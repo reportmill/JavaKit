@@ -164,7 +164,7 @@ public class JavaTextDoc extends TextDoc {
         endCharIndex = endLine.getStart();
 
         // Add block chars
-        addChars("{\n\n}\n\n", null, endCharIndex);
+        addChars("{\n}\n\n", null, endCharIndex);
 
         // Get new last init decl statement block
         JStmtBlock[] initBlocks = getInitDeclBlocks();
