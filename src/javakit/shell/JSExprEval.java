@@ -191,7 +191,7 @@ public class JSExprEval {
         // Get method
         JavaMethod method = anExpr.getDecl();
         if (method == null)
-            throw new NoSuchMethodException("JEvalExpr: Method not found for " + anExpr.getName());
+            throw new NoSuchMethodException("JSExprEval: Method not found for " + anExpr.getName());
 
         // Get arg info
         Object thisObj = thisObject();

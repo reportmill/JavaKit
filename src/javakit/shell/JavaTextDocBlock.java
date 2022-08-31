@@ -12,6 +12,9 @@ public class JavaTextDocBlock {
     // The JavaTextDoc that contains this object
     private JavaTextDoc  _javaDoc;
 
+    // The SubText of full Java text for code block
+    private SubText  _subText;
+
     // The start/end line of block
     private TextLine  _startLine, _endLine;
 
@@ -26,11 +29,20 @@ public class JavaTextDocBlock {
         // Set doc
         _javaDoc = aJavaDoc;
 
-        // Set start/end line
-        int startCharIndex = blockStmt.getStart();
-        int endCharIndex = blockStmt.getEnd();
-        _startLine = _javaDoc.getLineForCharIndex(startCharIndex);
-        _endLine = _javaDoc.getLineForCharIndex(endCharIndex);
+        // Set start/end char indexes for code block ( " { ... } ")
+        int blockStart = blockStmt.getStart();
+        int blockEnd = blockStmt.getEnd();
+
+        // Get start/end lines indexes
+        _startLine = _javaDoc.getLineForCharIndex(blockStart);
+        _endLine = _javaDoc.getLineForCharIndex(blockEnd);
+
+        // Get code start/end char index (inside of brackets)
+        int codeStartIndex = _startLine.getEnd();
+        int codeEndIndex = _endLine.getStart();
+
+        // Create subText
+        _subText = new SubText(_javaDoc, codeStartIndex, codeEndIndex);
     }
 
     /**
@@ -46,12 +58,12 @@ public class JavaTextDocBlock {
     /**
      * Returns the start char index.
      */
-    public int getStartCharIndex()  { return _startLine.getEnd(); }
+    public int getStartCharIndex()  { return _subText.getStartCharIndex(); }
 
     /**
      * Returns the end char index.
      */
-    public int getEndCharIndex()  { return _endLine.getStart(); }
+    public int getEndCharIndex()  { return _subText.getEndCharIndex(); }
 
     /**
      * Returns the length.
@@ -71,16 +83,11 @@ public class JavaTextDocBlock {
         // If already set, just return
         if (_textArea != null) return _textArea;
 
-        // Get SubText
-        int startCharIndex = getStartCharIndex();
-        int endCharIndex = getEndCharIndex();
-        SubText subText = new SubText(_javaDoc, startCharIndex, endCharIndex);
-
         // Create/config
         _textArea = new JavaTextArea();
         _textArea.setRoundingRadius(4);
         _textArea.setShowPrintMargin(false);
-        _textArea.setTextDoc(subText);
+        _textArea.setTextDoc(_subText);
 
         // Return
         return _textArea;
@@ -91,9 +98,15 @@ public class JavaTextDocBlock {
      */
     public String getString()
     {
-        int startCharIndex = getStartCharIndex();
-        int endCharIndex = getEndCharIndex();
-        String str = _javaDoc.subSequence(startCharIndex, endCharIndex).toString().trim();
-        return str;
+        return _subText.getString();
+    }
+
+    /**
+     * Returns whether block is empty.
+     */
+    public boolean isEmpty()
+    {
+        String string = getString().trim();
+        return string.length() == 0;
     }
 }
