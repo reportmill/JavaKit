@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javakit.parse.*;
 import javakit.reflect.*;
-import snap.web.WebFile;
 
 /**
  * A class to provide code completion suggestions for a given JNode.
@@ -20,9 +19,6 @@ public class JavaCompleter {
 
     // The resolver
     private Resolver  _resolver;
-
-    // The project
-    private Project  _proj;
 
     // The list of suggestions
     List<JavaDecl> _list = new ArrayList<>();
@@ -43,18 +39,13 @@ public class JavaCompleter {
         // Set node
         _node = aNode;
 
-        // Get Node JFile, SourceFile
-        JFile nodeFile = aNode.getFile();
-        WebFile sourceFile = nodeFile.getSourceFile();
-        if (sourceFile == null) {
-            System.err.println("JavaCompleter: No SourceFile for node"); return new JavaDecl[0]; }
-
         // Get SourceFile Project
-        _proj = Project.getProjectForFile(sourceFile);
-        _proj = _proj != null ? _proj.getRootProject() : null;
-        _resolver = _proj != null ? _proj.getResolver() : null;
+        _resolver = aNode.getResolver();
         if (_resolver == null) {
-            System.err.println("JavaCompleter: No resolver for source file: " + sourceFile.getPath());
+            JFile jfile = aNode.getFile();
+            JClassDecl classDecl = jfile.getClassDecl();
+            String className = classDecl != null ? classDecl.getName() : "Unknown";
+            System.err.println("JavaCompleter: No resolver for source file: " + className);
             return new JavaDecl[0];
         }
 
@@ -108,7 +99,7 @@ public class JavaCompleter {
         String prefix = aJType.getName();
 
         // Get class names for prefix
-        ClassPathInfo classPathInfo = _proj.getClassPathInfo();
+        ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
         List<String> classNamesForPrefix = classPathInfo.getClassNamesForPrefix(prefix);
 
         // Handle JType as AllocExpr
@@ -148,7 +139,7 @@ public class JavaCompleter {
     {
         // Get prefix string
         String prefix = anId.getName();
-        ClassPathInfo classPathInfo = _proj.getClassPathInfo();
+        ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
 
         // If there is a parent expression, work from it
         JExpr parExpr = anId.getParentExpr();

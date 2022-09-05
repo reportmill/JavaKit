@@ -2,6 +2,7 @@ package javakit.resolver;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javakit.reflect.Resolver;
 import snap.util.*;
 import snap.web.*;
 
@@ -22,7 +23,7 @@ public class ClassPathInfo {
     /**
      * Constructor.
      */
-    public ClassPathInfo(Project aProj)
+    public ClassPathInfo(Resolver aResolver)
     {
         // Add JRE jar file site
         WebURL jreURL = WebURL.getURL(List.class);
@@ -31,7 +32,7 @@ public class ClassPathInfo {
         sites.add(jreSite);
 
         // Get Project ClassPaths (build dirs, jar files)
-        String[] classPaths = aProj.getClassPaths(); // Was ProjectSet JK
+        String[] classPaths = aResolver.getClassPaths(); // Was ProjectSet JK
 
         // Add project class path sites (build dirs, jar files)
         for (String classPath : classPaths) {

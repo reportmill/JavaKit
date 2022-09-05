@@ -7,6 +7,7 @@ import javakit.parse.*;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.NodeMatcher;
+import javakit.shell.JavaTextDoc;
 import snap.geom.RoundRect;
 import snap.geom.Shape;
 import snap.gfx.*;
@@ -86,7 +87,7 @@ public class JavaTextArea extends TextArea {
     public void activatePopupList()
     {
         // Get suggestions
-        JNode selectedNode = getSelectedNode();
+        JNode selectedNode = getSelNode();
         JavaCompleter javaCompleter = new JavaCompleter();
         JavaDecl[] sugs = javaCompleter.getSuggestions(selectedNode);
         if (sugs.length == 0) // || !doReplace && !isVariableFieldOrMethod(suggestions[0]))
@@ -116,7 +117,7 @@ public class JavaTextArea extends TextArea {
         if (javaPopup.isShowing()) {
 
             // Get suggestions
-            JNode node = getSelectedNode();
+            JNode node = getSelNode();
             boolean atEnd = isSelEmpty() && getSelStart() == node.getEnd();
             JavaCompleter javaCompleter = new JavaCompleter();
             JavaDecl[] sugs = atEnd ? javaCompleter.getSuggestions(node) : null;
@@ -174,8 +175,33 @@ public class JavaTextArea extends TextArea {
      */
     public JFile getJFile()
     {
-        JavaTextBox textBox = getTextBox();
-        return textBox.getJFile();
+        //JavaTextBox textBox = getTextBox();
+        TextDoc textDoc = getTextDoc();
+        if (textDoc instanceof SubText)
+            textDoc = ((SubText) textDoc).getTextDoc();
+
+        // Get JavaTextDoc and forward
+        JavaTextDoc javaTextDoc = (JavaTextDoc) textDoc;
+        return javaTextDoc.getJFile();
+    }
+
+    /**
+     * Returns the node at given start/end char indexes.
+     */
+    public JNode getNodeAtCharIndex(int startCharIndex, int endCharIndex)
+    {
+        // If TextDoc is SubText, adjust start/end
+        TextDoc textDoc = getTextDoc();
+        if (textDoc instanceof SubText) {
+            SubText subText = (SubText) textDoc;
+            int subTextStart = subText.getStartCharIndex();
+            startCharIndex += subTextStart;
+            endCharIndex += subTextStart;
+        }
+
+        // Forward to JFile
+        JFile jfile = getJFile();
+        return jfile.getNodeAtCharIndex(startCharIndex, endCharIndex);
     }
 
     /**
@@ -183,33 +209,36 @@ public class JavaTextArea extends TextArea {
      */
     public void setSel(int aStart, int anEnd)
     {
+        // Do normal version
         super.setSel(aStart, anEnd);
-        JNode node = getJFile().getNodeAtCharIndex(getSelStart(), getSelEnd());
-        setSelectedNode(node);
+
+        // Get node for selection
+        int selStart = getSelStart(), selEnd = getSelEnd();
+        JNode node = getNodeAtCharIndex(selStart, selEnd);
+
+        // Select node
+        setSelNode(node);
     }
 
     /**
      * Returns the selected JNode.
      */
-    public JNode getSelectedNode()
-    {
-        return _selNode;
-    }
+    public JNode getSelNode()  { return _selNode; }
 
     /**
      * Sets the selected JNode.
      */
-    public void setSelectedNode(JNode aNode)
+    public void setSelNode(JNode aNode)
     {
         // If already set, just return
-        if (aNode == getSelectedNode()) return;
+        if (aNode == getSelNode()) return;
 
         // Set value
         JNode oldSelNode = _selNode;
         _selNode = _deepNode = aNode;
 
         // Reset tokens
-        setSelectedTokensForNode(aNode);
+        setSelTokensForNode(aNode);
 
         // Reset PopupList
         updatePopupList();
@@ -221,7 +250,7 @@ public class JavaTextArea extends TextArea {
     /**
      * Returns the class name for the currently selected JNode.
      */
-    public Class<?> getSelectedNodeClass()
+    public Class<?> getSelNodeClass()
     {
         JavaClass javaClass = _selNode != null ? _selNode.getEvalClass() : null;
         Class<?> realClass = javaClass != null ? javaClass.getRealClass() : null;
@@ -231,15 +260,12 @@ public class JavaTextArea extends TextArea {
     /**
      * Returns the list of selected tokens.
      */
-    public List<TextBoxToken> getSelectedTokens()
-    {
-        return _tokens;
-    }
+    public List<TextBoxToken> getSelTokens()  { return _tokens; }
 
     /**
      * Sets the list of selected tokens.
      */
-    protected void setSelectedTokens(List<TextBoxToken> theTkns)
+    protected void setSelTokens(List<TextBoxToken> theTkns)
     {
         _tokens.clear();
         _tokens.addAll(theTkns);
@@ -248,8 +274,14 @@ public class JavaTextArea extends TextArea {
     /**
      * Sets the list of selected tokens (should be in background).
      */
-    protected void setSelectedTokensForNode(JNode aNode)
+    protected void setSelTokensForNode(JNode aNode)
     {
+        // This should go
+        if (!(aNode.getStartToken() instanceof TextBoxToken)) {
+            System.out.println("JavaTextArea.setSelTokensForNode: Not TextBoxToken");
+            return;
+        }
+
         // Create list for tokens
         List<TextBoxToken> tokens = new ArrayList<>();
 
@@ -265,16 +297,13 @@ public class JavaTextArea extends TextArea {
         }
 
         // Set tokens
-        setSelectedTokens(tokens);
+        setSelTokens(tokens);
     }
 
     /**
      * Returns the node under the mouse (if command is down).
      */
-    public JNode getHoverNode()
-    {
-        return _hoverNode;
-    }
+    public JNode getHoverNode()  { return _hoverNode; }
 
     /**
      * Sets the node under the mouse (if command is down).
@@ -335,9 +364,10 @@ public class JavaTextArea extends TextArea {
         // Add box around balancing bracket
         if (getSel().getSize() < 2) {
             int ind = getSelStart(), ind2 = -1;
-            char c1 = ind > 0 ? charAt(ind - 1) : 0, c2 = ind < length() ? charAt(ind) : 0;
+            char c1 = ind > 0 ? charAt(ind - 1) : 0;
+            char c2 = ind < length() ? charAt(ind) : 0;
             if (c2 == '{' || c2 == '}') {    // || c2=='(' || c2==')'
-                JNode jnode = getJFile().getNodeAtCharIndex(ind);
+                JNode jnode = getNodeAtCharIndex(ind, ind);
                 ind2 = c2 == '}' ? jnode.getStart() : jnode.getEnd() - 1;
                 if (ind2 + 1 > length()) {
                     System.err.println("JavaTextArea.paintBack: Invalid-A " + ind2);
@@ -346,7 +376,7 @@ public class JavaTextArea extends TextArea {
             }
 
             else if (c1 == '{' || c1 == '}') {  //  || c1=='(' || c1==')'
-                JNode jnode = getJFile().getNodeAtCharIndex(ind - 1);
+                JNode jnode = getNodeAtCharIndex(ind - 1, ind - 1);
                 ind2 = c1 == '}' ? jnode.getStart() : jnode.getEnd() - 1;
                 if (ind2 + 1 > length()) {
                     System.err.println("JavaTextArea.paintBack: Invalid-B" + ind2);
@@ -356,8 +386,10 @@ public class JavaTextArea extends TextArea {
 
             if (ind2 >= 0) {
                 TextBoxLine line = getLineAt(ind2);
-                int s1 = ind2 - line.getStart(), s2 = ind2 + 1 - line.getStart();
-                double x1 = line.getXForChar(s1), x2 = line.getXForChar(s2);
+                int s1 = ind2 - line.getStart();
+                int s2 = ind2 + 1 - line.getStart();
+                double x1 = line.getXForChar(s1);
+                double x2 = line.getXForChar(s2);
                 aPntr.setColor(Color.LIGHTGRAY);
                 aPntr.drawRect(x1, line.getY(), x2 - x1, line.getHeight());
             }
@@ -373,7 +405,7 @@ public class JavaTextArea extends TextArea {
 
         // Paint boxes around selected tokens
         Color tcolor = new Color("#FFF3AA");
-        for (TextBoxToken token : getSelectedTokens()) {
+        for (TextBoxToken token : getSelTokens()) {
             double x = Math.round(token.getTextBoxX()) - 1, w = Math.ceil(token.getTextBoxMaxX()) - x + 1;
             double y = Math.round(token.getTextBoxY()) - 1, h = Math.ceil(token.getTextBoxMaxY()) - y + 1;
             aPntr.setColor(tcolor);
@@ -383,7 +415,9 @@ public class JavaTextArea extends TextArea {
         // If HoverNode, underline
         if (_hoverNode != null) {
             TextBoxToken ttoken = (TextBoxToken) _hoverNode.getStartToken();
-            double x1 = ttoken.getTextBoxX(), y = ttoken.getTextBoxStringY() + 1, x2 = x1 + ttoken.getWidth();
+            double x1 = ttoken.getTextBoxX();
+            double y = ttoken.getTextBoxStringY() + 1;
+            double x2 = x1 + ttoken.getWidth();
             aPntr.setColor(Color.BLACK);
             aPntr.drawLine(x1, y, x2, y);
         }
@@ -408,10 +442,10 @@ public class JavaTextArea extends TextArea {
             char c2 = c1 != 0 ? charAt(start + 1) : 0;
             switch (keyChar) {
                 case '\'':
-                    if (c2 == '\'' && getSelectedNode() instanceof JExprLiteral) start = -9;
+                    if (c2 == '\'' && getSelNode() instanceof JExprLiteral) start = -9;
                     break;
                 case '"':
-                    if (c2 == '"' && getSelectedNode() instanceof JExprLiteral) start = -9;
+                    if (c2 == '"' && getSelNode() instanceof JExprLiteral) start = -9;
                     break;
                 case ')':
                     if (c1 == '(' && c2 == ')') start = -9;

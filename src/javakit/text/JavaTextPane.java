@@ -175,7 +175,7 @@ public class JavaTextPane extends TextPane {
         Font font = Font.get("Arial", 11);
 
         // Iterate up from DeepPart and add parts
-        JNode deepNode = getTextArea()._deepNode, selNode = getTextArea().getSelectedNode();
+        JNode deepNode = getTextArea()._deepNode, selNode = getTextArea().getSelNode();
         for (JNode part = deepNode, spart = selNode; part != null; part = part.getParent()) {
             Label label = new Label();
             label.setText(part.getNodeString());
@@ -287,15 +287,15 @@ public class JavaTextPane extends TextPane {
 
             // Handle OpenDeclarationMenuItem
         else if (anEvent.equals("OpenDeclarationMenuItem"))
-            openDeclaration(_textArea.getSelectedNode());
+            openDeclaration(_textArea.getSelNode());
 
             // Handle ShowReferencesMenuItem
         else if (anEvent.equals("ShowReferencesMenuItem"))
-            showReferences(_textArea.getSelectedNode());
+            showReferences(_textArea.getSelNode());
 
             // Handle ShowDeclarationsMenuItem
         else if (anEvent.equals("ShowDeclarationsMenuItem"))
-            showDeclarations(_textArea.getSelectedNode());
+            showDeclarations(_textArea.getSelNode());
 
             // Handle NodePathLabel
         else if (anEvent.equals("NodePathLabel")) {
@@ -321,7 +321,7 @@ public class JavaTextPane extends TextPane {
     public String getJavaDocText()
     {
         // Get class name for selected JNode
-        Class<?> selNodeClass = _textArea.getSelectedNodeClass();
+        Class<?> selNodeClass = _textArea.getSelNodeClass();
         if (selNodeClass == null)
             return null;
         if (selNodeClass.isArray())
@@ -346,7 +346,7 @@ public class JavaTextPane extends TextPane {
     public String getJavaDocURL()
     {
         // Get class name for selected JNode
-        Class<?> selNodeClass = _textArea.getSelectedNodeClass();
+        Class<?> selNodeClass = _textArea.getSelNodeClass();
         if (selNodeClass == null)
             return null;
         if (selNodeClass.isArray())

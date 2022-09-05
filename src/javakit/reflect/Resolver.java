@@ -4,6 +4,7 @@
 package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
+import javakit.resolver.ClassPathInfo;
 import snap.util.ClassUtils;
 import snap.util.SnapUtils;
 
@@ -14,6 +15,12 @@ public class Resolver {
 
     // The ClassLoader for compiled class info
     protected ClassLoader  _classLoader;
+
+    // The ClassPaths
+    private String[]  _classPaths = new String[0];
+
+    // The ClassPathInfo
+    private ClassPathInfo  _classPathInfo;
 
     // A cache of JavaPackages by name
     private Map<String,JavaPackage>  _packages = new HashMap<>();
@@ -36,6 +43,32 @@ public class Resolver {
     public Resolver(ClassLoader aClassLoader)
     {
         _classLoader = aClassLoader;
+    }
+
+    /**
+     * Returns the ClassPaths.
+     */
+    public String[] getClassPaths()  { return _classPaths; }
+
+    /**
+     * Sets the ClassPaths.
+     */
+    public void setClassPaths(String[] theClassPaths)
+    {
+        _classPaths = theClassPaths;
+    }
+
+    /**
+     * Returns the ClassPathInfo.
+     */
+    public ClassPathInfo getClassPathInfo()
+    {
+        // If already set, just return
+        if (_classPathInfo != null) return _classPathInfo;
+
+        // Create, set, return
+        ClassPathInfo classPathInfo = new ClassPathInfo(this);
+        return _classPathInfo = classPathInfo;
     }
 
     /**

@@ -89,7 +89,7 @@ public class OverviewPane extends View {
             markers.add(new BuildIssueMarker(issue));
 
         // Add markers for TextArea.SelectedTokens
-        List<TextBoxToken> tokens = _textArea.getSelectedTokens();
+        List<TextBoxToken> tokens = _textArea.getSelTokens();
         for (TextBoxToken token : tokens)
             markers.add(new TokenMarker(token));
 

@@ -8,7 +8,6 @@ import snap.text.TextDoc;
 import snap.text.TextDocUtils;
 import snap.text.TextLine;
 import snap.util.ArrayUtils;
-
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -19,6 +18,9 @@ public class JavaTextDoc extends TextDoc {
 
     // The parsed Java file
     private JFile  _jfile;
+
+    // The parser to parse Java
+    private JavaParser  _javaParser;
 
     // The blocks
     private JavaTextDocBlock[]  _blocks = new JavaTextDocBlock[0];
@@ -40,13 +42,31 @@ public class JavaTextDoc extends TextDoc {
         if (_jfile != null) return _jfile;
 
         // Get parsed java file
-        JavaParser javaParser = JavaParser.getShared();
+        JavaParser javaParser = getJavaParser();
         String javaStr = getString();
         JFile jfile = javaParser.getJavaFile(javaStr);
 
         // Set, return
         return _jfile = jfile;
     }
+
+    /**
+     * Returns the parser to parse java file.
+     */
+    public JavaParser getJavaParser()
+    {
+        // If already set, just return
+        if (_javaParser != null) return _javaParser;
+
+        // Create, set, return
+        JavaParser javaParser = JavaParser.getShared();
+        return _javaParser = javaParser;
+    }
+
+    /**
+     * Sets the parser to parse java file.
+     */
+    public void setJavaParser(JavaParser aJavaParser)  { _javaParser = aJavaParser; }
 
     /**
      * Override to parse blocks.

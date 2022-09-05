@@ -61,17 +61,34 @@ public class JavaPopupList extends PopupList<JavaDecl> {
      */
     public void applySuggestion(JavaDecl aDecl)
     {
-        // Add suggestion text
-        JavaTextArea textArea = getTextArea();
-        JNode selectedNode = textArea.getSelectedNode();
+        // Get completeString
         String completion = aDecl.getReplaceString();
-        int selStart = selectedNode.getStart();
-        textArea.replaceChars(completion, null, selStart, textArea.getSelEnd(), false);
-        int argStart = completion.indexOf('('), argEnd = argStart > 0 ? completion.indexOf(')', argStart) : -1;
-        if (argEnd > argStart + 1) textArea.setSel(selStart + argStart + 1, selStart + argEnd);
+
+        // Get start/stop char index for completion (adjust for SubText if needed)
+        JavaTextArea textArea = getTextArea();
+        JNode selNode = textArea.getSelNode();
+        int selStart = selNode.getStart();
+        int selEnd = textArea.getSelEnd();
+
+        // Adjust for SubText if needed
+        TextDoc textDoc = textArea.getTextDoc();
+        if (textDoc instanceof SubText)
+            selStart -= ((SubText) textDoc).getStartCharIndex();
+
+        // Replace selection with completeString
+        textArea.replaceChars(completion, null, selStart, selEnd, false);
+
+        // If complete string has args, select inside
+        int argStart = completion.indexOf('(');
+        if (argStart > 0) {
+            int argEnd = completion.indexOf(')', argStart);
+            if (argEnd > argStart + 1)
+                textArea.setSel(selStart + argStart + 1, selStart + argEnd);
+        }
 
         // Add import for suggestion Class, if not present
-        addImport(aDecl, selectedNode.getFile());
+        JFile jfile = selNode.getFile();
+        addImport(aDecl, jfile);
 
         // Hide PopupList
         hide();

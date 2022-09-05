@@ -4,6 +4,7 @@
 package javakit.parse;
 import java.util.*;
 import java.util.stream.Stream;
+import javakit.reflect.Resolver;
 import snap.parse.*;
 
 /**
@@ -11,6 +12,9 @@ import snap.parse.*;
  */
 @SuppressWarnings({"unused", "StringEquality"})
 public class JavaParser extends JavaParserStmt {
+
+    // The Resolver
+    private Resolver  _resolver;
 
     // The exception, if one was hit
     private Exception  _exception;
@@ -34,6 +38,16 @@ public class JavaParser extends JavaParserStmt {
     {
         super();
     }
+
+    /**
+     * Returns the Resolver that is attached to parsed Java file.
+     */
+    public Resolver getResolver()  { return _resolver; }
+
+    /**
+     * Sets the Resolver that is attached to parsed Java file.
+     */
+    public void setResolver(Resolver aResolver)  { _resolver = aResolver; }
 
     /**
      * Returns the shared parser.
@@ -100,20 +114,23 @@ public class JavaParser extends JavaParserStmt {
         // Clear exception
         _exception = null;
 
+        // If no input, just return
+        if (anInput == null || anInput.length() == 0) return null;
+
         // Get parse node
         ParseNode node = null;
-        try {
-            node = anInput != null && anInput.length() > 0 ? parse(anInput) : null;
-        }
+        try { node = parse(anInput); }
 
         catch (ParseException e) {
-            if (_exception == null) _exception = e;
+            if (_exception == null)
+                _exception = e;
         }
 
         catch (Exception e) {
             _exception = e;
             Token t = getToken();
-            if (t != null) System.err.println("Exeption at line " + (t.getLineIndex() + 1));
+            if (t != null)
+                System.err.println("Exeption at line " + (t.getLineIndex() + 1));
             e.printStackTrace();
         }
 
@@ -122,8 +139,10 @@ public class JavaParser extends JavaParserStmt {
         if (jfile == null)
             jfile = new JFile();
 
-        // Set exception
+        // Set Exception, Resolver
         jfile.setException(_exception);
+        if (_resolver != null)
+            jfile.setResolver(_resolver);
 
         // Return
         return jfile;

@@ -22,9 +22,6 @@ public class Project {
     // ProjectFiles
     protected ProjectFiles  _projFiles;
 
-    // ClassPathInfo
-    private ClassPathInfo  _classPathInfo;
-
     // The resolver
     protected Resolver  _resolver;
 
@@ -114,6 +111,8 @@ public class Project {
         // Create Resolver
         ClassLoader classLoader = getClassLoader();
         Resolver resolver = Resolver.newResolverForClassLoader(classLoader);
+        String[] classPaths = getClassPaths();
+        resolver.setClassPaths(classPaths);
 
         // Set, return
         return _resolver = resolver;
@@ -169,21 +168,6 @@ public class Project {
     public ProjectFiles getProjectFiles()  { return _projFiles; }
 
     /**
-     * Returns ClassPathInfo.
-     */
-    public ClassPathInfo getClassPathInfo()
-    {
-        // If already set, just return
-        if (_classPathInfo != null) return _classPathInfo;
-
-        // Create
-        ClassPathInfo classPathInfo = new ClassPathInfo(this);
-
-        // Set/return
-        return _classPathInfo = classPathInfo;
-    }
-
-    /**
      * Returns the source directory.
      */
     public WebFile getSourceDir()
@@ -236,8 +220,10 @@ public class Project {
      */
     private void projConfigDidPropChange(PropChange anEvent)
     {
-        if (anEvent.getPropertyName() == ProjectConfig.JarPaths_Prop)
-            _classPathInfo = null;
+        if (anEvent.getPropertyName() == ProjectConfig.JarPaths_Prop) {
+            _resolver = null;
+            _classLoader = null;
+        }
     }
 
     /**

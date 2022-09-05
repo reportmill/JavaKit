@@ -67,7 +67,7 @@ public class CodeBuilder extends ViewOwner {
     public void setCodeBlocks()
     {
         // Get SelectedNode (or first node parent with class) and its class
-        _node = getTextArea().getSelectedNode();
+        _node = getTextArea().getSelNode();
         while (_node != null && _node.getEvalClass() == null)
             _node = _node.getParent();
 
