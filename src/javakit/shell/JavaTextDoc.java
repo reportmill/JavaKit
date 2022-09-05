@@ -200,12 +200,24 @@ public class JavaTextDoc extends TextDoc {
      */
     public JStmt[] getStatementsForJavaNode(JNode aJNode)
     {
+        // Get last line for node
         int childCount = aJNode.getChildCount();
         JNode lastChild = aJNode.getChild(childCount - 1);
         int lastLineIndex = lastChild.getEndToken().getLineIndex();
-        JStmt[] stmtArray = new JStmt[lastLineIndex];
 
+        // Create statement array and load
+        JStmt[] stmtArray = new JStmt[lastLineIndex];
         getStatementsForJavaNode(aJNode, stmtArray);
+
+        // Iterate over statement array and if partial VarDecl if needed
+        for (JStmt stmt : stmtArray) {
+            if (JavaShellUtils.isIncompleteVarDecl(stmt)) {
+                JStmtBlock blockStmt = stmt.getParent(JStmtBlock.class);
+                JavaShellUtils.fixIncompleteVarDecl(stmt, blockStmt);
+            }
+        }
+
+        // Return
         return stmtArray;
     }
 
@@ -214,20 +226,15 @@ public class JavaTextDoc extends TextDoc {
      */
     private void getStatementsForJavaNode(JNode aJNode, JStmt[] stmtArray)
     {
+        // Handle statement node (but not block), get line index and set in array
         if (aJNode instanceof JStmt && !(aJNode instanceof JStmtBlock)) {
-
-            // Get statement - If partial VarDecl if needed
             JStmt stmt = (JStmt) aJNode;
-            if (JavaShellUtils.isIncompleteVarDecl(stmt)) {
-                JStmtBlock blockStmt = stmt.getParent(JStmtBlock.class);
-                JavaShellUtils.fixIncompleteVarDecl(stmt, blockStmt);
-            }
             int lineIndex = stmt.getLineIndex();
             stmtArray[lineIndex] = (JStmt) aJNode;
             return;
         }
 
-        // Get node children
+        // Handle any node: Iterate over children and recurse
         List<JNode> children = aJNode.getChildren();
         for (JNode child : children)
             getStatementsForJavaNode(child, stmtArray);
@@ -257,4 +264,42 @@ public class JavaTextDoc extends TextDoc {
         _jfile = null;
     }
 
+    /**
+     * Copies this JavaTextDoc for REPL. Converts simple initializer blocks/entries to static decls.
+     */
+    public JavaTextDoc copyForREPL()
+    {
+        // Do normal copy
+        JavaTextDoc copy = (JavaTextDoc) clone();
+
+        // Get initializer blocks
+        JStmtBlock[] initDecls = copy.getInitDeclBlocks();
+
+        // Convert initializer blocks
+        for (int i = initDecls.length - 1; i >= 0; i--) {
+            JStmtBlock initBlock = initDecls[i];
+            copy.convertInitBlock(initBlock, i == 0, i == initDecls.length - 1);
+        }
+
+        // Return
+        return copy;
+    }
+
+    /**
+     * Converts an initializer block.
+     */
+    private void convertInitBlock(JStmtBlock initBlock, boolean isFirst, boolean isLast)
+    {
+        // Replace open bracket with space
+        if (!isFirst) {
+            int startCharIndex = initBlock.getStart();
+            replaceChars(" ", startCharIndex, startCharIndex + 1);
+        }
+
+        // Replace close bracket with space
+        if (!isLast) {
+            int endCharIndex = initBlock.getEnd();
+            replaceChars(" ", endCharIndex - 1, endCharIndex);
+        }
+    }
 }
