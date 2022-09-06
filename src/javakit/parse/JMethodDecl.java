@@ -234,7 +234,7 @@ public class JMethodDecl extends JMemberDecl {
     /**
      * Returns a variable with given name.
      */
-    public List<JVarDecl> getVarDecls(String aPrefix, List<JVarDecl> theVariables)
+    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> theVariables)
     {
         // Iterate over statements and see if any JStmtVarDecl contains variable with that name
         if (_block != null)
@@ -253,7 +253,7 @@ public class JMethodDecl extends JMemberDecl {
                 theVariables.add(v);
 
         // Do normal version
-        return super.getVarDecls(aPrefix, theVariables);
+        return super.getVarDeclsForPrefix(aPrefix, theVariables);
     }
 
     /**

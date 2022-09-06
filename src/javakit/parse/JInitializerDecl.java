@@ -2,6 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
+import javakit.reflect.JavaDecl;
+import java.util.List;
 
 /**
  * A JMemberDecl for Initializer declarations.
@@ -46,4 +48,59 @@ public class JInitializerDecl extends JMemberDecl {
         replaceChild(_block, _block = aBlock);
     }
 
+    /**
+     * Override to add REPL hack to check prior JInitDecls for VarDecl matching node name.
+     */
+    @Override
+    protected JavaDecl getDeclImpl(JNode aNode)
+    {
+        // Do normal version - just return if successful
+        JavaDecl decl = super.getDeclImpl(aNode);
+        if (decl != null)
+            return decl;
+
+        // Get enclosing class initDecls
+        JClassDecl classDecl = getEnclosingClassDecl();
+        JInitializerDecl[] initDecls = classDecl.getInitDecls();
+
+        // Iterate over initDecls
+        for (JInitializerDecl initDecl : initDecls) {
+            if (initDecl == this)
+                break;
+            JStmtBlock initDeclBlock = initDecl.getBlock();
+            List<JStmt> initDeclStmts = initDeclBlock.getStatements();
+            JVarDecl varDecl = JStmtBlock.getVarDeclForNameFromStatements(aNode, initDeclStmts);
+            if (varDecl != null)
+                return varDecl.getDecl();
+        }
+
+        // Return not found
+        return null;
+    }
+
+    /**
+     * Override to add REPL hack to check prior JInitDecls for VarDecl matching node name.
+     */
+    @Override
+    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> varDeclList)
+    {
+        // Do normal version
+        super.getVarDeclsForPrefix(aPrefix, varDeclList);
+
+        // Get enclosing class initDecls
+        JClassDecl classDecl = getEnclosingClassDecl();
+        JInitializerDecl[] initDecls = classDecl.getInitDecls();
+
+        // Iterate over initDecls
+        for (JInitializerDecl initDecl : initDecls) {
+            if (initDecl == this)
+                break;
+            JStmtBlock initDeclBlock = initDecl.getBlock();
+            List<JStmt> initDeclStmts = initDeclBlock.getStatements();
+            JStmtBlock.getVarDeclsForPrefixFromStatements(aPrefix, initDeclStmts, varDeclList);
+        }
+
+        // Return
+        return varDeclList;
+    }
 }

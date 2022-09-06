@@ -184,7 +184,7 @@ public class JavaCompleter {
             return;
 
         // Get variables with prefix of name and add to completions
-        List<JVarDecl> varDecls = aNode.getVarDecls(prefix, new ArrayList<>());
+        List<JVarDecl> varDecls = aNode.getVarDeclsForPrefix(prefix, new ArrayList<>());
         for (JVarDecl varDecl : varDecls)
             addCompletionDecl(varDecl.getDecl());
 

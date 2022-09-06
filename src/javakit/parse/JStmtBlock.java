@@ -48,6 +48,7 @@ public class JStmtBlock extends JStmt {
     /**
      * Returns the statement block.
      */
+    @Override
     public JStmtBlock getBlock()
     {
         return this;
@@ -56,6 +57,7 @@ public class JStmtBlock extends JStmt {
     /**
      * Override to check inner variable declaration statements.
      */
+    @Override
     protected JavaDecl getDeclImpl(JNode aNode)
     {
         // Get VarDecl for name from statements
@@ -64,29 +66,28 @@ public class JStmtBlock extends JStmt {
         if (varDecl != null)
             return varDecl.getDecl();
 
-        // REPL processing hack: If in InitDecl, check preceeding init decls
-        JNode blockParent = getParent();
-        if (blockParent instanceof JInitializerDecl) {
-            JInitializerDecl initDeclPar = (JInitializerDecl) blockParent;
-            JClassDecl classDecl = initDeclPar.getEnclosingClassDecl();
-            JInitializerDecl[] initDecls = classDecl.getInitDecls();
-            for (JInitializerDecl initDecl : initDecls) {
-                if (initDecl == initDeclPar)
-                    break;
-                JStmtBlock initDeclBlock = initDecl.getBlock();
-                List<JStmt> initDeclStmts = initDeclBlock.getStatements();
-                varDecl = getVarDeclForNameFromStatements(aNode, initDeclStmts);
-                if (varDecl != null)
-                    return varDecl.getDecl();
-            }
-        }
-
         // Do normal version
         return super.getDeclImpl(aNode);
     }
 
     /**
-     * Override to check inner variable declaration statements.
+     * Finds JVarDecls for given prefix and adds them to given list.
+     */
+    @Override
+    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> varDeclList)
+    {
+        // Get statements
+        List<JStmt> statements = getStatements();
+
+        // Get VarDecls for prefix from statements
+        getVarDeclsForPrefixFromStatements(aPrefix, statements, varDeclList);
+
+        // Do normal version
+        return super.getVarDeclsForPrefix(aPrefix, varDeclList);
+    }
+
+    /**
+     * Finds JVarDecls for given Node.Name in given statements and adds them to given list.
      */
     public static JVarDecl getVarDeclForNameFromStatements(JNode aNode, List<JStmt> theStmts)
     {
@@ -130,22 +131,24 @@ public class JStmtBlock extends JStmt {
     }
 
     /**
-     * Returns a variable with given name.
+     * Finds JVarDecls for given Node.Name in given statements and adds them to given list.
      */
-    @Override
-    public List<JVarDecl> getVarDecls(String aPrefix, List<JVarDecl> theVDs)
+    public static void getVarDeclsForPrefixFromStatements(String aPrefix, List<JStmt> theStmts, List<JVarDecl> varDeclList)
     {
         // Iterate over statements and see if any JStmtVarDecl contains variable with that name
-        for (JStmt s : getStatements()) {
-            if (!(s instanceof JStmtVarDecl)) continue;
-            JStmtVarDecl vds = (JStmtVarDecl) s;
-            for (JVarDecl vd : vds.getVarDecls())
-                if (StringUtils.startsWithIC(vd.getName(), aPrefix))
-                    theVDs.add(vd);
+        for (JStmt stmt : theStmts) {
+
+            // Skip non-VarDecl statements
+            if (!(stmt instanceof JStmtVarDecl)) continue;
+
+            // Get varDeclStmt.VarDecls
+            JStmtVarDecl varDeclStmt = (JStmtVarDecl) stmt;
+            List<JVarDecl> varDecls = varDeclStmt.getVarDecls();
+
+            // Iterate over VarDecls and add those that match prefix
+            for (JVarDecl varDecl : varDecls)
+                if (StringUtils.startsWithIC(varDecl.getName(), aPrefix))
+                    varDeclList.add(varDecl);
         }
-
-        // Do normal version
-        return super.getVarDecls(aPrefix, theVDs);
     }
-
 }

@@ -372,23 +372,35 @@ public class JClassDecl extends JMemberDecl {
      */
     protected String getNameImpl()
     {
-        // If enclosing class,
-        JClassDecl ecd = getEnclosingClassDecl();
+        // Get anonymous class name (number really)
+        if (isAnonymousClass())
+            return getAnonymousClassName();
 
-        // See if is inner class
-        if (ecd != null) {
-            JClassDecl[] classDecls = ecd.getClassDecls();
-            for (int i = 0, iMax = classDecls.length, j = 1; i < iMax; i++) {
-                JClassDecl cd = classDecls[i];
-                if (cd == this)
-                    return Integer.toString(j);
-                if (cd.isAnonymousClass())
-                    j++;
-            }
+        // Return not found
+        System.err.println("JClassDecl.getNameImpl: Name not found");
+        return null;
+    }
+
+    /**
+     * Returns the simple name.
+     */
+    protected String getAnonymousClassName()
+    {
+        // Get enclosingClass and inner class decls
+        JClassDecl enclosingClassDecl = getEnclosingClassDecl();
+        JClassDecl[] classDecls = enclosingClassDecl != null ? enclosingClassDecl.getClassDecls() : new JClassDecl[0];
+        int anonymousIndex = 0;
+
+        // Iterate over inner class decls and return anonymousIndex when this class decl found
+        for (JClassDecl classDecl : classDecls) {
+            if (classDecl == this)
+                return Integer.toString(anonymousIndex);
+            if (classDecl.isAnonymousClass())
+                anonymousIndex++;
         }
 
         // Return not found
-        System.err.println("JClassDecl.createName: Name not found");
+        System.err.println("JClassDecl.getAnonymousClassName: Anonymous inner class not found");
         return null;
     }
 
@@ -566,7 +578,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns a variable with given name.
      */
-    public List<JVarDecl> getVarDecls(String aPrefix, List<JVarDecl> theVDs)
+    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> theVDs)
     {
         // Iterate over statements and see if any JStmtVarDecl contains variable with that name
         for (JMemberDecl memberDecl : _members) {
@@ -580,7 +592,7 @@ public class JClassDecl extends JMemberDecl {
         }
 
         // Do normal version
-        return super.getVarDecls(aPrefix, theVDs);
+        return super.getVarDeclsForPrefix(aPrefix, theVDs);
     }
 
     /**

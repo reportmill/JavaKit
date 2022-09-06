@@ -108,7 +108,10 @@ public class JNode {
      */
     protected JavaDecl getDeclImpl(JNode aNode)
     {
-        return _parent != null ? _parent.getDeclImpl(aNode) : null;
+        // Forward to parent
+        if (_parent != null)
+            return _parent.getDeclImpl(aNode);
+        return null;
     }
 
     /**
@@ -446,12 +449,12 @@ public class JNode {
     }
 
     /**
-     * Fills a given list with variables that start with given prefix.
+     * Finds JVarDecls for given prefix and adds them to given list.
      */
-    public List<JVarDecl> getVarDecls(String aPrefix, List<JVarDecl> theVariables)
+    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> theVariables)
     {
         if (_parent != null)
-            _parent.getVarDecls(aPrefix, theVariables);
+            _parent.getVarDeclsForPrefix(aPrefix, theVariables);
         return theVariables;
     }
 
