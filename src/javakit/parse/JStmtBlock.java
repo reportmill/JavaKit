@@ -64,6 +64,23 @@ public class JStmtBlock extends JStmt {
         if (varDecl != null)
             return varDecl.getDecl();
 
+        // REPL processing hack: If in InitDecl, check preceeding init decls
+        JNode blockParent = getParent();
+        if (blockParent instanceof JInitializerDecl) {
+            JInitializerDecl initDeclPar = (JInitializerDecl) blockParent;
+            JClassDecl classDecl = initDeclPar.getEnclosingClassDecl();
+            JInitializerDecl[] initDecls = classDecl.getInitDecls();
+            for (JInitializerDecl initDecl : initDecls) {
+                if (initDecl == initDeclPar)
+                    break;
+                JStmtBlock initDeclBlock = initDecl.getBlock();
+                List<JStmt> initDeclStmts = initDeclBlock.getStatements();
+                varDecl = getVarDeclForNameFromStatements(aNode, initDeclStmts);
+                if (varDecl != null)
+                    return varDecl.getDecl();
+            }
+        }
+
         // Do normal version
         return super.getDeclImpl(aNode);
     }

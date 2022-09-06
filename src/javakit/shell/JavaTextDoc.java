@@ -3,10 +3,12 @@
  */
 package javakit.shell;
 import javakit.parse.*;
+import snap.gfx.Font;
 import snap.props.PropChange;
 import snap.text.TextDoc;
 import snap.text.TextDocUtils;
 import snap.text.TextLine;
+import snap.text.TextStyle;
 import snap.util.ArrayUtils;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,6 +33,11 @@ public class JavaTextDoc extends TextDoc {
     public JavaTextDoc()
     {
         super();
+
+        TextStyle textStyle = getDefaultStyle();
+        Font font = getDefaultFont();
+        TextStyle textStyle2 = textStyle.copyFor(font);
+        setDefaultStyle(textStyle2);
     }
 
     /**
@@ -45,6 +52,9 @@ public class JavaTextDoc extends TextDoc {
         JavaParser javaParser = getJavaParser();
         String javaStr = getString();
         JFile jfile = javaParser.getJavaFile(javaStr);
+
+        // This sucks
+        getStatementsForJavaNode(jfile);
 
         // Set, return
         return _jfile = jfile;
@@ -226,7 +236,7 @@ public class JavaTextDoc extends TextDoc {
         int lastLineIndex = lastChild.getEndToken().getLineIndex();
 
         // Create statement array and load
-        JStmt[] stmtArray = new JStmt[lastLineIndex];
+        JStmt[] stmtArray = new JStmt[lastLineIndex + 2];
         getStatementsForJavaNode(aJNode, stmtArray);
 
         // Iterate over statement array and if partial VarDecl if needed
@@ -321,5 +331,23 @@ public class JavaTextDoc extends TextDoc {
             int endCharIndex = initBlock.getEnd();
             replaceChars(" ", endCharIndex - 1, endCharIndex);
         }
+    }
+
+    /**
+     * Returns the default font.
+     */
+    private static Font getDefaultFont()
+    {
+        // Get
+        Font defaultFont = Font.Arial10;
+        String[] names = { "Monaco", "Consolas", "Courier" };
+        for (String name : names) {
+            defaultFont = new Font(name, 12);
+            if (defaultFont.getFamily().startsWith(name))
+                break;
+        }
+
+        // Return
+        return defaultFont;
     }
 }

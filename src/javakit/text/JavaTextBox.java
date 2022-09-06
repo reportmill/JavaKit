@@ -146,8 +146,8 @@ public class JavaTextBox extends TextBox {
         }
 
         // Update JFile
-        JFilePlus jfilePlus = getJFile();
-        jfilePlus.updateChars(aStart, endOld, endNew);
+        //JFilePlus jfilePlus = getJFile();
+        //jfilePlus.updateChars(aStart, endOld, endNew);
     }
 
     /**
