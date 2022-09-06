@@ -142,7 +142,7 @@ public class JavaTextArea extends TextArea {
 
         // Get completions and return
         JavaCompleter javaCompleter = new JavaCompleter();
-        JavaDecl[] completions = javaCompleter.getSuggestions(selNode);
+        JavaDecl[] completions = javaCompleter.getCompletionsForNode(selNode);
         return completions;
     }
 

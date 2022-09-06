@@ -70,7 +70,7 @@ public class SnapEditorPopup extends ViewOwner {
         _idText = id.getName();
 
         // Get suggestions
-        JavaDecl suggestions[] = new JavaCompleter().getSuggestions(id);
+        JavaDecl suggestions[] = new JavaCompleter().getCompletionsForNode(id);
         if (suggestions.length == 0) {
             hide();
             return;

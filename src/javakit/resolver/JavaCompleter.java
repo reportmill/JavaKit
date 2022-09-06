@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javakit.parse.*;
 import javakit.reflect.*;
+import snap.parse.Token;
 
 /**
  * A class to provide code completion suggestions for a given JNode.
@@ -20,7 +21,7 @@ public class JavaCompleter {
     // The resolver
     private Resolver  _resolver;
 
-    // The list of suggestions
+    // The list of completions
     List<JavaDecl> _list = new ArrayList<>();
 
     /**
@@ -34,7 +35,7 @@ public class JavaCompleter {
     /**
      * Returns completion for JNode (should be JType or JIdentifier).
      */
-    public JavaDecl[] getSuggestions(JNode aNode)
+    public JavaDecl[] getCompletionsForNode(JNode aNode)
     {
         // Set node
         _node = aNode;
@@ -49,13 +50,16 @@ public class JavaCompleter {
             return new JavaDecl[0];
         }
 
-        // Add suggestions for node
+        // Add completions for node
         if (aNode instanceof JType)
-            getSuggestions((JType) aNode);
+            getCompletionsForType((JType) aNode);
         else if (aNode instanceof JExprId)
-            getSuggestions((JExprId) aNode);
+            getCompletionsForExprId((JExprId) aNode);
+        else if (aNode.getStartToken() == aNode.getEndToken())
+            getCompletionsForNodeString(aNode);
+        else return new JavaDecl[0];
 
-        // Get receiving class and, if 2 letters or less, filter out suggestions that don't apply (unless none do)
+        // Get receiving class and, if 2 letters or less, filter out completions that don't apply (unless none do)
         JavaClass receivingClass = getReceivingClass(aNode);
         if (receivingClass != null && _list.size() > 10 && aNode.getName().length() <= 2) {
             Stream<JavaDecl> sugsStream = _list.stream();
@@ -72,28 +76,9 @@ public class JavaCompleter {
     }
 
     /**
-     * Adds suggestions.
+     * Find completions for JType.
      */
-    private void addDecl(JavaDecl aDecl)
-    {
-        if (aDecl == null)
-            return;
-        _list.add(aDecl);
-    }
-
-    /**
-     * Adds a JavaDecl for object.
-     */
-    private void addJavaPackageForName(String aPackageName)
-    {
-        JavaDecl javaDecl = _node.getJavaPackageForName(aPackageName);
-        addDecl(javaDecl);
-    }
-
-    /**
-     * Find suggestions for JType.
-     */
-    private void getSuggestions(JType aJType)
+    private void getCompletionsForType(JType aJType)
     {
         // Get prefix from type name
         String prefix = aJType.getName();
@@ -119,7 +104,7 @@ public class JavaCompleter {
 
                 // Add constructors
                 for (JavaConstructor constructor : constructors)
-                    addDecl(constructor);
+                    addCompletionDecl(constructor);
             }
         }
 
@@ -127,96 +112,142 @@ public class JavaCompleter {
         else {
             for (String className : classNamesForPrefix) {
                 JavaClass javaClass = _resolver.getJavaClassForName(className);
-                addDecl(javaClass);
+                addCompletionDecl(javaClass);
             }
         }
     }
 
     /**
-     * Find suggestions for JExprId.
+     * Find completions for JExprId.
      */
-    private void getSuggestions(JExprId anId)
+    private void getCompletionsForExprId(JExprId anId)
     {
+        // Get parent expression - if none, forward to basic getCompletionsForNodeString()
+        JExpr parExpr = anId.getParentExpr();
+        if (parExpr == null) {
+            getCompletionsForNodeString(anId);
+            return;
+        }
+
         // Get prefix string
         String prefix = anId.getName();
-        ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
 
-        // If there is a parent expression, work from it
-        JExpr parExpr = anId.getParentExpr();
-        if (parExpr != null) {
+        // Handle parent is Package: Add packages and classes with prefix
+        if (parExpr instanceof JExprId && ((JExprId) parExpr).isPackageName()) {
 
-            // Handle parent is Package: Add packages and classes with prefix
-            if (parExpr instanceof JExprId && ((JExprId) parExpr).isPackageName()) {
+            // Get parent package name
+            JExprId parId = (JExprId) parExpr;
+            String parPkgName = parId.getPackageName();
 
-                // Get parent package name
-                JExprId parId = (JExprId) parExpr;
-                String parPkgName = parId.getPackageName();
-
-                // Get class names for classes in parent package with prefix
-                List<String> packageClassNames = classPathInfo.getPackageClassNamesForPrefix(parPkgName, prefix);
-                for (String className : packageClassNames) {
-                    JavaClass javaClass = _resolver.getJavaClassForName(className);
-                    if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
-                    addDecl(javaClass);
-                }
-
-                // Get package names for packages in parent package with prefix
-                List<String> packageChildNames = classPathInfo.getPackageChildrenNamesForPrefix(parPkgName, prefix);
-                for (String packageName : packageChildNames)
-                    addJavaPackageForName(packageName);
-            }
-
-            // Handle anything else with a parent class
-            else if (parExpr.getEvalType() != null) {
-
-                // Get
-                JavaType parExprEvalType = parExpr.getEvalType();
-                JavaClass parExprEvalClass = parExprEvalType.getEvalClass();
-
-                // Get fields for prefix and add
-                List<JavaField> fieldsForPrefix = JavaClassUtils.getPrefixFields(parExprEvalClass, prefix);
-                for (JavaField fieldDecl : fieldsForPrefix)
-                    addDecl(fieldDecl);
-
-                // Get methods for prefix and add
-                List<JavaMethod> methodsForPrefix = JavaClassUtils.getPrefixMethods(parExprEvalClass, prefix);
-                for (JavaMethod method : methodsForPrefix)
-                    addDecl(method);
-            }
-        }
-
-        // If no JExpr prefix, get variables with prefix
-        else {
-
-            // Get variables with prefix of name and add to suggestions
-            List<JVarDecl> varDecls = anId.getVarDecls(prefix, new ArrayList<>());
-            for (JVarDecl varDecl : varDecls)
-                addDecl(varDecl.getDecl());
-
-            // Add methods of enclosing class
-            JClassDecl enclosingClassDecl = anId.getEnclosingClassDecl();
-            JavaClass enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
-            while (enclosingClassDecl != null && enclosingClass != null) {
-                List<JavaMethod> methodsForPrefix = JavaClassUtils.getPrefixMethods(enclosingClass, prefix);
-                for (JavaMethod meth : methodsForPrefix)
-                    addDecl(meth);
-                enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
-                enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
-            }
-
-            // If starts with upper case or is greater than 3 chars, add classes with prefix that are public
-            List<String> classNamesForPrefix = classPathInfo.getClassNamesForPrefix(prefix);
-            for (String className : classNamesForPrefix) {
+            // Get class names for classes in parent package with prefix
+            ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
+            List<String> packageClassNames = classPathInfo.getPackageClassNamesForPrefix(parPkgName, prefix);
+            for (String className : packageClassNames) {
                 JavaClass javaClass = _resolver.getJavaClassForName(className);
                 if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
-                addDecl(javaClass);
+                addCompletionDecl(javaClass);
             }
 
-            // Add packages with prefix
-            List<String> packageNamesForPrefix = classPathInfo.getPackageNamesForPrefix(prefix);
-            for (String packageName : packageNamesForPrefix)
+            // Get package names for packages in parent package with prefix
+            List<String> packageChildNames = classPathInfo.getPackageChildrenNamesForPrefix(parPkgName, prefix);
+            for (String packageName : packageChildNames)
                 addJavaPackageForName(packageName);
         }
+
+        // Handle anything else with a parent class
+        else if (parExpr.getEvalType() != null) {
+
+            // Get
+            JavaType parExprEvalType = parExpr.getEvalType();
+            JavaClass parExprEvalClass = parExprEvalType.getEvalClass();
+
+            // Get fields for prefix and add
+            List<JavaField> fieldsForPrefix = JavaClassUtils.getPrefixFields(parExprEvalClass, prefix);
+            for (JavaField fieldDecl : fieldsForPrefix)
+                addCompletionDecl(fieldDecl);
+
+            // Get methods for prefix and add
+            List<JavaMethod> methodsForPrefix = JavaClassUtils.getPrefixMethods(parExprEvalClass, prefix);
+            for (JavaMethod method : methodsForPrefix)
+                addCompletionDecl(method);
+        }
+    }
+
+    /**
+     * Find completions for any node (name/string)
+     */
+    private void getCompletionsForNodeString(JNode aNode)
+    {
+        // Get prefix
+        String prefix = getNodeString(aNode);
+        if (prefix == null)
+            return;
+
+        // Get variables with prefix of name and add to completions
+        List<JVarDecl> varDecls = aNode.getVarDecls(prefix, new ArrayList<>());
+        for (JVarDecl varDecl : varDecls)
+            addCompletionDecl(varDecl.getDecl());
+
+        // Add methods of enclosing class
+        JClassDecl enclosingClassDecl = aNode.getEnclosingClassDecl();
+        JavaClass enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
+        while (enclosingClassDecl != null && enclosingClass != null) {
+            List<JavaMethod> methodsForPrefix = JavaClassUtils.getPrefixMethods(enclosingClass, prefix);
+            for (JavaMethod meth : methodsForPrefix)
+                addCompletionDecl(meth);
+            enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
+            enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
+        }
+
+        // If starts with upper case or is greater than 3 chars, add classes with prefix that are public
+        ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
+        List<String> classNamesForPrefix = classPathInfo.getClassNamesForPrefix(prefix);
+        for (String className : classNamesForPrefix) {
+            JavaClass javaClass = _resolver.getJavaClassForName(className);
+            if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
+            addCompletionDecl(javaClass);
+        }
+
+        // Add packages with prefix
+        List<String> packageNamesForPrefix = classPathInfo.getPackageNamesForPrefix(prefix);
+        for (String packageName : packageNamesForPrefix)
+            addJavaPackageForName(packageName);
+    }
+
+    /**
+     * Adds completion.
+     */
+    private void addCompletionDecl(JavaDecl aDecl)
+    {
+        if (aDecl == null) return;
+        _list.add(aDecl);
+    }
+
+    /**
+     * Adds a JavaDecl for object.
+     */
+    private void addJavaPackageForName(String aPackageName)
+    {
+        JavaDecl javaDecl = _node.getJavaPackageForName(aPackageName);
+        addCompletionDecl(javaDecl);
+    }
+
+    /**
+     * Returns a string for node.
+     */
+    private String getNodeString(JNode aNode)
+    {
+        // Handle simple Id node
+        if (aNode instanceof JExprId)
+            return aNode.getName();
+
+        // Handle any node with only one token
+        Token startToken = aNode.getStartToken();
+        if (startToken == aNode.getEndToken())
+            return startToken.getString();
+
+        // Return not found
+        return null;
     }
 
     /**
@@ -368,7 +399,7 @@ public class JavaCompleter {
     }
 
     /**
-     * Returns whether suggestion is receiving class.
+     * Returns whether completion is receiving class.
      */
     private static final boolean isReceivingClassAssignable(JavaDecl aJD, JavaClass aRC)
     {
@@ -376,7 +407,7 @@ public class JavaCompleter {
     }
 
     /**
-     * Returns whether suggestion is receiving class.
+     * Returns whether completion is receiving class.
      */
     private static final int getReceivingClassAssignableScore(JavaDecl aJD, JavaClass aRC)
     {
@@ -406,7 +437,7 @@ public class JavaCompleter {
      */
     private static class DeclCompare implements Comparator<JavaDecl> {
 
-        // The receiving class for suggestions
+        // The receiving class for completions
         private JavaClass  _receivingClass;
 
         /**
@@ -422,12 +453,12 @@ public class JavaCompleter {
          */
         public int compare(JavaDecl o1, JavaDecl o2)
         {
-            // Get whether either suggestion is of Assignable to ReceivingClass
+            // Get whether either completion is of Assignable to ReceivingClass
             int rca1 = getReceivingClassAssignableScore(o1, _receivingClass);
             int rca2 = getReceivingClassAssignableScore(o2, _receivingClass);
             if (rca1 != rca2) return rca1 > rca2 ? -1 : 1;
 
-            // If Suggestion Types differ, return by type
+            // If completion Types differ, return by type
             if (o1.getType() != o2.getType())
                 return getOrder(o1.getType()) < getOrder(o2.getType()) ? -1 : 1;
 
