@@ -40,25 +40,19 @@ public class JStmtBlock extends JStmt {
     /**
      * Returns whether statement has a block associated with it.
      */
-    public boolean isBlock()
-    {
-        return true;
-    }
+    public boolean isBlock()  { return true; }
 
     /**
      * Returns the statement block.
      */
     @Override
-    public JStmtBlock getBlock()
-    {
-        return this;
-    }
+    public JStmtBlock getBlock()  { return this; }
 
     /**
      * Override to check inner variable declaration statements.
      */
     @Override
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // Get VarDecl for name from statements
         List<JStmt> statements = getStatements();
@@ -67,7 +61,7 @@ public class JStmtBlock extends JStmt {
             return varDecl.getDecl();
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
     /**

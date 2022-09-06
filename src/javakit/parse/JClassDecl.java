@@ -447,7 +447,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Override to check field declarations for id.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // If class id, return class declaration
         if (aNode == _id)
@@ -479,7 +479,7 @@ public class JClassDecl extends JMemberDecl {
                 }
 
                 // Forward to file
-                return super.getDeclImpl(aNode);
+                return super.getDeclForChildNode(aNode);
             }
         }
 
@@ -546,7 +546,7 @@ public class JClassDecl extends JMemberDecl {
         }
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
     /**

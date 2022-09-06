@@ -12,14 +12,15 @@ import snap.util.SnapUtils;
  * A Java statement for TryStatement.
  */
 public class JStmtTry extends JStmt {
+
     // The statement block
-    JStmtBlock _tryBlock;
+    protected JStmtBlock  _tryBlock;
 
     // The catch blocks
-    List<CatchBlock> _catchBlocks = new ArrayList();
+    protected List<CatchBlock>  _catchBlocks = new ArrayList();
 
     // The finally block
-    JStmtBlock _finallyBlock;
+    protected JStmtBlock  _finallyBlock;
 
     /**
      * Returns the try block.
@@ -141,13 +142,13 @@ public class JStmtTry extends JStmt {
         /**
          * Override to check param.
          */
-        protected JavaDecl getDeclImpl(JNode aNode)
+        protected JavaDecl getDeclForChildNode(JNode aNode)
         {
             String name = aNode.getName();
             boolean isType = aNode instanceof JExprType;
             if (!isType && _param != null && SnapUtils.equals(_param.getName(), aNode.getName()))
                 return _param.getDecl();
-            return super.getDeclImpl(aNode);
+            return super.getDeclForChildNode(aNode);
         }
     }
 

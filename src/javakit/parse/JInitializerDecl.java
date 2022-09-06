@@ -52,10 +52,10 @@ public class JInitializerDecl extends JMemberDecl {
      * Override to add REPL hack to check prior JInitDecls for VarDecl matching node name.
      */
     @Override
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // Do normal version - just return if successful
-        JavaDecl decl = super.getDeclImpl(aNode);
+        JavaDecl decl = super.getDeclForChildNode(aNode);
         if (decl != null)
             return decl;
 

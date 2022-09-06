@@ -115,7 +115,7 @@ public class JStmtFor extends JStmt {
         if (_stmt instanceof JStmtBlock || _stmt == null)
             return (JStmtBlock) _stmt;
 
-        // Create, StmtBlock, add statement and replace
+        // Create StmtBlock, add statement and replace
         JStmtBlock blockStmt = new JStmtBlock();
         blockStmt.addStatement(_stmt);
         setStatement(blockStmt);
@@ -135,7 +135,7 @@ public class JStmtFor extends JStmt {
     /**
      * Override to check init declaration.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // Get node info
         String name = aNode.getName();
@@ -150,6 +150,6 @@ public class JStmtFor extends JStmt {
         }
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 }

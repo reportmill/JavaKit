@@ -101,11 +101,11 @@ public class JStmtConstrCall extends JStmt {
     /**
      * Tries to resolve the method declaration for this node.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         if (aNode.getParent() == this && aNode instanceof JExprId && ListUtils.containsId(_idList, aNode))
             return getDecl();
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
 }

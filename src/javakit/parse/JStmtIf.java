@@ -7,22 +7,20 @@ package javakit.parse;
  * A JStatement for if() statements.
  */
 public class JStmtIf extends JStmt {
+
     // The conditional expression
-    JExpr _cond;
+    protected JExpr  _cond;
 
     // The statement to perform if conditional is true
-    JStmt _stmt;
+    protected JStmt  _stmt;
 
     // The else clause
-    JStmt _elseStmt;
+    protected JStmt  _elseStmt;
 
     /**
      * Returns the conditional expression.
      */
-    public JExpr getConditional()
-    {
-        return _cond;
-    }
+    public JExpr getConditional()  { return _cond; }
 
     /**
      * Sets the conditional expression.
@@ -35,10 +33,7 @@ public class JStmtIf extends JStmt {
     /**
      * Returns the statement.
      */
-    public JStmt getStatement()
-    {
-        return _stmt;
-    }
+    public JStmt getStatement()  { return _stmt; }
 
     /**
      * Sets the statement.
@@ -51,10 +46,7 @@ public class JStmtIf extends JStmt {
     /**
      * Returns the else statement.
      */
-    public JStmt getElseStatement()
-    {
-        return _elseStmt;
-    }
+    public JStmt getElseStatement()  { return _elseStmt; }
 
     /**
      * Sets the else statement.
@@ -67,10 +59,7 @@ public class JStmtIf extends JStmt {
     /**
      * Returns whether statement has a block associated with it.
      */
-    public boolean isBlock()
-    {
-        return true;
-    }
+    public boolean isBlock()  { return true; }
 
     /**
      * Returns the statement block.
@@ -80,11 +69,6 @@ public class JStmtIf extends JStmt {
         return _stmt instanceof JStmtBlock ? (JStmtBlock) _stmt : null;
     }
 
-//public JStmtBlock getBlock(boolean doCreate) {
-//    JStmtBlock sb = _stmt instanceof JStmtBlock? (JStmtBlock)_stmt : null;
-//    if(sb==null && doCreate) { sb = new JStmtBlock(); if(_stmt!=null) sb.addStatement(_stmt); setStatement(sb); }
-//    return sb; }
-
     /**
      * Sets a block.
      */
@@ -92,5 +76,4 @@ public class JStmtIf extends JStmt {
     {
         setStatement(aBlock);
     }
-
 }

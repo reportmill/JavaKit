@@ -189,13 +189,13 @@ public class JExprMethodCall extends JExpr {
     /**
      * Override to handle method name.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         if (aNode == _id)
             return getDecl();
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
     /**

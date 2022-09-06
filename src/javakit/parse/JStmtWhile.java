@@ -4,22 +4,20 @@
 package javakit.parse;
 
 /**
- * A Java statement for WhileStatement.
+ * A Java statement for While statement.
  */
 public class JStmtWhile extends JStmt {
+
     // The conditional expression
-    JExpr _cond;
+    protected JExpr  _cond;
 
     // The statement to perform while conditional is true
-    JStmt _stmt;
+    protected JStmt  _stmt;
 
     /**
      * Returns the conditional.
      */
-    public JExpr getConditional()
-    {
-        return _cond;
-    }
+    public JExpr getConditional()  { return _cond; }
 
     /**
      * Sets the conditional.
@@ -32,10 +30,7 @@ public class JStmtWhile extends JStmt {
     /**
      * Returns the statement.
      */
-    public JStmt getStmt()
-    {
-        return _stmt;
-    }
+    public JStmt getStmt()  { return _stmt; }
 
     /**
      * Sets the statement.
@@ -48,21 +43,25 @@ public class JStmtWhile extends JStmt {
     /**
      * Returns whether statement has a block associated with it.
      */
-    public boolean isBlock()
-    {
-        return true;
-    }
+    public boolean isBlock()  { return true; }
 
     /**
      * Returns the statement block.
      */
     public JStmtBlock getBlock()
     {
-        if (_stmt instanceof JStmtBlock) return (JStmtBlock) _stmt;
-        JStmtBlock sb = new JStmtBlock();
-        if (_stmt != null) sb.addStatement(_stmt);
-        setStmt(sb);
-        return sb;
+        // If already set, just return
+        if (_stmt instanceof JStmtBlock)
+            return (JStmtBlock) _stmt;
+
+        // Create StmtBlock, add statement and replace
+        JStmtBlock stmtBlock = new JStmtBlock();
+        if (_stmt != null)
+            stmtBlock.addStatement(_stmt);
+        setStmt(stmtBlock);
+
+        // Return
+        return stmtBlock;
     }
 
     /**
@@ -72,5 +71,4 @@ public class JStmtWhile extends JStmt {
     {
         setStmt(aBlock);
     }
-
 }

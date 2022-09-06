@@ -164,7 +164,7 @@ public class JType extends JNode {
             return _baseDecl = javaClass;
 
         // If not primitive, try to resolve class
-        javaClass = (JavaType) getDeclImpl(this);
+        javaClass = (JavaType) getDeclForChildNode(this);
 
         // Set/return
         return _baseDecl = javaClass;

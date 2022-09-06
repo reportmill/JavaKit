@@ -79,13 +79,13 @@ public class JStmtLabeled extends JStmt {
     /**
      * Override to handle label variable declaration.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         String name = aNode.getName();
         boolean isType = aNode instanceof JExprType;
         if (!isType && SnapUtils.equals(getLabelName(), name))
             return getLabelVarDecl().getDecl();
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
 }

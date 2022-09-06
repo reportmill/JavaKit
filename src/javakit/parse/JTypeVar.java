@@ -97,7 +97,7 @@ public class JTypeVar extends JNode {
     /**
      * Override to handle ID and nested case, e.g.: T extends Class <? super T>
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // Handle ID
         if (aNode == _id)
@@ -108,7 +108,7 @@ public class JTypeVar extends JNode {
             return getJavaClassForClass(Object.class);
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
 }

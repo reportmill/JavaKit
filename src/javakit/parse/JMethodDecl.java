@@ -175,7 +175,7 @@ public class JMethodDecl extends JMemberDecl {
     /**
      * Override to check formal parameters.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // If node is method name, return method decl
         if (aNode == _id) return getDecl();
@@ -194,7 +194,7 @@ public class JMethodDecl extends JMemberDecl {
             return tvar.getDecl();
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
     /**

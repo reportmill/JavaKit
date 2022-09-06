@@ -207,7 +207,7 @@ public class JExprLambda extends JExpr {
     /**
      * Override to check lambda parameters.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // If node is parameter name, return param decl
         if (aNode instanceof JExprId) {
@@ -218,7 +218,7 @@ public class JExprLambda extends JExpr {
         }
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
     /**

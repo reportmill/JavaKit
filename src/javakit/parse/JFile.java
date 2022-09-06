@@ -160,7 +160,7 @@ public class JFile extends JNode {
     /**
      * Override to check for package name, import class name, static import class member.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // Get node info
         String name = aNode.getName();
@@ -181,7 +181,7 @@ public class JFile extends JNode {
             return field;
 
         // Do normal version
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
     /**

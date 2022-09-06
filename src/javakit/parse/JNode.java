@@ -106,11 +106,11 @@ public class JNode {
     /**
      * Returns the JavaDecl most closely associated with given child JNode.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         // Forward to parent
         if (_parent != null)
-            return _parent.getDeclImpl(aNode);
+            return _parent.getDeclForChildNode(aNode);
         return null;
     }
 
@@ -396,25 +396,17 @@ public class JNode {
     /**
      * Returns whether statement has a block associated with it.
      */
-    public boolean isBlock()
-    {
-        return false;
-    }
+    public boolean isBlock()  { return false; }
 
     /**
      * Returns the statement block.
      */
-    public JStmtBlock getBlock()
-    {
-        return null;
-    }
+    public JStmtBlock getBlock()  { return null; }
 
     /**
      * Returns the statement block.
      */
-    public void setBlock(JStmtBlock aBlock)
-    {
-    }
+    public void setBlock(JStmtBlock aBlock)  { }
 
     /**
      * Returns the node at given char index.

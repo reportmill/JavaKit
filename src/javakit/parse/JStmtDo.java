@@ -7,11 +7,12 @@ package javakit.parse;
  * A Java statement for DoStatement.
  */
 public class JStmtDo extends JStmt {
+
     // The conditional expression
-    JExpr _cond;
+    protected JExpr  _cond;
 
     // The statement to perform while conditional is true
-    JStmt _stmt;
+    protected JStmt  _stmt;
 
     /**
      * Returns the conditional expression.
@@ -48,21 +49,23 @@ public class JStmtDo extends JStmt {
     /**
      * Returns whether statement has a block associated with it.
      */
-    public boolean isBlock()
-    {
-        return true;
-    }
+    public boolean isBlock()  { return true; }
 
     /**
      * Returns the statement block.
      */
     public JStmtBlock getBlock()
     {
-        if (_stmt instanceof JStmtBlock) return (JStmtBlock) _stmt;
-        JStmtBlock sb = new JStmtBlock();
-        if (_stmt != null) sb.addStatement(_stmt);
-        setStatement(sb);
-        return sb;
+        // If statement is block, return it
+        if (_stmt instanceof JStmtBlock)
+            return (JStmtBlock) _stmt;
+
+        // Otherwise create new statement block and swap it in for statement
+        JStmtBlock stmtBlock = new JStmtBlock();
+        if (_stmt != null)
+            stmtBlock.addStatement(_stmt);
+        setStatement(stmtBlock);
+        return stmtBlock;
     }
 
     /**
@@ -72,5 +75,4 @@ public class JStmtDo extends JStmt {
     {
         setStatement(aBlock);
     }
-
 }

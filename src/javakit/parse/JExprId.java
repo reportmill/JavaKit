@@ -27,7 +27,7 @@ public class JExprId extends JExpr {
      */
     protected JavaDecl getDeclImpl()
     {
-        return getDeclImpl(this);
+        return getDeclForChildNode(this);
     }
 
     /**

@@ -70,10 +70,10 @@ public class JEnumConst extends JMemberDecl {
     /**
      * Override to resolve enum id.
      */
-    protected JavaDecl getDeclImpl(JNode aNode)
+    protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         if (aNode == _id) return getDecl();
-        return super.getDeclImpl(aNode);
+        return super.getDeclForChildNode(aNode);
     }
 
 }
