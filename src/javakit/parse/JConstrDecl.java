@@ -2,16 +2,23 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaType;
 import snap.util.ArrayUtils;
 
 /**
- * A Java member for ConstrDecl.
+ * A Java member for a constructor declaration.
  */
-public class JConstrDecl extends JMethodDecl {
+public class JConstrDecl extends JExecutableDecl {
+
+    /**
+     * Constructor.
+     */
+    public JConstrDecl()
+    {
+        super();
+    }
 
     /**
      * Override to get declaration from actual Constructor.
@@ -19,46 +26,36 @@ public class JConstrDecl extends JMethodDecl {
     protected JavaDecl getDeclImpl()
     {
         // Get param types
-        JavaType[] ptypes = getParamClassTypesSafe();
-        if (ptypes == null) return null; // Can happen if params bogus/editing
+        JavaType[] paramTypes = getParamClassTypesSafe();
+        if (paramTypes == null)
+            return null; // Can happen if params bogus/editing
 
         // Get parent JClassDecl and JavaDecl
         JClassDecl enclosingClassDecl = getEnclosingClassDecl();
-        if (enclosingClassDecl == null) return null;
+        if (enclosingClassDecl == null)
+            return null;
         JavaClass javaClass = enclosingClassDecl.getDecl();
-        if (javaClass == null) return null;
+        if (javaClass == null)
+            return null;
 
         // If inner class and not static, add implied class type to arg types array
         if (javaClass.isMemberClass() && !javaClass.isStatic()) {
             JavaClass parentClass = javaClass.getDeclaringClass();
-            ptypes = ArrayUtils.add(ptypes, parentClass, 0);
+            paramTypes = ArrayUtils.add(paramTypes, parentClass, 0);
         }
 
-            // If enum, add implied args types for name (String) and ordinal (int)
+        // If enum, add implied args types for name (String) and ordinal (int)
         else if (javaClass.isEnum()) {
-            ptypes = ArrayUtils.add(ptypes, getJavaClassForClass(String.class), 0);
-            ptypes = ArrayUtils.add(ptypes, getJavaClassForClass(int.class), 1);
+            paramTypes = ArrayUtils.add(paramTypes, getJavaClassForClass(String.class), 0);
+            paramTypes = ArrayUtils.add(paramTypes, getJavaClassForClass(int.class), 1);
         }
 
         // Return Constructor for param types
-        return javaClass.getConstructorForTypes(ptypes);
-    }
-
-    /**
-     * Override to check field declarations for id.
-     */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
-    {
-        if (aNode == _id) return getDecl();
-        return super.getDeclForChildNode(aNode);
+        return javaClass.getConstructorForTypes(paramTypes);
     }
 
     /**
      * Returns the part name.
      */
-    public String getNodeString()
-    {
-        return "ConstrDecl";
-    }
-
+    public String getNodeString()  { return "ConstrDecl"; }
 }
