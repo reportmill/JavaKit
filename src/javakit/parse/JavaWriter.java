@@ -641,7 +641,7 @@ public class JavaWriter {
         append("while(");
         writeJExpr(aStmt.getConditional());
         append(") ");
-        writeJStmt(aStmt.getStmt());
+        writeJStmt(aStmt.getStatement());
     }
 
     /**

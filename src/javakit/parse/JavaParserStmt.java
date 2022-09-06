@@ -390,7 +390,7 @@ public class JavaParserStmt extends JavaParserExpr {
 
             // Handle Statement
             else if (anId == "Statement")
-                getPart().setStmt(aNode.getCustomNode(JStmt.class));
+                getPart().setStatement(aNode.getCustomNode(JStmt.class));
 
             // Handle anything else
             else getPart();

@@ -9,7 +9,7 @@ import snap.util.SnapUtils;
 /**
  * A JStatement for for() statements.
  */
-public class JStmtFor extends JStmt {
+public class JStmtFor extends JStmtConditional {
 
     // Whether this for statement is really ForEach
     protected boolean  _forEach = true;
@@ -17,17 +17,19 @@ public class JStmtFor extends JStmt {
     // The for-init declaration (if declaration)
     protected JStmtVarDecl  _initDecl;
 
-    // The conditional
-    protected JExpr  _cond;
-
     // The update
     protected List<JStmtExpr>  _updateStmts = new ArrayList<>();
 
     // The for-init List of StatementExpressions (if statement expressions)
     protected List<JStmtExpr>  _initStmts = new ArrayList<>();
 
-    // The statement to perform while conditional is true
-    protected JStmt  _stmt;
+    /**
+     * Constructor.
+     */
+    public JStmtFor()
+    {
+        super();
+    }
 
     /**
      * Returns whether for statement is ForEach.
@@ -45,19 +47,6 @@ public class JStmtFor extends JStmt {
     public void setInitDecl(JStmtVarDecl aVD)
     {
         replaceChild(_initDecl, _initDecl = aVD);
-    }
-
-    /**
-     * Returns the conditional.
-     */
-    public JExpr getConditional()  { return _cond; }
-
-    /**
-     * Sets the conditional.
-     */
-    public void setConditional(JExpr anExpr)
-    {
-        replaceChild(_cond, _cond = anExpr);
     }
 
     /**
@@ -86,50 +75,6 @@ public class JStmtFor extends JStmt {
     {
         _initStmts.add(aStmtExpr);
         addChild(aStmtExpr, -1);
-    }
-
-    /**
-     * Returns the statement.
-     */
-    public JStmt getStatement()  { return _stmt; }
-
-    /**
-     * Sets the statement.
-     */
-    public void setStatement(JStmt aStmt)
-    {
-        replaceChild(_stmt, _stmt = aStmt);
-    }
-
-    /**
-     * Returns whether statement has a block associated with it.
-     */
-    public boolean isBlock()  { return true; }
-
-    /**
-     * Returns the statement block.
-     */
-    public JStmtBlock getBlock()
-    {
-        // If already set, just return
-        if (_stmt instanceof JStmtBlock || _stmt == null)
-            return (JStmtBlock) _stmt;
-
-        // Create StmtBlock, add statement and replace
-        JStmtBlock blockStmt = new JStmtBlock();
-        blockStmt.addStatement(_stmt);
-        setStatement(blockStmt);
-
-        // Return
-        return blockStmt;
-    }
-
-    /**
-     * Sets a block.
-     */
-    public void setBlock(JStmtBlock aBlock)
-    {
-        setStatement(aBlock);
     }
 
     /**
