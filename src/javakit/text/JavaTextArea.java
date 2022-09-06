@@ -86,23 +86,20 @@ public class JavaTextArea extends TextArea {
      */
     public void activatePopupList()
     {
-        // Get suggestions
-        JNode selectedNode = getSelNode();
-        JavaCompleter javaCompleter = new JavaCompleter();
-        JavaDecl[] sugs = javaCompleter.getSuggestions(selectedNode);
-        if (sugs.length == 0) // || !doReplace && !isVariableFieldOrMethod(suggestions[0]))
+        // Get suggestions (just return if none)
+        JavaDecl[] completions = getCompletionsAtCursor();
+        if (completions == null || completions.length == 0)
             return;
 
-        // If one suggestion and doReplace, perform replace
-        //if(sugs.length==1) { setSel(selectedNode.getStart(), getSelEnd()); replaceChars(sugs[0].getReplaceString()); }
-        // else {     ... <stuff_below> ...   }
-
-        // If multiple suggestions
+        // Set completions
         JavaPopupList popup = getPopup();
-        popup.setItems(sugs);
-        TextBoxLine line = getSel().getStartLine();
-        double x = line.getXForChar(getSelStart() - line.getStart()), y = line.getMaxY() + 3;
-        popup.show(this, x, y);
+        popup.setItems(completions);
+
+        // Get location for popup and show
+        TextBoxLine selLine = getSel().getStartLine();
+        double selX = selLine.getXForChar(getSelStart() - selLine.getStart());
+        double selY = selLine.getMaxY() + 3;
+        popup.show(this, selX, selY);
     }
 
     /**
@@ -110,23 +107,43 @@ public class JavaTextArea extends TextArea {
      */
     public void updatePopupList()
     {
-        // Get popup
+        // Get popup (just return if not showing)
         JavaPopupList javaPopup = getPopup();
+        if (!javaPopup.isShowing())
+            return;
 
-        // If Java Popup is visible, get new suggestions and set
-        if (javaPopup.isShowing()) {
-
-            // Get suggestions
-            JNode node = getSelNode();
-            boolean atEnd = isSelEmpty() && getSelStart() == node.getEnd();
-            JavaCompleter javaCompleter = new JavaCompleter();
-            JavaDecl[] sugs = atEnd ? javaCompleter.getSuggestions(node) : null;
-
-            // Either set items or hide
-            if (sugs != null && sugs.length > 0)
-                javaPopup.setItems(sugs);
-            else javaPopup.hide();
+        // Get completions (just return if empty)
+        JavaDecl[] completions = getCompletionsAtCursor();
+        if (completions == null || completions.length == 0) {
+            javaPopup.hide();
+            return;
         }
+
+        // Set completions
+        javaPopup.setItems(completions);
+    }
+
+    /**
+     * Returns completions for current text selection and selected node.
+     */
+    public JavaDecl[] getCompletionsAtCursor()
+    {
+        // If selection not empty, just return
+        if (!isSelEmpty())
+            return null;
+
+        // If selection not at end of SelNode, just return
+        int selStart = getSelStart();
+        JNode selNode = getSelNode();
+        int startCharIndex = getTextDoc().getStartCharIndex();
+        int nodeEnd = selNode.getEnd() - startCharIndex;
+        if (selStart != nodeEnd)
+            return null;
+
+        // Get completions and return
+        JavaCompleter javaCompleter = new JavaCompleter();
+        JavaDecl[] completions = javaCompleter.getSuggestions(selNode);
+        return completions;
     }
 
     /**
@@ -192,9 +209,8 @@ public class JavaTextArea extends TextArea {
     {
         // If TextDoc is SubText, adjust start/end
         TextDoc textDoc = getTextDoc();
-        if (textDoc instanceof SubText) {
-            SubText subText = (SubText) textDoc;
-            int subTextStart = subText.getStartCharIndex();
+        int subTextStart = textDoc.getStartCharIndex();
+        if (subTextStart > 0) {
             startCharIndex += subTextStart;
             endCharIndex += subTextStart;
         }
@@ -432,7 +448,8 @@ public class JavaTextArea extends TextArea {
         char keyChar = anEvent.getKeyChar();
         if (keyChar == KeyCode.CHAR_UNDEFINED) return;
         boolean charDefined = !Character.isISOControl(keyChar);
-        boolean commandDown = anEvent.isShortcutDown(), controlDown = anEvent.isControlDown();
+        boolean commandDown = anEvent.isShortcutDown();
+        boolean controlDown = anEvent.isControlDown();
 
         // Handle suppression of redundant paired char (parens, quotes, square brackets)
         // TODO: Don't do if in string/comment - but should also work if chars are no longer adjacent
@@ -499,9 +516,8 @@ public class JavaTextArea extends TextArea {
             }
 
             // Activate PopupList
-            if (getPopup().isShowing() || anEvent.isShortcutDown()) return;
-            if (anEvent.isControlChar() || anEvent.isSpaceKey()) return;
-            getEnv().runLater(() -> activatePopupList());
+            if (!getPopup().isShowing() && !anEvent.isSpaceKey())
+                getEnv().runLater(() -> activatePopupList());
         }
     }
 
