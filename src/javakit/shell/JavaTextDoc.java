@@ -139,8 +139,10 @@ public class JavaTextDoc extends TextDoc {
         _blocks = ArrayUtils.remove(_blocks, anIndex);
 
         // Delete text
-        int startCharIndex = block.getStartCharIndex();
-        int endCharIndex = block.getEndCharIndex();
+        TextLine startLine = block.getStartLine();
+        TextLine endLine = block.getEndLine();
+        int startCharIndex = startLine.getStart();
+        int endCharIndex = endLine.getEnd();
         removeChars(startCharIndex, endCharIndex);
 
         // Return
