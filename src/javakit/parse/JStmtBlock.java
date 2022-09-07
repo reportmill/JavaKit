@@ -30,6 +30,14 @@ public class JStmtBlock extends JStmt {
     }
 
     /**
+     * Adds a statement.
+     */
+    public void addStatement(JStmt aStmt, int anIndex)
+    {
+        addChild(aStmt, anIndex);
+    }
+
+    /**
      * Removes a statement.
      */
     public int removeStatement(JStmt aStmt)

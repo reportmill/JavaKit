@@ -59,9 +59,9 @@ public class JavaShellUtils {
         JStmtVarDecl varDeclStmt = new JStmtVarDecl();
         varDeclStmt.addVarDecl(varDecl);
 
-        // Replace statements
-        stmtBlock.removeStatement(aStmt);
-        stmtBlock.addStatement(varDeclStmt);
+        // Swap VarDecl statement in for expr statement
+        int index = stmtBlock.removeStatement(aStmt);
+        stmtBlock.addStatement(varDeclStmt, index);
 
         // Get initializer type
         JavaType initType = initializer.getEvalType();
