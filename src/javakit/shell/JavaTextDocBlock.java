@@ -76,6 +76,11 @@ public class JavaTextDocBlock {
     }
 
     /**
+     * Returns the text doc.
+     */
+    public SubText getTextDoc()  { return _subText; }
+
+    /**
      * Returns a JavaTextArea.
      */
     public JavaTextArea getTextArea()
