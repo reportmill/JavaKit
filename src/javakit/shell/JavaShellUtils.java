@@ -30,7 +30,7 @@ public class JavaShellUtils {
             if (expr instanceof JExprMath && ((JExprMath) expr).getOp() == JExprMath.Op.Assign) {
                 JExprMath assignExpr = (JExprMath) expr;
                 JExpr assignTo = assignExpr.getOperand(0);
-                if (assignTo.getDecl() == null)
+                if (assignTo.getDecl() == null && assignExpr.getOperandCount() > 1)
                     return true;
             }
         }

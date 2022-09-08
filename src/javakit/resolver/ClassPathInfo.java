@@ -25,6 +25,17 @@ public class ClassPathInfo {
      */
     public ClassPathInfo(Resolver aResolver)
     {
+        // Handle TeaVM
+        if (SnapUtils.isTeaVM) {
+            WebSite site = WebURL.getURL("/").getSite();
+            for (String cc : COMMON_CLASS_NAMES) {
+                WebFile classFile = site.createFile(cc, false);
+                classFile.save();
+            }
+            _sites = new WebSite[] { site };
+            return;
+        }
+
         // Add JRE jar file site
         WebURL jreURL = WebURL.getURL(List.class);
         WebSite jreSite = jreURL.getSite();

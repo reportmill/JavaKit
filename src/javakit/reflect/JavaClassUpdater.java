@@ -96,8 +96,7 @@ public class JavaClassUpdater {
 
         // Array.length: Handle this special for Object[]
         if (_javaClass.isArray() && _javaClass.getFieldForName("length") == null) {
-            Field lenField = getLenField();
-            JavaField javaField = new JavaField(_resolver, _javaClass, lenField);
+            JavaField javaField = getLengthField();
             _javaClass._fieldDecls = Arrays.asList(javaField);
             _addedDecls++;
         }
@@ -428,6 +427,17 @@ public class JavaClassUpdater {
             case TypeVar: _javaClass._typeVarDecls.remove(aDecl); break;
             default: throw new RuntimeException("JavaDeclHpr.removeDecl: Invalid type " + type);
         }
+    }
+
+    /**
+     * Returns the length field.
+     */
+    private JavaField getLengthField()
+    {
+        JavaField.FieldBuilder fb = new JavaField.FieldBuilder();
+        fb.init(_resolver, _javaClass.getClassName());
+        JavaField javaField = fb.name("length").type(int.class).build();
+        return javaField;
     }
 
     /**

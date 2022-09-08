@@ -461,9 +461,9 @@ public class Resolver {
         if (SnapUtils.isTeaVM)
             return new Resolver(aClassLoader);
 
-        // Otherwise, use ResolverSys (Use reflection and conditional to stymie TeaVM)
+        // Otherwise, use ResolverSys (Use reflection and silly conditional to stymie TeaVM)
         try {
-            String className = 1 > 0 ? "javakit.reflect.ResolverSys" : "don't judge me";
+            String className = !SnapUtils.isTeaVM ? "javakit.reflect.ResolverSys" : "don't judge me";
             Class<?> resolverClass = Class.forName(className);
             Resolver resolver = (Resolver) resolverClass.newInstance();
             resolver._classLoader = aClassLoader;

@@ -379,27 +379,36 @@ public class JavaTextArea extends TextArea {
 
         // Add box around balancing bracket
         if (getSel().getSize() < 2) {
-            int ind = getSelStart(), ind2 = -1;
+
+            // Get chars before and after cursor char index
+            int ind = getSelStart();
+            int ind2 = -1;
             char c1 = ind > 0 ? charAt(ind - 1) : 0;
             char c2 = ind < length() ? charAt(ind) : 0;
+
+            // If char at cursor is open/close, find close index
             if (c2 == '{' || c2 == '}') {    // || c2=='(' || c2==')'
                 JNode jnode = getNodeAtCharIndex(ind, ind);
                 ind2 = c2 == '}' ? jnode.getStart() : jnode.getEnd() - 1;
+                ind2 -= getTextDoc().getStartCharIndex();
                 if (ind2 + 1 > length()) {
                     System.err.println("JavaTextArea.paintBack: Invalid-A " + ind2);
                     ind2 = -1;
                 }
             }
 
+            // If char before cursor is open/close, find close index
             else if (c1 == '{' || c1 == '}') {  //  || c1=='(' || c1==')'
                 JNode jnode = getNodeAtCharIndex(ind - 1, ind - 1);
                 ind2 = c1 == '}' ? jnode.getStart() : jnode.getEnd() - 1;
+                ind2 -= getTextDoc().getStartCharIndex();
                 if (ind2 + 1 > length()) {
                     System.err.println("JavaTextArea.paintBack: Invalid-B" + ind2);
                     ind2 = -1;
                 }
             }
 
+            // If closing index found, draw rect
             if (ind2 >= 0) {
                 TextBoxLine line = getLineAt(ind2);
                 int s1 = ind2 - line.getStart();

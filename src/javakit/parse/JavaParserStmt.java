@@ -269,20 +269,31 @@ public class JavaParserStmt extends JavaParserExpr {
         protected void parsedOne(ParseNode aNode, String anId)
         {
             // Handle JavaExpression rules
-            if (aNode.getCustomNode() instanceof JExpr && _part == null)
-                getPart().setExpr(aNode.getCustomNode(JExpr.class));
+            Object customNode = aNode.getCustomNode();
+            if (customNode instanceof JExpr && _part == null) {
+                JStmtExpr exprStmt = getPart();
+                JExpr expr = (JExpr) customNode;
+                exprStmt.setExpr(expr);
+            }
 
             // Handle post increment/decrement
             else if (anId == "++" || anId == "--") {
-                JExpr expr = getPart().getExpr();
+                JStmtExpr exprStmt = getPart();
+                JExpr expr = exprStmt.getExpr();
                 JExprMath.Op op = anId == "++" ? JExprMath.Op.PostIncrement : JExprMath.Op.PostDecrement;
-                getPart().setExpr(new JExprMath(op, expr));
+                JExprMath unaryExpr = new JExprMath(op, expr);
+                exprStmt.setExpr(unaryExpr);
             }
 
-            // Handle Assign Expression
+            // Handle Assign Expression: Build assign expr and swap in
             else if (anId == "Expression") {
-                JExpr expr = aNode.getCustomNode(JExpr.class);
-                getPart().setExpr(new JExprMath(JExprMath.Op.Assign, getPart().getExpr(), expr));
+                JStmtExpr exprStmt = getPart();
+                JExpr leftExpr = exprStmt.getExpr();
+                JExpr rightExpr = (JExpr) customNode;
+                if (rightExpr != null) { // Can happen if parse failed on right side expr
+                    JExprMath assignExpr = new JExprMath(JExprMath.Op.Assign, leftExpr, rightExpr);
+                    exprStmt.setExpr(assignExpr);
+                }
             }
         }
 
