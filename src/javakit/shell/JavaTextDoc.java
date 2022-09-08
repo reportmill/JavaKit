@@ -234,6 +234,8 @@ public class JavaTextDoc extends TextDoc {
     {
         // Get last line for node
         int childCount = aJNode.getChildCount();
+        if (childCount == 0) // Can happen if Parse totally fails (e.g., tokenizer fails)
+            return new JStmt[0];
         JNode lastChild = aJNode.getChild(childCount - 1);
         int lastLineIndex = lastChild.getEndToken().getLineIndex();
 
