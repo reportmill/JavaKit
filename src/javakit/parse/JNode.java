@@ -63,10 +63,7 @@ public class JNode {
     /**
      * Resolves the name, if possible.
      */
-    protected String getNameImpl()
-    {
-        return null;
-    }
+    protected String getNameImpl()  { return null; }
 
     /**
      * Returns whether node is a declaration name (JClassDecl JMethodDecl, JFieldDecl, JVarDecl).
@@ -98,10 +95,7 @@ public class JNode {
     /**
      * Returns the JavaDecl most closely associated with this JNode.
      */
-    protected JavaDecl getDeclImpl()
-    {
-        return null;
-    }
+    protected JavaDecl getDeclImpl()  { return null; }
 
     /**
      * Returns the JavaDecl most closely associated with given child JNode.
@@ -224,10 +218,7 @@ public class JNode {
     /**
      * Returns the start token of this node.
      */
-    public Token getStartToken()
-    {
-        return _startToken;
-    }
+    public Token getStartToken()  { return _startToken; }
 
     /**
      * Sets the start token of this node.
@@ -248,10 +239,7 @@ public class JNode {
     /**
      * Returns the end token of this node.
      */
-    public Token getEndToken()
-    {
-        return _endToken;
-    }
+    public Token getEndToken()  { return _endToken; }
 
     /**
      * Sets the end token of this node.
@@ -288,10 +276,7 @@ public class JNode {
     /**
      * Returns the parent node.
      */
-    public JNode getParent()
-    {
-        return _parent;
-    }
+    public JNode getParent()  { return _parent; }
 
     /**
      * Sets the parent node.
@@ -314,7 +299,7 @@ public class JNode {
      */
     public final int getChildCount()
     {
-        return getChildren().size();
+        return _children.size();
     }
 
     /**
@@ -322,7 +307,7 @@ public class JNode {
      */
     public final JNode getChild(int anIndex)
     {
-        return getChildren().get(anIndex);
+        return _children.get(anIndex);
     }
 
     /**
