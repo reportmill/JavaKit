@@ -26,13 +26,13 @@ public class JFile extends JNode {
     protected List<JImportDecl>  _importDecls = new ArrayList<>();
 
     // The list of class declarations
-    protected List<JClassDecl> _classDecls = new ArrayList<>();
+    protected List<JClassDecl>  _classDecls = new ArrayList<>();
 
     // The parse exception, if one was hit
-    protected Exception _exception;
+    protected Exception  _exception;
 
     // A set to hold unused imports
-    protected Set<JImportDecl> _unusedImports;
+    protected Set<JImportDecl>  _unusedImports;
 
     /**
      * Constructor.
@@ -144,8 +144,8 @@ public class JFile extends JNode {
      */
     protected String getNameImpl()
     {
-        JavaDecl jd = getDecl();
-        return jd != null ? jd.getName() : null;
+        JClassDecl classDecl = getClassDecl();
+        return classDecl != null ? classDecl.getName() : null;
     }
 
     /**
@@ -153,8 +153,8 @@ public class JFile extends JNode {
      */
     protected JavaDecl getDeclImpl()
     {
-        JClassDecl cd = getClassDecl();
-        return cd != null ? cd.getDecl() : null;
+        JClassDecl classDecl = getClassDecl();
+        return classDecl != null ? classDecl.getDecl() : null;
     }
 
     /**
@@ -345,26 +345,6 @@ public class JFile extends JNode {
         return _unusedImports = unusedImportDecls;
     }
 
-/** Print expanded imports. */
-/*private void printExpandedExports()
-{
-    // If no expansions, just return
-    boolean hasExp = false; for(JImportDecl i : getImportDecls()) if(i.isInclusive()) hasExp = true;
-    if(!hasExp) return;
-    
-    // Print expansions
-    System.out.println("Expanded imports in file " + getClassName() + ":");
-    for(JImportDecl imp : getImportDecls()) {
-        if(imp.isInclusive() && !imp.isStatic() && imp.getFoundClassNames().size()>0) {
-            System.out.print("    " + imp.getString().trim().replace(';',':') + ' ');
-            List <String> names = new ArrayList(imp.getFoundClassNames());
-            String last = names.size()>0? names.get(names.size()-1):null;
-            for(String n : names) {
-                System.out.print(n); if(n!=last) System.out.print(", "); else System.out.println(); }
-        }
-    }
-}*/
-
     /**
      * Forces all nodes to resolve class names.
      */
@@ -410,4 +390,24 @@ public class JFile extends JNode {
         _classDecls = aJFile._classDecls;
         _exception = aJFile._exception;
     }
+
+    /** Print expanded imports. */
+    /*private void printExpandedExports()
+    {
+        // If no expansions, just return
+        boolean hasExp = false; for (JImportDecl i : getImportDecls()) if(i.isInclusive()) hasExp = true;
+        if(!hasExp) return;
+
+        // Print expansions
+        System.out.println("Expanded imports in file " + getClassName() + ":");
+        for (JImportDecl imp : getImportDecls()) {
+            if (imp.isInclusive() && !imp.isStatic() && imp.getFoundClassNames().size()>0) {
+                System.out.print("    " + imp.getString().trim().replace(';',':') + ' ');
+                List <String> names = new ArrayList(imp.getFoundClassNames());
+                String last = names.size()>0? names.get(names.size()-1):null;
+                for (String n : names) {
+                    System.out.print(n); if (n!=last) System.out.print(", "); else System.out.println(); }
+            }
+        }
+    }*/
 }

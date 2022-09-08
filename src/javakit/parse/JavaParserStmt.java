@@ -73,9 +73,11 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
-            // Handle Expression
+            // Handle condition
             if (getPart().getConditional() == null)
                 getPart().setConditional(aNode.getCustomNode(JExpr.class));
+
+            // Handle expression
             else getPart().setExpr(aNode.getCustomNode(JExpr.class));
         }
 

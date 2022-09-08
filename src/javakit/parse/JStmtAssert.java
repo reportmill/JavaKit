@@ -7,19 +7,17 @@ package javakit.parse;
  * A Java statement for AssertStatement.
  */
 public class JStmtAssert extends JStmt {
+
     // The conditional expression
-    JExpr _cond;
+    protected JExpr  _cond;
 
     // The optional assertion value expression
-    JExpr _expr;
+    protected JExpr  _expr;
 
     /**
      * Returns the conditional.
      */
-    public JExpr getConditional()
-    {
-        return _cond;
-    }
+    public JExpr getConditional()  { return _cond; }
 
     /**
      * Sets the conditional.
@@ -32,10 +30,7 @@ public class JStmtAssert extends JStmt {
     /**
      * Returns the expression.
      */
-    public JExpr getExpr()
-    {
-        return _expr;
-    }
+    public JExpr getExpr()  { return _expr; }
 
     /**
      * Sets the conditional.

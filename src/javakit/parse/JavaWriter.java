@@ -108,17 +108,17 @@ public class JavaWriter {
     /**
      * Writes a JClassDecl.
      */
-    public void writeJClassDecl(JClassDecl aCDecl)
+    public void writeJClassDecl(JClassDecl aClassDecl)
     {
         // Append class label with modifiers: public class XXX ...
-        String cname = aCDecl.getSimpleName();
-        JModifiers mods = aCDecl.getMods();
+        String className = aClassDecl.getSimpleName();
+        JModifiers mods = aClassDecl.getMods();
         writeJModifiers(mods);
-        append(aCDecl.isClass() ? "class " : aCDecl.isInterface() ? "interface " : "enum ");
-        append(cname).append(' ');
+        append(aClassDecl.isClass() ? "class " : aClassDecl.isInterface() ? "interface " : "enum ");
+        append(className).append(' ');
 
         // Append extends types
-        List<JType> etypes = aCDecl.getExtendsTypes();
+        List<JType> etypes = aClassDecl.getExtendsTypes();
         JType elast = etypes.size() > 0 ? etypes.get(etypes.size() - 1) : null;
         if (etypes.size() > 0) append("extends ");
         for (JType etyp : etypes) {
@@ -128,13 +128,15 @@ public class JavaWriter {
         }
 
         // Append implements types
-        List<JType> itypes = aCDecl.getImplementsTypes();
-        JType ilast = itypes.size() > 0 ? itypes.get(itypes.size() - 1) : null;
-        if (itypes.size() > 0) append("implements ");
-        for (JType ityp : itypes) {
-            writeJType(ityp);
-            if (ityp != ilast) append(", ");
-            else append(' ');
+        List<JType> implementsTypes = aClassDecl.getImplementsTypes();
+        JType lastImplType = implementsTypes.size() > 0 ? implementsTypes.get(implementsTypes.size() - 1) : null;
+        if (implementsTypes.size() > 0)
+            append("implements ");
+        for (JType implType : implementsTypes) {
+            writeJType(implType);
+            if (implType != lastImplType)
+                append(',');
+            append(' ');
         }
 
         // Write class label close char
@@ -142,24 +144,26 @@ public class JavaWriter {
         indent();
 
         // Append enum constants
-        List<JEnumConst> econsts = aCDecl.getEnumConstants();
-        if (econsts.size() > 0) {
-            writeJNodesJoined(econsts, ", ");
+        List<JEnumConst> enumConstants = aClassDecl.getEnumConstants();
+        if (enumConstants.size() > 0) {
+            writeJNodesJoined(enumConstants, ", ");
             endln();
         }
 
         // Append fields
-        JFieldDecl fdecls[] = aCDecl.getFieldDecls();
-        for (JFieldDecl fd : aCDecl.getFieldDecls()) {
-            writeJFieldDecl(fd);
+        JFieldDecl[] fieldDecls = aClassDecl.getFieldDecls();
+        for (JFieldDecl fieldDecl : fieldDecls) {
+            writeJFieldDecl(fieldDecl);
             endln();
         }
 
         // Append methods
-        JMethodDecl mdecls[] = aCDecl.getMethodDecls(), mlast = mdecls.length > 0 ? mdecls[mdecls.length - 1] : null;
-        for (JMethodDecl md : aCDecl.getMethodDecls()) {
-            writeJMethodDecl(md);
-            if (md != mlast) endln();
+        JMethodDecl[] methodDecls = aClassDecl.getMethodDecls();
+        JMethodDecl lastMethod = methodDecls.length > 0 ? methodDecls[methodDecls.length - 1] : null;
+        for (JMethodDecl methodDecl : aClassDecl.getMethodDecls()) {
+            writeJMethodDecl(methodDecl);
+            if (methodDecl != lastMethod)
+                endln();
         }
 
         // Terminate
@@ -167,10 +171,10 @@ public class JavaWriter {
         append('}').endln();
 
         // Append inner classes
-        JClassDecl cdecls[] = aCDecl.getClassDecls();
-        for (JClassDecl cd : cdecls) {
+        JClassDecl[] classDecls = aClassDecl.getClassDecls();
+        for (JClassDecl classDecl : classDecls) {
             endln();
-            writeJClassDecl(cd);
+            writeJClassDecl(classDecl);
         }
     }
 
@@ -333,7 +337,7 @@ public class JavaWriter {
         else if (aStmt instanceof JStmtTry) writeJStmtTry((JStmtTry) aStmt);
         else if (aStmt instanceof JStmtVarDecl) writeJStmtVarDecl((JStmtVarDecl) aStmt);
         else if (aStmt instanceof JStmtWhile) writeJStmtWhile((JStmtWhile) aStmt);
-        else throw new RuntimeException("TSWriter.writeJStmt: Unsupported statement " + aStmt.getClass());
+        else throw new RuntimeException("JavaWriter.writeJStmt: Unsupported statement " + aStmt.getClass());
         //else append(aStmt.getString()).endln();
     }
 
@@ -342,7 +346,8 @@ public class JavaWriter {
      */
     public void writeJStmtAssert(JStmtAssert aStmt)
     {
-        JExpr cond = aStmt.getConditional(), expr = aStmt.getExpr();
+        JExpr cond = aStmt.getConditional();
+        JExpr expr = aStmt.getExpr();
         append("assert(");
         writeJExpr(cond);
         append(");").endln();
@@ -457,7 +462,7 @@ public class JavaWriter {
     public void writeJStmtIf(JStmtIf aStmt)
     {
         // Write if(), conditional and statement
-        append("if(");
+        append("if (");
         writeJExpr(aStmt.getConditional());
         append(") ");
         writeJStmt(aStmt.getStatement());
@@ -478,7 +483,7 @@ public class JavaWriter {
         JVarDecl initVD = init != null ? init.getVarDecls().get(0) : null;
         JExpr cond = aStmt.getConditional();
 
-        append("for(");
+        append("for (");
 
         // Handle for(each)
         if (aStmt.isForEach()) {
@@ -550,7 +555,7 @@ public class JavaWriter {
     public void writeJStmtSwitch(JStmtSwitch aStmt)
     {
         JExpr expr = aStmt.getExpr();
-        append("switch(");
+        append("switch (");
         writeJExpr(expr);
         append(") {").endln();
         indent();
@@ -875,7 +880,7 @@ public class JavaWriter {
      */
     public void writeJExprMethodRef(JExprMethodRef aExpr)
     {
-        System.out.println("TSWriter: Need to write method ref: " + aExpr.getFile().getEvalClassName());
+        System.out.println("JavaWriter: writeJExprMethodRef not implemented");
     }
 
     /**
@@ -892,7 +897,7 @@ public class JavaWriter {
      */
     public JavaWriter append(String aStr)
     {
-        cd();
+        checkIndent();
         _sb.append(aStr);
         return this;
     }
@@ -902,7 +907,7 @@ public class JavaWriter {
      */
     public JavaWriter append(char aValue)
     {
-        cd();
+        checkIndent();
         _sb.append(aValue);
         return this;
     }
@@ -912,7 +917,7 @@ public class JavaWriter {
      */
     public JavaWriter append(int aValue)
     {
-        cd();
+        checkIndent();
         _sb.append(aValue);
         return this;
     }
@@ -922,7 +927,7 @@ public class JavaWriter {
      */
     public JavaWriter append(double aValue)
     {
-        cd();
+        checkIndent();
         _sb.append(aValue);
         return this;
     }
@@ -967,9 +972,10 @@ public class JavaWriter {
     /**
      * Checks for indent.
      */
-    protected void cd()
+    protected void checkIndent()
     {
-        if (_lineStart) appendIndent();
+        if (_lineStart)
+            appendIndent();
         _lineStart = false;
     }
 
