@@ -2,6 +2,10 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
+import snap.web.FileSite;
+import snap.web.WebSite;
+import snap.web.WebURL;
+
 import java.lang.reflect.*;
 
 /**
@@ -241,5 +245,31 @@ public class ResolverUtils {
 
         // Complain about anything else
         throw new RuntimeException("JavaKitUtils.getClass: Can't get class from type: " + aType);
+    }
+
+    /**
+     * Returns a class path for given class.
+     */
+    public static String getClassPathForClass(Class<?> aClass)
+    {
+        // Get URL and Site
+        WebURL url = WebURL.getURL(aClass);
+
+        // If URL string has separator, use site
+        String urlString = url.getString();
+        if (urlString.contains("!/")) {
+            WebSite site = url.getSite();
+            return site.getPath();
+        }
+
+        // Otherwise, trim className from path
+        String path = url.getPath();
+        int classNameLen = aClass.getName().length() + ".class".length() + 1;
+        if (path.length() > classNameLen)
+            return path.substring(0, path.length() - classNameLen);
+
+        // Express concern and return null
+        System.out.println("ResolverUtils.getClassPathForClass: Unexpected class url: " + url);
+        return null;
     }
 }

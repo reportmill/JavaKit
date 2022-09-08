@@ -5,6 +5,7 @@ package javakit.reflect;
 import java.lang.reflect.*;
 import java.util.*;
 import javakit.resolver.ClassPathInfo;
+import snap.util.ArrayUtils;
 import snap.util.ClassUtils;
 import snap.util.SnapUtils;
 
@@ -56,6 +57,14 @@ public class Resolver {
     public void setClassPaths(String[] theClassPaths)
     {
         _classPaths = theClassPaths;
+    }
+
+    /**
+     * Adds a class path (Jar file path, classes dir path, etc.).
+     */
+    public void addClassPath(String aClassPath)
+    {
+        _classPaths = ArrayUtils.add(_classPaths, aClassPath);
     }
 
     /**
@@ -448,18 +457,20 @@ public class Resolver {
      */
     public static Resolver newResolverForClassLoader(ClassLoader aClassLoader)
     {
+        // If TeaVM, just use base Resolver
         if (SnapUtils.isTeaVM)
             return new Resolver(aClassLoader);
 
-        // Try Swing
-        String className = SnapUtils.isTeaVM ? "junk" : "javakit.reflect.ResolverSys";
+        // Otherwise, use ResolverSys (Use reflection and conditional to stymie TeaVM)
         try {
-            Resolver resolver = (Resolver) Class.forName(className).newInstance();
+            String className = 1 > 0 ? "javakit.reflect.ResolverSys" : "don't judge me";
+            Class<?> resolverClass = Class.forName(className);
+            Resolver resolver = (Resolver) resolverClass.newInstance();
             resolver._classLoader = aClassLoader;
             return resolver;
         }
         catch(Exception e) {
-            throw new RuntimeException("Resolver.newResolverForClassLoader: Can't create: " + className + ", " + e);
+            throw new RuntimeException("Resolver.newResolverForClassLoader: Can't create: ResolverSys" + e);
         }
     }
 }
