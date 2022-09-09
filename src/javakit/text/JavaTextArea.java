@@ -95,11 +95,17 @@ public class JavaTextArea extends TextArea {
         JavaPopupList popup = getPopup();
         popup.setItems(completions);
 
+        // Get location for text start
+        TextSel textSel = getSel();
+        TextBoxLine selLine = textSel.getStartLine();
+        int selLineStart = selLine.getStart();
+        JNode selNode = getSelNode();
+        int selNodeStart = selNode.getStart() - getTextDoc().getStartCharIndex() - selLineStart;
+
         // Get location for popup and show
-        TextBoxLine selLine = getSel().getStartLine();
-        double selX = selLine.getXForChar(getSelStart() - selLine.getStart());
-        double selY = selLine.getMaxY() + 3;
-        popup.show(this, selX, selY);
+        double textX = selLine.getXForChar(selNodeStart);
+        double textY = selLine.getMaxY() + 4;
+        popup.show(this, textX, textY);
     }
 
     /**

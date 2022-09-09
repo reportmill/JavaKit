@@ -3,13 +3,13 @@
  */
 package javakit.text;
 import java.util.List;
-
 import javakit.parse.JFile;
 import javakit.parse.JImportDecl;
 import javakit.parse.JNode;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaConstructor;
 import javakit.reflect.JavaDecl;
+import snap.geom.Insets;
 import snap.gfx.*;
 import snap.props.PropChange;
 import snap.props.PropChangeListener;
@@ -22,10 +22,17 @@ import snap.view.*;
 public class JavaPopupList extends PopupList<JavaDecl> {
 
     // The JavaTextArea
-    JavaTextArea _textArea;
+    private JavaTextArea  _textArea;
 
     // The current selection start
-    int _selStart;
+    private int  _selStart;
+
+    // PropChangeListner for TextArea prop changes
+    private PropChangeListener  _textAreaLsnr = pce -> textAreaPropChange(pce);
+
+    // Constants
+    private static Color BACKGROUND_COLOR = Color.get("#FC");
+    private static Color CELL_TEXT_FILL = Color.get("#28");
 
     /**
      * Creates a new java popup for given JavaTextArea.
@@ -34,10 +41,19 @@ public class JavaPopupList extends PopupList<JavaDecl> {
     {
         ListArea<JavaDecl> listArea = getListArea();
         listArea.setCellConfigure(lc -> configureCell(lc));
+        listArea.setCellPadding(new Insets(0, 2, 2, 2));
+        listArea.setRowHeight(18);
+        listArea.setFill(BACKGROUND_COLOR);
+        listArea.setAltPaint(BACKGROUND_COLOR);
 
         _textArea = aJavaTextArea;
         setPrefWidth(500);
-        setPrefRowCount(15);
+        setPrefRowCount(12);
+
+        // Set font
+        TextDoc textDoc = aJavaTextArea.getTextDoc();
+        Font font = textDoc.getDefaultStyle().getFont();
+        listArea.setFont(font);
     }
 
     /**
@@ -66,14 +82,10 @@ public class JavaPopupList extends PopupList<JavaDecl> {
 
         // Get start/stop char index for completion (adjust for SubText if needed)
         JavaTextArea textArea = getTextArea();
-        JNode selNode = textArea.getSelNode();
-        int selStart = selNode.getStart();
-        int selEnd = textArea.getSelEnd();
-
-        // Adjust for SubText if needed
         TextDoc textDoc = textArea.getTextDoc();
-        if (textDoc instanceof SubText)
-            selStart -= ((SubText) textDoc).getStartCharIndex();
+        JNode selNode = textArea.getSelNode();
+        int selStart = selNode.getStart() - textDoc.getStartCharIndex();
+        int selEnd = textArea.getSelEnd();
 
         // Replace selection with completeString
         textArea.replaceChars(completion, null, selStart, selEnd, false);
@@ -121,8 +133,10 @@ public class JavaPopupList extends PopupList<JavaDecl> {
                     is = imp.getLineIndex() + 1;
                 }
 
-                TextBoxLine line = getTextArea().getLine(is);
-                getTextArea().replaceChars(importStr, null, line.getStart(), line.getStart(), false);
+                // Add import
+                TextArea textArea = getTextArea();
+                TextBoxLine line = textArea.getLine(is);
+                textArea.addChars(importStr, null, line.getStart(), false);
             }
         }
     }
@@ -132,7 +146,13 @@ public class JavaPopupList extends PopupList<JavaDecl> {
      */
     public void show(View aView, double aX, double aY)
     {
+        // Shift X by image width
+        aX -= 24;
+
+        // Do normal version
         super.show(aView, aX, aY);
+
+        // Start listening to TextArea
         _textArea.addPropChangeListener(_textAreaLsnr);
         _selStart = _textArea.getSelStart();
     }
@@ -146,13 +166,10 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         _textArea.removePropChangeListener(_textAreaLsnr);
     }
 
-    // PropChangeListner for TextArea prop changes
-    PropChangeListener _textAreaLsnr = pce -> textAreaPropChange(pce);
-
     /**
      * Catch TextArea Selection changes that should cause Popup to close.
      */
-    public void textAreaPropChange(PropChange anEvent)
+    public void textAreaPropChange(PropChange aPC)
     {
         // If not showing, unregister (in case we were PopupList was dismissed without hide)
         if (!isShowing()) {
@@ -161,8 +178,10 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         }
 
         // If Selection change, update or hide
-        if (anEvent.getPropertyName().equals("Selection")) {
-            int start = _textArea.getSelStart(), end = _textArea.getSelEnd();
+        String propName = aPC.getPropName();
+        if (propName == TextArea.Selection_Prop) {
+            int start = _textArea.getSelStart();
+            int end = _textArea.getSelEnd();
             if (start != end || !(start == _selStart + 1 || start == _selStart - 1))
                 hide();
             _selStart = start;
@@ -191,6 +210,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         // Get/set cell text
         String cellText = item.getSuggestionString();
         aCell.setText(cellText);
+        aCell.setTextFill(CELL_TEXT_FILL);
 
         // Get/set cell image
         Image cellImage = JavaTextUtils.getImageForJavaDecl(item);
