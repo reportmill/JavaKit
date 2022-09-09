@@ -49,6 +49,9 @@ public class JavaTextArea extends TextArea {
     // Constants for properties
     public static final String SelectedNode_Prop = "SelectedNode";
 
+    // Constants
+    private static String INDENT_STRING = "    ";
+
     /**
      * Creates a new JavaTextArea.
      */
@@ -548,7 +551,7 @@ public class JavaTextArea extends TextArea {
         // Handle tab
         if (keyCode == KeyCode.TAB) {
             if (!anEvent.isShiftDown()) indentLines();
-            else outdentLines(); //replace("    ");
+            else outdentLines();
             anEvent.consume();
             return;
         }
@@ -598,46 +601,48 @@ public class JavaTextArea extends TextArea {
         // Determine if this line is start of code block and/or not terminated
         // TODO: Need real startOfMultilineComment and inMultilineComment
         String lineString = line.getString().trim();
-        boolean startOfMultiLineComment = lineString.startsWith("/*") && !lineString.endsWith("*/");
-        boolean inMultiLineComment = lineString.startsWith("*") && !lineString.endsWith("*/");
-        boolean endMultiLineComment = lineString.startsWith("*") && lineString.endsWith("*/");
-        boolean startOfCodeBlock = lineString.endsWith("{");
-        boolean terminated = lineString.endsWith(";") || lineString.endsWith("}") ||
+        boolean isStartOfMultiLineComment = lineString.startsWith("/*") && !lineString.endsWith("*/");
+        boolean isInMultiLineComment = lineString.startsWith("*") && !lineString.endsWith("*/");
+        boolean isEndMultiLineComment = lineString.startsWith("*") && lineString.endsWith("*/");
+        boolean isStartOfCodeBlock = lineString.endsWith("{");
+        boolean isLineTerminated = lineString.endsWith(";") || lineString.endsWith("}") ||
                 lineString.endsWith("*/") || lineString.indexOf("//") >= 0 || lineString.length() == 0;
 
         // Create indent string
         StringBuffer sb = new StringBuffer().append('\n');
-        for (int i = 0; i < indent; i++) sb.append(' ');
+        for (int i = 0; i < indent; i++)
+            sb.append(' ');
 
         // If start of multi-line comment, add " * "
-        if (startOfMultiLineComment)
+        if (isStartOfMultiLineComment)
             sb.append(" * ");
 
             // If in multi-line comment, add "* "
-        else if (inMultiLineComment)
+        else if (isInMultiLineComment)
             sb.append("* ");
 
             // If after multi-line comment, remove space from indent
-        else if (endMultiLineComment) {
-            if (sb.length() > 0) sb.delete(sb.length() - 1, sb.length());
+        else if (isEndMultiLineComment) {
+            if (sb.length() > 0)
+                sb.delete(sb.length() - 1, sb.length());
         }
 
-        // If line not terminated increase indent
-        else if (!terminated)
-            for (int i = 0; i < 4; i++) sb.append(' ');
+        // If line not terminated increase indent (not for REPL)
+        else if (!isLineTerminated && getTextDoc() instanceof JavaTextDoc)
+            sb.append(INDENT_STRING);
 
         // Do normal version
         replaceChars(sb.toString());
 
         // If start of multi-line comment, append terminator
-        if (startOfMultiLineComment) {
+        if (isStartOfMultiLineComment) {
             int start = getSelStart();
             replaceChars(sb.substring(0, sb.length() - 1) + "/", null, start, start, false);
             setSel(start);
         }
 
         // If start of code block, append terminator
-        else if (startOfCodeBlock && getJFile().getException() != null) {
+        else if (isStartOfCodeBlock && getJFile().getException() != null) {
             int start = getSelStart();
             replaceChars(sb.substring(0, sb.length() - 4) + "}", null, start, start, false);
             setSel(start);
@@ -659,11 +664,12 @@ public class JavaTextArea extends TextArea {
      */
     public void indentLines()
     {
-        int sline = getSel().getStartLine().getIndex();
-        int eline = getSel().getEndLine().getIndex();
-        for (int i = sline; i <= eline; i++) {
+        TextSel textSel = getSel();
+        int startLineIndex = textSel.getStartLine().getIndex();
+        int endLineIndex = textSel.getEndLine().getIndex();
+        for (int i = startLineIndex; i <= endLineIndex; i++) {
             TextBoxLine line = getLine(i);
-            replaceChars("    ", null, line.getStart(), line.getStart(), false);
+            addChars(INDENT_STRING, null, line.getStart());
         }
     }
 
@@ -672,11 +678,12 @@ public class JavaTextArea extends TextArea {
      */
     public void outdentLines()
     {
-        int sline = getSel().getStartLine().getIndex();
-        int eline = getSel().getEndLine().getIndex();
-        for (int i = sline; i <= eline; i++) {
+        TextSel textSel = getSel();
+        int startLineIndex = textSel.getStartLine().getIndex();
+        int endLineIndex = textSel.getEndLine().getIndex();
+        for (int i = startLineIndex; i <= endLineIndex; i++) {
             TextBoxLine line = getLine(i);
-            if (line.length() < 4 || !line.subSequence(0, 4).toString().equals("    ")) continue;
+            if (line.length() < 4 || !line.subSequence(0, 4).toString().equals(INDENT_STRING)) continue;
             replaceChars("", null, line.getStart(), line.getStart() + 4, false);
         }
     }
