@@ -92,6 +92,7 @@ public class JavaTextDocBlock {
         _textArea = new JavaTextArea();
         _textArea.setRoundingRadius(4);
         _textArea.setShowPrintMargin(false);
+        _textArea.setFocusPainted(true);
         _textArea.setTextDoc(_subText);
 
         // Return
