@@ -26,10 +26,10 @@ public class JavaTextArea extends TextArea {
     private boolean  _showPrintMargin = true;
 
     // The default font
-    private Font _defaultFont;
+    private Font  _defaultFont;
 
     // The selected JNode
-    protected JNode _selNode = new JFile();
+    protected JNode  _selNode = new JFile();
 
     // The deepest child of SelNode recently selected
     protected JNode  _deepNode;
@@ -46,11 +46,14 @@ public class JavaTextArea extends TextArea {
     // Rounding radius
     private double  _roundingRadius;
 
+    // A helper class for key processing
+    private JavaTextAreaKeys  _keys = new JavaTextAreaKeys(this);
+
     // Constants for properties
     public static final String SelectedNode_Prop = "SelectedNode";
 
     // Constants
-    private static String INDENT_STRING = "    ";
+    protected static String INDENT_STRING = "    ";
 
     /**
      * Creates a new JavaTextArea.
@@ -458,195 +461,35 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Called when a key is typed.
+     * Called when a key is pressed.
      */
-    protected void keyTyped(ViewEvent anEvent)
+    protected void keyPressed(ViewEvent anEvent)
     {
-        // Get event info
-        char keyChar = anEvent.getKeyChar();
-        if (keyChar == KeyCode.CHAR_UNDEFINED) return;
-        boolean charDefined = !Character.isISOControl(keyChar);
-        boolean commandDown = anEvent.isShortcutDown();
-        boolean controlDown = anEvent.isControlDown();
-
-        // Handle suppression of redundant paired char (parens, quotes, square brackets)
-        // TODO: Don't do if in string/comment - but should also work if chars are no longer adjacent
-        if (charDefined && !commandDown && !controlDown && isSelEmpty()) {
-            int start = getSelStart() - 1;
-            char c1 = start >= 0 && start + 1 < length() ? charAt(start) : 0;
-            char c2 = c1 != 0 ? charAt(start + 1) : 0;
-            switch (keyChar) {
-                case '\'':
-                    if (c2 == '\'' && getSelNode() instanceof JExprLiteral) start = -9;
-                    break;
-                case '"':
-                    if (c2 == '"' && getSelNode() instanceof JExprLiteral) start = -9;
-                    break;
-                case ')':
-                    if (c1 == '(' && c2 == ')') start = -9;
-                    break;
-                case ']':
-                    if (c1 == '[' && c2 == ']') start = -9;
-                    break;
-                case '{':
-                    TextBoxLine line = getSel().getStartLine();
-                    if (line.getString().trim().length() == 0 && line.getString().length() >= 4) {
-                        start = getSelStart();
-                        delete(line.getStart(), line.getStart() + 4, false);
-                        setSel(start - 4);
-                    }
-            }
-            if (start == -9) {
-                setSel(getSelStart() + 1);
-                anEvent.consume();
-                return;
-            }
-        }
-
-        // Do normal version
-        super.keyTyped(anEvent);
-
-        // Handle insertion of paired chars (parens, quotes, square brackets) - TODO: Don't do if in string/comment
-        if (charDefined && !commandDown && !controlDown) {
-
-            String closer = null;
-            switch (keyChar) {
-                case '\'': closer = "'"; break; // TODO: need inComment() check
-                case '"': closer = "\""; break;
-                case '(': closer = ")"; break;
-                case '[': closer = "]"; break;
-                case '}':
-                    TextBoxLine line = getSel().getStartLine();
-                    TextBoxLine line2 = line.getPrevLine();
-                    int indent = getIndent(line);
-                    int indent2 = line2 != null ? getIndent(line2) : 0;
-                    if (line.getString().trim().startsWith("}") && indent > indent2 && indent > 4) {
-                        delete(line.getStart(), line.getStart() + (indent - indent2), false);
-                        setSel(getSelStart() - 4);
-                    }
-            }
-
-            if (closer != null) {
-                int i = getSelStart();
-                replaceChars(closer, null, i, i, false);
-                setSel(i);
-                return;
-            }
-
-            // Activate PopupList
-            if (!getPopup().isShowing() && !anEvent.isSpaceKey())
-                getEnv().runLater(() -> activatePopupList());
-        }
+        _keys.keyPressed(anEvent);
     }
 
     /**
      * Called when a key is pressed.
      */
-    protected void keyPressed(ViewEvent anEvent)
+    protected void keyPressedSuper(ViewEvent anEvent)
     {
-        // Get event info
-        int keyCode = anEvent.getKeyCode();
-        boolean commandDown = anEvent.isShortcutDown(), shiftDown = anEvent.isShiftDown();
-
-        // Handle tab
-        if (keyCode == KeyCode.TAB) {
-            if (!anEvent.isShiftDown()) indentLines();
-            else outdentLines();
-            anEvent.consume();
-            return;
-        }
-
-        // Handle newline special
-        if (keyCode == KeyCode.ENTER && isSelEmpty()) {
-            processNewline();
-            anEvent.consume();
-            return;
-        }
-
-        // Handle delete of adjacent paired chars (parens, quotes, square brackets) - TODO: don't do if in string/comment
-        boolean isDelete = keyCode == KeyCode.BACK_SPACE || commandDown && !shiftDown && keyCode == KeyCode.X;
-        if (isDelete && getSel().getSize() <= 1) {
-            int start = getSelStart();
-            if (isSelEmpty()) start--;
-            char c1 = start >= 0 && start + 1 < length() ? charAt(start) : 0, c2 = c1 != 0 ? charAt(start + 1) : 0;
-            switch (c1) {
-                case '\'':
-                    if (c2 == '\'') delete(start + 1, start + 2, false);
-                    break;
-                case '"':
-                    if (c2 == '"') delete(start + 1, start + 2, false);
-                    break;
-                case '(':
-                    if (c2 == ')') delete(start + 1, start + 2, false);
-                    break;
-                case '[':
-                    if (c2 == ']') delete(start + 1, start + 2, false);
-                    break;
-            }
-        }
-
-        // Do normal version
         super.keyPressed(anEvent);
     }
 
     /**
-     * Process newline key event.
+     * Called when a key is typed.
      */
-    protected void processNewline()
+    protected void keyTyped(ViewEvent anEvent)
     {
-        // Get line and its indent
-        TextBoxLine line = getSel().getStartLine();
-        int indent = getIndent(line);
+        _keys.keyTyped(anEvent);
+    }
 
-        // Determine if this line is start of code block and/or not terminated
-        // TODO: Need real startOfMultilineComment and inMultilineComment
-        String lineString = line.getString().trim();
-        boolean isStartOfMultiLineComment = lineString.startsWith("/*") && !lineString.endsWith("*/");
-        boolean isInMultiLineComment = lineString.startsWith("*") && !lineString.endsWith("*/");
-        boolean isEndMultiLineComment = lineString.startsWith("*") && lineString.endsWith("*/");
-        boolean isStartOfCodeBlock = lineString.endsWith("{");
-        boolean isLineTerminated = lineString.endsWith(";") || lineString.endsWith("}") ||
-                lineString.endsWith("*/") || lineString.indexOf("//") >= 0 || lineString.length() == 0;
-
-        // Create indent string
-        StringBuffer sb = new StringBuffer().append('\n');
-        for (int i = 0; i < indent; i++)
-            sb.append(' ');
-
-        // If start of multi-line comment, add " * "
-        if (isStartOfMultiLineComment)
-            sb.append(" * ");
-
-            // If in multi-line comment, add "* "
-        else if (isInMultiLineComment)
-            sb.append("* ");
-
-            // If after multi-line comment, remove space from indent
-        else if (isEndMultiLineComment) {
-            if (sb.length() > 0)
-                sb.delete(sb.length() - 1, sb.length());
-        }
-
-        // If line not terminated increase indent (not for REPL)
-        else if (!isLineTerminated && getTextDoc() instanceof JavaTextDoc)
-            sb.append(INDENT_STRING);
-
-        // Do normal version
-        replaceChars(sb.toString());
-
-        // If start of multi-line comment, append terminator
-        if (isStartOfMultiLineComment) {
-            int start = getSelStart();
-            replaceChars(sb.substring(0, sb.length() - 1) + "/", null, start, start, false);
-            setSel(start);
-        }
-
-        // If start of code block, append terminator
-        else if (isStartOfCodeBlock && getJFile().getException() != null) {
-            int start = getSelStart();
-            replaceChars(sb.substring(0, sb.length() - 4) + "}", null, start, start, false);
-            setSel(start);
-        }
+    /**
+     * Called when a key is typed.
+     */
+    protected void keyTypedSuper(ViewEvent anEvent)
+    {
+        super.keyTyped(anEvent);
     }
 
     /**
