@@ -654,7 +654,8 @@ public class JavaWriter {
      */
     public void writeJExpr(JExpr aExpr)
     {
-        if (aExpr instanceof JExprAlloc) writeJExprAlloc((JExprAlloc) aExpr);
+        if (aExpr == null) append("null");
+        else if (aExpr instanceof JExprAlloc) writeJExprAlloc((JExprAlloc) aExpr);
         else if (aExpr instanceof JExprArrayIndex) writeJExprArrayIndex((JExprArrayIndex) aExpr);
         else if (aExpr instanceof JExprChain) writeJExprChain((JExprChain) aExpr);
         else if (aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr) aExpr);
