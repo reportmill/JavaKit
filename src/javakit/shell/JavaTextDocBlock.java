@@ -15,9 +15,6 @@ public class JavaTextDocBlock {
     // The SubText of full Java text for code block
     private SubText  _subText;
 
-    // The start/end line of block
-    private TextLine  _startLine, _endLine;
-
     // The JavaTextArea
     protected JavaTextArea  _textArea;
 
@@ -34,12 +31,12 @@ public class JavaTextDocBlock {
         int blockEnd = blockStmt.getEnd();
 
         // Get start/end lines indexes
-        _startLine = _javaDoc.getLineForCharIndex(blockStart);
-        _endLine = _javaDoc.getLineForCharIndex(blockEnd);
+        TextLine startLine = _javaDoc.getLineForCharIndex(blockStart);
+        TextLine endLine = _javaDoc.getLineForCharIndex(blockEnd);
 
         // Get code start/end char index (inside of brackets)
-        int codeStartIndex = _startLine.getEnd();
-        int codeEndIndex = _endLine.getStart();
+        int codeStartIndex = startLine.getEnd();
+        int codeEndIndex = endLine.getStart();
 
         // Create subText
         _subText = new SubText(_javaDoc, codeStartIndex, codeEndIndex);
@@ -48,12 +45,22 @@ public class JavaTextDocBlock {
     /**
      * Returns the start line.
      */
-    public TextLine getStartLine()  { return _startLine; }
+    public TextLine getStartLine()
+    {
+        int startCharIndex = _subText.getStartCharIndex();
+        TextLine startLine = _subText.getTextDoc().getLineForCharIndex(startCharIndex);
+        return startLine;
+    }
 
     /**
      * Returns the end line.
      */
-    public TextLine getEndLine()  { return _endLine; }
+    public TextLine getEndLine()
+    {
+        int endCharIndex = _subText.getEndCharIndex();
+        TextLine endLine = _subText.getTextDoc().getLineForCharIndex(endCharIndex);
+        return endLine;
+    }
 
     /**
      * Returns the start char index.
