@@ -2,6 +2,7 @@ package javakit.shell;
 import javakit.parse.JStmtBlock;
 import javakit.text.JavaTextArea;
 import snap.text.SubText;
+import snap.text.TextDoc;
 import snap.text.TextLine;
 
 /**
@@ -112,6 +113,25 @@ public class JavaTextDocBlock {
     public String getString()
     {
         return _subText.getString();
+    }
+
+    /**
+     * Removes the trailing newline.
+     */
+    public void removeTrailingNewline()
+    {
+        // If empty, just return
+        if (length() == 0) return;
+
+        // If last char not newline, just return
+        TextDoc textDoc = _javaDoc;
+        int endCharIndex = getEndCharIndex() - 1;
+        char endChar = _javaDoc.charAt(endCharIndex);
+        if (endChar != '\n')
+            return;
+
+        // Remove last char
+        textDoc.removeChars(endCharIndex, endCharIndex + 1);
     }
 
     /**
