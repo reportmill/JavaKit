@@ -170,7 +170,7 @@ public class JavaTextDocBlock {
          * Override to remove extra indent from pasted strings.
          */
         @Override
-        protected void replaceCharsWithContent(Object theContent)
+        public void replaceCharsWithContent(Object theContent)
         {
             // If String, trim extra indent
             if (theContent instanceof String)
@@ -186,12 +186,18 @@ public class JavaTextDocBlock {
      */
     private static String removeExtraIndentFromString(String str)
     {
+        // If starts with newline, strip it
+        if (str.startsWith("\n"))
+            str = str.substring(1);
+
         // Get string as lines
         String[] lines = str.split("\n");
         int minIndent = 99;
 
         // Get minimum indent for given lines
         for (String line : lines) {
+            if (line.trim().length() == 0)
+                continue;
             int indent = 0;
             for (int i = 0; i < line.length(); i++) {
                 if (line.charAt(i) == ' ')
