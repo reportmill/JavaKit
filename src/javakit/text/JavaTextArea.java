@@ -8,8 +8,6 @@ import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.NodeMatcher;
 import javakit.shell.JavaTextDoc;
-import snap.geom.RoundRect;
-import snap.geom.Shape;
 import snap.gfx.*;
 import snap.text.*;
 import javakit.resolver.*;
@@ -42,9 +40,6 @@ public class JavaTextArea extends TextArea {
 
     // A PopupList to show code completion stuff
     protected JavaPopupList  _popup;
-
-    // Rounding radius
-    private double  _roundingRadius;
 
     // A helper class for key processing
     private JavaTextAreaKeys  _keys = new JavaTextAreaKeys(this);
@@ -671,21 +666,5 @@ public class JavaTextArea extends TextArea {
     {
         JavaTextPane javaTextPane = getOwner(JavaTextPane.class); if (javaTextPane == null) return -1;
         return javaTextPane.getProgramCounterLine();
-    }
-
-    /**
-     * Sets rounding radius.
-     */
-    public void setRoundingRadius(double aValue)  { _roundingRadius = aValue; }
-
-    /**
-     * Override.
-     */
-    @Override
-    public Shape getBoundsShape()
-    {
-        if (_roundingRadius >= 1)
-            return new RoundRect(0,0, getWidth(), getHeight(), _roundingRadius);
-        return super.getBoundsShape();
     }
 }
