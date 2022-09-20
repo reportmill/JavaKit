@@ -225,4 +225,12 @@ public class JavaTextDocBlock {
         // Return
         return str;
     }
+
+    /**
+     * Called when instance is no longer needed to disconnect SubText from TextDoc.
+     */
+    public void dispose()
+    {
+        _subText.dispose();
+    }
 }

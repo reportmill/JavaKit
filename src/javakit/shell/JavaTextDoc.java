@@ -139,11 +139,12 @@ public class JavaTextDoc extends TextDoc {
         _blocks = ArrayUtils.remove(_blocks, anIndex);
 
         // Delete text
-        TextLine startLine = block.getStartLine();
-        TextLine endLine = block.getEndLine();
-        int startCharIndex = startLine.getStart();
-        int endCharIndex = endLine.getEnd();
+        int startCharIndex = block.getStartCharIndex() - 2;
+        int endCharIndex = block.getEndCharIndex() + 2;
         removeChars(startCharIndex, endCharIndex);
+
+        // Dispose block so Block.SubText can disconnect from parent TextDoc
+        block.dispose();
 
         // Return
         return block;
