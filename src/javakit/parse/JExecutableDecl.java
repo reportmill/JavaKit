@@ -5,9 +5,10 @@ package javakit.parse;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.JavaType;
 import snap.util.SnapUtils;
-import snap.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 
 /**
  * A Java member for MethodDeclaration.
@@ -212,22 +213,23 @@ public class JExecutableDecl extends JMemberDecl {
     }
 
     /**
-     * Returns a variable with given name.
+     * Override to search method/constructor params and VarDecl statements.
      */
-    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> varDeclList)
+    @Override
+    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> varDeclList)
     {
+        // Add VarDecls for formal params
+        for (JVarDecl varDecl : _params)
+            if (aMatcher.reset(varDecl.getName()).lookingAt())
+                varDeclList.add(varDecl);
+
         // Add VarDecls for block statements
         if (_block != null) {
             List<JStmt> statements = _block.getStatements();
-            JStmtBlock.getVarDeclsForPrefixFromStatements(aPrefix, statements, varDeclList);
+            JStmtBlock.getVarDeclsForMatcherFromStatements(aMatcher, statements, varDeclList);
         }
 
-        // Add VarDecls for formal params
-        for (JVarDecl v : _params)
-            if (StringUtils.startsWithIC(v.getName(), aPrefix))
-                varDeclList.add(v);
-
         // Do normal version
-        return super.getVarDeclsForPrefix(aPrefix, varDeclList);
+        return super.getVarDeclsForMatcher(aMatcher, varDeclList);
     }
 }

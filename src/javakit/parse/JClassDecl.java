@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.stream.Stream;
 import javakit.reflect.*;
 import snap.util.*;
@@ -576,23 +577,22 @@ public class JClassDecl extends JMemberDecl {
     }
 
     /**
-     * Returns a variable with given name.
+     * Override to search Class fields.
      */
-    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> theVDs)
+    @Override
+    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> theVDs)
     {
         // Iterate over statements and see if any JStmtVarDecl contains variable with that name
-        for (JMemberDecl memberDecl : _members) {
-            if (memberDecl instanceof JFieldDecl) {
-                JFieldDecl field = (JFieldDecl) memberDecl;
-                List<JVarDecl> fieldVarDecls = field.getVarDecls();
-                for (JVarDecl fieldVarDecl : fieldVarDecls)
-                    if (StringUtils.startsWithIC(fieldVarDecl.getName(), aPrefix))
-                        theVDs.add(fieldVarDecl);
-            }
+        JFieldDecl[] fieldDecls = getFieldDecls();
+        for (JFieldDecl fieldDecl : fieldDecls) {
+            List<JVarDecl> fieldVarDecls = fieldDecl.getVarDecls();
+            for (JVarDecl fieldVarDecl : fieldVarDecls)
+                if (aMatcher.reset(fieldVarDecl.getName()).lookingAt())
+                    theVDs.add(fieldVarDecl);
         }
 
         // Do normal version
-        return super.getVarDeclsForPrefix(aPrefix, theVDs);
+        return super.getVarDeclsForMatcher(aMatcher, theVDs);
     }
 
     /**

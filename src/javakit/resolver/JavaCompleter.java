@@ -4,11 +4,13 @@
 package javakit.resolver;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javakit.parse.*;
 import javakit.reflect.*;
 import snap.parse.Token;
+import snap.util.StringUtils;
 
 /**
  * A class to provide code completion suggestions for a given JNode.
@@ -183,8 +185,11 @@ public class JavaCompleter {
         if (prefix == null)
             return;
 
+        // Get prefix matcher
+        Matcher prefixMatcher = StringUtils.getSkipCharsMatcherForLiteralString(prefix);
+
         // Get variables with prefix of name and add to completions
-        List<JVarDecl> varDecls = aNode.getVarDeclsForPrefix(prefix, new ArrayList<>());
+        List<JVarDecl> varDecls = aNode.getVarDeclsForMatcher(prefixMatcher, new ArrayList<>());
         for (JVarDecl varDecl : varDecls)
             addCompletionDecl(varDecl.getDecl());
 

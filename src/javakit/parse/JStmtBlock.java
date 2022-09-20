@@ -4,9 +4,9 @@
 package javakit.parse;
 
 import java.util.*;
+import java.util.regex.Matcher;
 
 import javakit.reflect.JavaDecl;
-import snap.util.*;
 
 /**
  * A Java statement for a block of statements.
@@ -73,19 +73,19 @@ public class JStmtBlock extends JStmt {
     }
 
     /**
-     * Finds JVarDecls for given prefix and adds them to given list.
+     * Override to search VarDecl statements.
      */
     @Override
-    public List<JVarDecl> getVarDeclsForPrefix(String aPrefix, List<JVarDecl> varDeclList)
+    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> varDeclList)
     {
         // Get statements
         List<JStmt> statements = getStatements();
 
         // Get VarDecls for prefix from statements
-        getVarDeclsForPrefixFromStatements(aPrefix, statements, varDeclList);
+        getVarDeclsForMatcherFromStatements(aMatcher, statements, varDeclList);
 
         // Do normal version
-        return super.getVarDeclsForPrefix(aPrefix, varDeclList);
+        return super.getVarDeclsForMatcher(aMatcher, varDeclList);
     }
 
     /**
@@ -133,9 +133,9 @@ public class JStmtBlock extends JStmt {
     }
 
     /**
-     * Finds JVarDecls for given Node.Name in given statements and adds them to given list.
+     * Finds JVarDecls for given matcher in given statements and adds them to given list.
      */
-    public static void getVarDeclsForPrefixFromStatements(String aPrefix, List<JStmt> theStmts, List<JVarDecl> varDeclList)
+    public static void getVarDeclsForMatcherFromStatements(Matcher aMatcher, List<JStmt> theStmts, List<JVarDecl> varDeclList)
     {
         // Iterate over statements and see if any JStmtVarDecl contains variable with that name
         for (JStmt stmt : theStmts) {
@@ -149,7 +149,7 @@ public class JStmtBlock extends JStmt {
 
             // Iterate over VarDecls and add those that match prefix
             for (JVarDecl varDecl : varDecls)
-                if (StringUtils.startsWithIC(varDecl.getName(), aPrefix))
+                if (aMatcher.reset(varDecl.getName()).lookingAt())
                     varDeclList.add(varDecl);
         }
     }
