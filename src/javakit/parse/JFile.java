@@ -243,9 +243,10 @@ public class JFile extends JNode {
      */
     public String getImportClassName(String aName)
     {
-        // Handle fully specified name
-        if (isKnownClassName(aName))
-            return aName;
+        // Handle fully specified name (or java.lang name)
+        JavaClass knownClass = getJavaClassForName(aName);
+        if (knownClass != null)
+            return knownClass.getName();
 
         // If name has parts, handle them separately
         if (aName.indexOf('.') > 0) {

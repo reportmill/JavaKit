@@ -6,6 +6,7 @@ import java.util.List;
 import javakit.parse.JFile;
 import javakit.parse.JImportDecl;
 import javakit.parse.JNode;
+import javakit.parse.JPackageDecl;
 import javakit.reflect.JavaClass;
 import javakit.reflect.JavaConstructor;
 import javakit.reflect.JavaDecl;
@@ -39,12 +40,15 @@ public class JavaPopupList extends PopupList<JavaDecl> {
      */
     public JavaPopupList(JavaTextArea aJavaTextArea)
     {
+        // Create ListArea and configure style
         ListArea<JavaDecl> listArea = getListArea();
-        listArea.setCellConfigure(lc -> configureCell(lc));
-        listArea.setCellPadding(new Insets(0, 2, 2, 2));
-        listArea.setRowHeight(18);
         listArea.setFill(BACKGROUND_COLOR);
         listArea.setAltPaint(BACKGROUND_COLOR);
+        listArea.setCellConfigure(listCell -> configureCell(listCell));
+
+        // Configure ListArea sizing
+        listArea.setRowHeight(18);
+        listArea.setCellPadding(new Insets(0, 2, 2, 2));
 
         _textArea = aJavaTextArea;
         setPrefWidth(500);
@@ -100,7 +104,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
 
         // Add import for suggestion Class, if not present
         JFile jfile = selNode.getFile();
-        addImport(aDecl, jfile);
+        addImportForDecl(aDecl, jfile);
 
         // Hide PopupList
         hide();
@@ -109,36 +113,59 @@ public class JavaPopupList extends PopupList<JavaDecl> {
     /**
      * Inserts the import statement for suggestion into text, if missing.
      */
-    protected void addImport(JavaDecl aDecl, JFile aFile)
+    protected void addImportForDecl(JavaDecl aDecl, JFile aFile)
     {
-        // Handle ClassName suggestion
-        if (aDecl instanceof JavaClass || (aDecl instanceof JavaConstructor)) {
+        // Handle JavaClass
+        if (aDecl instanceof JavaClass)
+            addImportForClass((JavaClass) aDecl, aFile);
 
-            // Get
-            String className = aDecl instanceof JavaClass ? ((JavaClass) aDecl).getClassName() :
-                    ((JavaConstructor) aDecl).getDeclaringClassName();
-            String simpleName = aDecl.getSimpleName();
-            String importClassName = aFile.getImportClassName(simpleName);
-
-            if (importClassName == null || !importClassName.equals(className)) {
-
-                String classPath = className.replace('$', '.');
-                String importStr = "import " + classPath + ";\n";
-                List<JImportDecl> imports = aFile.getImportDecls();
-                int is = aFile.getPackageDecl() != null ? aFile.getPackageDecl().getLineIndex() + 1 : 0;
-
-                for (JImportDecl imp : imports) {
-                    if (classPath.compareTo(imp.getName()) < 0)
-                        break;
-                    is = imp.getLineIndex() + 1;
-                }
-
-                // Add import
-                TextArea textArea = getTextArea();
-                TextBoxLine line = textArea.getLine(is);
-                textArea.addChars(importStr, null, line.getStart(), false);
-            }
+        // Handle JavaConstructor
+        if (aDecl instanceof JavaConstructor) {
+            JavaClass javaClass = ((JavaConstructor) aDecl).getDeclaringClass();
+            if (javaClass != null)
+                addImportForClass(javaClass, aFile);
         }
+    }
+
+    /**
+     * Inserts the import statement for completed class into text, if missing.
+     */
+    protected void addImportForClass(JavaClass aJavaClass, JFile aFile)
+    {
+        // Get ClassName, SimpleName
+        String className = aJavaClass.getClassName();
+        String simpleName = aJavaClass.getSimpleName();
+
+        // Get importClassName for simple class name (If already present, just return)
+        String importClassName = aFile.getImportClassName(simpleName);
+        if (importClassName != null && importClassName.equals(className))
+            return;
+
+        // Construct import statement string
+        String classPath = className.replace('$', '.');
+        String importStr = "import " + classPath + ";\n";
+
+        // Get import line index
+        JPackageDecl pkgDecl = aFile.getPackageDecl();
+        int importLineIndex = pkgDecl != null ? pkgDecl.getLineIndex() + 1 : 0;
+
+        // Iterate over existing imports and increase line index to insert in alphabetical order
+        List<JImportDecl> importDecls = aFile.getImportDecls();
+        for (JImportDecl importDecl : importDecls) {
+            if (classPath.compareTo(importDecl.getName()) < 0)
+                break;
+            importLineIndex = importDecl.getLineIndex() + 1;
+        }
+
+        // Get Java text
+        TextArea textArea = getTextArea();
+        TextDoc textDoc = textArea.getTextDoc();
+        if (textDoc instanceof SubText)
+            textDoc = ((SubText) textDoc).getTextDoc();
+
+        // Add import to Java text
+        TextLine line = textDoc.getLine(importLineIndex);
+        textDoc.addChars(importStr, null, line.getStart());
     }
 
     /**
