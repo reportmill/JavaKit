@@ -1,5 +1,6 @@
 package javakit.resolver;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javakit.reflect.Resolver;
@@ -64,7 +65,7 @@ public class ClassPathInfo {
     /**
      * Returns class names for prefix.
      */
-    public List<String> getPackageClassNamesForPrefix(String aPkgName, String aPrefix)
+    public List<String> getPackageClassNamesForMatcher(String aPkgName, Matcher aMatcher)
     {
         // Get packageDir
         WebFile pkgDir = getPackageDir(aPkgName);
@@ -73,7 +74,7 @@ public class ClassPathInfo {
         // Get all class files with prefix
         WebFile[] packageDirFiles = pkgDir.getFiles();
         Stream<WebFile> packageDirFilesStream = Stream.of(packageDirFiles);
-        Stream<WebFile> packageDirFilesWithPrefixStream = packageDirFilesStream.filter(f -> isFilePrefixed(f, aPrefix));
+        Stream<WebFile> packageDirFilesWithPrefixStream = packageDirFilesStream.filter(f -> isFilePrefixed(f, aMatcher));
 
         // Get class names for class files
         Stream<String> classNamesStream = packageDirFilesWithPrefixStream.map(f -> getClassNameForClassFile(f));
@@ -86,7 +87,7 @@ public class ClassPathInfo {
     /**
      * Returns packages for prefix.
      */
-    public List<String> getPackageChildrenNamesForPrefix(String aPkgName, String aPrefix)
+    public List<String> getPackageChildrenNamesForMatcher(String aPkgName, Matcher aMatcher)
     {
         // Get dir for package name
         WebFile pkgDir = getPackageDir(aPkgName);
@@ -94,7 +95,7 @@ public class ClassPathInfo {
 
         // Get package dir files for package files
         List<WebFile> packageFiles = Arrays.asList(pkgDir.getFiles());
-        List<WebFile> childPackageDirs = getChildPackageDirsForPrefix(packageFiles, aPrefix);
+        List<WebFile> childPackageDirs = getChildPackageDirsForMatcher(packageFiles, aMatcher);
 
         // Get package names for package children dir files and return
         return getPackageNamesForPackageDirs(childPackageDirs);
@@ -103,10 +104,10 @@ public class ClassPathInfo {
     /**
      * Returns all packages with prefix.
      */
-    public List<String> getPackageNamesForPrefix(String aPrefix)
+    public List<String> getPackageNamesForMatcher(Matcher aMatcher)
     {
         List<WebFile> packageDirs = getAllPackageDirs();
-        List<WebFile> childPackageDirs = getChildPackageDirsForPrefix(packageDirs, aPrefix);
+        List<WebFile> childPackageDirs = getChildPackageDirsForMatcher(packageDirs, aMatcher);
 
         // Return list of package names for package dir files
         return getPackageNamesForPackageDirs(childPackageDirs);
@@ -115,25 +116,25 @@ public class ClassPathInfo {
     /**
      * Returns class names for prefix.
      */
-    public List<String> getClassNamesForPrefix(String aPrefix)
+    public List<String> getClassNamesForPrefixMatcher(String aPrefix, Matcher prefixMatcher)
     {
         // If less than 3 letters, return common names for prefix
         if (aPrefix.length() <= 3)
-            return getCommonClassNamesForPrefix(aPrefix);
+            return getCommonClassNamesForMatcher(prefixMatcher);
 
         // Return all names
-        return getAllClassNamesForPrefix(aPrefix);
+        return getAllClassNamesForMatcher(prefixMatcher);
     }
 
     /**
      * Returns all classes with prefix.
      */
-    private List<String> getAllClassNamesForPrefix(String aPrefix)
+    private List<String> getAllClassNamesForMatcher(Matcher aMatcher)
     {
         // Get all class files with prefix
         List<WebFile> allClassFiles = getAllClassFiles();
         Stream<WebFile> allClassFilesStream = allClassFiles.stream();
-        Stream<WebFile> classFilesWithPrefixStream = allClassFilesStream.filter(f -> isFilePrefixed(f, aPrefix));
+        Stream<WebFile> classFilesWithPrefixStream = allClassFilesStream.filter(f -> isFilePrefixed(f, aMatcher));
 
         // Get class names for class files and return
         Stream<String> classNamesStream = classFilesWithPrefixStream.map(f -> getClassNameForClassFile(f));
@@ -144,9 +145,8 @@ public class ClassPathInfo {
     /**
      * Returns all classes with prefix.
      */
-    public List<String> getCommonClassNamesForPrefix(String aPrefix)
+    public List<String> getCommonClassNamesForMatcher(Matcher aMatcher)
     {
-        String prefix = aPrefix.toLowerCase();
         String[] commonClassNames = COMMON_CLASS_NAMES;
         String[] commonClassNamesSimple = COMMON_CLASS_NAMES_SIMPLE;
 
@@ -161,13 +161,13 @@ public class ClassPathInfo {
         }
 
         // Get commonClassNames where simple name has given prefix
-        List<String> commonClassNamesForPrefix = new ArrayList<>();
+        List<String> commonClassNamesForMatcher = new ArrayList<>();
         for (int i = 0, iMax = commonClassNames.length; i < iMax; i++)
-            if (commonClassNamesSimple[i].startsWith(prefix))
-                commonClassNamesForPrefix.add(commonClassNames[i]);
+            if (aMatcher.reset(commonClassNamesSimple[i]).lookingAt())
+                commonClassNamesForMatcher.add(commonClassNames[i]);
 
         // Return
-        return commonClassNamesForPrefix;
+        return commonClassNamesForMatcher;
     }
 
     /**
@@ -188,10 +188,10 @@ public class ClassPathInfo {
     /**
      * Returns a list of class files for a package dir and a prefix.
      */
-    public List<WebFile> getChildPackageDirsForPrefix(List<WebFile> theFiles, String aPrefix)
+    public List<WebFile> getChildPackageDirsForMatcher(List<WebFile> theFiles, Matcher aMatcher)
     {
         Stream<WebFile> filesStream = theFiles.stream();
-        Stream<WebFile> packageDirsStream = filesStream.filter(f -> isDirWithPrefix(f, aPrefix));
+        Stream<WebFile> packageDirsStream = filesStream.filter(f -> isDirWithPrefix(f, aMatcher));
         List<WebFile> packageDirs = packageDirsStream.collect(Collectors.toList());
         return packageDirs;
     }
@@ -267,22 +267,22 @@ public class ClassPathInfo {
     /**
      * Returns whether given file has given prefix.
      */
-    private static boolean isFilePrefixed(WebFile aFile, String aPrefix)
+    private static boolean isFilePrefixed(WebFile aFile, Matcher aPrefix)
     {
         String name = aFile.getName();
         int di = name.lastIndexOf('$');
         if (di > 0) name = name.substring(di + 1);
-        return StringUtils.startsWithIC(name, aPrefix) && name.endsWith(".class");
+        return aPrefix.reset(name).lookingAt() && name.endsWith(".class");
     }
 
     /**
      * Returns whether given file is dir with given prefix (and no extension).
      */
-    private static boolean isDirWithPrefix(WebFile aFile, String aPrefix)
+    private static boolean isDirWithPrefix(WebFile aFile, Matcher aPrefix)
     {
         if (!aFile.isDir()) return false;
         String dirName = aFile.getName();
-        return StringUtils.startsWithIC(dirName, aPrefix) && dirName.indexOf('.') < 0;
+        return aPrefix.reset(dirName).lookingAt() && dirName.indexOf('.') < 0;
     }
 
     /**

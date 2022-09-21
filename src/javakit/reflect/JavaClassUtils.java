@@ -2,10 +2,10 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.reflect;
-import snap.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
 
 /**
  * This class provides utility methods for JavaClass.
@@ -15,7 +15,7 @@ public class JavaClassUtils {
     /**
      * Returns a compatible method for given name and param types.
      */
-    public static List<JavaField> getPrefixFields(JavaClass aClass, String aPrefix)
+    public static List<JavaField> getFieldsForMatcher(JavaClass aClass, Matcher aMatcher)
     {
         // Create return list of prefix fields
         List<JavaField> fieldsWithPrefix = new ArrayList<>();
@@ -26,7 +26,7 @@ public class JavaClassUtils {
             // Get Class fields
             List<JavaField> fields = cls.getFields();
             for (JavaField field : fields)
-                if (StringUtils.startsWithIC(field.getName(), aPrefix))
+                if (aMatcher.reset(field.getName()).lookingAt())
                     fieldsWithPrefix.add(field);
 
             // Should iterate over class interfaces, too
@@ -37,9 +37,9 @@ public class JavaClassUtils {
     }
 
     /**
-     * Returns methods that match given prefix.
+     * Returns methods that match given matcher.
      */
-    public static List<JavaMethod> getPrefixMethods(JavaClass aClass, String aPrefix)
+    public static List<JavaMethod> getMethodsForMatcher(JavaClass aClass, Matcher aPrefix)
     {
         // Create return list of prefix methods
         List<JavaMethod> methodsWithPrefix = new ArrayList<>();
@@ -50,14 +50,14 @@ public class JavaClassUtils {
             // Get Class methods
             List<JavaMethod> methods = cls.getMethods();
             for (JavaMethod method : methods)
-                if (StringUtils.startsWithIC(method.getName(), aPrefix))
+                if (aPrefix.reset(method.getName()).lookingAt())
                     methodsWithPrefix.add(method);
 
             // If interface, iterate over class interfaces, too (should probably do this anyway to catch default methods).
             if (cls.isInterface()) {
                 JavaClass[] interfaces = cls.getInterfaces();
                 for (JavaClass interf : interfaces) {
-                    List<JavaMethod> moreMethods = getPrefixMethods(interf, aPrefix);
+                    List<JavaMethod> moreMethods = getMethodsForMatcher(interf, aPrefix);
                     methodsWithPrefix.addAll(moreMethods);
                 }
             }
