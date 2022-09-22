@@ -73,7 +73,7 @@ public class JSStmtEval {
 
         // Handle if statement
         if (aStmt instanceof JStmtIf)
-            throw new RuntimeException("JSStmtEval: if Statement not implemented");
+            return evalIfStmt(anOR, (JStmtIf) aStmt);
 
         // Handle labeled statement
         if (aStmt instanceof JStmtLabeled)
@@ -130,6 +130,26 @@ public class JSStmtEval {
         JExpr expr = aStmt.getExpr();
         Object val = evalExpr(expr);
         return val;
+    }
+
+    /**
+     * Evaluate JStmtFor.
+     */
+    public Object evalIfStmt(Object anOR, JStmtIf anIfStmt) throws Exception
+    {
+        // Get conditional
+        JExpr condExpr = anIfStmt.getConditional();
+
+        Object condValue = evalExpr(condExpr);
+        if (SnapUtils.booleanValue(condValue)) {
+
+            // Get true statement and eval
+            JStmt trueStmt = anIfStmt.getStatement();
+            return evalStmt(anOR, trueStmt);
+        }
+
+        // Return
+        return null;
     }
 
     /**
