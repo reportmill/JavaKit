@@ -193,6 +193,10 @@ public class JavaTextDoc extends TextDoc {
         JFile jFile = getJFile();
         JClassDecl classDecl = jFile.getClassDecl();
         int endCharIndex = classDecl.getEnd();
+        if (endCharIndex > length()) {
+            System.err.println("JavaTextDoc.addEmptyBlock: Index " + endCharIndex + " beyond " + length());
+            endCharIndex = length();
+        }
         TextLine endLine = getLineForCharIndex(endCharIndex);
         endCharIndex = endLine.getStart();
 
