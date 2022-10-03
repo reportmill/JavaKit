@@ -13,10 +13,10 @@ import snap.viewx.TextPane;
 /**
  * This TexPane subclass adds customizations for JavaShell.
  */
-public class JSTextPane extends TextPane {
+public class JeplTextPane extends TextPane {
 
     // The JavaShell
-    private JavaShellPane _javaShellPane;
+    protected JavaShellPane  _javaShellPane;
 
     // The TextArea
     private TextArea  _textArea;
@@ -25,15 +25,20 @@ public class JSTextPane extends TextPane {
     private LineNumView  _lineNumView;
 
     // EvalView
-    protected EvalView  _evalView;
+    protected JeplEvalView  _evalView;
 
     /**
      * Constructor.
      */
-    public JSTextPane(JavaShellPane aJavaShellPane)
+    public JeplTextPane(JavaShellPane aJavaShellPane)
     {
         _javaShellPane = aJavaShellPane;
     }
+
+    /**
+     * Returns the default font.
+     */
+    public Font getJeplFont()  { return JavaTextUtils.getCodeFont(); }
 
     /**
      * Creates the TextArea.
@@ -44,29 +49,28 @@ public class JSTextPane extends TextPane {
     }
 
     /**
-     * Returns the default font.
-     */
-    public Font getDefaultFont()  { return JavaTextUtils.getCodeFont(); }
-
-    /**
      * Initialize UI.
      */
     protected void initUI()
     {
+        // Do normal version
         super.initUI();
+
+        // Basic config
         View ui = getUI();
         ui.setPrefSize(800, 700);
         ui.setGrowHeight(true);
 
+        // Get/configure TextArea
         _textArea = getTextArea();
         _textArea.setGrowWidth(true);
-        Font codeFont = getDefaultFont();
-        _textArea.getTextDoc().setDefaultStyle(new TextStyle(codeFont));
+        Font devFont = getJeplFont();
+        _textArea.getTextDoc().setDefaultStyle(new TextStyle(devFont));
         enableEvents(_textArea, KeyRelease);
-        ScrollView scroll = _textArea.getParent(ScrollView.class);
 
+        // Create/config LineNumView
         _lineNumView = new LineNumView(_textArea);
-        _lineNumView.setFont(codeFont);
+        _lineNumView.setFont(devFont);
         _textArea.getTextDoc().addPropChangeListener(pce -> _lineNumView.updateLines());
         _lineNumView.updateLines();
 
@@ -74,15 +78,17 @@ public class JSTextPane extends TextPane {
         rview.setFill(Color.LIGHTGRAY);
 
         // Create/config EvalView
-        _evalView = new EvalView();
+        _evalView = new JeplEvalView(this);
         ScrollView evalScroll = new ScrollView(_evalView);
         evalScroll.setPrefWidth(200);
 
-        RowView hbox = new RowView();
-        hbox.setFillHeight(true);
-        hbox.setGrowHeight(true);
-        hbox.setChildren(_lineNumView, _textArea, rview, evalScroll);
-        scroll.setContent(hbox);
+        // Create RowView for LineNumView, TextArea
+        RowView rowView = new RowView();
+        rowView.setFillHeight(true);
+        rowView.setGrowHeight(true);
+        rowView.setChildren(_lineNumView, _textArea, rview, evalScroll);
+        ScrollView textScrollView = _textArea.getParent(ScrollView.class);
+        textScrollView.setContent(rowView);
 
         // Initialize
         String sampleText = getSampleText();
@@ -113,57 +119,5 @@ public class JSTextPane extends TextPane {
         String t5 = "zSquared = DoubleStream.of(z).map(d -> d * d).toArray()\n\n";
         return '\n' + t1 + t2 + t3 + t4 + t5;
         //return "1 + 1\n\n2 + 2\n\n";
-    }
-
-    /**
-     * A TextArea subclass to show code evaluation.
-     */
-    protected class EvalView extends TextArea {
-
-        /**
-         * Creates new EvalView.
-         */
-        public EvalView()
-        {
-            setFill(new Color("#f7f7f7"));
-            setTextFill(Color.GRAY); //setPrefWidth(200);
-            setEditable(false);
-            setFont(JSTextPane.this.getDefaultFont());
-        }
-
-        /**
-         * Called to update when textView changes.
-         */
-        void updateLines()
-        {
-            // Get JavaShell and line values
-            JavaShell javaShell = _javaShellPane.getJavaShell();
-            Object[] lineValues = javaShell.getLineValues();
-
-            // Get LineVals
-            StringBuilder sb = new StringBuilder();
-
-            // Iterate over LineVals and append string for each
-            for (Object val : lineValues) {
-
-                // Handle null
-                if (val == null) continue;
-
-                // Handle array
-                if (val.getClass().isArray()) {
-                    String arrayStr = JavaShellUtils.getStringForArray(val);
-                    sb.append(arrayStr);
-                }
-
-                // Handle anything else
-                else sb.append(val);
-
-                // Append newline
-                sb.append('\n');
-            }
-
-            // Set text
-            setText(sb.toString());
-        }
     }
 }

@@ -3,6 +3,7 @@
  */
 package javakit.shell;
 import javakit.parse.*;
+import javakit.text.JavaTextUtils;
 import snap.gfx.Font;
 import snap.props.PropChange;
 import snap.text.TextDoc;
@@ -35,7 +36,7 @@ public class JavaTextDoc extends TextDoc {
         super();
 
         TextStyle textStyle = getDefaultStyle();
-        Font font = getDefaultFont();
+        Font font = JavaTextUtils.getCodeFont();
         TextStyle textStyle2 = textStyle.copyFor(font);
         setDefaultStyle(textStyle2);
     }
@@ -340,23 +341,5 @@ public class JavaTextDoc extends TextDoc {
             int endCharIndex = initBlock.getEnd();
             replaceChars(" ", endCharIndex - 1, endCharIndex);
         }
-    }
-
-    /**
-     * Returns the default font.
-     */
-    private static Font getDefaultFont()
-    {
-        // Get
-        Font defaultFont = Font.Arial10;
-        String[] names = { "Monaco", "Consolas", "Courier" };
-        for (String name : names) {
-            defaultFont = new Font(name, 12);
-            if (defaultFont.getFamily().startsWith(name))
-                break;
-        }
-
-        // Return
-        return defaultFont;
     }
 }

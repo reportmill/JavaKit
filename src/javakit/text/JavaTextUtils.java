@@ -3,12 +3,34 @@
  */
 package javakit.text;
 import javakit.reflect.JavaDecl;
+import snap.gfx.Font;
 import snap.gfx.Image;
 
 /**
  * This class contains utility support for Java text.
  */
 public class JavaTextUtils {
+
+    // The recommended default font for code
+    private static Font  _codeFont;
+
+    /**
+     * Returns a suitable code font.
+     */
+    public static Font getCodeFont()
+    {
+        if (_codeFont == null) {
+            String[] names = { "Monaco", "Consolas", "Courier"};
+            for (String name : names) {
+                _codeFont = new Font(name, 12);
+                if (_codeFont.getFamily().startsWith(name))
+                    break;
+            }
+        }
+
+        // Return
+        return _codeFont;
+    }
 
     // Images
     public static Image LVarImage = Image.get(JavaTextUtils.class, "LocalVariable.png");

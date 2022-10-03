@@ -23,9 +23,6 @@ public class JavaTextArea extends TextArea {
     // Whether to draw line for print margin column
     private boolean  _showPrintMargin = true;
 
-    // The default font
-    private Font  _defaultFont;
-
     // The selected JNode
     protected JNode  _selNode = new JFile();
 
@@ -176,23 +173,7 @@ public class JavaTextArea extends TextArea {
     /**
      * Returns the default font.
      */
-    public Font getDefaultFont()
-    {
-        // If already set, just return
-        if (_defaultFont != null) return _defaultFont;
-
-        // Get
-        Font defaultFont = Font.Arial10;
-        String[] names = { "Monaco", "Consolas", "Courier" };
-        for (String name : names) {
-            defaultFont = new Font(name, 10);
-            if (defaultFont.getFamily().startsWith(name))
-                break;
-        }
-
-        // Set, return
-        return _defaultFont = defaultFont;
-    }
+    public Font getDefaultFont()  { return JavaTextUtils.getCodeFont(); }
 
     /**
      * Returns the JFile (parsed representation of Java file).

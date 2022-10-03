@@ -5,14 +5,36 @@ package javakit.shell;
 import javakit.parse.*;
 import javakit.reflect.JavaType;
 import javakit.reflect.Resolver;
-
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 /**
  * Utility methods and support for JavaShell.
  */
 public class JavaShellUtils {
+
+    /**
+     * Returns a String for given array object.
+     */
+    public static String getStringForArray(Object anObj)
+    {
+        if (anObj instanceof Object[])
+            return Arrays.toString((Object[]) anObj);
+        if (anObj instanceof double[])
+            return Arrays.toString((double[]) anObj);
+        if (anObj instanceof float[])
+            return Arrays.toString((float[]) anObj);
+        if (anObj instanceof int[])
+            return Arrays.toString((int[]) anObj);
+
+        int len = Array.getLength(anObj);
+        Object[] array = new Object[len];
+        for (int i = 0; i < len; i++)
+            array[i] = Array.get(anObj, i);
+        return Arrays.toString(array);
+    }
 
     /**
      * Returns whether expression statement is really a variable decl without type.
