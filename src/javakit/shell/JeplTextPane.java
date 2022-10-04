@@ -115,7 +115,7 @@ public class JeplTextPane extends TextPane {
 
         Font codeFont = getCodeFont();
         replDoc.setDefaultStyle(new TextStyle(codeFont));
-        enableEvents(_textArea, KeyRelease);
+        enableEvents(_textArea, KeyPress);
 
         // Create/config LineNumView
         _lineNumView = new LineNumView(_textArea);
@@ -145,8 +145,6 @@ public class JeplTextPane extends TextPane {
         splitView.setBorder(null);
         splitView.addItem(rowView);
         splitView.addItem(_evalView);
-        rowView.setMinWidth(100);
-        _evalView.setMinWidth(100);
 
         // Add SplitView to ScrollView
         textScrollView.setFillWidth(true);
@@ -158,12 +156,20 @@ public class JeplTextPane extends TextPane {
         //_textArea.setSel(sampleText.length());
     }
 
+    @Override
+    protected void initShowing()
+    {
+        SplitView splitView = _evalView.getParent(SplitView.class);
+        int locX = (int) Math.ceil(splitView.getWidth() / 2);
+        splitView.getDivider(0).setLocation(locX);
+    }
+
     /**
      * Respond to UI changes.
      */
     protected void respondUI(ViewEvent anEvent)
     {
-        if (anEvent.isKeyRelease() && anEvent.isEnterKey())
+        if (anEvent.isKeyPress() && anEvent.isEnterKey())
             resetReplValuesLater();
 
         else super.respondUI(anEvent);

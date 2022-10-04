@@ -1,6 +1,7 @@
 package javakit.shell;
 import javakit.text.JavaTextArea;
 import snap.view.Clipboard;
+import snap.view.RowView;
 
 /**
  * This JavaTextArea subclass is slightly modified for working with code snippets.
@@ -31,8 +32,11 @@ class JavaTextAreaX extends JavaTextArea {
     public void replaceCharsWithContent(Object theContent)
     {
         // If String, trim extra indent
-        if (theContent instanceof String)
+        if (theContent instanceof String) {
             theContent = removeExtraIndentFromString((String) theContent);
+            if (getParent() instanceof RowView) // Bite me
+                theContent += "\n";
+        }
 
         // Do normal version
         super.replaceCharsWithContent(theContent);

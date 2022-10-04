@@ -73,16 +73,11 @@ public class JavaPopupList extends PopupList<JavaDecl> {
      */
     public void applySuggestion()
     {
-        applySuggestion(getSelItem());
-    }
+        // Get selected decl
+        JavaDecl selDecl = getSelItem();
 
-    /**
-     * Applies a suggestion.
-     */
-    public void applySuggestion(JavaDecl aDecl)
-    {
         // Get completeString
-        String completion = aDecl.getReplaceString();
+        String completion = selDecl.getReplaceString();
 
         // Get start/stop char index for completion (adjust for SubText if needed)
         JavaTextArea textArea = getTextArea();
@@ -104,7 +99,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
 
         // Add import for suggestion Class, if not present
         JFile jfile = selNode.getFile();
-        addImportForDecl(aDecl, jfile);
+        addImportForDecl(selDecl, jfile);
 
         // Hide PopupList
         hide();
@@ -250,5 +245,6 @@ public class JavaPopupList extends PopupList<JavaDecl> {
     protected void fireActionEvent(ViewEvent anEvent)
     {
         applySuggestion();
+        anEvent.consume();
     }
 }
