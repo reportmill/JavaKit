@@ -2,12 +2,14 @@ package javakit.shell;
 import snap.geom.Insets;
 import snap.gfx.Color;
 import snap.text.TextDoc;
+import snap.view.ColView;
 import snap.view.TextArea;
+import snap.view.View;
 
 /**
  * A TextArea subclass to show code evaluation.
  */
-class JeplEvalView extends TextArea {
+class JeplEvalView extends ColView {
 
     // The JeplTextPane
     private JeplTextPane _jeplTextPane;
@@ -18,11 +20,12 @@ class JeplEvalView extends TextArea {
     public JeplEvalView(JeplTextPane aJTP)
     {
         _jeplTextPane = aJTP;
-        setTextDoc(new TextDoc());
-        setDefaultStyle(getDefaultStyle().copyFor(aJTP.getCodeFont()));
+        setSpacing(4);
+        //setTextDoc(new TextDoc());
+        //setDefaultStyle(getDefaultStyle().copyFor(aJTP.getCodeFont()));
         setFill(new Color(.98));
-        setTextFill(Color.GRAY); //setPrefWidth(200);
-        setEditable(false);
+        //setTextFill(Color.GRAY); //setPrefWidth(200);
+        //setEditable(false);
 
         // Set Padding to match TextArea
         Insets textPadding = aJTP.getTextArea().getPadding();
@@ -34,35 +37,20 @@ class JeplEvalView extends TextArea {
      */
     void updateLines()
     {
+        removeChildren();
+
         // Get JavaShell and line values
         JeplDoc jeplDoc = _jeplTextPane._jeplDoc;
-        Object[] lineValues = jeplDoc.getReplValues();
-        if (lineValues == null)
+        View[] lineViews = jeplDoc.getReplViews();
+        if (lineViews == null)
             return;
 
-        // Get LineVals
-        StringBuilder sb = new StringBuilder();
-
         // Iterate over LineVals and append string for each
-        for (Object val : lineValues) {
+        for (View view : lineViews) {
 
             // Handle null
-            if (val == null) continue;
-
-            // Handle array
-            if (val.getClass().isArray()) {
-                String arrayStr = JavaShellUtils.getStringForArray(val);
-                sb.append(arrayStr);
-            }
-
-            // Handle anything else
-            else sb.append(val);
-
-            // Append newline
-            sb.append('\n');
+            if (view == null) continue;
+            addChild(view);
         }
-
-        // Set text
-        setText(sb.toString());
     }
 }
