@@ -1,5 +1,6 @@
 package javakit.shell;
 import snap.gfx.Color;
+import snap.text.TextDoc;
 import snap.view.TextArea;
 
 /**
@@ -16,10 +17,11 @@ class JeplEvalView extends TextArea {
     public JeplEvalView(JeplTextPane aJTP)
     {
         _jeplTextPane = aJTP;
+        setTextDoc(new TextDoc());
+        setDefaultStyle(getDefaultStyle().copyFor(aJTP.getCodeFont()));
         setFill(new Color("#f7f7f7"));
         setTextFill(Color.GRAY); //setPrefWidth(200);
         setEditable(false);
-        setFont(getDefaultFont());
     }
 
     /**
@@ -28,8 +30,10 @@ class JeplEvalView extends TextArea {
     void updateLines()
     {
         // Get JavaShell and line values
-        JavaShell javaShell = _jeplTextPane._javaShellPane.getJavaShell();
-        Object[] lineValues = javaShell.getLineValues();
+        JeplDoc jeplDoc = _jeplTextPane._jeplDoc;
+        Object[] lineValues = jeplDoc.getReplValues();
+        if (lineValues == null)
+            return;
 
         // Get LineVals
         StringBuilder sb = new StringBuilder();

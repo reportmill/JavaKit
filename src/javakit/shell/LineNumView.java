@@ -1,6 +1,7 @@
 package javakit.shell;
 import snap.geom.HPos;
 import snap.gfx.Color;
+import snap.text.TextDoc;
 import snap.text.TextLineStyle;
 import snap.view.TextArea;
 
@@ -18,6 +19,8 @@ class LineNumView extends TextArea {
     public LineNumView(TextArea aTextArea)
     {
         _textArea = aTextArea;
+        setTextDoc(new TextDoc());
+
         setDefaultLineStyle(TextLineStyle.DEFAULT.copyFor(HPos.RIGHT));
         setFill(new Color("#f7f7f7"));
         setTextFill(new Color(.6f));

@@ -5,9 +5,9 @@ package javakit.shell;
 import javakit.text.JavaTextUtils;
 import snap.gfx.Color;
 import snap.gfx.Font;
+import snap.text.SubText;
 import snap.text.TextStyle;
 import snap.view.*;
-import snap.viewx.CodeView;
 import snap.viewx.TextPane;
 
 /**
@@ -15,8 +15,8 @@ import snap.viewx.TextPane;
  */
 public class JeplTextPane extends TextPane {
 
-    // The JavaShell
-    protected JavaShellPane  _javaShellPane;
+    // The JeplDoc
+    protected JeplDoc  _jeplDoc;
 
     // The TextArea
     private TextArea  _textArea;
@@ -27,25 +27,70 @@ public class JeplTextPane extends TextPane {
     // EvalView
     protected JeplEvalView  _evalView;
 
+    // For resetEntriesLater
+    private Runnable  _resetReplValuesRun;
+
+    // For resetEntriesLater
+    private Runnable  _resetReplValuesRunReal = () -> { resetReplValues(); _resetReplValuesRun = null; };
+
     /**
      * Constructor.
      */
-    public JeplTextPane(JavaShellPane aJavaShellPane)
+    public JeplTextPane()
     {
-        _javaShellPane = aJavaShellPane;
+        super();
+    }
+
+    /**
+     * Returns the JeplDoc.
+     */
+    public JeplDoc getJeplDoc()  { return _jeplDoc; }
+
+    /**
+     * Sets the JeplDoc.
+     */
+    public void setJeplDoc(JeplDoc aJeplDoc)
+    {
+        _jeplDoc = aJeplDoc;
     }
 
     /**
      * Returns the default font.
      */
-    public Font getJeplFont()  { return JavaTextUtils.getCodeFont(); }
+    public Font getCodeFont()  { return JavaTextUtils.getCodeFont(); }
+
+    /**
+     * Reset Repl values.
+     */
+    public void resetReplValues()
+    {
+        JeplDoc jeplDoc = getJeplDoc();
+        jeplDoc.updateDocValues();
+
+        _evalView.updateLines();
+    }
+
+    /**
+     * Reset Repl values.
+     */
+    public void resetReplValuesLater()
+    {
+        if (_resetReplValuesRun == null)
+            runLater(_resetReplValuesRun = _resetReplValuesRunReal);
+    }
 
     /**
      * Creates the TextArea.
      */
     protected TextArea createTextArea()
     {
-        return new CodeView();
+        // Create/config
+        JavaTextAreaX textArea = new JavaTextAreaX();
+        textArea.setBorderRadius(4);
+        textArea.setShowPrintMargin(false);
+        textArea.setFocusPainted(true);
+        //textArea.setTextDoc(_subText);
+        return textArea;
     }
 
     /**
@@ -64,14 +109,19 @@ public class JeplTextPane extends TextPane {
         // Get/configure TextArea
         _textArea = getTextArea();
         _textArea.setGrowWidth(true);
-        Font devFont = getJeplFont();
-        _textArea.getTextDoc().setDefaultStyle(new TextStyle(devFont));
+
+        // Get/set/configure TextDoc
+        SubText replDoc = _jeplDoc.getReplDoc();
+        _textArea.setTextDoc(replDoc);
+
+        Font codeFont = getCodeFont();
+        replDoc.setDefaultStyle(new TextStyle(codeFont));
         enableEvents(_textArea, KeyRelease);
 
         // Create/config LineNumView
         _lineNumView = new LineNumView(_textArea);
-        _lineNumView.setFont(devFont);
-        _textArea.getTextDoc().addPropChangeListener(pce -> _lineNumView.updateLines());
+        _lineNumView.setDefaultStyle(_lineNumView.getDefaultStyle().copyFor(codeFont));
+        replDoc.addPropChangeListener(pce -> _lineNumView.updateLines());
         _lineNumView.updateLines();
 
         RectView rview = new RectView(0, 0, 1, 300);
@@ -82,18 +132,19 @@ public class JeplTextPane extends TextPane {
         ScrollView evalScroll = new ScrollView(_evalView);
         evalScroll.setPrefWidth(200);
 
+        ScrollView textScrollView = _textArea.getParent(ScrollView.class);
+
         // Create RowView for LineNumView, TextArea
         RowView rowView = new RowView();
         rowView.setFillHeight(true);
         rowView.setGrowHeight(true);
         rowView.setChildren(_lineNumView, _textArea, rview, evalScroll);
-        ScrollView textScrollView = _textArea.getParent(ScrollView.class);
         textScrollView.setContent(rowView);
 
         // Initialize
-        String sampleText = getSampleText();
-        _textArea.setText(sampleText);
-        _textArea.setSel(sampleText.length());
+        //String sampleText = getSampleText();
+        //_textArea.setText(sampleText);
+        //_textArea.setSel(sampleText.length());
     }
 
     /**
@@ -102,22 +153,8 @@ public class JeplTextPane extends TextPane {
     protected void respondUI(ViewEvent anEvent)
     {
         if (anEvent.isKeyRelease() && anEvent.isEnterKey())
-            runLater(() -> _javaShellPane.play());
+            resetReplValuesLater();
 
         else super.respondUI(anEvent);
-    }
-
-    /**
-     * Sample starter text.
-     */
-    private static String getSampleText()
-    {
-        String t1 = "x = \"Hi World\"\n\n";
-        String t2 = "y = x.replace(\"Hi\", \"Hello\")\n\n";
-        String t3 = "z = new double[] { 1,2,3 }\n\n";
-        String t4 = "System.out.println(y + \": \" + z[2])\n\n";
-        String t5 = "zSquared = DoubleStream.of(z).map(d -> d * d).toArray()\n\n";
-        return '\n' + t1 + t2 + t3 + t4 + t5;
-        //return "1 + 1\n\n2 + 2\n\n";
     }
 }
