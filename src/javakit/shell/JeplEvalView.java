@@ -1,4 +1,5 @@
 package javakit.shell;
+import snap.geom.Insets;
 import snap.gfx.Color;
 import snap.text.TextDoc;
 import snap.view.TextArea;
@@ -19,9 +20,13 @@ class JeplEvalView extends TextArea {
         _jeplTextPane = aJTP;
         setTextDoc(new TextDoc());
         setDefaultStyle(getDefaultStyle().copyFor(aJTP.getCodeFont()));
-        setFill(new Color("#f7f7f7"));
+        setFill(new Color(.98));
         setTextFill(Color.GRAY); //setPrefWidth(200);
         setEditable(false);
+
+        // Set Padding to match TextArea
+        Insets textPadding = aJTP.getTextArea().getPadding();
+        setPadding(textPadding);
     }
 
     /**

@@ -53,6 +53,7 @@ public class JavaTextArea extends TextArea {
     public JavaTextArea()
     {
         setFill(Color.WHITE);
+        setPadding(5, 5, 5,5);
         setEditable(true);
     }
 

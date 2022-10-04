@@ -1,5 +1,6 @@
 package javakit.shell;
 import snap.geom.HPos;
+import snap.geom.Insets;
 import snap.gfx.Color;
 import snap.text.TextDoc;
 import snap.text.TextLineStyle;
@@ -21,12 +22,15 @@ class LineNumView extends TextArea {
         _textArea = aTextArea;
         setTextDoc(new TextDoc());
 
+        setDefaultStyle(getDefaultStyle().copyFor(Color.GRAY5));
         setDefaultLineStyle(TextLineStyle.DEFAULT.copyFor(HPos.RIGHT));
-        setFill(new Color("#f7f7f7"));
-        setTextFill(new Color(.6f));
+        setFill(new Color(.98));
         setPrefWidth(25);
-        setPadding(2, 4, 2, 2);
         setEditable(false);
+
+        // Set Padding to match TextArea
+        Insets textPadding = aTextArea.getPadding();
+        setPadding(textPadding);
     }
 
     /**

@@ -86,7 +86,6 @@ public class JeplTextPane extends TextPane {
     {
         // Create/config
         JavaTextAreaX textArea = new JavaTextAreaX();
-        textArea.setBorderRadius(4);
         textArea.setShowPrintMargin(false);
         textArea.setFocusPainted(true);
         //textArea.setTextDoc(_subText);
@@ -102,9 +101,9 @@ public class JeplTextPane extends TextPane {
         super.initUI();
 
         // Basic config
-        View ui = getUI();
-        ui.setPrefSize(800, 700);
-        ui.setGrowHeight(true);
+        BorderView borderView = getUI(BorderView.class);
+        borderView.getTop().setPrefHeight(0);
+        borderView.setGrowHeight(true);
 
         // Get/configure TextArea
         _textArea = getTextArea();
@@ -124,22 +123,34 @@ public class JeplTextPane extends TextPane {
         replDoc.addPropChangeListener(pce -> _lineNumView.updateLines());
         _lineNumView.updateLines();
 
-        RectView rview = new RectView(0, 0, 1, 300);
-        rview.setFill(Color.LIGHTGRAY);
-
         // Create/config EvalView
         _evalView = new JeplEvalView(this);
-        ScrollView evalScroll = new ScrollView(_evalView);
-        evalScroll.setPrefWidth(200);
+        _evalView.setGrowWidth(true);
 
         ScrollView textScrollView = _textArea.getParent(ScrollView.class);
 
         // Create RowView for LineNumView, TextArea
         RowView rowView = new RowView();
         rowView.setFillHeight(true);
-        rowView.setGrowHeight(true);
-        rowView.setChildren(_lineNumView, _textArea, rview, evalScroll);
-        textScrollView.setContent(rowView);
+        rowView.setGrowWidth(true);
+        //rowView.setPrefWidth(600);
+        rowView.setChildren(_lineNumView, _textArea);
+
+        // Create SplitView for TextAreaRow and Eval
+        SplitView splitView = new SplitView();
+        splitView.setVertical(false);
+        splitView.setDividerSpan(6);
+        splitView.getDivider().setFill(Color.WHITE);
+        splitView.getDivider().setBorder(Color.GRAY9, 1);
+        splitView.setBorder(null);
+        splitView.addItem(rowView);
+        splitView.addItem(_evalView);
+        rowView.setMinWidth(100);
+        _evalView.setMinWidth(100);
+
+        // Add SplitView to ScrollView
+        textScrollView.setFillWidth(true);
+        textScrollView.setContent(splitView);
 
         // Initialize
         //String sampleText = getSampleText();
