@@ -7,9 +7,7 @@ import javakit.text.JavaTextUtils;
 import snap.gfx.Font;
 import snap.props.PropChange;
 import snap.text.*;
-import snap.util.ArrayUtils;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * This class holds the text of a Java file with methods to easily build.
@@ -21,9 +19,6 @@ public class JavaTextDoc extends TextDoc {
 
     // The parser to parse Java
     private JavaParser  _javaParser;
-
-    // The blocks
-    private JavaTextDocBlock[]  _blocks = new JavaTextDocBlock[0];
 
     /**
      * Constructor.
@@ -81,7 +76,7 @@ public class JavaTextDoc extends TextDoc {
     public void setJavaParser(JavaParser aJavaParser)  { _javaParser = aJavaParser; }
 
     /**
-     * Override to parse blocks.
+     * Override to clear JFile.
      */
     @Override
     public void setString(String aString)
@@ -89,149 +84,6 @@ public class JavaTextDoc extends TextDoc {
         // Do normal version
         super.setString(aString);
         _jfile = null;
-
-        // Get initializer decls statement blocks
-        JStmtBlock[] initDeclsBlocks = getInitDeclBlocks();
-
-        // Iterate over init decls statement blocks and create block
-        for (JStmtBlock blockStmt : initDeclsBlocks) {
-            JavaTextDocBlock block = new JavaTextDocBlock(this, blockStmt);
-            addBlock(block);
-        }
-    }
-
-    /**
-     * Returns the blocks.
-     */
-    public JavaTextDocBlock[] getBlocks()  { return _blocks; }
-
-    /**
-     * Returns the number of blocks.
-     */
-    public int getBlockCount()  { return _blocks.length; }
-
-    /**
-     * Returns the individual block at given index.
-     */
-    public JavaTextDocBlock getBlock(int anIndex)  { return _blocks[anIndex]; }
-
-    /**
-     * Adds a block at end of blocks.
-     */
-    public void addBlock(JavaTextDocBlock aBlock)
-    {
-        addBlock(aBlock, getBlockCount());
-    }
-
-    /**
-     * Adds a block at given index.
-     */
-    public void addBlock(JavaTextDocBlock aBlock, int anIndex)
-    {
-        _blocks = ArrayUtils.add(_blocks, aBlock, anIndex);
-    }
-
-    /**
-     * Removes the block at given index.
-     */
-    public JavaTextDocBlock removeBlock(int anIndex)
-    {
-        // Remove from array
-        JavaTextDocBlock block = getBlock(anIndex);
-        _blocks = ArrayUtils.remove(_blocks, anIndex);
-
-        // Delete text
-        int startCharIndex = block.getStartCharIndex() - 2;
-        int endCharIndex = block.getEndCharIndex() + 2;
-        removeChars(startCharIndex, endCharIndex);
-
-        // Dispose block so Block.SubText can disconnect from parent TextDoc
-        block.dispose();
-
-        // Return
-        return block;
-    }
-
-    /**
-     * Removes the given block.
-     */
-    public void removeBlock(JavaTextDocBlock aBlock)
-    {
-        int index = ArrayUtils.indexOfId(_blocks, aBlock);
-        if (index >= 0)
-            removeBlock(index);
-    }
-
-    /**
-     * Returns the last block.
-     */
-    public JavaTextDocBlock getBlockLast()
-    {
-        int blockCount = getBlockCount();
-        return blockCount > 0 ? getBlock(blockCount - 1) : null;
-    }
-
-    /**
-     * Returns the empty block at end.
-     */
-    public JavaTextDocBlock getEmptyBlock()
-    {
-        // Iterate over blocks and return empty one
-        JavaTextDocBlock lastBlock = getBlockLast();
-        if (lastBlock != null && lastBlock.getString().length() == 0)
-            return lastBlock;
-
-        // Otherwise add empty and return
-        JavaTextDocBlock emptyBlock = addEmptyBlock();
-        return emptyBlock;
-    }
-
-    /**
-     * Adds an empty block at end.
-     */
-    public JavaTextDocBlock addEmptyBlock()
-    {
-        // Get char index of closing '}' in Class decl (really get line start for closing char)
-        JFile jFile = getJFile();
-        JClassDecl classDecl = jFile.getClassDecl();
-        int endCharIndex = classDecl.getEnd();
-        if (endCharIndex > length()) {
-            System.err.println("JavaTextDoc.addEmptyBlock: Index " + endCharIndex + " beyond " + length());
-            endCharIndex = length();
-        }
-        TextLine endLine = getLineForCharIndex(endCharIndex);
-        endCharIndex = endLine.getStart();
-
-        // Add block chars
-        addChars("{\n}\n\n", null, endCharIndex);
-
-        // Get new last init decl statement block
-        JStmtBlock[] initBlocks = getInitDeclBlocks();
-        JStmtBlock lastBlock = initBlocks[initBlocks.length - 1];
-
-        // Create/add new block
-        JavaTextDocBlock newBlock = new JavaTextDocBlock(this, lastBlock);
-        addBlock(newBlock);
-        return newBlock;
-    }
-
-    /**
-     * Returns the JInitializerDecls.
-     */
-    private JStmtBlock[] getInitDeclBlocks()
-    {
-        // Get initializer decls
-        JFile jFile = getJFile();
-        JClassDecl classDecl = jFile.getClassDecl();
-        JInitializerDecl[] initDecls = classDecl.getInitDecls();
-
-        // Convert initializer decls array to block statement array
-        Stream<JInitializerDecl> initDeclsStream = Stream.of(initDecls);
-        Stream<JStmtBlock> stmtBlockStream = initDeclsStream.map(id -> id.getBlock());
-        JStmtBlock[] stmtBlocks = stmtBlockStream.toArray(size -> new JStmtBlock[size]);
-
-        // Return
-        return stmtBlocks;
     }
 
     /**
@@ -303,44 +155,5 @@ public class JavaTextDoc extends TextDoc {
     {
         // Clear JFile
         _jfile = null;
-    }
-
-    /**
-     * Copies this JavaTextDoc for REPL. Converts simple initializer blocks/entries to static decls.
-     */
-    public JavaTextDoc copyForREPL()
-    {
-        // Do normal copy
-        JavaTextDoc copy = (JavaTextDoc) clone();
-
-        // Get initializer blocks
-        JStmtBlock[] initDecls = copy.getInitDeclBlocks();
-
-        // Convert initializer blocks
-        for (int i = initDecls.length - 1; i >= 0; i--) {
-            JStmtBlock initBlock = initDecls[i];
-            copy.convertInitBlock(initBlock, i == 0, i == initDecls.length - 1);
-        }
-
-        // Return
-        return copy;
-    }
-
-    /**
-     * Converts an initializer block.
-     */
-    private void convertInitBlock(JStmtBlock initBlock, boolean isFirst, boolean isLast)
-    {
-        // Replace open bracket with space
-        if (!isFirst) {
-            int startCharIndex = initBlock.getStart();
-            replaceChars(" ", startCharIndex, startCharIndex + 1);
-        }
-
-        // Replace close bracket with space
-        if (!isLast) {
-            int endCharIndex = initBlock.getEnd();
-            replaceChars(" ", endCharIndex - 1, endCharIndex);
-        }
     }
 }

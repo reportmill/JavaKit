@@ -84,12 +84,11 @@ public class JSParser {
     public JStmt[] parseJavaText(JavaTextDoc javaDoc)
     {
         // Get file and set Resolver
-        JavaTextDoc javaDocREPL = javaDoc.copyForREPL();
-        JFile jfile = javaDocREPL.getJFile();
+        JFile jfile = javaDoc.getJFile();
         jfile.setResolver(_resolver);
 
         // Return statements
-        JStmt[] statements = javaDocREPL.getStatementsForJavaNode(jfile);
+        JStmt[] statements = javaDoc.getStatementsForJavaNode(jfile);
         return statements;
     }
 
