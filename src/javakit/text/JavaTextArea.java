@@ -281,6 +281,12 @@ public class JavaTextArea extends TextArea {
      */
     protected void setSelTokensForNode(JNode aNode)
     {
+        // Not sure if this happens anymore
+        if (aNode == null) {
+            setSelTokens(Collections.EMPTY_LIST);
+            return;
+        }
+
         // This should go
         if (!(aNode.getStartToken() instanceof TextBoxToken)) {
             System.out.println("JavaTextArea.setSelTokensForNode: Not TextBoxToken");
@@ -291,7 +297,7 @@ public class JavaTextArea extends TextArea {
         List<TextBoxToken> tokens = new ArrayList<>();
 
         // If node is JType, select all of them
-        JavaDecl decl = aNode != null ? aNode.getDecl() : null;
+        JavaDecl decl = aNode.getDecl();
         if (decl != null) {
             List<JNode> others = new ArrayList<>();
             NodeMatcher.getMatches(aNode.getFile(), decl, others);
@@ -648,5 +654,36 @@ public class JavaTextArea extends TextArea {
     {
         JavaTextPane javaTextPane = getOwner(JavaTextPane.class); if (javaTextPane == null) return -1;
         return javaTextPane.getProgramCounterLine();
+    }
+
+    /**
+     * Override to get string first.
+     */
+    @Override
+    protected Object getClipboardContent(Clipboard clipboard)
+    {
+        // Try String first
+        if (clipboard.hasString()) {
+            String str = clipboard.getString();
+            if (str != null && str.length() > 0)
+                return str;
+        }
+
+        // Do normal version
+        return super.getClipboardContent(clipboard);
+    }
+
+    /**
+     * Override to remove extra indent from pasted strings.
+     */
+    @Override
+    public void replaceCharsWithContent(Object theContent)
+    {
+        // If String, trim extra indent
+        if (theContent instanceof String && getTextDoc() instanceof SubText)
+            theContent = JavaTextUtils.removeExtraIndentFromString((String) theContent);
+
+        // Do normal version
+        super.replaceCharsWithContent(theContent);
     }
 }

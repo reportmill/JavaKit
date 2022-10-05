@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.shell;
+import javakit.text.JavaTextArea;
 import javakit.text.JavaTextUtils;
 import snap.gfx.Color;
 import snap.gfx.Font;
@@ -84,11 +85,9 @@ public class JeplTextPane extends TextPane {
      */
     protected TextArea createTextArea()
     {
-        // Create/config
-        JavaTextAreaX textArea = new JavaTextAreaX();
+        JavaTextArea textArea = new JavaTextArea();
         textArea.setShowPrintMargin(false);
         textArea.setFocusPainted(true);
-        //textArea.setTextDoc(_subText);
         return textArea;
     }
 

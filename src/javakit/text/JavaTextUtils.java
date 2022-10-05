@@ -54,4 +54,52 @@ public class JavaTextUtils {
             default: return null;
         }
     }
+
+    /**
+     * Removes superfluous indent from a string.
+     */
+    public static String removeExtraIndentFromString(String str)
+    {
+        // If starts with newline, strip it
+        if (str.startsWith("\n"))
+            str = str.substring(1);
+        boolean endsWithNewline = str.endsWith("\n");
+
+        // Get string as lines
+        String[] lines = str.split("\n");
+        int minIndent = 99;
+
+        // Get minimum indent for given lines
+        for (String line : lines) {
+            if (line.trim().length() == 0)
+                continue;
+            int indent = 0;
+            for (int i = 0; i < line.length(); i++) {
+                if (line.charAt(i) == ' ')
+                    indent++;
+                else break;
+            }
+            minIndent = Math.min(minIndent, indent);
+        }
+
+        // If there is superfluous indent, remove from lines and reset string
+        if (minIndent > 0) {
+
+            // Get indent string
+            String indentStr = " ";
+            for (int i = 1; i < minIndent; i++) indentStr += ' ';
+
+            // Remove indent string from lines
+            for (int i = 0; i < lines.length; i++)
+                lines[i] = lines[i].replaceFirst(indentStr, "");
+
+            // Rebuild string
+            str = String.join("\n", lines);
+            if (endsWithNewline)
+                str += "\n";
+        }
+
+        // Return
+        return str;
+    }
 }
