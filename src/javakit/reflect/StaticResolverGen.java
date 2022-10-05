@@ -655,6 +655,7 @@ public class StaticResolverGen {
             java.util.function.DoubleUnaryOperator.class,
             java.util.function.DoubleBinaryOperator.class,
 
+            snap.props.PropObject.class,
             snap.view.View.class,
             snap.view.ChildView.class,
             snap.view.Button.class,
@@ -712,6 +713,9 @@ public class StaticResolverGen {
 
             // DoubleUnaryOperator, DoubleBinaryOperator
             "applyAsDouble",
+
+            // PropObject
+            "getPropValue", "setPropValue",
 
             // Button
             "setTitle",
