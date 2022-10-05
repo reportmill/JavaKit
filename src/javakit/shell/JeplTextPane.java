@@ -126,15 +126,14 @@ public class JeplTextPane extends TextPane {
         // Create/config EvalView
         _evalView = new JeplEvalView(this);
         _evalView.setGrowWidth(true);
+        ScrollView evalViewScrollView = new ScrollView(_evalView);
+        evalViewScrollView.setFillWidth(true);
 
-        ScrollView textScrollView = _textArea.getParent(ScrollView.class);
-
-        // Create RowView for LineNumView, TextArea
-        RowView rowView = new RowView();
-        rowView.setFillHeight(true);
-        rowView.setGrowWidth(true);
-        //rowView.setPrefWidth(600);
-        rowView.setChildren(_lineNumView, _textArea);
+        // Create ScrollGroup for TextArea and LineNumView
+        ScrollGroup scrollGroup = new ScrollGroup();
+        scrollGroup.setGrowWidth(true);
+        scrollGroup.setContent(_textArea);
+        scrollGroup.setLeftView(_lineNumView);
 
         // Create SplitView for TextAreaRow and Eval
         SplitView splitView = new SplitView();
@@ -143,24 +142,28 @@ public class JeplTextPane extends TextPane {
         splitView.getDivider().setFill(Color.WHITE);
         splitView.getDivider().setBorder(Color.GRAY9, 1);
         splitView.setBorder(null);
-        splitView.addItem(rowView);
-        splitView.addItem(_evalView);
+        splitView.addItem(scrollGroup);
+        splitView.addItem(evalViewScrollView);
+        scrollGroup.setMinWidth(200);
+        evalViewScrollView.setMinWidth(200);
 
-        // Add SplitView to ScrollView
-        textScrollView.setFillWidth(true);
-        textScrollView.setContent(splitView);
-
-        // Initialize
-        //String sampleText = getSampleText();
-        //_textArea.setText(sampleText);
-        //_textArea.setSel(sampleText.length());
+        // Replace TextPane center with splitView
+        borderView.setCenter(splitView);
     }
 
+    /**
+     * Center SplitView. Man, this is all bogus.
+     */
     @Override
     protected void initShowing()
     {
         SplitView splitView = _evalView.getParent(SplitView.class);
-        int locX = (int) Math.ceil(splitView.getWidth() / 2);
+        if (!splitView.isShowing()) {
+            runLater(() -> initShowing());
+            return;
+        }
+
+        int locX = (int) Math.ceil(splitView.getWidth() * 9 / 20);
         splitView.getDivider(0).setLocation(locX);
     }
 
@@ -169,8 +172,12 @@ public class JeplTextPane extends TextPane {
      */
     protected void respondUI(ViewEvent anEvent)
     {
-        if (anEvent.isKeyPress() && anEvent.isEnterKey())
-            resetReplValuesLater();
+        if (anEvent.isKeyPress()) {
+            if (anEvent.isEnterKey())
+                resetReplValuesLater();
+            if ((anEvent.isBackSpaceKey() || anEvent.isDeleteKey()) && _textArea.length() == 0)
+                _evalView.removeChildren();
+        }
 
         else super.respondUI(anEvent);
     }

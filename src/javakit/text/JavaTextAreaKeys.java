@@ -66,6 +66,8 @@ public class JavaTextAreaKeys {
 
         // Handle newline special
         if (keyCode == KeyCode.ENTER && isSelEmpty()) {
+            if (anEvent.isShiftDown())
+                _textArea.selectLineEnd();
             processNewline();
             anEvent.consume();
             return;

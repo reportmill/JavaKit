@@ -1,7 +1,7 @@
 package javakit.shell;
 import javakit.text.JavaTextArea;
 import snap.view.Clipboard;
-import snap.view.RowView;
+import snap.view.ScrollGroup;
 
 /**
  * This JavaTextArea subclass is slightly modified for working with code snippets.
@@ -34,7 +34,7 @@ class JavaTextAreaX extends JavaTextArea {
         // If String, trim extra indent
         if (theContent instanceof String) {
             theContent = removeExtraIndentFromString((String) theContent);
-            if (getParent() instanceof RowView) // Bite me
+            if (getParent(ScrollGroup.class) != null) // Bite me
                 theContent += "\n";
         }
 
