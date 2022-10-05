@@ -23,10 +23,14 @@ class LineNumView extends TextArea {
         setTextDoc(new TextDoc());
 
         setDefaultStyle(getDefaultStyle().copyFor(Color.GRAY5));
-        setDefaultLineStyle(TextLineStyle.DEFAULT.copyFor(HPos.RIGHT));
         setFill(new Color(.98));
         setPrefWidth(25);
         setEditable(false);
+
+        // Set LineStyle to match TextArea but right align
+        TextLineStyle lineStyle = aTextArea.getTextDoc().getDefaultLineStyle();
+        TextLineStyle lineStyleRight = lineStyle.copyFor(HPos.RIGHT);
+        setDefaultLineStyle(lineStyleRight);
 
         // Set Padding to match TextArea
         Insets textPadding = aTextArea.getPadding();

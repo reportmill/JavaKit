@@ -6,10 +6,7 @@ import javakit.parse.*;
 import javakit.text.JavaTextUtils;
 import snap.gfx.Font;
 import snap.props.PropChange;
-import snap.text.TextDoc;
-import snap.text.TextDocUtils;
-import snap.text.TextLine;
-import snap.text.TextStyle;
+import snap.text.*;
 import snap.util.ArrayUtils;
 import java.util.List;
 import java.util.stream.Stream;
@@ -39,6 +36,10 @@ public class JavaTextDoc extends TextDoc {
         Font font = JavaTextUtils.getCodeFont();
         TextStyle textStyle2 = textStyle.copyFor(font);
         setDefaultStyle(textStyle2);
+
+        TextLineStyle lineStyle = getDefaultLineStyle();
+        TextLineStyle lineStyleSpaced = lineStyle.copyFor(TextLineStyle.SPACING_KEY, 4);
+        setDefaultLineStyle(lineStyleSpaced);
     }
 
     /**
