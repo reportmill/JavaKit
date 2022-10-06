@@ -27,14 +27,4 @@ public class JavaTextBoxLine extends TextBoxLine {
     {
         return _utermCmnt;
     }
-
-    /**
-     * Returns the x for tab at given x.
-     */
-    @Override
-    protected double getXForTabAtIndexAndX(int aCharInd, double aX)
-    {
-        TextStyle style = _tbox.getStyleAt(aCharInd);
-        return aX + style.getCharAdvance(' ') * 4;
-    }
 }

@@ -33,13 +33,17 @@ public class JavaTextDoc extends TextDoc {
     {
         super();
 
+        // Reset default TextStyle for code
         TextStyle textStyle = getDefaultStyle();
-        Font font = JavaTextUtils.getCodeFont();
-        TextStyle textStyle2 = textStyle.copyFor(font);
-        setDefaultStyle(textStyle2);
+        Font codeFont = JavaTextUtils.getCodeFont();
+        TextStyle codeTextStyle = textStyle.copyFor(codeFont);
+        setDefaultStyle(codeTextStyle);
 
+        // Reset default LineStyle for code
         TextLineStyle lineStyle = getDefaultLineStyle();
         TextLineStyle lineStyleSpaced = lineStyle.copyFor(TextLineStyle.SPACING_KEY, 4);
+        //double tabW = codeTextStyle.getCharAdvance(' ') * 4;
+        //lineStyleSpaced.setTabs(new double[] { tabW, tabW, tabW, tabW, tabW, tabW, tabW, tabW, tabW, tabW });
         setDefaultLineStyle(lineStyleSpaced);
     }
 
