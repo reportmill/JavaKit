@@ -278,26 +278,26 @@ public class JavaTextPane extends TextPane {
         // Handle JavaDocButton
         else if (anEvent.equals("JavaDocButton")) URLUtils.openURL(getJavaDocURL());
 
-            // Handle CodeBuilderButton
+        // Handle CodeBuilderButton
         else if (anEvent.equals("CodeBuilderButton")) setCodeBuilderVisible(!isCodeBuilderVisible());
 
-            // Handle FontSizeText, IncreaseFontButton, DecreaseFontButton
+        // Handle FontSizeText, IncreaseFontButton, DecreaseFontButton
         else if (anEvent.equals("FontSizeText") || anEvent.equals("IncreaseFontButton") || anEvent.equals("DecreaseFontButton"))
             Prefs.get().setValue("JavaFontSize", _textArea.getFont().getSize());
 
-            // Handle OpenDeclarationMenuItem
+        // Handle OpenDeclarationMenuItem
         else if (anEvent.equals("OpenDeclarationMenuItem"))
             openDeclaration(_textArea.getSelNode());
 
-            // Handle ShowReferencesMenuItem
+        // Handle ShowReferencesMenuItem
         else if (anEvent.equals("ShowReferencesMenuItem"))
             showReferences(_textArea.getSelNode());
 
-            // Handle ShowDeclarationsMenuItem
+        // Handle ShowDeclarationsMenuItem
         else if (anEvent.equals("ShowDeclarationsMenuItem"))
             showDeclarations(_textArea.getSelNode());
 
-            // Handle NodePathLabel
+        // Handle NodePathLabel
         else if (anEvent.equals("NodePathLabel")) {
             JNode part = (JNode) anEvent.getView().getProp("JNode"), dnode = _textArea._deepNode;
             _textArea.setSel(part.getStart(), part.getEnd());
@@ -310,9 +310,14 @@ public class JavaTextPane extends TextPane {
      */
     public void saveChanges()
     {
-        getPopup().hide(); // Close popup
+        // Hide Popup
+        getPopup().hide();
+
+        // Do normal version
         super.saveChanges();
-        getTextArea().getTextBox().reloadSymbols();
+
+        // Force reparse
+        //getTextArea().getTextDoc().clearJFile();
     }
 
     /**

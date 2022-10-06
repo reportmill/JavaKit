@@ -5,8 +5,14 @@ package javakit.shell;
 import javakit.parse.*;
 import javakit.text.JavaTextUtils;
 import snap.gfx.Font;
+import snap.parse.ParseHandler;
+import snap.parse.ParseRule;
+import snap.parse.Parser;
+import snap.parse.Tokenizer;
 import snap.props.PropChange;
 import snap.text.*;
+import snap.util.StringUtils;
+import snap.web.WebFile;
 import java.util.List;
 
 /**
@@ -38,26 +44,6 @@ public class JavaTextDoc extends TextDoc {
     }
 
     /**
-     * Returns the JFile (parsed Java file).
-     */
-    public JFile getJFile()
-    {
-        // If already set, just return
-        if (_jfile != null) return _jfile;
-
-        // Get parsed java file
-        JavaParser javaParser = getJavaParser();
-        String javaStr = getString();
-        JFile jfile = javaParser.getJavaFile(javaStr);
-
-        // This sucks
-        getStatementsForJavaNode(jfile);
-
-        // Set, return
-        return _jfile = jfile;
-    }
-
-    /**
      * Returns the parser to parse java file.
      */
     public JavaParser getJavaParser()
@@ -74,6 +60,31 @@ public class JavaTextDoc extends TextDoc {
      * Sets the parser to parse java file.
      */
     public void setJavaParser(JavaParser aJavaParser)  { _javaParser = aJavaParser; }
+
+    /**
+     * Returns the JFile (parsed Java file).
+     */
+    public JFile getJFile()
+    {
+        // If already set, just return
+        if (_jfile != null) return _jfile;
+
+        // Get parsed java file
+        JavaParser javaParser = getJavaParser();
+        String javaStr = getString();
+        JFile jfile = javaParser.getJavaFile(javaStr);
+
+        // Set SourceFile
+        WebFile sourceFile = getSourceFile();
+        if (sourceFile != null)
+            jfile.setSourceFile(sourceFile);
+
+        // This sucks
+        getStatementsForJavaNode(jfile);
+
+        // Set, return
+        return _jfile = jfile;
+    }
 
     /**
      * Override to clear JFile.
@@ -142,18 +153,97 @@ public class JavaTextDoc extends TextDoc {
         // Do normal version
         super.firePropChange(aPC);
 
-        // Handle CharsChange
+        // Get PropName
         String propName = aPC.getPropName();
-        if (propName == Chars_Prop)
-            textDidCharsChange((TextDocUtils.CharsChange) aPC);
+
+        // Handle CharsChange: Try to update JFile with partial parse
+        if (propName == Chars_Prop) {
+
+            // If partial parse fails, clear JFile for full reparse
+            TextDocUtils.CharsChange charsChange = (TextDocUtils.CharsChange) aPC;
+            boolean jfileUpdated = updateJFileForChange(charsChange);
+            if (!jfileUpdated)
+                _jfile = null;
+            else System.out.println("JFile updated!!!");
+        }
     }
 
     /**
-     * Called when text changes.
+     * Updates JFile for given range change.
      */
-    private void textDidCharsChange(TextDocUtils.CharsChange aCharsChange)
+    private boolean updateJFileForChange(TextDocUtils.CharsChange aCharsChange)
     {
-        // Clear JFile
-        _jfile = null;
+        // If no JFile, just bail
+        if (_jfile == null) return true;
+
+        // Get CharsChange and charIndex
+        CharSequence addChars = aCharsChange.getNewValue();
+        CharSequence removeChars = aCharsChange.getOldValue();
+        int startCharIndex = aCharsChange.getIndex();
+        int endOldCharIndex = startCharIndex + (addChars != null ? 0 : removeChars.length());
+
+        // If change is more than 50 chars or contains newline, just reparse all
+        CharSequence changeChars = addChars != null ? addChars : removeChars;
+        if (changeChars.length() > 50 || StringUtils.indexOfNewline(changeChars, 0) >= 0)
+            return false;
+
+        // Get outer statement enclosing range
+        JNode jnode = _jfile.getNodeAtCharIndex(startCharIndex);
+        JStmtBlock oldStmt = jnode instanceof JStmtBlock ? (JStmtBlock) jnode : jnode.getParent(JStmtBlock.class);
+        while (oldStmt != null && oldStmt.getEnd() < endOldCharIndex)
+            oldStmt = oldStmt.getParent(JStmtBlock.class);
+
+        // If enclosing statement not found, just reparse all
+        if (oldStmt == null)
+            return false;
+
+        // Parse new JStmtBlock (create empty one if there wasn't enough in block to create it)
+        if (_stmtParser == null)
+            _stmtParser = new StmtParser();
+        _stmtParser.setInput(JavaTextDoc.this);
+        _stmtParser.setCharIndex(oldStmt.getStart());
+
+        // Parse new statement
+        JStmtBlock newStmt = null;
+        try { newStmt = _stmtParser.parseCustom(JStmtBlock.class); }
+        catch (Exception e) { }
+
+        // If parse failed, just create empty StmtBlock
+        if (newStmt == null) {
+            newStmt = new JStmtBlock();
+            newStmt.setStartToken(oldStmt.getStartToken());
+        }
+
+        // Set EndToken to oldStmt.EndToken
+        newStmt.setEndToken(oldStmt.getEndToken());
+
+        // Replace old statement with new statement
+        JNode stmtParent = oldStmt.getParent();
+        stmtParent.setBlock(newStmt);
+        return true;
+    }
+
+    // Special statement parser
+    private StmtParser  _stmtParser;
+
+    /**
+     * A Parser for JavaText modified statements.
+     */
+    public class StmtParser extends Parser {
+
+        /** Constructor. */
+        StmtParser()
+        {
+            super(getJavaParser().getRule("Statement"));
+        }
+
+        /** Override to use JavaParser.Tokenizer. */
+        public Tokenizer getTokenizer()
+        {
+            return getJavaParser().getTokenizer();
+        }
+
+        /** Override to ignore exception. */
+        protected void parseFailed(ParseRule aRule, ParseHandler aHandler)  { }
     }
 }
