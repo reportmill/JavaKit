@@ -79,7 +79,7 @@ public class JavaTextBox extends TextBox {
     /**
      * Create and return TextBoxLine for given TextLine, start char index and line index.
      */
-    protected TextBoxLine createLine(TextLine aTextLine, int aStart, int aLineIndex)
+    protected TextBoxLine createTextBoxLine(TextLine aTextLine, int aStart, int aLineIndex)
     {
         // Get iteration variables
         TextStyle style = aTextLine.getRun(0).getStyle();
