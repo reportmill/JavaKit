@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.text;
+import javakit.parse.JavaParser;
 import snap.parse.*;
 import snap.gfx.*;
 import snap.text.*;
@@ -12,7 +13,7 @@ import snap.text.*;
 public class JavaTextBox extends TextBox {
 
     // The JavaParser for this text
-    protected JavaTextBoxParser  _parser = new JavaTextBoxParser();
+    protected JavaParser  _parser = new JavaParser();
 
     // Constants for Syntax Coloring
     private static Color COMMENT_COLOR = new Color("#3F7F5F"); //336633
@@ -135,7 +136,7 @@ public class JavaTextBox extends TextBox {
             }
 
             // Create TextToken
-            TextBoxToken textBoxToken = _parser.createJavaTextBoxToken(token, line, style, tokenStart, tokenEnd);
+            TextBoxToken textBoxToken = new JavaTextBoxToken(line, style, tokenStart, tokenEnd, token);
             textBoxToken.setX(tokenX);
             textBoxToken.setWidth(tokenW);
             tokenX += tokenW;
@@ -149,7 +150,7 @@ public class JavaTextBox extends TextBox {
             line.addToken(textBoxToken);
 
             // Update inMultilineComment for current token
-            line._utermCmnt = token.getName() == "MultiLineComment" && !token.getString().endsWith("*/");
+            line._utermCmnt = token.getName() == CodeTokenizer.MULTI_LINE_COMMENT && !token.getString().endsWith("*/");
 
             // Get next token
             token = tokenizer.getNextSpecialToken();
@@ -166,21 +167,19 @@ public class JavaTextBox extends TextBox {
         if (exception != null) {
 
             // Get token width
-            double w = 0;
+            double tokenW = 0;
             int tokenStart = start;
             int tokenEnd = aTextLine.length();
             while (start < aTextLine.length()) {
-                char c = aTextLine.charAt(start); //if(start>run.getEnd()) run = run.getNext();
-                w += style.getCharAdvance(c);
+                char lineChar = aTextLine.charAt(start); //if(start>run.getEnd()) run = run.getNext();
+                tokenW += style.getCharAdvance(lineChar);
                 start++;
             }
 
             // Create TextToken
-            TextBoxToken textBoxToken = _parser.createJavaTextBoxToken(null, line, style, tokenStart, tokenEnd);
+            TextBoxToken textBoxToken = new JavaTextBoxToken(line, style, tokenStart, tokenEnd, null);
             textBoxToken.setX(tokenX);
-            textBoxToken.setWidth(w);
-            tokenX += w;
-            w = 0;
+            textBoxToken.setWidth(tokenW);
             line.addToken(textBoxToken);
         }
 
@@ -196,7 +195,7 @@ public class JavaTextBox extends TextBox {
     {
         // Handle comments
         String tokenName = aToken.getName();
-        if (tokenName == "SingleLineComment" || tokenName == "MultiLineComment")
+        if (tokenName == CodeTokenizer.SINGLE_LINE_COMMENT || tokenName == CodeTokenizer.MULTI_LINE_COMMENT)
             return COMMENT_COLOR;
 
         // Handle reserved words
