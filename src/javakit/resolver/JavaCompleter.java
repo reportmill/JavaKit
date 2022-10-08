@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javakit.parse.*;
 import javakit.reflect.*;
-import snap.parse.Token;
+import snap.parse.ParseToken;
 import snap.util.StringUtils;
 
 /**
@@ -250,7 +250,7 @@ public class JavaCompleter {
             return aNode.getName();
 
         // Handle any node with only one token
-        Token startToken = aNode.getStartToken();
+        ParseToken startToken = aNode.getStartToken();
         if (startToken == aNode.getEndToken())
             return startToken.getString();
 

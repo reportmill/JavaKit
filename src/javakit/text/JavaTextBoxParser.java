@@ -1,6 +1,6 @@
 package javakit.text;
 import javakit.parse.JavaParser;
-import snap.parse.Token;
+import snap.parse.ParseToken;
 import snap.parse.Tokenizer;
 import snap.text.TextBoxLine;
 import snap.text.TextBoxToken;
@@ -39,7 +39,7 @@ public class JavaTextBoxParser extends JavaParser {
     /**
      * Creates a JavaTextBoxToken.
      */
-    public TextBoxToken createJavaTextBoxToken(Token parseToken, TextBoxLine line, TextStyle style, int tokenStart, int tokenEnd)
+    public TextBoxToken createJavaTextBoxToken(ParseToken parseToken, TextBoxLine line, TextStyle style, int tokenStart, int tokenEnd)
     {
         JavaTextBoxToken textBoxToken = new JavaTextBoxToken(line, style, tokenStart, tokenEnd);
         textBoxToken._tokenizer = getTokenizer();
@@ -98,7 +98,7 @@ public class JavaTextBoxParser extends JavaParser {
          * Override to get token from next line.
          */
         @Override
-        public Token getNextToken()
+        public ParseToken getNextToken()
         {
             // If line is out of tokens, get next line
             if (_line == null || _tokenIndex >= _line.getTokenCount()) {
@@ -132,13 +132,13 @@ public class JavaTextBoxParser extends JavaParser {
     /**
      * A TextToken subclass specifically for JavaText.
      */
-    private static class JavaTextBoxToken extends TextBoxToken implements Token {
+    private static class JavaTextBoxToken extends TextBoxToken implements ParseToken {
 
         // The tokenizer that provided this token
         protected Tokenizer  _tokenizer;
 
         // The parse token
-        protected Token  _token;
+        protected ParseToken _token;
 
         /**
          * Creates a new Token for given box line, run and character start/end.
@@ -172,7 +172,7 @@ public class JavaTextBoxParser extends JavaParser {
         /**
          * Parse Token method.
          */
-        public int getInputStart()
+        public int getStartCharIndex()
         {
             return getLine().getStart() + getStart();
         }
@@ -180,7 +180,7 @@ public class JavaTextBoxParser extends JavaParser {
         /**
          * Parse Token method.
          */
-        public int getInputEnd()
+        public int getEndCharIndex()
         {
             return getLine().getStart() + getEnd();
         }
@@ -196,7 +196,7 @@ public class JavaTextBoxParser extends JavaParser {
         /**
          * Parse Token method.
          */
-        public int getLineStart()
+        public int getLineStartCharIndex()
         {
             return getLine().getStart();
         }
@@ -212,7 +212,7 @@ public class JavaTextBoxParser extends JavaParser {
         /**
          * Parse Token method.
          */
-        public Token getSpecialToken()  { return null; }
+        public ParseToken getSpecialToken()  { return null; }
 
         /**
          * Returns whether this token is SpecialToken (Java comment).

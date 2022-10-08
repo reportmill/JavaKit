@@ -128,7 +128,7 @@ public class JavaParser extends JavaParserStmt {
 
         catch (Exception e) {
             _exception = e;
-            Token t = getToken();
+            ParseToken t = getToken();
             if (t != null)
                 System.err.println("Exeption at line " + (t.getLineIndex() + 1));
             e.printStackTrace();
@@ -711,7 +711,7 @@ public class JavaParser extends JavaParserStmt {
         /**
          * Override to make public for external use.
          */
-        public Token getMultiLineCommentTokenMore(Token aSpclTkn)
+        public ParseToken getMultiLineCommentTokenMore(ParseToken aSpclTkn)
         {
             return super.getMultiLineCommentTokenMore(aSpclTkn);
         }

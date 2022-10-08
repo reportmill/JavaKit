@@ -126,7 +126,7 @@ public class JavaTextDoc extends TextDoc {
         tokenizer.setInput(aTextLine);
 
         // Get first line token: Handle if already in Multi-line
-        Token parseToken = null;
+        ParseToken parseToken = null;
         if (inUnterminatedComment)
             parseToken = tokenizer.getMultiLineCommentTokenMore(null);
         else {
@@ -138,8 +138,8 @@ public class JavaTextDoc extends TextDoc {
         while (parseToken != null) {
 
             // Get token start/end
-            int tokenStart = parseToken.getInputStart();
-            int tokenEnd = parseToken.getInputEnd();
+            int tokenStart = parseToken.getStartCharIndex();
+            int tokenEnd = parseToken.getEndCharIndex();
 
             // Create TextToken
             TextToken textToken = new TextToken(aTextLine, tokenStart, tokenEnd, textRun);
@@ -229,7 +229,7 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Checks the given token for syntax coloring.
      */
-    private static Color getColorForParseToken(Token aToken)
+    private static Color getColorForParseToken(ParseToken aToken)
     {
         // Handle comments
         String tokenName = aToken.getName();

@@ -104,7 +104,7 @@ public class JavaTextBox extends TextBox {
         tokenizer.setInput(aTextLine);
 
         // Get first line token: Handle if already in Multi-line
-        Token token = line.isUnterminatedComment() ?
+        ParseToken token = line.isUnterminatedComment() ?
                 tokenizer.getMultiLineCommentTokenMore(null) :
                 tokenizer.getNextSpecialToken();
         if (token == null) {
@@ -116,8 +116,8 @@ public class JavaTextBox extends TextBox {
         while (token != null) {
 
             // Get token start/end
-            int tokenStart = token.getInputStart();
-            int tokenEnd = token.getInputEnd();
+            int tokenStart = token.getStartCharIndex();
+            int tokenEnd = token.getEndCharIndex();
 
             // Get token x
             while (start < tokenStart) {
@@ -194,7 +194,7 @@ public class JavaTextBox extends TextBox {
     /**
      * Checks the given token for syntax coloring.
      */
-    private static Color getColor(Token aToken)
+    private static Color getColor(ParseToken aToken)
     {
         // Handle comments
         String tokenName = aToken.getName();

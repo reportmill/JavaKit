@@ -5,7 +5,7 @@ package javakit.parse;
 import java.util.*;
 import java.util.regex.Matcher;
 import javakit.reflect.*;
-import snap.parse.Token;
+import snap.parse.ParseToken;
 import snap.util.*;
 
 /**
@@ -17,7 +17,7 @@ public class JNode {
     protected String  _name;
 
     // The start/end tokens for this node
-    protected Token  _startToken, _endToken;
+    protected ParseToken _startToken, _endToken;
 
     // The parent node
     protected JNode  _parent;
@@ -218,12 +218,12 @@ public class JNode {
     /**
      * Returns the start token of this node.
      */
-    public Token getStartToken()  { return _startToken; }
+    public ParseToken getStartToken()  { return _startToken; }
 
     /**
      * Sets the start token of this node.
      */
-    public void setStartToken(Token aToken)
+    public void setStartToken(ParseToken aToken)
     {
         _startToken = aToken;
     }
@@ -233,18 +233,18 @@ public class JNode {
      */
     public int getStart()
     {
-        return _startToken != null ? _startToken.getInputStart() : 0;
+        return _startToken != null ? _startToken.getStartCharIndex() : 0;
     }
 
     /**
      * Returns the end token of this node.
      */
-    public Token getEndToken()  { return _endToken; }
+    public ParseToken getEndToken()  { return _endToken; }
 
     /**
      * Sets the end token of this node.
      */
-    public void setEndToken(Token aToken)
+    public void setEndToken(ParseToken aToken)
     {
         _endToken = aToken;
     }
@@ -254,7 +254,7 @@ public class JNode {
      */
     public int getEnd()
     {
-        return _endToken != null ? _endToken.getInputEnd() : 0;
+        return _endToken != null ? _endToken.getEndCharIndex() : 0;
     }
 
     /**

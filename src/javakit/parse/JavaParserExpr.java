@@ -5,7 +5,7 @@ package javakit.parse;
 import snap.parse.ParseHandler;
 import snap.parse.ParseNode;
 import snap.parse.Parser;
-import snap.parse.Token;
+import snap.parse.ParseToken;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -780,7 +780,7 @@ public class JavaParserExpr extends Parser {
         protected T createPart()
         {
             T part = super.createPart();
-            Token token = getStartToken();
+            ParseToken token = getStartToken();
             part.setStartToken(token);
             return part;
         }
