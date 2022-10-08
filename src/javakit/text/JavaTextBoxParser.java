@@ -1,7 +1,6 @@
 package javakit.text;
 import javakit.parse.JavaParser;
 import snap.parse.ParseToken;
-import snap.parse.Tokenizer;
 import snap.text.TextBoxLine;
 import snap.text.TextBoxToken;
 import snap.text.TextStyle;
@@ -11,29 +10,12 @@ import snap.text.TextStyle;
  */
 public class JavaTextBoxParser extends JavaParser {
 
-    // The text tokenizer
-    private JavaTextBoxTokenizer  _textTokenizer;
-
     /**
      * Constructor.
      */
-    public JavaTextBoxParser(JavaTextBox javaTextBox)
+    public JavaTextBoxParser()
     {
         super();
-        _textTokenizer = new JavaTextBoxTokenizer(javaTextBox);
-    }
-
-    /**
-     * Returns tokenizer that gets tokens from text.
-     */
-    public JavaTextBoxTokenizer getTokenizer()  { return _textTokenizer; }
-
-    /**
-     * Returns the original tokenizer.
-     */
-    public JavaTokenizer getRealTokenizer()
-    {
-        return super.getTokenizer();
     }
 
     /**
@@ -42,100 +24,14 @@ public class JavaTextBoxParser extends JavaParser {
     public TextBoxToken createJavaTextBoxToken(ParseToken parseToken, TextBoxLine line, TextStyle style, int tokenStart, int tokenEnd)
     {
         JavaTextBoxToken textBoxToken = new JavaTextBoxToken(line, style, tokenStart, tokenEnd);
-        textBoxToken._tokenizer = getTokenizer();
         textBoxToken._token = parseToken;
         return textBoxToken;
     }
 
     /**
-     * A tokenizer that gets tokens from text lines.
-     */
-    private static class JavaTextBoxTokenizer extends JavaTokenizer {
-
-        // The JavaTextBox
-        private JavaTextBox  _javaTextBox;
-
-        // The current line
-        protected TextBoxLine  _line;
-
-        // The token index on line
-        protected int  _tokenIndex;
-
-        /**
-         * Constructor.
-         */
-        public JavaTextBoxTokenizer(JavaTextBox javaTextBox)
-        {
-            _javaTextBox = javaTextBox;
-        }
-
-        /**
-         * Override to reset tokenizer.
-         */
-        @Override
-        public void setInput(CharSequence anInput)
-        {
-            super.setInput(anInput);
-            _line = null;
-        }
-
-        /**
-         * Sets the input start.
-         */
-        @Override
-        public void setCharIndex(int aStart)
-        {
-            _line = _javaTextBox.getLineForCharIndex(aStart);
-            _tokenIndex = 0;
-            while (_tokenIndex < _line.getTokenCount()) {
-                if (aStart < _line.getToken(_tokenIndex).getEnd() + _line.getStart())
-                    break;
-                _tokenIndex++;
-            }
-        }
-
-        /**
-         * Override to get token from next line.
-         */
-        @Override
-        public ParseToken getNextToken()
-        {
-            // If line is out of tokens, get next line
-            if (_line == null || _tokenIndex >= _line.getTokenCount()) {
-                TextBoxLine line = getNextLine(_line);
-                while (line != null && line.getTokenCount() == 0)
-                    line = getNextLine(line);
-                if (line == null) return null;
-                _line = line;
-                _tokenIndex = 0;
-            }
-
-            // Return token for line
-            JavaTextBoxToken token = (JavaTextBoxToken) _line.getToken(_tokenIndex++);
-            if (token.isSpecialToken())
-                return getNextToken();
-
-            // Return
-            return token;
-        }
-
-        /**
-         * Returns the next line.
-         */
-        private TextBoxLine getNextLine(TextBoxLine aLine)
-        {
-            int index = aLine != null ? aLine.getIndex() + 1 : 0;
-            return index < _javaTextBox.getLineCount() ? _javaTextBox.getLine(index) : null;
-        }
-    }
-
-    /**
      * A TextToken subclass specifically for JavaText.
      */
-    private static class JavaTextBoxToken extends TextBoxToken implements ParseToken {
-
-        // The tokenizer that provided this token
-        protected Tokenizer  _tokenizer;
+    public static class JavaTextBoxToken extends TextBoxToken implements ParseToken {
 
         // The parse token
         protected ParseToken _token;
@@ -147,11 +43,6 @@ public class JavaTextBoxParser extends JavaParser {
         {
             super(aLine, aStyle, aStart, aEnd);
         }
-
-        /**
-         * The Tokenizer that provided this token.
-         */
-        public Tokenizer getTokenizer()  { return _tokenizer; }
 
         /**
          * Parse Token method.
@@ -213,14 +104,5 @@ public class JavaTextBoxParser extends JavaParser {
          * Parse Token method.
          */
         public ParseToken getSpecialToken()  { return null; }
-
-        /**
-         * Returns whether this token is SpecialToken (Java comment).
-         */
-        public boolean isSpecialToken()
-        {
-            String name = getName();
-            return name != null && name.endsWith("Comment");
-        }
     }
 }

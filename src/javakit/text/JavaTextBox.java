@@ -5,7 +5,6 @@ package javakit.text;
 import snap.parse.*;
 import snap.gfx.*;
 import snap.text.*;
-import javakit.parse.JavaParser.JavaTokenizer;
 
 /**
  * This TextBox subclass provides syntax coloring for Java code.
@@ -13,7 +12,7 @@ import javakit.parse.JavaParser.JavaTokenizer;
 public class JavaTextBox extends TextBox {
 
     // The JavaParser for this text
-    protected JavaTextBoxParser  _parser = new JavaTextBoxParser(this);
+    protected JavaTextBoxParser  _parser = new JavaTextBoxParser();
 
     // Constants for Syntax Coloring
     private static Color COMMENT_COLOR = new Color("#3F7F5F"); //336633
@@ -85,7 +84,7 @@ public class JavaTextBox extends TextBox {
         TextStyle style = aTextLine.getRun(0).getStyle();
         Exception exception = null;
         int start = 0;
-        double x = 0;
+        double tokenX = 0;
 
         // Create new line (just return if last line in text)
         JavaTextBoxLine line = new JavaTextBoxLine(this, style, aTextLine, aStart);
@@ -100,7 +99,7 @@ public class JavaTextBox extends TextBox {
             line._utermCmnt = true;
 
         // Get tokenizer
-        JavaTokenizer tokenizer = _parser.getRealTokenizer();
+        CodeTokenizer tokenizer = _parser.getTokenizer();
         tokenizer.setInput(aTextLine);
 
         // Get first line token: Handle if already in Multi-line
@@ -122,25 +121,24 @@ public class JavaTextBox extends TextBox {
             // Get token x
             while (start < tokenStart) {
                 char c = aTextLine.charAt(start); //if(start>run.getEnd()) run = run.getNext();
-                if (c == '\t') x += style.getCharAdvance(' ') * 4;
-                else x += style.getCharAdvance(c);
+                if (c == '\t') tokenX += style.getCharAdvance(' ') * 4;
+                else tokenX += style.getCharAdvance(c);
                 start++;
             }
 
             // Get token width
-            double w = 0;
+            double tokenW = 0;
             while (start < tokenEnd) {
                 char c = aTextLine.charAt(start); //if(start>run.getEnd()) run = run.getNext();
-                w += style.getCharAdvance(c);
+                tokenW += style.getCharAdvance(c);
                 start++;
             }
 
             // Create TextToken
             TextBoxToken textBoxToken = _parser.createJavaTextBoxToken(token, line, style, tokenStart, tokenEnd);
-            textBoxToken.setX(x);
-            textBoxToken.setWidth(w);
-            x += w;
-            w = 0;
+            textBoxToken.setX(tokenX);
+            textBoxToken.setWidth(tokenW);
+            tokenX += tokenW;
 
             // Get/set token color
             Color color = getColor(token);
@@ -179,9 +177,9 @@ public class JavaTextBox extends TextBox {
 
             // Create TextToken
             TextBoxToken textBoxToken = _parser.createJavaTextBoxToken(null, line, style, tokenStart, tokenEnd);
-            textBoxToken.setX(x);
+            textBoxToken.setX(tokenX);
             textBoxToken.setWidth(w);
-            x += w;
+            tokenX += w;
             w = 0;
             line.addToken(textBoxToken);
         }

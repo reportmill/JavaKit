@@ -170,7 +170,8 @@ public class JavaParser extends JavaParserStmt {
     /**
      * Returns the tokenizer.
      */
-    protected Tokenizer createTokenizerImpl()
+    @Override
+    protected Tokenizer createTokenizer()
     {
         return new JavaTokenizer();
     }
@@ -697,7 +698,7 @@ public class JavaParser extends JavaParserStmt {
     /**
      * A tokenizer for Java input.
      */
-    public static class JavaTokenizer extends Tokenizer {
+    public static class JavaTokenizer extends CodeTokenizer {
 
         /**
          * Creates a JavaTokenizer.
@@ -706,14 +707,6 @@ public class JavaParser extends JavaParserStmt {
         {
             setReadSingleLineComments(true);
             setReadMultiLineComments(true);
-        }
-
-        /**
-         * Override to make public for external use.
-         */
-        public ParseToken getMultiLineCommentTokenMore(ParseToken aSpclTkn)
-        {
-            return super.getMultiLineCommentTokenMore(aSpclTkn);
         }
     }
 

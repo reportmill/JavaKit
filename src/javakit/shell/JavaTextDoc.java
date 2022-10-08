@@ -122,7 +122,7 @@ public class JavaTextDoc extends TextDoc {
 
         // Get tokenizer
         JavaParser javaParser = getJavaParser();
-        Tokenizer tokenizer = javaParser.getTokenizer();
+        CodeTokenizer tokenizer = javaParser.getTokenizer();
         tokenizer.setInput(aTextLine);
 
         // Get first line token: Handle if already in Multi-line
