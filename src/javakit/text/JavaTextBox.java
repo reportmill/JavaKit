@@ -3,6 +3,7 @@
  */
 package javakit.text;
 import javakit.parse.JavaParser;
+import javakit.shell.JavaTextDoc;
 import snap.parse.*;
 import snap.gfx.*;
 import snap.text.*;
@@ -14,11 +15,6 @@ public class JavaTextBox extends TextBox {
 
     // The JavaParser for this text
     protected JavaParser  _parser = new JavaParser();
-
-    // Constants for Syntax Coloring
-    private static Color COMMENT_COLOR = new Color("#3F7F5F"); //336633
-    private static Color RESERVED_WORD_COLOR = new Color("#660033");
-    private static Color STRING_LITERAL_COLOR = new Color("#C80000"); // CC0000
 
     /**
      * Constructor.
@@ -104,20 +100,20 @@ public class JavaTextBox extends TextBox {
         tokenizer.setInput(aTextLine);
 
         // Get first line token: Handle if already in Multi-line
-        ParseToken token = line.isUnterminatedComment() ?
+        ParseToken parseToken = line.isUnterminatedComment() ?
                 tokenizer.getMultiLineCommentTokenMore(null) :
                 tokenizer.getNextSpecialToken();
-        if (token == null) {
-            try { token = tokenizer.getNextToken(); }
+        if (parseToken == null) {
+            try { parseToken = tokenizer.getNextToken(); }
             catch (Exception e) { exception = e; }
         }
 
         // Get line parse tokens and create TextTokens
-        while (token != null) {
+        while (parseToken != null) {
 
             // Get token start/end
-            int tokenStart = token.getStartCharIndex();
-            int tokenEnd = token.getEndCharIndex();
+            int tokenStart = parseToken.getStartCharIndex();
+            int tokenEnd = parseToken.getEndCharIndex();
 
             // Get token x
             while (start < tokenStart) {
@@ -136,13 +132,13 @@ public class JavaTextBox extends TextBox {
             }
 
             // Create TextToken
-            TextBoxToken textBoxToken = new JavaTextBoxToken(line, style, tokenStart, tokenEnd, token);
+            TextBoxToken textBoxToken = new JavaTextBoxToken(line, style, tokenStart, tokenEnd, parseToken);
             textBoxToken.setX(tokenX);
             textBoxToken.setWidth(tokenW);
             tokenX += tokenW;
 
             // Get/set token color
-            Color color = getColor(token);
+            Color color = JavaTextDoc.getColorForParseToken(parseToken);
             if (color != null)
                 textBoxToken.setColor(color);
 
@@ -150,12 +146,12 @@ public class JavaTextBox extends TextBox {
             line.addToken(textBoxToken);
 
             // Update inMultilineComment for current token
-            line._utermCmnt = token.getName() == CodeTokenizer.MULTI_LINE_COMMENT && !token.getString().endsWith("*/");
+            line._utermCmnt = parseToken.getName() == CodeTokenizer.MULTI_LINE_COMMENT && !parseToken.getString().endsWith("*/");
 
             // Get next token
-            token = tokenizer.getNextSpecialToken();
-            if (token == null) {
-                try { token = tokenizer.getNextToken(); }
+            parseToken = tokenizer.getNextSpecialToken();
+            if (parseToken == null) {
+                try { parseToken = tokenizer.getNextToken(); }
                 catch (Exception e) {
                     exception = e;
                     break;
@@ -186,28 +182,5 @@ public class JavaTextBox extends TextBox {
         // Return line
         line.resetSizes();
         return line;
-    }
-
-    /**
-     * Checks the given token for syntax coloring.
-     */
-    private static Color getColor(ParseToken aToken)
-    {
-        // Handle comments
-        String tokenName = aToken.getName();
-        if (tokenName == CodeTokenizer.SINGLE_LINE_COMMENT || tokenName == CodeTokenizer.MULTI_LINE_COMMENT)
-            return COMMENT_COLOR;
-
-        // Handle reserved words
-        char firstPatternChar = aToken.getPattern().charAt(0);
-        if (Character.isLetter(firstPatternChar))
-            return RESERVED_WORD_COLOR;
-
-        // Handle string literals
-        if (tokenName == "StringLiteral" || tokenName == "CharacterLiteral")
-            return STRING_LITERAL_COLOR;
-
-        // Return none
-        return null;
     }
 }

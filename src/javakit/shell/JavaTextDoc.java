@@ -229,11 +229,11 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Checks the given token for syntax coloring.
      */
-    private static Color getColorForParseToken(ParseToken aToken)
+    public static Color getColorForParseToken(ParseToken aToken)
     {
         // Handle comments
         String tokenName = aToken.getName();
-        if (tokenName == "SingleLineComment" || tokenName == "MultiLineComment")
+        if (tokenName == CodeTokenizer.SINGLE_LINE_COMMENT || tokenName == CodeTokenizer.MULTI_LINE_COMMENT)
             return COMMENT_COLOR;
 
         // Handle reserved words
