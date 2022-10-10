@@ -1,4 +1,6 @@
 package javakit.text;
+import javakit.shell.JavaTextDoc;
+import snap.gfx.Color;
 import snap.parse.ParseToken;
 import snap.text.TextBoxLine;
 import snap.text.TextBoxToken;
@@ -19,6 +21,11 @@ public class JavaTextBoxToken extends TextBoxToken implements ParseToken {
     {
         super(aLine, aStyle, aStart, aEnd);
         _parseToken = parseToken;
+
+        // Get/set token color
+        Color color = JavaTextDoc.getColorForParseToken(parseToken);
+        if (color != null)
+            setColor(color);
     }
 
     /**
