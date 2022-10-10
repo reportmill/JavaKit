@@ -122,7 +122,7 @@ public class OverviewPane extends View {
 
             TextBox textBox = _textArea.getTextBox();
             TextBoxLine line = textBox.getLineForY(anEvent.getY() / getHeight() * _textArea.getHeight());
-            setTextSel(line.getStart(), line.getEnd());
+            setTextSel(line.getStartCharIndex(), line.getEndCharIndex());
         }
 
         // Handle MouseMoved
@@ -311,7 +311,7 @@ public class OverviewPane extends View {
          */
         public int getSelStart()
         {
-            return _target.getLine().getStart() + _target.getStart();
+            return _target.getLine().getStartCharIndex() + _target.getStart();
         }
 
         /**
@@ -319,7 +319,7 @@ public class OverviewPane extends View {
          */
         public int getSelEnd()
         {
-            return _target.getLine().getStart() + _target.getEnd();
+            return _target.getLine().getStartCharIndex() + _target.getEnd();
         }
 
         /**

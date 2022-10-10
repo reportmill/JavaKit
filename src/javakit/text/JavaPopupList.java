@@ -160,7 +160,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
 
         // Add import to Java text
         TextLine line = textDoc.getLine(importLineIndex);
-        textDoc.addChars(importStr, null, line.getStart());
+        textDoc.addChars(importStr, null, line.getStartCharIndex());
     }
 
     /**

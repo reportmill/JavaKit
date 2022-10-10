@@ -246,7 +246,7 @@ public class CodeBuilder extends ViewOwner {
         TextBoxLine line = textArea.getTextBox().getLineForY(_dragPoint.getY());
         CharSequence indent = getIndentString(line.getIndex());
         String string = _dragCodeBlock.getReplaceString(), fullString = indent + string + "\n";
-        int selStart = line.getStart();
+        int selStart = line.getStartCharIndex();
         textArea.replaceChars(fullString, null, selStart, selStart, false);
         textArea.setSel(selStart + indent.length(), selStart + indent.length() + string.length());
         //int argStart = string.indexOf('('), argEnd = argStart>0? string.indexOf(')', argStart) : -1;

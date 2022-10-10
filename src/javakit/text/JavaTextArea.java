@@ -97,7 +97,7 @@ public class JavaTextArea extends TextArea {
         // Get location for text start
         TextSel textSel = getSel();
         TextBoxLine selLine = textSel.getStartLine();
-        int selLineStart = selLine.getStart();
+        int selLineStart = selLine.getStartCharIndex();
         JNode selNode = getSelNode();
         int selNodeStart = selNode.getStart() - getTextDoc().getStartCharIndex() - selLineStart;
 
@@ -168,7 +168,7 @@ public class JavaTextArea extends TextArea {
     {
         TextBoxLine textLine = anIndex >= 0 && anIndex < getLineCount() ? getLine(anIndex) : null;
         if (textLine != null)
-            setSel(textLine.getStart(), textLine.getEnd());
+            setSel(textLine.getStartCharIndex(), textLine.getEndCharIndex());
     }
 
     /**
@@ -351,18 +351,18 @@ public class JavaTextArea extends TextArea {
                 continue;
 
             TextBoxLine line = getLineAt(iend);
-            int lstart = line.getStart();
+            int lstart = line.getStartCharIndex();
             if (istart < lstart)
                 istart = lstart;
             TextBoxToken token = getTokenAt(istart);
             if (token != null) {
-                int tend = token.getLine().getStart() + token.getEnd();
+                int tend = token.getLine().getStartCharIndex() + token.getEnd();
                 if (iend < tend)
                     iend = tend;
             }
 
             // If possible, make sure we underline at least one char
-            if (istart == iend && iend < line.getEnd()) iend++;
+            if (istart == iend && iend < line.getEndCharIndex()) iend++;
             int yb = (int) Math.round(line.getBaseline()) + 2;
             double x1 = line.getXForChar(istart - lstart);
             double x2 = line.getXForChar(iend - lstart);
@@ -406,8 +406,8 @@ public class JavaTextArea extends TextArea {
             // If closing index found, draw rect
             if (ind2 >= 0) {
                 TextBoxLine line = getLineAt(ind2);
-                int s1 = ind2 - line.getStart();
-                int s2 = ind2 + 1 - line.getStart();
+                int s1 = ind2 - line.getStartCharIndex();
+                int s2 = ind2 + 1 - line.getStartCharIndex();
                 double x1 = line.getXForChar(s1);
                 double x2 = line.getXForChar(s2);
                 aPntr.setColor(Color.LIGHTGRAY);
@@ -495,7 +495,7 @@ public class JavaTextArea extends TextArea {
         int endLineIndex = textSel.getEndLine().getIndex();
         for (int i = startLineIndex; i <= endLineIndex; i++) {
             TextBoxLine line = getLine(i);
-            addChars(INDENT_STRING, null, line.getStart());
+            addChars(INDENT_STRING, null, line.getStartCharIndex());
         }
     }
 
@@ -510,7 +510,7 @@ public class JavaTextArea extends TextArea {
         for (int i = startLineIndex; i <= endLineIndex; i++) {
             TextBoxLine line = getLine(i);
             if (line.length() < 4 || !line.subSequence(0, 4).toString().equals(INDENT_STRING)) continue;
-            replaceChars("", null, line.getStart(), line.getStart() + 4, false);
+            replaceChars("", null, line.getStartCharIndex(), line.getStartCharIndex() + 4, false);
         }
     }
 

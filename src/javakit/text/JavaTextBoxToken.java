@@ -42,7 +42,7 @@ public class JavaTextBoxToken extends TextBoxToken implements ParseToken {
      */
     public int getStartCharIndex()
     {
-        return getLine().getStart() + getStart();
+        return getLine().getStartCharIndex() + getStart();
     }
 
     /**
@@ -50,7 +50,7 @@ public class JavaTextBoxToken extends TextBoxToken implements ParseToken {
      */
     public int getEndCharIndex()
     {
-        return getLine().getStart() + getEnd();
+        return getLine().getStartCharIndex() + getEnd();
     }
 
     /**
@@ -66,7 +66,7 @@ public class JavaTextBoxToken extends TextBoxToken implements ParseToken {
      */
     public int getLineStartCharIndex()
     {
-        return getLine().getStart();
+        return getLine().getStartCharIndex();
     }
 
     /**

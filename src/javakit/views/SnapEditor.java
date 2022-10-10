@@ -264,7 +264,7 @@ public class SnapEditor extends StackView {
         JExpr pexpr = aNode instanceof JExpr ? ((JExpr) aNode).getParentExpr() : null;
         if (pexpr != null) return pexpr.getEnd();
         TextBoxLine tline = getJavaTextArea().getLineAt(index);
-        return tline.getStart();
+        return tline.getStartCharIndex();
     }
 
     /**
@@ -276,7 +276,7 @@ public class SnapEditor extends StackView {
         JExprChain cexpr = aNode.getParent() instanceof JExprChain ? (JExprChain) aNode.getParent() : null;
         if (cexpr != null) return cexpr.getExpr(cexpr.getExprCount() - 1).getEnd();
         TextBoxLine tline = getJavaTextArea().getLineAt(index);
-        return tline.getEnd();
+        return tline.getEndCharIndex();
     }
 
     /**
@@ -288,7 +288,7 @@ public class SnapEditor extends StackView {
         int index = aNode.getStart();
         while (index < tview.length() && tview.charAt(index) != '{') index++;
         TextBoxLine tline = tview.getLineAt(index);
-        return tline.getEnd();
+        return tline.getEndCharIndex();
     }
 
     /**

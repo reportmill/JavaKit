@@ -121,7 +121,7 @@ public class JavaTextAreaKeys {
                 String thisLineStr = thisLine.getString();
                 if (thisLineStr.trim().length() == 0 && thisLineStr.length() >= 4) {
                     int start = getSelStart();
-                    _textArea.delete(thisLine.getStart(), thisLine.getStart() + 4, false);
+                    _textArea.delete(thisLine.getStartCharIndex(), thisLine.getStartCharIndex() + 4, false);
                     setSel(start - 4);
                 }
             }
@@ -149,7 +149,7 @@ public class JavaTextAreaKeys {
 
                 // If this line starts with close bracket and indent is too much, remove indent level
                 if (thisLine.getString().trim().startsWith("}") && thisIndent > prevIndent && thisIndent > 4) {
-                    int thisLineStart = thisLine.getStart();
+                    int thisLineStart = thisLine.getStartCharIndex();
                     int deleteIndentEnd = thisLineStart + (thisIndent - prevIndent);
                     _textArea.delete(thisLineStart, deleteIndentEnd, false);
                     setSel(getSelStart() - 4);

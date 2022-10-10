@@ -64,7 +64,7 @@ public class JavaTextBox extends TextBox {
         // If unterminated comment state changed, update successive lines until it stops
         JavaTextBoxLine newEndLine = getLineForCharIndex(endNew);
         if (utermComment != newEndLine.isUnterminatedComment()) {
-            int start = newEndLine.getEnd();
+            int start = newEndLine.getEndCharIndex();
             int end = getTextDoc().indexOf("*/", start);
             if (end < 0)
                 end = length();

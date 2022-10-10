@@ -106,8 +106,8 @@ public class JeplDoc extends PropObject {
         TextLine endLine = _javaDoc.getLineForCharIndex(blockEnd);
 
         // Get code start/end char index (inside of brackets)
-        int codeStartIndex = startLine.getEnd();
-        int codeEndIndex = endLine.getStart();
+        int codeStartIndex = startLine.getEndCharIndex();
+        int codeEndIndex = endLine.getStartCharIndex();
 
         // Create ReplDoc
         return _replDoc = new SubText(_javaDoc, codeStartIndex, codeEndIndex);
