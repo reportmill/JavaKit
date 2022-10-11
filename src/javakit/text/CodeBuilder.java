@@ -210,13 +210,13 @@ public class CodeBuilder extends ViewOwner {
 
         // Make sure Y is below DragBlock first line
         TextBoxToken dragBlockToken = (TextBoxToken) _dragBlock.getStartToken();
-        TextBoxLine dragBlockLine = dragBlockToken.getLine();
+        TextBoxLine dragBlockLine = dragBlockToken.getTextLine();
         if (aY < dragBlockLine.getY() + dragBlockLine.getLineAdvance())
             _dragPoint = new Point(anX, dragBlockLine.getY() + dragBlockLine.getLineAdvance() + 1);
 
         // Get DragBlock.String with indent
         TextBoxToken dragToken = (TextBoxToken) _dragNode.getStartToken();
-        TextBoxLine line = dragToken.getLine();
+        TextBoxLine line = dragToken.getTextLine();
         String indent = getIndentString(line.getIndex());
         String dragString = indent + _dragCodeBlock.getString();
 

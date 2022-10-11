@@ -3,6 +3,7 @@
  */
 package javakit.text;
 import javakit.parse.JavaParser;
+import javakit.shell.JavaTextDoc;
 import snap.parse.*;
 import snap.text.*;
 
@@ -38,7 +39,7 @@ public class JavaTextBox extends TextBox {
 
         // If this line is InMultilineComment (do this first, since it may require use of Text.Tokenizer)
         TextBoxLine prevBoxLine = aLineIndex > 0 ? getLine(aLineIndex - 1) : null;
-        JavaTextBoxToken lastToken = prevBoxLine != null ? (JavaTextBoxToken) prevBoxLine.getTokenLast() : null;
+        TextBoxToken lastToken = prevBoxLine != null ? prevBoxLine.getTokenLast() : null;
         boolean isUnterminatedComment = isTextTokenUnterminatedMultilineComment(lastToken);
 
         // Get tokenizer
@@ -84,9 +85,11 @@ public class JavaTextBox extends TextBox {
             }
 
             // Create TextToken
-            TextBoxToken textBoxToken = new JavaTextBoxToken(newBoxLine, textStyle, tokenStart, tokenEnd, parseToken);
+            TextBoxToken textBoxToken = new TextBoxToken(newBoxLine, textStyle, tokenStart, tokenEnd);
+            textBoxToken.setName(parseToken.getName());
             textBoxToken.setX(tokenX);
             textBoxToken.setWidth(tokenW);
+            textBoxToken.setTextColor(JavaTextDoc.getColorForParseToken(parseToken));
             tokenX += tokenW;
 
             // Add token
@@ -117,7 +120,7 @@ public class JavaTextBox extends TextBox {
             }
 
             // Create TextToken
-            TextBoxToken textBoxToken = new JavaTextBoxToken(newBoxLine, textStyle, tokenStart, tokenEnd, null);
+            TextBoxToken textBoxToken = new TextBoxToken(newBoxLine, textStyle, tokenStart, tokenEnd);
             textBoxToken.setX(tokenX);
             textBoxToken.setWidth(tokenW);
             newBoxLine.addToken(textBoxToken);
@@ -131,7 +134,7 @@ public class JavaTextBox extends TextBox {
     /**
      * Returns whether given TextToken is an unterminated comment.
      */
-    private boolean isTextTokenUnterminatedMultilineComment(ParseToken aTextToken)
+    private boolean isTextTokenUnterminatedMultilineComment(TextBoxToken aTextToken)
     {
         if (aTextToken == null)
             return false;

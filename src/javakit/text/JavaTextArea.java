@@ -426,7 +426,7 @@ public class JavaTextArea extends TextArea {
                 istart = lstart;
             TextBoxToken token = getTokenAt(istart);
             if (token != null) {
-                int tend = token.getLine().getStartCharIndex() + token.getEnd();
+                int tend = token.getTextLine().getStartCharIndex() + token.getEndCharIndex();
                 if (iend < tend)
                     iend = tend;
             }

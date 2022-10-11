@@ -286,7 +286,7 @@ public class OverviewPane extends View {
         public TokenMarker(TextBoxToken aToken)
         {
             super(aToken);
-            TextBoxLine line = aToken.getLine();
+            TextBoxLine line = aToken.getTextLine();
             _y = line.getY() + line.getHeight() / 2;
         }
 
@@ -311,7 +311,7 @@ public class OverviewPane extends View {
          */
         public int getSelStart()
         {
-            return _target.getLine().getStartCharIndex() + _target.getStart();
+            return _target.getTextLine().getStartCharIndex() + _target.getStartCharIndex();
         }
 
         /**
@@ -319,7 +319,7 @@ public class OverviewPane extends View {
          */
         public int getSelEnd()
         {
-            return _target.getLine().getStartCharIndex() + _target.getEnd();
+            return _target.getTextLine().getStartCharIndex() + _target.getEndCharIndex();
         }
 
         /**
