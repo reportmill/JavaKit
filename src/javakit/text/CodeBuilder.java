@@ -197,7 +197,7 @@ public class CodeBuilder extends ViewOwner {
         textArea.repaint();
 
         // Set DragNode
-        int index = textArea.getCharIndex(anX, aY);
+        int index = textArea.getCharIndexForXY(anX, aY);
         _dragNode = textArea.getJFile().getNodeAtCharIndex(index);
 
         // Get DragBlock

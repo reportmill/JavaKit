@@ -264,7 +264,7 @@ public class JavaTextPane extends TextPane {
                     setTextAreaHoverEnabled(false);
                     return;
                 }
-                int index = _textArea.getCharIndex(anEvent.getX(), anEvent.getY());
+                int index = _textArea.getCharIndexForXY(anEvent.getX(), anEvent.getY());
                 JNode node = _textArea.getJFile().getNodeAtCharIndex(index);
                 _textArea.setHoverNode(node instanceof JExprId || node instanceof JType ? node : null);
             }

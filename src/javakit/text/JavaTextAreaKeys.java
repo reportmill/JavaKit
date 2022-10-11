@@ -6,48 +6,32 @@ import javakit.parse.JExprLiteral;
 import javakit.parse.JNode;
 import javakit.shell.JavaTextDoc;
 import snap.text.TextBoxLine;
-import snap.text.TextSel;
 import snap.view.KeyCode;
+import snap.view.TextAreaKeys;
 import snap.view.ViewEvent;
 import snap.view.ViewUtils;
 
 /**
  * This class is a helper for JavaTextArea to handle key processing.
  */
-public class JavaTextAreaKeys {
+public class JavaTextAreaKeys extends TextAreaKeys {
 
     // The JavaTextArea
-    private JavaTextArea  _textArea;
+    private JavaTextArea  _javaTextArea;
 
     /**
      * Constructor.
      */
     public JavaTextAreaKeys(JavaTextArea aJTA)
     {
-        _textArea = aJTA;
+        super(aJTA);
+        _javaTextArea = aJTA;
     }
-
-    /** TextArea method. */
-    public boolean isSelEmpty()  { return _textArea.isSelEmpty(); }
-
-    /** TextArea method. */
-    public TextSel getSel()  { return _textArea.getSel(); }
-
-    /** TextArea method. */
-    public void setSel(int charIndex)  { _textArea.setSel(charIndex); }
-
-    /** TextArea method. */
-    public int getSelStart()  { return _textArea.getSelStart(); }
-
-    /** TextArea method. */
-    public int length()  { return _textArea.length(); }
-
-    /** TextArea method. */
-    public char charAt(int charIndex)  { return _textArea.charAt(charIndex); }
 
     /**
      * Called when a key is pressed.
      */
+    @Override
     protected void keyPressed(ViewEvent anEvent)
     {
         // Get event info
@@ -58,8 +42,8 @@ public class JavaTextAreaKeys {
         // Handle tab
         if (keyCode == KeyCode.TAB) {
             if (!anEvent.isShiftDown())
-                _textArea.indentLines();
-            else _textArea.outdentLines();
+                _javaTextArea.indentLines();
+            else _javaTextArea.outdentLines();
             anEvent.consume();
             return;
         }
@@ -89,12 +73,13 @@ public class JavaTextAreaKeys {
         }
 
         // Do normal version
-        _textArea.keyPressedSuper(anEvent);
+        super.keyPressed(anEvent);
     }
 
     /**
      * Called when a key is typed.
      */
+    @Override
     protected void keyTyped(ViewEvent anEvent)
     {
         // Get event info
@@ -121,14 +106,14 @@ public class JavaTextAreaKeys {
                 String thisLineStr = thisLine.getString();
                 if (thisLineStr.trim().length() == 0 && thisLineStr.length() >= 4) {
                     int start = getSelStart();
-                    _textArea.delete(thisLine.getStartCharIndex(), thisLine.getStartCharIndex() + 4, false);
+                    _javaTextArea.delete(thisLine.getStartCharIndex(), thisLine.getStartCharIndex() + 4, false);
                     setSel(start - 4);
                 }
             }
         }
 
         // Do normal version
-        _textArea.keyTypedSuper(anEvent);
+        super.keyTyped(anEvent);
 
         // Handle paired chars
         if (charDefined && !commandDown && !controlDown) {
@@ -144,8 +129,8 @@ public class JavaTextAreaKeys {
                 // Get indent for this line and next
                 TextBoxLine thisLine = getSel().getStartLine();
                 TextBoxLine prevLine = thisLine.getPrevious();
-                int thisIndent = _textArea.getIndent(thisLine);
-                int prevIndent = prevLine != null ? _textArea.getIndent(prevLine) : 0;
+                int thisIndent = _javaTextArea.getIndent(thisLine);
+                int prevIndent = prevLine != null ? _javaTextArea.getIndent(prevLine) : 0;
 
                 // If this line starts with close bracket and indent is too much, remove indent level
                 if (thisLine.getString().trim().startsWith("}") && thisIndent > prevIndent && thisIndent > 4) {
@@ -157,8 +142,8 @@ public class JavaTextAreaKeys {
             }
 
             // Activate PopupList
-            if (!_textArea.getPopup().isShowing() && !anEvent.isSpaceKey())
-                ViewUtils.runLater(() -> _textArea.activatePopupList());
+            if (!_javaTextArea.getPopup().isShowing() && !anEvent.isSpaceKey())
+                ViewUtils.runLater(() -> _javaTextArea.activatePopupList());
         }
     }
 
@@ -169,7 +154,7 @@ public class JavaTextAreaKeys {
     {
         // Get line and its indent
         TextBoxLine line = getSel().getStartLine();
-        int indent = _textArea.getIndent(line);
+        int indent = _javaTextArea.getIndent(line);
 
         // Determine if this line is start of code block and/or not terminated
         // TODO: Need real startOfMultilineComment and inMultilineComment
@@ -202,7 +187,7 @@ public class JavaTextAreaKeys {
 
         // If line not terminated increase indent (not for REPL)
         else if (!isLineTerminated && _textArea.getTextDoc() instanceof JavaTextDoc)
-            sb.append(_textArea.INDENT_STRING);
+            sb.append(_javaTextArea.INDENT_STRING);
 
         // Do normal version
         _textArea.replaceChars(sb.toString());
@@ -216,7 +201,7 @@ public class JavaTextAreaKeys {
         }
 
         // If start of code block, append terminator
-        else if (isStartOfCodeBlock && _textArea.getJFile().getException() != null) {
+        else if (isStartOfCodeBlock && _javaTextArea.getJFile().getException() != null) {
             int start = getSelStart();
             String str = sb.substring(0, sb.length() - 4) + "}";
             _textArea.replaceChars(str, null, start, start, false);
@@ -299,7 +284,7 @@ public class JavaTextAreaKeys {
 
         // If quote char, return whether we are in literal
         if (keyChar == '\'' || keyChar == '"') {
-            JNode selNode = _textArea.getSelNode();
+            JNode selNode = _javaTextArea.getSelNode();
             return selNode instanceof JExprLiteral;
         }
 

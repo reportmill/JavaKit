@@ -312,7 +312,7 @@ public class RowHeader extends View {
         {
             super(aTarget);
             _isError = aTarget.isError();
-            TextBoxLine line = _textArea.getLineAt(aTarget.getEnd());
+            TextBoxLine line = _textArea.getLineForCharIndex(aTarget.getEnd());
             setY(Math.round(line.getY()));
             _image = _isError ? _errorImage : _warningImage;
         }

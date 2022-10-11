@@ -230,7 +230,7 @@ public class OverviewPane extends View {
         public BuildIssueMarker(BuildIssue anIssue)
         {
             super(anIssue);
-            TextBoxLine line = _textArea.getLineAt(Math.min(anIssue.getEnd(), _textArea.length()));
+            TextBoxLine line = _textArea.getLineForCharIndex(Math.min(anIssue.getEnd(), _textArea.length()));
             _y = line.getY() + line.getHeight() / 2;
         }
 

@@ -39,9 +39,6 @@ public class JavaTextArea extends TextArea {
     // A PopupList to show code completion stuff
     protected JavaPopupList  _popup;
 
-    // A helper class for key processing
-    private JavaTextAreaKeys  _keys = new JavaTextAreaKeys(this);
-
     // Constants for properties
     public static final String SelectedNode_Prop = "SelectedNode";
 
@@ -61,12 +58,20 @@ public class JavaTextArea extends TextArea {
     /**
      * Override to return text as JavaText.
      */
+    @Override
     public JavaTextBox getTextBox()  { return (JavaTextBox) super.getTextBox(); }
 
     /**
      * Override to create JavaText.
      */
+    @Override
     protected TextBox createTextBox()  { return new JavaTextBox(); }
+
+    /**
+     * Override to create JavaText.
+     */
+    @Override
+    protected TextAreaKeys createTextAreaKeys()  { return new JavaTextAreaKeys(this); }
 
     /**
      * Returns the code completion popup.
@@ -415,27 +420,27 @@ public class JavaTextArea extends TextArea {
         BuildIssue[] issues = getBuildIssues();
         for (BuildIssue issue : issues) {
 
-            int istart = issue.getStart();
-            int iend = issue.getEnd();
-            if (iend < istart || iend > length())
+            int issueStart = issue.getStart();
+            int issueEnd = issue.getEnd();
+            if (issueEnd < issueStart || issueEnd > length())
                 continue;
 
-            TextBoxLine line = getLineAt(iend);
-            int lstart = line.getStartCharIndex();
-            if (istart < lstart)
-                istart = lstart;
-            TextBoxToken token = getTokenAt(istart);
+            TextBoxLine textBoxLine = getLineForCharIndex(issueEnd);
+            int lineStartCharIndex = textBoxLine.getStartCharIndex();
+            if (issueStart < lineStartCharIndex)
+                issueStart = lineStartCharIndex;
+            TextBoxToken token = getTokenForCharIndex(issueStart);
             if (token != null) {
                 int tend = token.getTextLine().getStartCharIndex() + token.getEndCharIndex();
-                if (iend < tend)
-                    iend = tend;
+                if (issueEnd < tend)
+                    issueEnd = tend;
             }
 
             // If possible, make sure we underline at least one char
-            if (istart == iend && iend < line.getEndCharIndex()) iend++;
-            int yb = (int) Math.round(line.getBaseline()) + 2;
-            double x1 = line.getXForChar(istart - lstart);
-            double x2 = line.getXForChar(iend - lstart);
+            if (issueStart == issueEnd && issueEnd < textBoxLine.getEndCharIndex()) issueEnd++;
+            int yb = (int) Math.round(textBoxLine.getBaseline()) + 2;
+            double x1 = textBoxLine.getXForChar(issueStart - lineStartCharIndex);
+            double x2 = textBoxLine.getXForChar(issueEnd - lineStartCharIndex);
             aPntr.setPaint(issue.isError() ? Color.RED : new Color(244, 198, 60));
             aPntr.setStroke(Stroke.StrokeDash1);
             aPntr.drawLine(x1, yb, x2, yb);
@@ -475,7 +480,7 @@ public class JavaTextArea extends TextArea {
 
             // If closing index found, draw rect
             if (ind2 >= 0) {
-                TextBoxLine line = getLineAt(ind2);
+                TextBoxLine line = getLineForCharIndex(ind2);
                 int s1 = ind2 - line.getStartCharIndex();
                 int s2 = ind2 + 1 - line.getStartCharIndex();
                 double x1 = line.getXForChar(s1);
@@ -515,38 +520,6 @@ public class JavaTextArea extends TextArea {
             aPntr.setColor(Color.BLACK);
             aPntr.drawLine(tokenX, tokenY, tokenMaxX, tokenY);
         }
-    }
-
-    /**
-     * Called when a key is pressed.
-     */
-    protected void keyPressed(ViewEvent anEvent)
-    {
-        _keys.keyPressed(anEvent);
-    }
-
-    /**
-     * Called when a key is pressed.
-     */
-    protected void keyPressedSuper(ViewEvent anEvent)
-    {
-        super.keyPressed(anEvent);
-    }
-
-    /**
-     * Called when a key is typed.
-     */
-    protected void keyTyped(ViewEvent anEvent)
-    {
-        _keys.keyTyped(anEvent);
-    }
-
-    /**
-     * Called when a key is typed.
-     */
-    protected void keyTypedSuper(ViewEvent anEvent)
-    {
-        super.keyTyped(anEvent);
     }
 
     /**
