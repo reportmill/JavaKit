@@ -262,14 +262,16 @@ public class JavaTextDoc extends TextDoc {
         String propName = aPC.getPropName();
 
         // Handle CharsChange: Try to update JFile with partial parse
-        if (propName == Chars_Prop) {
+        if (propName == Chars_Prop && _jfile != null) {
 
             // If partial parse fails, clear JFile for full reparse
             TextDocUtils.CharsChange charsChange = (TextDocUtils.CharsChange) aPC;
             boolean jfileUpdated = updateJFileForChange(charsChange);
             if (!jfileUpdated)
                 _jfile = null;
-            else System.out.println("JFile updated!!!");
+
+            // This sucks!
+            else getStatementsForJavaNode(_jfile);
         }
     }
 

@@ -61,9 +61,9 @@ public class JavaCompleter {
             getCompletionsForNodeString(aNode);
         else return new JavaDecl[0];
 
-        // Get receiving class and, if 2 letters or less, filter out completions that don't apply (unless none do)
+        // Get receiving class and more than 10 items, filter out completions that don't apply (unless none do)
         JavaClass receivingClass = getReceivingClass(aNode);
-        if (receivingClass != null && _list.size() > 10 && aNode.getName().length() <= 2) {
+        if (receivingClass != null && _list.size() > 10 && aNode.getName().length() < 5) {
             Stream<JavaDecl> sugsStream = _list.stream();
             Stream<JavaDecl> sugsStreamAssignable = sugsStream.filter(p -> isReceivingClassAssignable(p, receivingClass));
             List<JavaDecl> sugsListAssignable = sugsStreamAssignable.collect(Collectors.toList());
@@ -135,7 +135,6 @@ public class JavaCompleter {
         // Get prefix string and matcher
         String prefix = anId.getName();
         Matcher prefixMatcher = StringUtils.getSkipCharsMatcherForLiteralString(prefix);
-
 
         // Handle parent is Package: Add packages and classes with prefix
         if (parExpr instanceof JExprId && ((JExprId) parExpr).isPackageName()) {
@@ -459,23 +458,26 @@ public class JavaCompleter {
         /**
          * Standard compare to method.
          */
-        public int compare(JavaDecl o1, JavaDecl o2)
+        public int compare(JavaDecl decl1, JavaDecl decl2)
         {
             // Get whether either completion is of Assignable to ReceivingClass
-            int rca1 = getReceivingClassAssignableScore(o1, _receivingClass);
-            int rca2 = getReceivingClassAssignableScore(o2, _receivingClass);
-            if (rca1 != rca2) return rca1 > rca2 ? -1 : 1;
+            int recClassScore1 = getReceivingClassAssignableScore(decl1, _receivingClass);
+            int recClassScore2 = getReceivingClassAssignableScore(decl2, _receivingClass);
+            if (recClassScore1 != recClassScore2)
+                return recClassScore1 > recClassScore2 ? -1 : 1;
 
             // If completion Types differ, return by type
-            if (o1.getType() != o2.getType())
-                return getOrder(o1.getType()) < getOrder(o2.getType()) ? -1 : 1;
+            JavaDecl.DeclType declType1 = decl1.getType();
+            JavaDecl.DeclType declType2 = decl2.getType();
+            if (declType1 != declType2)
+                return getOrder(declType1) < getOrder(declType2) ? -1 : 1;
 
             // Handle Class compare
-            if (o1 instanceof JavaClass) {
+            if (decl1 instanceof JavaClass) {
 
                 // If either is member class, sort other first
-                JavaClass class1 = (JavaClass) o1;
-                JavaClass class2 = (JavaClass) o2;
+                JavaClass class1 = (JavaClass) decl1;
+                JavaClass class2 = (JavaClass) decl2;
                 if (class1.isMemberClass() != class2.isMemberClass())
                     return class2.isMemberClass() ? -1 : 1;
 
@@ -489,11 +491,16 @@ public class JavaCompleter {
             }
 
             // If simple names are unique, return order
-            int c = o1.getSimpleName().compareToIgnoreCase(o2.getSimpleName());
-            if (c != 0) return c;
+            String simpleName1 = decl1.getSimpleName();
+            String simpleName2 = decl2.getSimpleName();
+            int simpleNameComp = simpleName1.compareToIgnoreCase(simpleName2);
+            if (simpleNameComp != 0)
+                return simpleNameComp;
 
             // Otherwise use full name
-            return o1.getFullName().compareToIgnoreCase(o2.getFullName());
+            String fullName1 = decl1.getFullName();
+            String fullName2 = decl2.getFullName();
+            return fullName1.compareToIgnoreCase(fullName2);
         }
 
         /**

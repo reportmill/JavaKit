@@ -119,7 +119,7 @@ public class ClassPathInfo {
     public List<String> getClassNamesForPrefixMatcher(String aPrefix, Matcher prefixMatcher)
     {
         // If less than 3 letters, return common names for prefix
-        if (aPrefix.length() <= 3)
+        if (aPrefix.length() <= 2)
             return getCommonClassNamesForMatcher(prefixMatcher);
 
         // Return all names

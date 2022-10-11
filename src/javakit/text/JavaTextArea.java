@@ -318,7 +318,7 @@ public class JavaTextArea extends TextArea {
     protected TextBoxToken[] getTokensForNodes(List<JNode> theNodes)
     {
         // Convert matching JNodes to TextBoxTokens
-        TextBoxToken[] tokens = new TextBoxToken[theNodes.size()];
+        List<TextBoxToken> tokensList = new ArrayList<>(theNodes.size());
         TextBox textBox = getTextBox();
         int textBoxLineStart = 0;
         TextDoc textDoc = getTextDoc();
@@ -329,26 +329,26 @@ public class JavaTextArea extends TextArea {
         }
 
         // Iterate over nodes and convert to TextBoxTokens
-        for (int i = 0; i < theNodes.size(); i++) {
+        for (JNode jnode : theNodes) {
 
-            // Get node and token for node
-            JNode matchingNode = theNodes.get(i);
-            int lineIndex = matchingNode.getLineIndex() - textBoxLineStart;
+            // Get line index (skip if negative - assume Repl import statement or something)
+            int lineIndex = jnode.getLineIndex() - textBoxLineStart;
+            if (lineIndex < 0)
+                continue;;
+
+            // Get line and token
             TextBoxLine textBoxLine = textBox.getLine(lineIndex);
-            int startCharIndex = matchingNode.getLineCharIndex();
+            int startCharIndex = jnode.getLineCharIndex();
             TextBoxToken token = textBoxLine.getTokenAt(startCharIndex);
 
-            // Set in list
+            // Add to tokens list
             if (token != null)
-                tokens[i] = token;
-            else {
-                System.out.println("JavaTextArea.getTokensForNode: Can't find token for matching node: " + matchingNode);
-                return new TextBoxToken[0];
-            }
+                tokensList.add(token);
+            else System.out.println("JavaTextArea.getTokensForNode: Can't find token for matching node: " + jnode);
         }
 
         // Return
-        return tokens;
+        return tokensList.toArray(new TextBoxToken[0]);
     }
 
     /**
