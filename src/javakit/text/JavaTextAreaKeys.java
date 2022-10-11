@@ -143,7 +143,7 @@ public class JavaTextAreaKeys {
 
                 // Get indent for this line and next
                 TextBoxLine thisLine = getSel().getStartLine();
-                TextBoxLine prevLine = thisLine.getPrevLine();
+                TextBoxLine prevLine = thisLine.getPrevious();
                 int thisIndent = _textArea.getIndent(thisLine);
                 int prevIndent = prevLine != null ? _textArea.getIndent(prevLine) : 0;
 
