@@ -8,6 +8,7 @@ import javakit.reflect.JavaClass;
 import javakit.reflect.JavaDecl;
 import javakit.reflect.NodeMatcher;
 import javakit.shell.JavaTextDoc;
+import snap.geom.Rect;
 import snap.gfx.*;
 import snap.text.*;
 import javakit.resolver.*;
@@ -33,7 +34,7 @@ public class JavaTextArea extends TextArea {
     protected JNode  _hoverNode;
 
     // The list of selected tokens
-    protected List<TextBoxToken>  _tokens = new ArrayList<>();
+    protected TextBoxToken[]  _selTokens = new TextBoxToken[0];
 
     // A PopupList to show code completion stuff
     protected JavaPopupList  _popup;
@@ -242,8 +243,9 @@ public class JavaTextArea extends TextArea {
         JNode oldSelNode = _selNode;
         _selNode = _deepNode = aNode;
 
-        // Reset tokens
-        setSelTokensForNode(aNode);
+        // Reset SelTokens
+        TextBoxToken[] selTokens = getTokensForNode(aNode);
+        setSelTokens(selTokens);
 
         // Reset PopupList
         updatePopupList();
@@ -263,52 +265,120 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the list of selected tokens.
+     * Returns the array of selected tokens.
      */
-    public List<TextBoxToken> getSelTokens()  { return _tokens; }
+    public TextBoxToken[] getSelTokens()  { return _selTokens; }
 
     /**
-     * Sets the list of selected tokens.
+     * Sets the array of selected tokens.
      */
-    protected void setSelTokens(List<TextBoxToken> theTkns)
+    private void setSelTokens(TextBoxToken[] theTokens)
     {
-        _tokens.clear();
-        _tokens.addAll(theTkns);
+        // If new & old both empty, just return
+        if (_selTokens.length == 0 && theTokens.length == 0) return;
+
+        // Set + Repaint
+        repaintTokensBounds(_selTokens);
+        _selTokens = theTokens;
+        repaintTokensBounds(_selTokens);
     }
 
     /**
-     * Sets the list of selected tokens (should be in background).
+     * Returns reference tokens for given node.
      */
-    protected void setSelTokensForNode(JNode aNode)
+    protected TextBoxToken[] getTokensForNode(JNode aNode)
     {
-        // Not sure if this happens anymore
-        if (aNode == null) {
-            setSelTokens(Collections.EMPTY_LIST);
-            return;
+        // If not var name or type name, just return
+        if (!(aNode instanceof JExprId || aNode instanceof JType))
+            return new TextBoxToken[0];
+
+        // Handle null
+        JavaDecl nodeDecl = aNode != null ? aNode.getDecl() : null;
+        if (nodeDecl == null)
+            return new TextBoxToken[0];
+
+        // Get other matching nodes
+        List<JNode> matchingNodes = new ArrayList<>();
+        NodeMatcher.getMatches(aNode.getFile(), nodeDecl, matchingNodes);
+        if (matchingNodes.size() == 0)
+            return new TextBoxToken[0];
+
+        // Return TextBoxTokens
+        return getTokensForNodes(matchingNodes);
+    }
+
+    /**
+     * Returns a TextBoxToken array for given JNodes.
+     */
+    protected TextBoxToken[] getTokensForNodes(List<JNode> theNodes)
+    {
+        // Convert matching JNodes to TextBoxTokens
+        TextBoxToken[] tokens = new TextBoxToken[theNodes.size()];
+        TextBox textBox = getTextBox();
+        int textBoxLineStart = 0;
+        TextDoc textDoc = getTextDoc();
+        if (textDoc instanceof SubText) {
+            TextDoc textDocReal = ((SubText) textDoc).getTextDoc();
+            int startCharIndex = textDoc.getStartCharIndex();
+            textBoxLineStart = textDocReal.getLineForCharIndex(startCharIndex).getIndex();
         }
 
-        // This should go
-        if (!(aNode.getStartToken() instanceof TextBoxToken)) {
-            System.out.println("JavaTextArea.setSelTokensForNode: Not TextBoxToken");
-            return;
-        }
+        // Iterate over nodes and convert to TextBoxTokens
+        for (int i = 0; i < theNodes.size(); i++) {
 
-        // Create list for tokens
-        List<TextBoxToken> tokens = new ArrayList<>();
+            // Get node and token for node
+            JNode matchingNode = theNodes.get(i);
+            int lineIndex = matchingNode.getLineIndex() - textBoxLineStart;
+            TextBoxLine textBoxLine = textBox.getLine(lineIndex);
+            int startCharIndex = matchingNode.getLineCharIndex();
+            TextBoxToken token = textBoxLine.getTokenAt(startCharIndex);
 
-        // If node is JType, select all of them
-        JavaDecl decl = aNode.getDecl();
-        if (decl != null) {
-            List<JNode> others = new ArrayList<>();
-            NodeMatcher.getMatches(aNode.getFile(), decl, others);
-            for (JNode other : others) {
-                TextBoxToken tt = (TextBoxToken) other.getStartToken();
-                tokens.add(tt);
+            // Set in list
+            if (token != null)
+                tokens[i] = token;
+            else {
+                System.out.println("JavaTextArea.getTokensForNode: Can't find token for matching node: " + matchingNode);
+                return new TextBoxToken[0];
             }
         }
 
-        // Set tokens
-        setSelTokens(tokens);
+        // Return
+        return tokens;
+    }
+
+    /**
+     * Repaints token bounds.
+     */
+    private void repaintTokensBounds(TextBoxToken[] theTokens)
+    {
+        if (theTokens.length == 0) return;
+        Rect tokensBounds = getBoundsForTokens(theTokens);
+        repaint(tokensBounds);
+    }
+
+    /**
+     * Returns the bounds rect for tokens.
+     */
+    private Rect getBoundsForTokens(TextBoxToken[] theTokens)
+    {
+        // Get first token and bounds
+        TextBoxToken token0 = theTokens[0];
+        double tokenX = Math.round(token0.getTextBoxX()) - 1;
+        double tokenY = Math.round(token0.getTextBoxY()) - 1;
+        double tokenMaxX = Math.ceil(token0.getTextBoxMaxX()) + 1;
+        double tokenMaxY = Math.ceil(token0.getTextBoxMaxY()) + 1;
+
+        // Iterate over remaining tokens and union bounds
+        for (int i = 1; i < theTokens.length; i++) {
+            TextBoxToken token = theTokens[i];
+            tokenX = Math.min(tokenX, Math.round(token.getTextBoxX()) - 1);
+            tokenY = Math.min(tokenY, Math.round(token.getTextBoxY()) - 1);
+            tokenMaxX = Math.max(tokenMaxX, Math.ceil(token.getTextBoxMaxX()) + 1);
+            tokenMaxY = Math.max(tokenMaxY, Math.ceil(token.getTextBoxMaxY()) + 1);
+        }
+
+        // Return bounds
+        return new Rect(tokenX, tokenY, tokenMaxX - tokenX, tokenMaxY - tokenY);
     }
 
     /**
@@ -423,23 +493,27 @@ public class JavaTextArea extends TextArea {
             aPntr.fillRect(line.getX(), line.getY() + .5, line.getWidth(), line.getHeight());
         }
 
-        // Paint boxes around selected tokens
-        Color tcolor = new Color("#FFF3AA");
-        for (TextBoxToken token : getSelTokens()) {
-            double x = Math.round(token.getTextBoxX()) - 1, w = Math.ceil(token.getTextBoxMaxX()) - x + 1;
-            double y = Math.round(token.getTextBoxY()) - 1, h = Math.ceil(token.getTextBoxMaxY()) - y + 1;
-            aPntr.setColor(tcolor);
-            aPntr.fillRect(x, y, w, h);
+        // Paint selected tokens highlight rects
+        TextBoxToken[] selTokens = getSelTokens();
+        if (selTokens.length > 0) {
+            aPntr.setColor(new Color("#FFF3AA"));
+            for (TextBoxToken token : selTokens) {
+                double tokenX = Math.round(token.getTextBoxX()) - 1;
+                double tokenY = Math.round(token.getTextBoxY()) - 1;
+                double tokenW = Math.ceil(token.getTextBoxMaxX()) - tokenX + 1;
+                double tokenH = Math.ceil(token.getTextBoxMaxY()) - tokenY + 1;
+                aPntr.fillRect(tokenX, tokenY, tokenW, tokenH);
+            }
         }
 
         // If HoverNode, underline
         if (_hoverNode != null) {
-            TextBoxToken ttoken = (TextBoxToken) _hoverNode.getStartToken();
-            double x1 = ttoken.getTextBoxX();
-            double y = ttoken.getTextBoxStringY() + 1;
-            double x2 = x1 + ttoken.getWidth();
+            TextBoxToken hoverToken = (TextBoxToken) _hoverNode.getStartToken();
+            double tokenX = hoverToken.getTextBoxX();
+            double tokenY = hoverToken.getTextBoxStringY() + 1;
+            double tokenMaxX = tokenX + hoverToken.getWidth();
             aPntr.setColor(Color.BLACK);
-            aPntr.drawLine(x1, y, x2, y);
+            aPntr.drawLine(tokenX, tokenY, tokenMaxX, tokenY);
         }
     }
 
