@@ -34,11 +34,11 @@ public class RowHeader extends View {
     public static final int WIDTH = 12;
 
     // The marker images for Error, Warning, Breakpoint, Implements, Override
-    static Image _errorImage = Image.get(JavaTextBox.class, "ErrorMarker.png");
-    static Image _warningImage = Image.get(JavaTextBox.class, "WarningMarker.png");
-    static Image _breakpointImage = Image.get(JavaTextBox.class, "Breakpoint.png");
-    static Image _implImage = Image.get(JavaTextBox.class, "ImplementsMarker.png");
-    static Image _overImage = Image.get(JavaTextBox.class, "pkg.images/OverrideMarker.png");
+    static Image _errorImage = Image.get(JavaTextUtils.class, "ErrorMarker.png");
+    static Image _warningImage = Image.get(JavaTextUtils.class, "WarningMarker.png");
+    static Image _breakpointImage = Image.get(JavaTextUtils.class, "Breakpoint.png");
+    static Image _implImage = Image.get(JavaTextUtils.class, "ImplementsMarker.png");
+    static Image _overImage = Image.get(JavaTextUtils.class, "OverrideMarker.png");
 
     /**
      * Creates a new RowHeader.

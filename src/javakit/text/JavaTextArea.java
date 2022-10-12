@@ -56,18 +56,6 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Override to return text as JavaText.
-     */
-    @Override
-    public JavaTextBox getTextBox()  { return (JavaTextBox) super.getTextBox(); }
-
-    /**
-     * Override to create JavaText.
-     */
-    @Override
-    protected TextBox createTextBox()  { return new JavaTextBox(); }
-
-    /**
      * Override to create JavaText.
      */
     @Override

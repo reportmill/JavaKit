@@ -126,12 +126,16 @@ public class JavaTextDoc extends TextDoc {
         tokenizer.setInput(aTextLine);
 
         // Get first line token: Handle if already in Multi-line
+        Exception exception = null;
         ParseToken parseToken = null;
         if (inUnterminatedComment)
             parseToken = tokenizer.getMultiLineCommentTokenMore(null);
         else {
             try { parseToken = tokenizer.getNextSpecialTokenOrToken(); }
-            catch (Exception e) { System.out.println("JavaTextDoc.createTokensForTextLine: Parse error: " + e); }
+            catch (Exception e) {
+                exception = e;
+                System.out.println("JavaTextDoc.createTokensForTextLine: Parse error: " + e);
+            }
         }
 
         // Get line parse tokens and create TextTokens
@@ -154,9 +158,18 @@ public class JavaTextDoc extends TextDoc {
             // Get next token
             try { parseToken = tokenizer.getNextSpecialTokenOrToken(); }
             catch (Exception e) {
+                exception = e;
                 parseToken = null;
                 System.out.println("JavaTextDoc.createTokensForTextLine: Parse error: " + e);
             }
+        }
+
+        // If exception was hit, create token for rest of line
+        if (exception != null) {
+            int tokenStart = tokenizer.getCharIndex();
+            int tokenEnd = aTextLine.length();
+            TextToken textToken = new TextToken(aTextLine, tokenStart, tokenEnd, textRun);
+            tokens.add(textToken);
         }
 
         // Return

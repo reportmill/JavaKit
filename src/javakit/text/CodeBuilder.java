@@ -222,9 +222,9 @@ public class CodeBuilder extends ViewOwner {
 
         // If DragText needs to be reset, create and reset
         if (_dragText == null || !_dragText.getString().equals(dragString)) {
-            JavaTextBox text = textArea.getTextBox();
-            _dragText = textArea.createTextBox();
-            _dragText.setX(text.getX());
+            TextBox textBox = textArea.getTextBox();
+            _dragText = new TextBox();
+            _dragText.setX(textBox.getX());
             _dragText.setString(dragString);
         }
     }
@@ -351,7 +351,7 @@ public class CodeBuilder extends ViewOwner {
         if (anIndex == 0) return 0;
 
         JavaTextArea textArea = getTextArea();
-        JavaTextBox textBox = textArea.getTextBox();
+        TextBox textBox = textArea.getTextBox();
         TextBoxLine line = textBox.getLine(anIndex - 1);
 
         int indentCount = 0;
