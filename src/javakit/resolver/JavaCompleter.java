@@ -88,7 +88,7 @@ public class JavaCompleter {
 
         // Get class names for prefix
         ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
-        List<String> classNamesForMatcher = classPathInfo.getClassNamesForPrefixMatcher(prefix, prefixMatcher);
+        String[] classNamesForMatcher = classPathInfo.getClassNamesForPrefixMatcher(prefix, prefixMatcher);
 
         // Handle JType as AllocExpr
         JNode typeParent = aJType.getParent();
@@ -145,7 +145,7 @@ public class JavaCompleter {
 
             // Get class names for classes in parent package with prefix
             ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
-            List<String> packageClassNames = classPathInfo.getPackageClassNamesForMatcher(parPkgName, prefixMatcher);
+            String[] packageClassNames = classPathInfo.getPackageClassNamesForMatcher(parPkgName, prefixMatcher);
             for (String className : packageClassNames) {
                 JavaClass javaClass = _resolver.getJavaClassForName(className);
                 if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
@@ -153,7 +153,7 @@ public class JavaCompleter {
             }
 
             // Get package names for packages in parent package with prefix
-            List<String> packageChildNames = classPathInfo.getPackageChildrenNamesForMatcher(parPkgName, prefixMatcher);
+            String[] packageChildNames = classPathInfo.getPackageChildrenNamesForMatcher(parPkgName, prefixMatcher);
             for (String packageName : packageChildNames)
                 addJavaPackageForName(packageName);
         }
@@ -208,7 +208,7 @@ public class JavaCompleter {
 
         // If starts with upper case or is greater than 3 chars, add classes with prefix that are public
         ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
-        List<String> classNamesForMatcher = classPathInfo.getClassNamesForPrefixMatcher(prefix, prefixMatcher);
+        String[] classNamesForMatcher = classPathInfo.getClassNamesForPrefixMatcher(prefix, prefixMatcher);
         for (String className : classNamesForMatcher) {
             JavaClass javaClass = _resolver.getJavaClassForName(className);
             if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
@@ -216,7 +216,7 @@ public class JavaCompleter {
         }
 
         // Add packages with prefix
-        List<String> packageNamesForMatcher = classPathInfo.getPackageNamesForMatcher(prefixMatcher);
+        String[] packageNamesForMatcher = classPathInfo.getPackageNamesForMatcher(prefixMatcher);
         for (String packageName : packageNamesForMatcher)
             addJavaPackageForName(packageName);
     }
