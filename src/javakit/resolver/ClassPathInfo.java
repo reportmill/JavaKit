@@ -28,7 +28,7 @@ public class ClassPathInfo {
     public ClassPathInfo(Resolver aResolver)
     {
         // Handle TeaVM
-        if (SnapUtils.isTeaVM || true) {
+        if (SnapUtils.isTeaVM) {
             _sites = new WebSite[0];
             _classTree = ClassTreeWeb.getShared();
             return;
@@ -155,7 +155,7 @@ public class ClassPathInfo {
         if (_classTreeMatcher != null) return _classTreeMatcher;
 
         // Create, set, return
-        ClassTree classTree = getClassTreeImpl();
+        ClassTree classTree = getClassTree();
         ClassTreeMatcher classTreeMatcher = new ClassTreeMatcher(classTree);
         return _classTreeMatcher = classTreeMatcher;
     }

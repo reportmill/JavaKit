@@ -96,6 +96,22 @@ public class ClassTree {
     }
 
     /**
+     * Prints the tree.
+     */
+    protected void printTree(ClassTreeNode aNode, String indent)
+    {
+        System.out.println(indent + aNode.simpleName);
+        if (aNode instanceof PackageNode) {
+            PackageNode packageNode = (PackageNode) aNode;
+            String indent2 = indent + "  ";
+            for (PackageNode pkg : packageNode.packages)
+                printTree(pkg, indent2);
+            for (ClassNode cls : packageNode.classes)
+                printTree(cls, indent2);
+        }
+    }
+
+    /**
      * Returns a simple class name for given node name.
      */
     protected static String getSimpleNodeName(String aNodeName)
