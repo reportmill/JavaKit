@@ -12,6 +12,7 @@ import static javakit.shell.JSExprEvalUtils.*;
 
 import snap.props.PropObject;
 import snap.util.*;
+import snap.view.EventListener;
 
 /**
  * A class to evaluate expressions.
@@ -711,7 +712,25 @@ public class JSExprEval {
             };
         }
 
+        // Handle EventListener
+        if (aClass == EventListener.class) {
+            return (EventListener) (e) -> {
+                _varStack.pushStackFrame(stackFrame);
+                _varStack.setLocalVarValue(paramName0, e);
+                try {
+                    evalExpr(anOR, contentExpr);
+                    return;
+                }
+                catch (Exception e2) {
+                    throw new RuntimeException(e2);
+                }
+                finally {
+                    _varStack.popStackFrame();
+                }
+            };
+        }
+
         // Complain
-        throw new RuntimeException("JSExprEval.getWrappedLambdaExpr: Uknown lambda class: " + aClass.getName());
+        throw new RuntimeException("JSExprEval.getWrappedLambdaExpr: Unknown lambda class: " + aClass.getName());
     }
 }
