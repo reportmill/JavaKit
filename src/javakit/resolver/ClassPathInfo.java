@@ -223,8 +223,12 @@ public class ClassPathInfo {
         if (aPath.startsWith("/java/awt/dnd")) return false;
         if (aPath.startsWith("/java/awt/datatransfer")) return false;
         if (aPath.startsWith("/java/awt/im")) return false;
-        if (aPath.startsWith("/javax/swing/plaf")) return false;
-        if (aPath.startsWith("/javax/xml")) return false;
+        if (aPath.startsWith("/java/lang/model")) return false;
+        if (aPath.startsWith("/java/nio/channels")) return false;
+        if (aPath.startsWith("/java/security")) return false;
+        if (aPath.startsWith("/java/util/Spliterators")) return false;
+        if (aPath.startsWith("/javax")) return false;
+        if (aPath.startsWith("/jdk")) return false;
         if (aPath.startsWith("/org/omg")) return false;
         if (aPath.startsWith("/org/w3c")) return false;
 

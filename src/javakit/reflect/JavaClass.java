@@ -65,8 +65,10 @@ public class JavaClass extends JavaType {
         _simpleName = aClass.getSimpleName();
 
         // Set DeclaringClass or Package
-        if (aPar instanceof JavaClass)
+        if (aPar instanceof JavaClass) {
             _declaringClass = (JavaClass) aPar;
+            _package = _declaringClass.getPackage();
+        }
         else if (aPar instanceof JavaPackage)
             _package = (JavaPackage) aPar;
 

@@ -165,7 +165,7 @@ public class JavaExecutable extends JavaMember {
     @Override
     public String getReplaceString()
     {
-        String name = getName();
+        String name = getSimpleName();
         String[] paramTypeNames = getParamTypeSimpleNames();
         String paramTypeNamesStr = StringUtils.join(paramTypeNames, ",");
         return name + '(' + paramTypeNamesStr + ')';

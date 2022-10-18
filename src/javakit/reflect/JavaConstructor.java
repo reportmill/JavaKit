@@ -25,6 +25,9 @@ public class JavaConstructor extends JavaExecutable {
     {
         super(aResolver, DeclType.Constructor, aDeclaringClass, constructor);
 
+        // Reset SimpleName
+        _simpleName = aDeclaringClass.getSimpleName();
+
         // Set EvalType to DeclaringClass
         _evalType = aDeclaringClass;
 
@@ -61,6 +64,21 @@ public class JavaConstructor extends JavaExecutable {
         // Set/return
         _super = superMethod;
         return _super != this ? _super : null;
+    }
+
+    /**
+     * Override to return Executable version plus package name.
+     */
+    @Override
+    public String getSuggestionString()
+    {
+        String nameAndParamsStr = super.getSuggestionString();
+        JavaClass declClass = getDeclaringClass();
+        JavaClass enclClass = declClass.getDeclaringClass();
+        JavaPackage pkg = declClass.getPackage();
+        String parentName = enclClass != null ? enclClass.getName() : pkg != null ? pkg.getName() : "";
+        String infoStr = parentName != null ? " - " + parentName : "";
+        return nameAndParamsStr + infoStr;
     }
 
     /**
