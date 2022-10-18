@@ -129,7 +129,7 @@ public class RowHeader extends View {
     private void getSuperMemberMarkers(JClassDecl aCD, List<Marker<?>> theMarkers)
     {
         for (JMemberDecl md : aCD.getMemberDecls()) {
-            if (md.getSuperDecl() != null && md.getEnd() < _textArea.length())
+            if (md.getSuperDecl() != null && md.getEndCharIndex() < _textArea.length())
                 theMarkers.add(new SuperMemberMarker(md));
             if (md instanceof JClassDecl)
                 getSuperMemberMarkers((JClassDecl) md, theMarkers);

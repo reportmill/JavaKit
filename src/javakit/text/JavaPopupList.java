@@ -83,7 +83,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         JavaTextArea textArea = getTextArea();
         TextDoc textDoc = textArea.getTextDoc();
         JNode selNode = textArea.getSelNode();
-        int selStart = selNode.getStart() - textDoc.getStartCharIndex();
+        int selStart = selNode.getStartCharIndex() - textDoc.getStartCharIndex();
         int selEnd = textArea.getSelEnd();
 
         // Replace selection with completeString

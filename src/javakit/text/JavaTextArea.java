@@ -93,7 +93,7 @@ public class JavaTextArea extends TextArea {
         TextBoxLine selLine = textSel.getStartLine();
         int selLineStart = selLine.getStartCharIndex();
         JNode selNode = getSelNode();
-        int selNodeStart = selNode.getStart() - getTextDoc().getStartCharIndex() - selLineStart;
+        int selNodeStart = selNode.getStartCharIndex() - getTextDoc().getStartCharIndex() - selLineStart;
 
         // Get location for popup and show
         double textX = selLine.getXForChar(selNodeStart);
@@ -135,7 +135,7 @@ public class JavaTextArea extends TextArea {
         int selStart = getSelStart();
         JNode selNode = getSelNode();
         int startCharIndex = getTextDoc().getStartCharIndex();
-        int nodeEnd = selNode.getEnd() - startCharIndex;
+        int nodeEnd = selNode.getEndCharIndex() - startCharIndex;
         if (selStart != nodeEnd)
             return null;
 

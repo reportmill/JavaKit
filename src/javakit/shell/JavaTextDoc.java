@@ -310,7 +310,7 @@ public class JavaTextDoc extends TextDoc {
         // Get outer statement enclosing range
         JNode jnode = _jfile.getNodeAtCharIndex(startCharIndex);
         JStmtBlock oldStmt = jnode instanceof JStmtBlock ? (JStmtBlock) jnode : jnode.getParent(JStmtBlock.class);
-        while (oldStmt != null && oldStmt.getEnd() < endOldCharIndex)
+        while (oldStmt != null && oldStmt.getEndCharIndex() < endOldCharIndex)
             oldStmt = oldStmt.getParent(JStmtBlock.class);
 
         // If enclosing statement not found, just reparse all
@@ -321,25 +321,33 @@ public class JavaTextDoc extends TextDoc {
         if (_stmtParser == null)
             _stmtParser = new StmtParser();
         _stmtParser.setInput(JavaTextDoc.this);
-        _stmtParser.setCharIndex(oldStmt.getStart());
+        _stmtParser.setCharIndex(oldStmt.getStartCharIndex());
 
         // Parse new statement
         JStmtBlock newStmt = null;
         try { newStmt = _stmtParser.parseCustom(JStmtBlock.class); }
         catch (Exception e) { }
 
-        // If parse failed, just create empty StmtBlock
-        if (newStmt == null) {
-            newStmt = new JStmtBlock();
-            newStmt.setStartToken(oldStmt.getStartToken());
-        }
-
-        // Set EndToken to oldStmt.EndToken
-        newStmt.setEndToken(oldStmt.getEndToken());
+        // If parse failed, return failed
+        ParseToken endToken = newStmt != null ? newStmt.getEndToken() : null;
+        if (endToken == null || !endToken.getPattern().equals(oldStmt.getEndToken().getPattern()))
+            return false;
 
         // Replace old statement with new statement
         JNode stmtParent = oldStmt.getParent();
         stmtParent.setBlock(newStmt);
+
+        // Extend ancestor ends if needed
+        JNode ancestor = stmtParent.getParent();
+        while (ancestor != null) {
+            if (ancestor.getEndToken() == null || ancestor.getEndCharIndex() < endToken.getEndCharIndex()) {
+                ancestor.setEndToken(endToken);
+                ancestor = ancestor.getParent();
+            }
+            else break;
+        }
+
+        // Return success
         return true;
     }
 

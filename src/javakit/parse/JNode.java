@@ -231,7 +231,7 @@ public class JNode {
     /**
      * Returns the start char index of this node.
      */
-    public int getStart()
+    public int getStartCharIndex()
     {
         return _startToken != null ? _startToken.getStartCharIndex() : 0;
     }
@@ -252,7 +252,7 @@ public class JNode {
     /**
      * Returns the end char index of this node.
      */
-    public int getEnd()
+    public int getEndCharIndex()
     {
         return _endToken != null ? _endToken.getEndCharIndex() : 0;
     }
@@ -344,14 +344,14 @@ public class JNode {
         aNode.setParent(this);
 
         // Set StartToken
-        if (getStartToken() == null || getStart() > aNode.getStart()) {
+        if (getStartToken() == null || getStartCharIndex() > aNode.getStartCharIndex()) {
             if (aNode.getStartToken() == null)
                 System.err.println("JNode.addChild: Bogus start token");
             else setStartToken(aNode.getStartToken());
         }
 
         // Set end token
-        if (getEndToken() == null || getEnd() < aNode.getEnd())
+        if (getEndToken() == null || getEndCharIndex() < aNode.getEndCharIndex())
             setEndToken(aNode.getEndToken());
     }
 
@@ -401,7 +401,7 @@ public class JNode {
         // Iterate over nodes and recurse in to one in range (return top level node in range)
         for (int i = 0, iMax = getChildCount(); i < iMax; i++) {
             JNode node = getChild(i);
-            if (node.getStart() <= anIndex && anIndex <= node.getEnd())
+            if (node.getStartCharIndex() <= anIndex && anIndex <= node.getEndCharIndex())
                 return node.getNodeAtCharIndex(anIndex);
         }
 
@@ -417,7 +417,7 @@ public class JNode {
         // Iterate over nodes and recurse in to one in range (return top level node in range)
         for (int i = 0, iMax = getChildCount(); i < iMax; i++) {
             JNode node = getChild(i);
-            if (node.getStart() <= aStart && anEnd <= node.getEnd())
+            if (node.getStartCharIndex() <= aStart && anEnd <= node.getEndCharIndex())
                 return node.getNodeAtCharIndex(aStart, anEnd);
         }
 

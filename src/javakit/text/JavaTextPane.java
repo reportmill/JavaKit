@@ -300,7 +300,7 @@ public class JavaTextPane extends TextPane {
         // Handle NodePathLabel
         else if (anEvent.equals("NodePathLabel")) {
             JNode part = (JNode) anEvent.getView().getProp("JNode"), dnode = _textArea._deepNode;
-            _textArea.setSel(part.getStart(), part.getEnd());
+            _textArea.setSel(part.getStartCharIndex(), part.getEndCharIndex());
             _textArea._deepNode = dnode;
         }
     }

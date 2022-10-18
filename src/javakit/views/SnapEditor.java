@@ -82,7 +82,7 @@ public class SnapEditor extends StackView {
 
         // Update JavaTextArea selection
         JNode jnode = _selPart.getJNode();
-        int ss = jnode.getStart(), se = jnode.getEnd();
+        int ss = jnode.getStartCharIndex(), se = jnode.getEndCharIndex();
         getJavaTextArea().setSel(ss, se);
 
         // Forward to editor
@@ -183,7 +183,7 @@ public class SnapEditor extends StackView {
 
         // Check part
         JNode jnode = aPart.getJNode();
-        return jnode.getStart() <= anIndex && anIndex <= jnode.getEnd() ? aPart : null;
+        return jnode.getStartCharIndex() <= anIndex && anIndex <= jnode.getEndCharIndex() ? aPart : null;
     }
 
     /**
@@ -221,7 +221,7 @@ public class SnapEditor extends StackView {
             Class<?> baseNodeClass = baseNodeJavaClass != null ? baseNodeJavaClass.getRealClass() : null;
             Class<?> selPartClass = getSelectedPartClass();
             if (baseNodeClass == selPartClass && baseNodeClass != void.class) {
-                int index = aBaseNode.getEnd();
+                int index = aBaseNode.getEndCharIndex();
                 String nodeStr = aNewNode.getString(), str = '.' + nodeStr;
                 replaceText(str, index - 1, index);
                 setTextSelection(index, index + nodeStr.length());
@@ -243,7 +243,7 @@ public class SnapEditor extends StackView {
      */
     public void replaceJNode(JNode aNode, String aString)
     {
-        replaceText(aString, aNode.getStart(), aNode.getEnd());
+        replaceText(aString, aNode.getStartCharIndex(), aNode.getEndCharIndex());
     }
 
     /**
@@ -260,9 +260,9 @@ public class SnapEditor extends StackView {
      */
     public int getBeforeNode(JNode aNode)
     {
-        int index = aNode.getStart();
+        int index = aNode.getStartCharIndex();
         JExpr pexpr = aNode instanceof JExpr ? ((JExpr) aNode).getParentExpr() : null;
-        if (pexpr != null) return pexpr.getEnd();
+        if (pexpr != null) return pexpr.getEndCharIndex();
         TextBoxLine tline = getJavaTextArea().getLineForCharIndex(index);
         return tline.getStartCharIndex();
     }
@@ -272,9 +272,9 @@ public class SnapEditor extends StackView {
      */
     public int getAfterNode(JNode aNode)
     {
-        int index = aNode.getEnd();
+        int index = aNode.getEndCharIndex();
         JExprChain cexpr = aNode.getParent() instanceof JExprChain ? (JExprChain) aNode.getParent() : null;
-        if (cexpr != null) return cexpr.getExpr(cexpr.getExprCount() - 1).getEnd();
+        if (cexpr != null) return cexpr.getExpr(cexpr.getExprCount() - 1).getEndCharIndex();
         TextBoxLine tline = getJavaTextArea().getLineForCharIndex(index);
         return tline.getEndCharIndex();
     }
@@ -285,7 +285,7 @@ public class SnapEditor extends StackView {
     public int getInNode(JNode aNode)
     {
         JavaTextArea tview = getJavaTextArea();
-        int index = aNode.getStart();
+        int index = aNode.getStartCharIndex();
         while (index < tview.length() && tview.charAt(index) != '{') index++;
         TextBoxLine tline = tview.getLineForCharIndex(index);
         return tline.getEndCharIndex();
@@ -296,7 +296,7 @@ public class SnapEditor extends StackView {
      */
     String getIndent(JNode aNode, int aPos)
     {
-        int index = aNode.getStart();
+        int index = aNode.getStartCharIndex();
         TextBoxLine tline = getJavaTextArea().getLineForCharIndex(index);
         int c = 0;
         while (c < tline.length() && Character.isWhitespace(tline.charAt(c))) c++;

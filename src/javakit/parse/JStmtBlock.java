@@ -112,7 +112,7 @@ public class JStmtBlock extends JStmt {
             }
 
             // If block statement is past id reference, break
-            if (stmt.getStart() > aNode.getStart())
+            if (stmt.getStartCharIndex() > aNode.getStartCharIndex())
                 break;
 
             // Handle VarDecl
@@ -121,7 +121,7 @@ public class JStmtBlock extends JStmt {
                 List<JVarDecl> varDecls = varDeclStmt.getVarDecls();
                 for (JVarDecl varDecl : varDecls) {
                     if (name.equals(varDecl.getName())) {
-                        if (varDecl.getStart() < aNode.getStart())
+                        if (varDecl.getStartCharIndex() < aNode.getStartCharIndex())
                             return varDecl;
                     }
                 }

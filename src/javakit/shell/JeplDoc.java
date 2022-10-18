@@ -98,8 +98,8 @@ public class JeplDoc extends PropObject {
         JStmtBlock blockStmt = bodyMethod.getBlock();
 
         // Set start/end char indexes for code block ( " { ... } ")
-        int blockStart = blockStmt.getStart();
-        int blockEnd = blockStmt.getEnd();
+        int blockStart = blockStmt.getStartCharIndex();
+        int blockEnd = blockStmt.getEndCharIndex();
 
         // Get start/end lines indexes
         TextLine startLine = _javaDoc.getLineForCharIndex(blockStart);

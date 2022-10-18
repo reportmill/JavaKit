@@ -82,7 +82,7 @@ public class SnapEditorPopup extends ViewOwner {
         showPopup(aPart);
 
         // Get fixed text
-        _startText = aString.substring(0, id.getStart());
+        _startText = aString.substring(0, id.getStartCharIndex());
         _endText = aString.substring(anIndex);
     }
 
