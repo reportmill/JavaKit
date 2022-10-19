@@ -101,7 +101,7 @@ public class JavaTextArea extends TextArea {
         int selNodeStart = selNode.getStartCharIndex() - getTextDoc().getStartCharIndex() - selLineStart;
 
         // Get location for popup and show
-        double textX = selLine.getXForChar(selNodeStart);
+        double textX = selLine.getXForCharIndex(selNodeStart);
         double textY = selLine.getMaxY() + 4;
         popup.show(this, textX, textY);
     }
@@ -332,7 +332,7 @@ public class JavaTextArea extends TextArea {
             // Get line and token
             TextBoxLine textBoxLine = textBox.getLine(lineIndex);
             int startCharIndex = jnode.getLineCharIndex();
-            TextBoxToken token = textBoxLine.getTokenAt(startCharIndex);
+            TextBoxToken token = textBoxLine.getTokenForCharIndex(startCharIndex);
 
             // Add to tokens list
             if (token != null)
@@ -432,8 +432,8 @@ public class JavaTextArea extends TextArea {
             // If possible, make sure we underline at least one char
             if (issueStart == issueEnd && issueEnd < textBoxLine.getEndCharIndex()) issueEnd++;
             int yb = (int) Math.round(textBoxLine.getBaseline()) + 2;
-            double x1 = textBoxLine.getXForChar(issueStart - lineStartCharIndex);
-            double x2 = textBoxLine.getXForChar(issueEnd - lineStartCharIndex);
+            double x1 = textBoxLine.getXForCharIndex(issueStart - lineStartCharIndex);
+            double x2 = textBoxLine.getXForCharIndex(issueEnd - lineStartCharIndex);
             aPntr.setPaint(issue.isError() ? Color.RED : new Color(244, 198, 60));
             aPntr.setStroke(Stroke.StrokeDash1);
             aPntr.drawLine(x1, yb, x2, yb);
