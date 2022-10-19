@@ -9,11 +9,8 @@ import snap.gfx.Font;
 import snap.parse.*;
 import snap.props.PropChange;
 import snap.text.*;
-import snap.util.SnapUtils;
 import snap.util.StringUtils;
 import snap.web.WebFile;
-import snap.web.WebURL;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,6 +81,8 @@ public class JavaTextDoc extends TextDoc {
         JavaParser javaParser = getJavaParser();
         String javaStr = getString();
         JFile jfile = javaParser.getJavaFile(javaStr);
+        if (jfile == null)
+            jfile = new JFile();
 
         // Set SourceFile
         WebFile sourceFile = getSourceFile();
