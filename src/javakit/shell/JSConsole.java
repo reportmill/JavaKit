@@ -117,7 +117,6 @@ public class JSConsole extends ViewOwner implements JavaShell.Console {
         _consoleView = getView("OutputText", JSConsoleView.class);
         _consoleView._owner = this;
         _consoleView.setFont(defaultFont);
-        _consoleView.setRichText(true);
         _consoleView.setPadding(4, 4, 4, 4);
     }
 

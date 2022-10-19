@@ -5,6 +5,7 @@ package javakit.text;
 import javakit.parse.*;
 import javakit.reflect.JavaDecl;
 import javakit.resolver.Project;
+import javakit.shell.JavaTextDoc;
 import snap.gfx.*;
 import snap.props.PropChange;
 import snap.props.Undoer;
@@ -527,11 +528,12 @@ public class JavaTextPane extends TextPane {
 
         // Get test file
         WebFile testFile = proj.getSourceFile("/Test.java", false, false);
+        JavaTextDoc javaTextDoc = JavaTextDoc.newFromSource(testFile);
 
         // Create JavaPane and show
         JavaTextPane javaPane = new JavaTextPane();
         JavaTextArea javaTextArea = javaPane.getTextArea();
-        javaTextArea.setSource(testFile);
+        javaTextArea.setTextDoc(javaTextDoc);
         javaPane.getUI().setPrefHeight(800);
         javaPane.setWindowVisible(true);
     }

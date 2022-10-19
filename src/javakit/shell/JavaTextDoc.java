@@ -9,8 +9,11 @@ import snap.gfx.Font;
 import snap.parse.*;
 import snap.props.PropChange;
 import snap.text.*;
+import snap.util.SnapUtils;
 import snap.util.StringUtils;
 import snap.web.WebFile;
+import snap.web.WebURL;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -349,6 +352,19 @@ public class JavaTextDoc extends TextDoc {
 
         // Return success
         return true;
+    }
+
+    /**
+     * Returns a new JavaTextDoc from given source.
+     */
+    public static JavaTextDoc newFromSource(Object aSource)
+    {
+        // Create TextDoc
+        JavaTextDoc javaTextDoc = new JavaTextDoc();
+        javaTextDoc.setSource(aSource);
+
+        // Return
+        return javaTextDoc;
     }
 
     // Special statement parser
