@@ -117,27 +117,17 @@ public class JavaTextDoc extends TextDoc {
         List<TextToken> tokens = new ArrayList<>();
         TextRun textRun = aTextLine.getRun(0);
 
-        // If this line is InMultilineComment (do this first, since it may require use of Text.Tokenizer)
-        TextLine prevTextLine = aTextLine.getPrevious();
-        TextToken prevTextLineLastToken = prevTextLine != null ? prevTextLine.getLastToken() : null;
-        boolean inUnterminatedComment = isTextTokenUnterminatedMultilineComment(prevTextLineLastToken);
-
         // Get tokenizer
         JavaParser javaParser = getJavaParser();
         CodeTokenizer tokenizer = javaParser.getTokenizer();
-        tokenizer.setInput(aTextLine);
 
-        // Get first line token: Handle if already in Multi-line
+        // Get first token in line
         Exception exception = null;
         ParseToken parseToken = null;
-        if (inUnterminatedComment)
-            parseToken = tokenizer.getMultiLineCommentTokenMore(null);
-        else {
-            try { parseToken = tokenizer.getNextSpecialTokenOrToken(); }
-            catch (Exception e) {
-                exception = e;
-                System.out.println("JavaTextDoc.createTokensForTextLine: Parse error: " + e);
-            }
+        try { parseToken = getNextToken(tokenizer, aTextLine); }
+        catch (Exception e) {
+            exception = e;
+            System.out.println("JavaTextDoc.createTokensForTextLine: Parse error: " + e);
         }
 
         // Get line parse tokens and create TextTokens
@@ -158,7 +148,7 @@ public class JavaTextDoc extends TextDoc {
                 textToken.setTextColor(color);
 
             // Get next token
-            try { parseToken = tokenizer.getNextSpecialTokenOrToken(); }
+            try { parseToken = getNextToken(tokenizer, null); }
             catch (Exception e) {
                 exception = e;
                 parseToken = null;
@@ -176,6 +166,31 @@ public class JavaTextDoc extends TextDoc {
 
         // Return
         return tokens.toArray(new TextToken[0]);
+    }
+
+    /**
+     * Returns the next token.
+     */
+    private ParseToken getNextToken(CodeTokenizer aTokenizer, TextLine aTextLine)
+    {
+        // If TextLine provided, do set up
+        if (aTextLine != null) {
+
+            // If this line is InMultilineComment (do this first, since it may require use of Text.Tokenizer)
+            TextLine prevTextLine = aTextLine.getPrevious();
+            TextToken prevTextLineLastToken = prevTextLine != null ? prevTextLine.getLastToken() : null;
+            boolean inUnterminatedComment = isTextTokenUnterminatedMultilineComment(prevTextLineLastToken);
+
+            // Reset input for Tokenizer
+            aTokenizer.setInput(aTextLine);
+
+            // Get first line token: Handle if already in Multi-line
+            if (inUnterminatedComment)
+                return aTokenizer.getMultiLineCommentTokenMore(null);
+        }
+
+        // Return next token
+        return aTokenizer.getNextSpecialTokenOrToken();
     }
 
     /**

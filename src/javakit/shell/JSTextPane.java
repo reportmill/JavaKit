@@ -7,7 +7,7 @@ import snap.gfx.Color;
 import snap.gfx.Font;
 import snap.text.TextStyle;
 import snap.view.*;
-import snap.viewx.CodeView;
+import snap.viewx.CodeDoc;
 import snap.viewx.TextPane;
 
 /**
@@ -40,7 +40,11 @@ public class JSTextPane extends TextPane {
      */
     protected TextArea createTextArea()
     {
-        return new CodeView();
+        TextArea textArea = new TextArea();
+        textArea.setFill(Color.WHITE);
+        textArea.setEditable(true);
+        textArea.setTextDoc(new CodeDoc());
+        return textArea;
     }
 
     /**
