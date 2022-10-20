@@ -186,7 +186,7 @@ public class JavaTextDoc extends TextDoc {
 
             // Get first line token: Handle if already in Multi-line
             if (inUnterminatedComment)
-                return aTokenizer.getMultiLineCommentTokenMore(null);
+                return aTokenizer.getMultiLineCommentTokenMore();
         }
 
         // Return next token
