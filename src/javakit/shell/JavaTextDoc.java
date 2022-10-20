@@ -324,6 +324,7 @@ public class JavaTextDoc extends TextDoc {
             _stmtParser = new StmtParser();
         _stmtParser.setInput(JavaTextDoc.this);
         _stmtParser.setCharIndex(oldStmt.getStartCharIndex());
+        _stmtParser.getTokenizer().setLineIndex(oldStmt.getLineIndex());
 
         // Parse new statement
         JStmtBlock newStmt = null;
