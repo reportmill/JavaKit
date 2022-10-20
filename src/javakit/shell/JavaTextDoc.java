@@ -9,7 +9,7 @@ import snap.gfx.Font;
 import snap.parse.*;
 import snap.props.PropChange;
 import snap.text.*;
-import snap.util.StringUtils;
+import snap.util.CharSequenceUtils;
 import snap.web.WebFile;
 import java.util.ArrayList;
 import java.util.List;
@@ -321,7 +321,7 @@ public class JavaTextDoc extends TextDoc {
 
         // If change is more than 50 chars or contains newline, just reparse all
         CharSequence changeChars = addChars != null ? addChars : removeChars;
-        if (changeChars.length() > 50 || StringUtils.indexOfNewline(changeChars, 0) >= 0)
+        if (changeChars.length() > 50 || CharSequenceUtils.indexOfNewline(changeChars, 0) >= 0)
             return false;
 
         // Get outer statement enclosing range

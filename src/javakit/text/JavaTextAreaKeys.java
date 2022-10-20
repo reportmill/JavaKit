@@ -2,10 +2,13 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.text;
-import javakit.parse.JExprLiteral;
-import javakit.parse.JNode;
-import javakit.shell.JavaTextDoc;
+import javakit.parse.*;
+
+import static javakit.text.JavaTextArea.INDENT_STRING;
+
+import snap.parse.CodeTokenizer;
 import snap.text.TextBoxLine;
+import snap.text.TextBoxToken;
 import snap.view.KeyCode;
 import snap.view.TextAreaKeys;
 import snap.view.ViewEvent;
@@ -153,41 +156,72 @@ public class JavaTextAreaKeys extends TextAreaKeys {
     protected void processNewline()
     {
         // Get line and its indent
-        TextBoxLine line = getSel().getStartLine();
-        int indent = _javaTextArea.getIndent(line);
+        TextBoxLine textLine = getSel().getStartLine();
 
-        // Determine if this line is start of code block and/or not terminated
-        // TODO: Need real startOfMultilineComment and inMultilineComment
-        String lineString = line.getString().trim();
+        // If entering a multi-line comment, handle special
+        if (isEnteringMultilineComment(textLine)) {
+            processNewlineForMultilineComment(textLine);
+            return;
+        }
+
+        // If entering a block statement, handle special
+        if (isEnteringBlockStatement(textLine)) {
+            processNewlineForBlockStatement(textLine);
+            return;
+        }
+
+        // Create string for new line plus indent
+        String indentStr = textLine.getIndentString();
+        StringBuffer sb = new StringBuffer().append('\n').append(indentStr);
+
+        // If leaving conditional (if, for, do, while) without brackets, remove level of indent
+        JNode selNode = _javaTextArea.getSelNode();
+        JStmtConditional selNodeParent = selNode != null ? selNode.getParent(JStmtConditional.class) : null;
+        if (selNodeParent != null &&  !(selNodeParent.getStatement() instanceof JStmtBlock)) {
+            if (sb.length() > INDENT_STRING.length())
+                sb.delete(sb.length() - INDENT_STRING.length(), sb.length());
+        }
+
+        // Do normal version
+        _textArea.replaceChars(sb.toString());
+    }
+
+    /**
+     * Returns whether this line is processing a multi line comment.
+     */
+    private boolean isEnteringMultilineComment(TextBoxLine aTextLine)
+    {
+        TextBoxToken lastToken = aTextLine.getTokenLast();
+        return lastToken != null && lastToken.getName() == CodeTokenizer.MULTI_LINE_COMMENT;
+    }
+
+    /**
+     * Process newline key event.
+     */
+    protected void processNewlineForMultilineComment(TextBoxLine aTextLine)
+    {
+        String lineString = aTextLine.getString().trim();
         boolean isStartOfMultiLineComment = lineString.startsWith("/*") && !lineString.endsWith("*/");
         boolean isInMultiLineComment = lineString.startsWith("*") && !lineString.endsWith("*/");
         boolean isEndMultiLineComment = lineString.startsWith("*") && lineString.endsWith("*/");
-        boolean isStartOfCodeBlock = lineString.endsWith("{");
-        boolean isLineTerminated = lineString.endsWith(";") || lineString.endsWith("}") ||
-                lineString.endsWith("*/") || lineString.indexOf("//") >= 0 || lineString.length() == 0;
 
         // Create indent string
-        StringBuffer sb = new StringBuffer().append('\n');
-        for (int i = 0; i < indent; i++)
-            sb.append(' ');
+        String indentStr = aTextLine.getIndentString();
+        StringBuffer sb = new StringBuffer().append('\n').append(indentStr);
 
         // If start of multi-line comment, add " * "
         if (isStartOfMultiLineComment)
             sb.append(" * ");
 
-            // If in multi-line comment, add "* "
+        // If in multi-line comment, add "* "
         else if (isInMultiLineComment)
             sb.append("* ");
 
-            // If after multi-line comment, remove space from indent
+        // If after multi-line comment, remove space from indent
         else if (isEndMultiLineComment) {
             if (sb.length() > 0)
                 sb.delete(sb.length() - 1, sb.length());
         }
-
-        // If line not terminated increase indent (not for REPL)
-        else if (!isLineTerminated && _textArea.getTextDoc() instanceof JavaTextDoc)
-            sb.append(_javaTextArea.INDENT_STRING);
 
         // Do normal version
         _textArea.replaceChars(sb.toString());
@@ -199,13 +233,54 @@ public class JavaTextAreaKeys extends TextAreaKeys {
             _textArea.replaceChars(str, null, start, start, false);
             setSel(start);
         }
+    }
 
-        // If start of code block, append terminator
-        else if (isStartOfCodeBlock && _javaTextArea.getJFile().getException() != null) {
-            int start = getSelStart();
-            String str = sb.substring(0, sb.length() - 4) + "}";
-            _textArea.replaceChars(str, null, start, start, false);
-            setSel(start);
+    /**
+     * Returns whether this line is in process of entering a block statement (if, for, do, while).
+     */
+    private boolean isEnteringBlockStatement(TextBoxLine aTextLine)
+    {
+        // If last token is open bracket, return true
+        TextBoxToken textToken = aTextLine.getTokenLast();
+        String textTokenString = textToken != null ? textToken.getString() : "";
+        if (textTokenString.equals("{"))
+            return true;
+
+        // If current node is conditional (if, for, do, while), return true
+        JNode selNode = _javaTextArea.getSelNode();
+        if (selNode instanceof JStmtConditional)
+            return true;
+
+        // Return false
+        return false;
+    }
+
+    /**
+     * Process newline key event.
+     */
+    protected void processNewlineForBlockStatement(TextBoxLine aTextLine)
+    {
+        // Create string for new line plus indent
+        String indentStr = aTextLine.getIndentString();
+        StringBuffer sb = new StringBuffer().append('\n').append(indentStr);
+
+        // Add additional level of indent
+        sb.append(INDENT_STRING);
+
+        // Do normal version
+        _textArea.replaceChars(sb.toString());
+
+        // If start of code block, proactively append close bracket
+        TextBoxToken textToken = aTextLine.getTokenLast();
+        String textTokenString = textToken != null ? textToken.getString() : "";
+        boolean addCloseBracket = textTokenString.equals("{");
+        if (addCloseBracket) {
+            if (_javaTextArea.getJFile().getException() != null && sb.length() > INDENT_STRING.length()) { // Sanity check
+                int start = getSelStart();
+                String str = sb.substring(0, sb.length() - INDENT_STRING.length()) + "}";
+                _textArea.replaceChars(str, null, start, start, false);
+                setSel(start);
+            }
         }
     }
 
