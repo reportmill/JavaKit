@@ -1,4 +1,4 @@
-package javakit.shell;
+package javakit.runner;
 import javakit.parse.JExprMath;
 import snap.util.SnapUtils;
 

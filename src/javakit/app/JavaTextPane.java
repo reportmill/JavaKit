@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.text;
+package javakit.app;
 import javakit.parse.*;
 import javakit.resolver.JavaDecl;
-import javakit.shell.JavaTextDoc;
+import javakit.parse.JavaTextDoc;
 import snap.gfx.*;
 import snap.props.PropChange;
 import snap.props.Undoer;

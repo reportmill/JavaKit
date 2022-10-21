@@ -1,4 +1,4 @@
-package javakit.shell;
+package javakit.app;
 import snap.gfx.Color;
 import snap.text.TextLink;
 import snap.text.TextStyle;

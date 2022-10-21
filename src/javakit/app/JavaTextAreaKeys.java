@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.text;
+package javakit.app;
 import javakit.parse.*;
 
-import static javakit.text.JavaTextArea.INDENT_STRING;
+import static javakit.app.JavaTextArea.INDENT_STRING;
 
 import snap.parse.CodeTokenizer;
 import snap.text.TextBoxLine;

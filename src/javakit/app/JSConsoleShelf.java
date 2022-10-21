@@ -1,4 +1,5 @@
-package javakit.shell;
+package javakit.app;
+import javakit.runner.JavaShell;
 import snap.gfx.Color;
 import snap.view.ColView;
 import snap.view.View;

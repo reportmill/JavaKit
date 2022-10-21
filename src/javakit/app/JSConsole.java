@@ -1,7 +1,8 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.shell;
+package javakit.app;
+import javakit.runner.JavaShell;
 import snap.gfx.Font;
 import snap.view.View;
 import snap.view.ViewEvent;

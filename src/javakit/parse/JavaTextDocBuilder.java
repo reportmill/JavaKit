@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.shell;
+package javakit.parse;
 import snap.util.ArrayUtils;
 
 /**

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.text;
+package javakit.app;
 
 import java.lang.reflect.Method;
 

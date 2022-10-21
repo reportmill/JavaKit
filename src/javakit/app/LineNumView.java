@@ -1,4 +1,4 @@
-package javakit.shell;
+package javakit.app;
 import snap.geom.HPos;
 import snap.geom.Insets;
 import snap.gfx.Color;

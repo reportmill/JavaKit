@@ -1,14 +1,18 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.shell;
-import javakit.text.JavaTextUtils;
+package javakit.app;
+import javakit.runner.JavaShell;
+import javakit.runner.JavaShellUtils;
 import snap.gfx.Color;
 import snap.gfx.Font;
 import snap.text.TextStyle;
 import snap.view.*;
 import snap.viewx.CodeDoc;
 import snap.viewx.TextPane;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 /**
  * This TexPane subclass adds customizations for JavaShell.
@@ -155,7 +159,7 @@ public class JSTextPane extends TextPane {
 
                 // Handle array
                 if (val.getClass().isArray()) {
-                    String arrayStr = JavaShellUtils.getStringForArray(val);
+                    String arrayStr = getStringForArray(val);
                     sb.append(arrayStr);
                 }
 
@@ -168,6 +172,27 @@ public class JSTextPane extends TextPane {
 
             // Set text
             setText(sb.toString());
+        }
+
+        /**
+         * Returns a String for given array object.
+         */
+        private String getStringForArray(Object anObj)
+        {
+            if (anObj instanceof Object[])
+                return Arrays.toString((Object[]) anObj);
+            if (anObj instanceof double[])
+                return Arrays.toString((double[]) anObj);
+            if (anObj instanceof float[])
+                return Arrays.toString((float[]) anObj);
+            if (anObj instanceof int[])
+                return Arrays.toString((int[]) anObj);
+
+            int len = Array.getLength(anObj);
+            Object[] array = new Object[len];
+            for (int i = 0; i < len; i++)
+                array[i] = Array.get(anObj, i);
+            return Arrays.toString(array);
         }
     }
 }

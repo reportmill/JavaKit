@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.shell;
-import javakit.parse.*;
+package javakit.parse;
+import javakit.runner.JavaShell;
 import snap.props.PropObject;
 import snap.props.PropSet;
 import snap.text.SubText;
@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * This class manages collections of snippets.
  */
-public class JeplDoc extends PropObject {
+public class JavaReplDoc extends PropObject {
 
     // The JavaTextDoc
     private JavaTextDoc  _javaDoc;
@@ -33,7 +33,7 @@ public class JeplDoc extends PropObject {
     private boolean  _needsUpdate;
 
     // The JavaShell
-    protected JavaShell  _javaShell;
+    protected JavaShell _javaShell;
 
     // The Repl values by line
     private Object[]  _lineValues;
@@ -47,7 +47,7 @@ public class JeplDoc extends PropObject {
     /**
      * Constructor.
      */
-    public JeplDoc()
+    public JavaReplDoc()
     {
         super();
 
@@ -284,7 +284,7 @@ public class JeplDoc extends PropObject {
     /**
      * Creates a new Notebook from Source URL.
      */
-    public static JeplDoc createFromSourceURL(WebURL aURL)
+    public static JavaReplDoc createFromSourceURL(WebURL aURL)
     {
         return null;
     }

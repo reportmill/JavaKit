@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.text;
+package javakit.app;
 import java.util.*;
 
 import javakit.ide.Breakpoint;
@@ -11,7 +11,7 @@ import javakit.parse.*;
 import javakit.resolver.JavaClass;
 import javakit.resolver.JavaDecl;
 import javakit.resolver.NodeMatcher;
-import javakit.shell.JavaTextDoc;
+import javakit.parse.JavaTextDoc;
 import snap.geom.Rect;
 import snap.gfx.*;
 import snap.text.*;

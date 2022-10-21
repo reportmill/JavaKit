@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.shell;
+package javakit.runner;
 import snap.util.SnapUtils;
 import java.lang.reflect.Array;
 import java.util.*;
-import static javakit.shell.JSExprEvalUtils.castOrConvertValueToPrimitiveClass;
+import static javakit.runner.JSExprEvalUtils.castOrConvertValueToPrimitiveClass;
 
 /**
  * A class to manage variables in a running interpreter session.

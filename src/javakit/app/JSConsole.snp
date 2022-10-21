@@ -9,7 +9,7 @@
       <Button Name="ClearButton" PrefWidth="24" PrefHeight="24" LeanX="RIGHT" image="/snap/app/pkg.images/Clear.png" ShowArea="false" />
     </RowView>
     <ScrollView GrowHeight="true">
-      <View Name="OutputText" Class="javakit.shell.JSConsoleView" />
+      <View Name="OutputText" Class="javakit.app.JSConsoleView" />
     </ScrollView>
   </ColView>
   <ColView Name="ShelfViewMain" PrefWidth="600" GrowWidth="true" FillWidth="true">
@@ -20,7 +20,7 @@
       <Button Name="ClearButton" PrefWidth="24" PrefHeight="24" LeanX="RIGHT" ShowArea="false" />
     </RowView>
     <ScrollView GrowHeight="true">
-      <View Name="ShelfView" Class="javakit.shell.JSConsoleShelf" />
+      <View Name="ShelfView" Class="javakit.app.JSConsoleShelf" />
     </ScrollView>
   </ColView>
 </SplitView>

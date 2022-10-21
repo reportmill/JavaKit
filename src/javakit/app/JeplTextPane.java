@@ -1,9 +1,8 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.shell;
-import javakit.text.JavaTextArea;
-import javakit.text.JavaTextUtils;
+package javakit.app;
+import javakit.parse.JavaReplDoc;
 import snap.gfx.Color;
 import snap.gfx.Font;
 import snap.text.SubText;
@@ -17,7 +16,7 @@ import snap.viewx.TextPane;
 public class JeplTextPane extends TextPane {
 
     // The JeplDoc
-    protected JeplDoc  _jeplDoc;
+    protected JavaReplDoc _jeplDoc;
 
     // The TextArea
     private TextArea  _textArea;
@@ -45,12 +44,12 @@ public class JeplTextPane extends TextPane {
     /**
      * Returns the JeplDoc.
      */
-    public JeplDoc getJeplDoc()  { return _jeplDoc; }
+    public JavaReplDoc getJeplDoc()  { return _jeplDoc; }
 
     /**
      * Sets the JeplDoc.
      */
-    public void setJeplDoc(JeplDoc aJeplDoc)
+    public void setJeplDoc(JavaReplDoc aJeplDoc)
     {
         _jeplDoc = aJeplDoc;
     }
@@ -65,7 +64,7 @@ public class JeplTextPane extends TextPane {
      */
     public void resetReplValues()
     {
-        JeplDoc jeplDoc = getJeplDoc();
+        JavaReplDoc jeplDoc = getJeplDoc();
         jeplDoc.updateDocValues();
 
         _evalView.updateLines();

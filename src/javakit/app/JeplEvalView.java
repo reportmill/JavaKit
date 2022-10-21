@@ -1,4 +1,5 @@
-package javakit.shell;
+package javakit.app;
+import javakit.parse.JavaReplDoc;
 import snap.geom.Insets;
 import snap.gfx.Color;
 import snap.view.ColView;
@@ -34,7 +35,7 @@ class JeplEvalView extends ColView {
         removeChildren();
 
         // Get JavaShell and line values
-        JeplDoc jeplDoc = _jeplTextPane._jeplDoc;
+        JavaReplDoc jeplDoc = _jeplTextPane._jeplDoc;
         View[] lineViews = jeplDoc.getReplViews();
         if (lineViews == null)
             return;

@@ -1,8 +1,12 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.shell;
+package javakit.app;
 import javakit.resolver.Resolver;
+import javakit.runner.JavaShell;
+import javakit.parse.JavaTextDoc;
+import javakit.parse.JavaTextDocBuilder;
+import javakit.parse.JavaReplDoc;
 import snap.geom.HPos;
 import snap.props.PropObject;
 import snap.text.TextDoc;
@@ -15,10 +19,10 @@ import snap.view.*;
 public class JavaShellPane extends ViewOwner {
 
     // A JavaShell
-    protected JavaShell  _javaShell;
+    protected JavaShell _javaShell;
 
     // The JeplDoc
-    protected JeplDoc  _jeplDoc;
+    protected JavaReplDoc _jeplDoc;
 
     // The Console
     protected JSConsole  _console;
@@ -70,10 +74,10 @@ public class JavaShellPane extends ViewOwner {
     /**
      * Creates a JavaTextDoc for given Resolver.
      */
-    private JeplDoc createJeplDoc()
+    private JavaReplDoc createJeplDoc()
     {
         // Create/config/set Doc
-        JeplDoc jeplDoc = new JeplDoc();
+        JavaReplDoc jeplDoc = new JavaReplDoc();
         jeplDoc.setName("Untitled");
 
         JavaTextDoc javaTextDoc = createJavaTextDoc();
@@ -108,7 +112,7 @@ public class JavaShellPane extends ViewOwner {
     private Resolver createResolver()
     {
         // Create resolver
-        Resolver resolver = Resolver.newResolverForClassLoader(JeplDoc.class.getClassLoader());
+        Resolver resolver = Resolver.newResolverForClassLoader(JavaReplDoc.class.getClassLoader());
 
         // Add class paths for SnapKit
         if (!SnapUtils.isTeaVM)
