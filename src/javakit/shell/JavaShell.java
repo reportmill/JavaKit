@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.shell;
+import javakit.parse.JFile;
 import javakit.parse.JStmt;
 import java.io.PrintStream;
 
@@ -9,9 +10,6 @@ import java.io.PrintStream;
  * A class to evaluate JavaShell code.
  */
 public class JavaShell {
-
-    // The JavaShell parser
-    private JSParser  _javaParser;
 
     // A Statement evaluator
     private JSStmtEval _stmtEval;
@@ -38,9 +36,6 @@ public class JavaShell {
      */
     public JavaShell()
     {
-        // Create JSParser
-        _javaParser = new JSParser();
-
         // Create Statement eval
         _stmtEval = new JSStmtEval();
 
@@ -64,45 +59,13 @@ public class JavaShell {
     /**
      * Evaluate string.
      */
-    public void runJavaCode(JavaText javaText)
-    {
-        // Parse Java text to statements
-        JStmt[] javaStmts = _javaParser.parseJavaText(javaText);
-
-        // Set System out/err to catch console output
-        System.setOut(_shellOut);
-        System.setErr(_shellErr);
-
-        // Clear console
-        _console.clear();
-
-        // Get line vals for statements
-        _lineVals = new Object[javaStmts.length];
-
-        // Iterate over lines and eval each
-        for (int i = 0, iMax = javaStmts.length; i < iMax; i++) {
-
-            // Get Statement (if null, just set empty string value and continue)
-            JStmt stmt = javaStmts[i];
-            if (stmt == null) {
-                _lineVals[i] = ""; continue; }
-
-            // Evaluate statement
-            _lineVals[i] = evalStatement(stmt);
-        }
-
-        // Restore System out/err
-        System.setOut(_stdOut);
-        System.setErr(_stdErr);
-    }
-
-    /**
-     * Evaluate string.
-     */
     public void runJavaCode(JavaTextDoc javaDoc)
     {
+        // Get file and set Resolver
+        JFile jfile = javaDoc.getJFile();
+
         // Parse Java text to statements
-        JStmt[] javaStmts = _javaParser.parseJavaText(javaDoc);
+        JStmt[] javaStmts = javaDoc.getStatementsForJavaNode(jfile);
 
         // Set System out/err to catch console output
         System.setOut(_shellOut);

@@ -3,6 +3,7 @@
  */
 package javakit.shell;
 import javakit.parse.*;
+import javakit.resolver.Resolver;
 import javakit.text.JavaTextUtils;
 import snap.gfx.Color;
 import snap.gfx.Font;
@@ -24,6 +25,9 @@ public class JavaTextDoc extends TextDoc {
 
     // The parser to parse Java
     private JavaParser  _javaParser;
+
+    // The Resolver
+    private Resolver  _resolver;
 
     // Constants for Syntax Coloring
     private static Color COMMENT_COLOR = new Color("#3F7F5F"); //336633
@@ -70,6 +74,16 @@ public class JavaTextDoc extends TextDoc {
     public void setJavaParser(JavaParser aJavaParser)  { _javaParser = aJavaParser; }
 
     /**
+     * Returns the Resolver that is attached to parsed Java file.
+     */
+    public Resolver getResolver()  { return _resolver; }
+
+    /**
+     * Sets the Resolver that is attached to parsed Java file.
+     */
+    public void setResolver(Resolver aResolver)  { _resolver = aResolver; }
+
+    /**
      * Returns the JFile (parsed Java file).
      */
     public JFile getJFile()
@@ -88,6 +102,11 @@ public class JavaTextDoc extends TextDoc {
         WebFile sourceFile = getSourceFile();
         if (sourceFile != null)
             jfile.setSourceFile(sourceFile);
+
+        // Set Resolver
+        Resolver resolver = getResolver();
+        if (resolver != null)
+            jfile.setResolver(resolver);
 
         // This sucks
         getStatementsForJavaNode(jfile);

@@ -2,7 +2,11 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.shell;
+import javakit.resolver.Resolver;
 import snap.geom.HPos;
+import snap.props.PropObject;
+import snap.text.TextDoc;
+import snap.util.SnapUtils;
 import snap.view.*;
 
 /**
@@ -13,8 +17,8 @@ public class JavaShellPane extends ViewOwner {
     // A JavaShell
     protected JavaShell  _javaShell;
 
-    // The JavaText
-    private JavaText  _javaText;
+    // The JeplDoc
+    protected JeplDoc  _jeplDoc;
 
     // The Console
     protected JSConsole  _console;
@@ -30,11 +34,9 @@ public class JavaShellPane extends ViewOwner {
      */
     public JavaShellPane()
     {
-        // Create JavaShell
-        _javaShell = new JavaShell();
-
         // Create JavaText
-        _javaText = new JavaText();
+        _jeplDoc = createJeplDoc();
+        _javaShell = _jeplDoc.getJavaShell();
 
         // Create console
         _console = new JSConsole(this);
@@ -56,18 +58,64 @@ public class JavaShellPane extends ViewOwner {
      */
     public void play()
     {
-        // Get Java text
-        String javaBodyText = _textPane.getTextArea().getText();
-        _javaText.setBodyText(javaBodyText);
-
-        // Run the Java text
-        _javaShell.runJavaCode(_javaText);
+        _jeplDoc.updateDocValues();
 
         // Update lines
         _textPane._evalView.updateLines();
 
         // Update graphics
         _console.updateShelf();
+    }
+
+    /**
+     * Creates a JavaTextDoc for given Resolver.
+     */
+    private JeplDoc createJeplDoc()
+    {
+        // Create/config/set Doc
+        JeplDoc jeplDoc = new JeplDoc();
+        jeplDoc.setName("Untitled");
+
+        JavaTextDoc javaTextDoc = createJavaTextDoc();
+        jeplDoc.setJavaDoc(javaTextDoc);
+
+        // Return
+        return jeplDoc;
+    }
+
+    /**
+     * Creates a JavaTextDoc for given Resolver.
+     */
+    private JavaTextDoc createJavaTextDoc()
+    {
+        // Get template Java text string
+        JavaTextDocBuilder javaTextDocBuilder = new JavaTextDocBuilder();
+
+        // Create JavaDoc to hold Java code
+        JavaTextDoc javaTextDoc = javaTextDocBuilder.createJavaTextDoc();
+
+        // Create/set resolver
+        Resolver resolver = createResolver();
+        javaTextDoc.setResolver(resolver);
+
+        // Return
+        return javaTextDoc;
+    }
+
+    /**
+     * Creates the Resolver.
+     */
+    private Resolver createResolver()
+    {
+        // Create resolver
+        Resolver resolver = Resolver.newResolverForClassLoader(JeplDoc.class.getClassLoader());
+
+        // Add class paths for SnapKit
+        if (!SnapUtils.isTeaVM)
+            resolver.addClassPathForClass(PropObject.class);
+
+        // Return
+        return resolver;
     }
 
     /**
@@ -103,6 +151,13 @@ public class JavaShellPane extends ViewOwner {
         runButton.setOwner(this);
         _textPane.getToolBarPane().addChild(runButton);
         _textPane.getToolBarPane().setPadding(0, 30, 0, 4);
+
+        // Set TextArea to JeplDoc
+        TextDoc jeplTextDoc = _jeplDoc.getReplDoc();
+        TextArea textArea = _textPane.getTextArea();
+        textArea.setTextDoc(jeplTextDoc);
+
+        // Play
         runLater(() -> play());
     }
 

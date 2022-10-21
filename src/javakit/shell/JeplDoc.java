@@ -141,6 +141,11 @@ public class JeplDoc extends PropObject {
     }
 
     /**
+     * Returns the JavaShell.
+     */
+    public JavaShell getJavaShell()  { return _javaShell; }
+
+    /**
      * Submit entry.
      */
     public void submitEntry()

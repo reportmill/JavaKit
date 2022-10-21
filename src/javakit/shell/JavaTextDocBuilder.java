@@ -2,14 +2,12 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.shell;
-import javakit.parse.JFile;
-import javakit.parse.JavaParser;
 import snap.util.ArrayUtils;
 
 /**
  * This class holds the text of a Java file with methods to easily build.
  */
-public class JavaText {
+public class JavaTextDocBuilder {
 
     // The array of imports
     private String[]  _imports = DEFAULT_IMPORTS;
@@ -18,7 +16,7 @@ public class JavaText {
     private String  _superClassName = "Object";
 
     // The body text
-    private String  _bodyText;
+    private String  _bodyText = "";
 
     // Constants for imports
     private static final String IMPORT1 = "java.util.*";
@@ -29,7 +27,7 @@ public class JavaText {
     /**
      * Constructor.
      */
-    public JavaText()
+    public JavaTextDocBuilder()
     {
         super();
     }
@@ -42,16 +40,12 @@ public class JavaText {
         // Get header text
         String headerText = getHeaderText();
 
-        // Get tail
-        String tailText = "\n}";
-
         // Get body text
         String bodyText = getBodyText();
-        String bodyTextAll = "";
-        if (bodyText != null) {
-            bodyTextAll = "void body() {\n\n" + bodyText;
-            tailText = "\n}\n}";
-        }
+        String bodyTextAll = "void body() {\n\n" + bodyText;
+
+        // Get tail
+        String tailText = "\n}\n}";
 
         // Return
         return headerText + bodyTextAll + tailText;
@@ -105,32 +99,18 @@ public class JavaText {
     }
 
     /**
-     * Returns the body lines.
+     * Creates a JavaTextDoc.
      */
-    public String[] getBodyLines()
+    public JavaTextDoc createJavaTextDoc()
     {
-        String[] lines = _bodyText.split("\n");
-        return lines;
-    }
+        // Create JavaTextDoc
+        JavaTextDoc javaTextDoc = new JavaTextDoc();
 
-    /**
-     * Returns a JFile of the JavaText without body text.
-     */
-    public JFile getEmptyJFile()
-    {
-        // Construct class/method wrapper for statements
-        String javaHeader = getHeaderText();
-        String javaBody = "void body() {\n\n\n}";
-        String javaTextStr = javaHeader + javaBody + "\n}\n}";
-
-        // Parse JavaText to JFile
-        JavaParser javaParser = JavaParser.getShared();
-        javaParser.setInput(javaTextStr);
-        JFile jfile = javaParser.parseCustom(JFile.class);
-        //jfile.setResolver(_resolver);
+        // Get/set text
+        String javaTextStr = getText();
+        javaTextDoc.setString(javaTextStr);
 
         // Return
-        return jfile;
+        return javaTextDoc;
     }
-
 }

@@ -13,9 +13,6 @@ import snap.parse.*;
 @SuppressWarnings({"unused", "StringEquality"})
 public class JavaParser extends JavaParserStmt {
 
-    // The Resolver
-    private Resolver  _resolver;
-
     // The exception, if one was hit
     private Exception  _exception;
 
@@ -38,16 +35,6 @@ public class JavaParser extends JavaParserStmt {
     {
         super();
     }
-
-    /**
-     * Returns the Resolver that is attached to parsed Java file.
-     */
-    public Resolver getResolver()  { return _resolver; }
-
-    /**
-     * Sets the Resolver that is attached to parsed Java file.
-     */
-    public void setResolver(Resolver aResolver)  { _resolver = aResolver; }
 
     /**
      * Returns the shared parser.
@@ -139,10 +126,8 @@ public class JavaParser extends JavaParserStmt {
         if (jfile == null)
             jfile = new JFile();
 
-        // Set Exception, Resolver
+        // Set Exception
         jfile.setException(_exception);
-        if (_resolver != null)
-            jfile.setResolver(_resolver);
 
         // Return
         return jfile;
