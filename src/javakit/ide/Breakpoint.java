@@ -1,4 +1,4 @@
-package javakit.resolver;
+package javakit.ide;
 import snap.util.SnapUtils;
 import snap.web.WebFile;
 

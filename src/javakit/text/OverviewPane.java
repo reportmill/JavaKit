@@ -7,7 +7,7 @@ import java.util.*;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
-import javakit.resolver.BuildIssue;
+import javakit.ide.BuildIssue;
 import snap.view.*;
 
 /**

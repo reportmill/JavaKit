@@ -4,7 +4,6 @@
 package javakit.text;
 import javakit.parse.*;
 import javakit.resolver.JavaDecl;
-import javakit.resolver.Project;
 import javakit.shell.JavaTextDoc;
 import snap.gfx.*;
 import snap.props.PropChange;
@@ -13,9 +12,6 @@ import snap.text.TextDoc;
 import snap.util.*;
 import snap.view.*;
 import snap.viewx.TextPane;
-import snap.web.WebFile;
-import snap.web.WebSite;
-import snap.web.WebURL;
 
 /**
  * A panel for editing Java files.
@@ -521,14 +517,8 @@ public class JavaTextPane extends TextPane {
      */
     public static void main(String[] args)
     {
-        // Get Scratch Site
-        WebURL scratchSiteURL = WebURL.getURL("/tmp/ScratchProj");
-        WebSite scratchSite = scratchSiteURL.getAsSite();
-        Project proj = new Project(scratchSite);
-
         // Get test file
-        WebFile testFile = proj.getSourceFile("/Test.java", false, false);
-        JavaTextDoc javaTextDoc = JavaTextDoc.newFromSource(testFile);
+        JavaTextDoc javaTextDoc = JavaTextDoc.newFromSource("/tmp/Test.java");
 
         // Create JavaPane and show
         JavaTextPane javaPane = new JavaTextPane();

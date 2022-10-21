@@ -1,4 +1,4 @@
-package javakit.resolver;
+package javakit.ide;
 import snap.props.PropObject;
 import snap.util.ArrayUtils;
 import snap.util.SnapUtils;

@@ -51,12 +51,6 @@ public class JFile extends JNode {
     public void setSourceFile(WebFile aFile)
     {
         _sourceFile = aFile;
-
-        // Get resolver
-        Project proj = Project.getProjectForFile(aFile);
-        _resolver = proj.getResolver();
-        if (_resolver == null)
-            System.err.println("JFile: setSourceFile: Couldn't find Resolver for Source file");
     }
 
     /**

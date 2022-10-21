@@ -3,13 +3,15 @@
  */
 package javakit.text;
 import java.util.*;
+
+import javakit.ide.Breakpoint;
+import javakit.ide.BuildIssue;
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
 import javakit.resolver.JavaExecutable;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
-import javakit.resolver.*;
 import snap.util.ArrayUtils;
 import snap.view.*;
 

@@ -1,4 +1,5 @@
-package javakit.resolver;
+package javakit.ide;
+import javakit.resolver.Resolver;
 import snap.props.PropChange;
 import snap.util.FilePathUtils;
 import snap.web.WebFile;
@@ -21,7 +22,7 @@ public class Project {
     protected ProjectFiles  _projFiles;
 
     // The resolver
-    protected Resolver  _resolver;
+    protected Resolver _resolver;
 
     // The ClassLoader for compiled class info
     protected ClassLoader  _classLoader;
