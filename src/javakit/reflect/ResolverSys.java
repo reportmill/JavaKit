@@ -3,6 +3,7 @@
  */
 package javakit.reflect;
 import java.lang.reflect.*;
+import java.util.Arrays;
 
 /**
  * A class that manages all the JavaDecls for a project.
@@ -36,7 +37,7 @@ public class ResolverSys extends Resolver {
 
         // If VarArgs, need to repackage args
         if (meth.isVarArgs())
-            theArgs = new Object[] { theArgs };
+            theArgs = repackageArgsForVarArgsMethod(meth, theArgs);
 
         // Invoke
         return meth.invoke(anObj, theArgs);
@@ -126,5 +127,42 @@ public class ResolverSys extends Resolver {
     public boolean isDefaultMethod(Method aMethod)
     {
         return aMethod.isDefault();
+    }
+
+    /**
+     * This method takes an array of args from a method call and repackages them for VarArgs call.
+     * It basically moves collates the var args into an array.
+     */
+    private static Object[] repackageArgsForVarArgsMethod(Method aMethod, Object[] theArgs)
+    {
+        // Get VarArg class
+        int argCount = aMethod.getParameterCount();
+        int varArgIndex = argCount - 1;
+        Class<?>[] paramClasses = aMethod.getParameterTypes();
+        Class<?> varArgArrayClass = paramClasses[varArgIndex];
+        Class<?> varArgClass = varArgArrayClass.getComponentType();
+
+        // If only one varArg and it is already packaged as VarArgArrayClass, just return
+        if (theArgs.length == argCount) {
+            Object firstVarArg = theArgs[varArgIndex];
+            if (firstVarArg.getClass() == varArgArrayClass)
+                return theArgs;
+        }
+
+        // Create new args array of proper length
+        Object[] args = Arrays.copyOf(theArgs, argCount);
+
+        // Create VarArgs array of proper class and set in new args array
+        int varArgsCount = theArgs.length - varArgIndex;
+        Object varArgArray = args[varArgIndex] = Array.newInstance(varArgClass, varArgsCount);
+
+        // Copy var args over from given args array to new VarArgsArray
+        for (int i = 0; i < varArgsCount; i++) {
+            Object varArg = theArgs[i + varArgIndex];
+            Array.set(varArgArray, i, varArg);
+        }
+
+        // Return
+        return args;
     }
 }

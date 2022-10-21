@@ -120,7 +120,8 @@ public class JavaText {
     {
         // Construct class/method wrapper for statements
         String javaHeader = getHeaderText();
-        String javaTextStr = javaHeader + "\n}\n}";
+        String javaBody = "void body() {\n\n\n}";
+        String javaTextStr = javaHeader + javaBody + "\n}\n}";
 
         // Parse JavaText to JFile
         JavaParser javaParser = JavaParser.getShared();

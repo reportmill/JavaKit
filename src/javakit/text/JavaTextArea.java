@@ -57,7 +57,6 @@ public class JavaTextArea extends TextArea {
         // Set default TextDoc to JavaTextDoc
         JavaTextDoc javaTextDoc = new JavaTextDoc();
         setTextDoc(javaTextDoc);
-        System.out.println("Class: " + getTextDoc().getClass().getName());
     }
 
     /**
