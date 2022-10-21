@@ -116,6 +116,15 @@ public class JavaTextDoc extends TextDoc {
     }
 
     /**
+     * Returns the parsed statements.
+     */
+    public JStmt[] getJFileStatements()
+    {
+        JFile jfile = getJFile();
+        return getStatementsForJavaNode(jfile);
+    }
+
+    /**
      * Override to clear JFile.
      */
     @Override
@@ -231,7 +240,7 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Returns an array of statements for given JFile.
      */
-    public JStmt[] getStatementsForJavaNode(JNode aJNode)
+    private JStmt[] getStatementsForJavaNode(JNode aJNode)
     {
         // Get last line for node
         int childCount = aJNode.getChildCount();

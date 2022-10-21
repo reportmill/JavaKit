@@ -59,13 +59,10 @@ public class JavaShell {
     /**
      * Evaluate string.
      */
-    public void runJavaCode(JavaTextDoc javaDoc)
+    public void runJavaCode(JavaTextDoc javaTextDoc)
     {
-        // Get file and set Resolver
-        JFile jfile = javaDoc.getJFile();
-
-        // Parse Java text to statements
-        JStmt[] javaStmts = javaDoc.getStatementsForJavaNode(jfile);
+        // Get parsed statements
+        JStmt[] javaStmts = javaTextDoc.getJFileStatements();
 
         // Set System out/err to catch console output
         System.setOut(_shellOut);
