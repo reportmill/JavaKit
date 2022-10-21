@@ -1,11 +1,9 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.reflect;
-import snap.web.FileSite;
+package javakit.resolver;
 import snap.web.WebSite;
 import snap.web.WebURL;
-
 import java.lang.reflect.*;
 
 /**

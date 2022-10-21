@@ -1,4 +1,4 @@
-package javakit.reflect;
+package javakit.resolver;
 import snap.web.WebFile;
 import snap.web.WebSite;
 import snap.web.WebURL;
@@ -41,9 +41,9 @@ public class StaticResolverGen {
         if (!_isRoot)
             appendln("import javakit.reflect.*;");
         if (_isRoot) {
-            appendln("import javakit.reflect.JavaField.FieldBuilder;");
-            appendln("import javakit.reflect.JavaMethod.MethodBuilder;");
-            appendln("import javakit.reflect.JavaConstructor.ConstructorBuilder;");
+            appendln("import javakit.resolver.JavaField.FieldBuilder;");
+            appendln("import javakit.resolver.JavaMethod.MethodBuilder;");
+            appendln("import javakit.resolver.JavaConstructor.ConstructorBuilder;");
             appendln("import snap.util.SnapUtils;");
         }
         appendln("import java.io.PrintStream;");
@@ -75,7 +75,7 @@ public class StaticResolverGen {
         }
         else {
             append("public class StaticResolver ");
-            append("extends ").append(javakit.reflect.StaticResolver.class.getName()).appendln(" {");
+            append("extends ").append(StaticResolver.class.getName()).appendln(" {");
             appendln("");
         }
     }

@@ -1,9 +1,8 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.reflect;
+package javakit.resolver;
 import snap.util.StringUtils;
-import java.lang.reflect.*;
 
 /**
  * A class to represent a declaration of a Java Class, Method, Field or Constructor.

@@ -3,7 +3,6 @@
  */
 package javakit.resolver;
 import java.util.*;
-import javakit.reflect.Resolver;
 import javakit.resolver.ClassTree.*;
 import snap.util.*;
 import snap.web.*;

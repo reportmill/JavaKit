@@ -1,7 +1,6 @@
 package javakit.parse;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-
+import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaClass;
 import java.util.Collections;
 import java.util.List;
 

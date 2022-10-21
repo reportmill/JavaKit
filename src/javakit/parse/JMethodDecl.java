@@ -2,9 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaType;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaClass;
+import javakit.resolver.JavaType;
 
 /**
  * A Java member for a method declaration.

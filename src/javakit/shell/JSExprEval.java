@@ -7,9 +7,10 @@ import java.util.*;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import javakit.parse.*;
-import javakit.reflect.*;
+
 import static javakit.shell.JSExprEvalUtils.*;
 
+import javakit.resolver.*;
 import snap.props.PropObject;
 import snap.util.*;
 import snap.view.EventListener;
@@ -26,7 +27,7 @@ public class JSExprEval {
     private JSVarStack _varStack = new JSVarStack();
 
     // A Resolver
-    protected Resolver  _resolver;
+    protected Resolver _resolver;
 
     /**
      * Constructor.

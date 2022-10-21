@@ -2,7 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.reflect.JavaDecl;
+import javakit.resolver.JavaDecl;
 import java.util.List;
 import java.util.regex.Matcher;
 

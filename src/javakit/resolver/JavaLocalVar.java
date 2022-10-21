@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.reflect;
+package javakit.resolver;
 
 /**
  * This class represents a local variable definition in a statement block, for-loop declaration or catch block.

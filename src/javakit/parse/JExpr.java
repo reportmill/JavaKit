@@ -2,11 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaType;
-
+import javakit.resolver.JavaClass;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaType;
 import java.util.List;
 
 /**

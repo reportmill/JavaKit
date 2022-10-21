@@ -1,6 +1,5 @@
 package javakit.parse;
-
-import javakit.reflect.*;
+import javakit.resolver.*;
 
 /**
  * A JExpr subclass for identifiers.

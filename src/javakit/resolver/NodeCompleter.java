@@ -8,14 +8,13 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javakit.parse.*;
-import javakit.reflect.*;
 import snap.parse.ParseToken;
 import snap.util.StringUtils;
 
 /**
  * A class to provide code completion suggestions for a given JNode.
  */
-public class JavaCompleter {
+public class NodeCompleter {
 
     // The node
     private JNode  _node;
@@ -29,7 +28,7 @@ public class JavaCompleter {
     /**
      * Constructor.
      */
-    public JavaCompleter()
+    public NodeCompleter()
     {
         super();
     }

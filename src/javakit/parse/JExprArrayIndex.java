@@ -1,6 +1,6 @@
 package javakit.parse;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaDecl;
+import javakit.resolver.JavaClass;
+import javakit.resolver.JavaDecl;
 
 /**
  * A JExpr subclass for ArrayIndex expressions.

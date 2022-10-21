@@ -5,7 +5,7 @@ package javakit.parse;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
-import javakit.reflect.*;
+import javakit.resolver.*;
 import snap.util.*;
 
 /**

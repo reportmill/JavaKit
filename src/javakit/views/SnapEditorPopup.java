@@ -1,8 +1,8 @@
 package javakit.views;
 
 import javakit.parse.*;
-import javakit.reflect.JavaDecl;
-import javakit.resolver.JavaCompleter;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.NodeCompleter;
 import snap.gfx.Font;
 import snap.parse.Parser;
 import snap.util.SnapUtils;
@@ -70,7 +70,7 @@ public class SnapEditorPopup extends ViewOwner {
         _idText = id.getName();
 
         // Get suggestions
-        JavaDecl suggestions[] = new JavaCompleter().getCompletionsForNode(id);
+        JavaDecl suggestions[] = new NodeCompleter().getCompletionsForNode(id);
         if (suggestions.length == 0) {
             hide();
             return;

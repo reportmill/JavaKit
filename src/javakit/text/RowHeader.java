@@ -5,7 +5,7 @@ package javakit.text;
 import java.util.*;
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
-import javakit.reflect.JavaExecutable;
+import javakit.resolver.JavaExecutable;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;

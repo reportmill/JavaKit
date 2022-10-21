@@ -1,7 +1,6 @@
 package javakit.parse;
-
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaType;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaType;
 
 /**
  * An class to represent expressions that include an operator (math, logical, etc.).

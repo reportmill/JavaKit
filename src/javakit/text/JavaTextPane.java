@@ -3,7 +3,7 @@
  */
 package javakit.text;
 import javakit.parse.*;
-import javakit.reflect.JavaDecl;
+import javakit.resolver.JavaDecl;
 import javakit.resolver.Project;
 import javakit.shell.JavaTextDoc;
 import snap.gfx.*;

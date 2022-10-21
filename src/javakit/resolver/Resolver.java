@@ -1,10 +1,9 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.reflect;
+package javakit.resolver;
 import java.lang.reflect.*;
 import java.util.*;
-import javakit.resolver.ClassPathInfo;
 import snap.util.ArrayUtils;
 import snap.util.ClassUtils;
 import snap.util.SnapUtils;
@@ -463,7 +462,7 @@ public class Resolver {
 
         // Otherwise, use ResolverSys (Use reflection and silly conditional to stymie TeaVM)
         try {
-            String className = !SnapUtils.isTeaVM ? "javakit.reflect.ResolverSys" : "don't judge me";
+            String className = !SnapUtils.isTeaVM ? "javakit.resolver.ResolverSys" : "don't judge me";
             Class<?> resolverClass = Class.forName(className);
             Resolver resolver = (Resolver) resolverClass.newInstance();
             resolver._classLoader = aClassLoader;

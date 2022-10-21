@@ -2,8 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
-import javakit.reflect.*;
+import javakit.resolver.*;
 
 import java.util.*;
 

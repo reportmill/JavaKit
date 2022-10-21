@@ -4,7 +4,7 @@
 package javakit.parse;
 import java.util.*;
 import java.util.stream.Stream;
-import javakit.reflect.Resolver;
+import javakit.resolver.Resolver;
 import snap.parse.*;
 
 /**

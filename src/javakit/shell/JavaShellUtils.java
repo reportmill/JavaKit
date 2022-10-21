@@ -3,8 +3,8 @@
  */
 package javakit.shell;
 import javakit.parse.*;
-import javakit.reflect.JavaType;
-import javakit.reflect.Resolver;
+import javakit.resolver.JavaType;
+import javakit.resolver.Resolver;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Array;

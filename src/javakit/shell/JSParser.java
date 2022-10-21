@@ -1,6 +1,6 @@
 package javakit.shell;
 import javakit.parse.*;
-import javakit.reflect.Resolver;
+import javakit.resolver.Resolver;
 import snap.parse.ParseHandler;
 import snap.parse.ParseRule;
 import snap.parse.Parser;

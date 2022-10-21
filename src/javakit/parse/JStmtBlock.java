@@ -2,11 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.util.*;
 import java.util.regex.Matcher;
-
-import javakit.reflect.JavaDecl;
+import javakit.resolver.JavaDecl;
 
 /**
  * A Java statement for a block of statements.

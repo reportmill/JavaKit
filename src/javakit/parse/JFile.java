@@ -3,8 +3,6 @@
  */
 package javakit.parse;
 import java.util.*;
-
-import javakit.reflect.*;
 import javakit.resolver.*;
 import snap.web.WebFile;
 

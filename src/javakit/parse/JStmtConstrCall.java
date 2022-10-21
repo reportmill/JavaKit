@@ -1,11 +1,9 @@
 package javakit.parse;
-
 import java.util.*;
-
-import javakit.reflect.JavaClassUtils;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaType;
+import javakit.resolver.JavaClassUtils;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaClass;
+import javakit.resolver.JavaType;
 import snap.util.ListUtils;
 
 /**

@@ -2,7 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.reflect.JavaDecl;
+import javakit.resolver.JavaDecl;
 
 /**
  * A Java statement for statements that are just expressions (increment, decrement, assignment).

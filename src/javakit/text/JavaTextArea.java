@@ -4,9 +4,9 @@
 package javakit.text;
 import java.util.*;
 import javakit.parse.*;
-import javakit.reflect.JavaClass;
-import javakit.reflect.JavaDecl;
-import javakit.reflect.NodeMatcher;
+import javakit.resolver.JavaClass;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.NodeMatcher;
 import javakit.shell.JavaTextDoc;
 import snap.geom.Rect;
 import snap.gfx.*;
@@ -144,7 +144,7 @@ public class JavaTextArea extends TextArea {
             return null;
 
         // Get completions and return
-        JavaCompleter javaCompleter = new JavaCompleter();
+        NodeCompleter javaCompleter = new NodeCompleter();
         JavaDecl[] completions = javaCompleter.getCompletionsForNode(selNode);
         return completions;
     }

@@ -3,7 +3,7 @@
  */
 package javakit.parse;
 import java.util.*;
-import javakit.reflect.JavaDecl;
+import javakit.resolver.JavaDecl;
 import snap.util.SnapUtils;
 
 /**

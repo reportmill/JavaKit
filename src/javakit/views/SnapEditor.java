@@ -3,7 +3,7 @@ package javakit.views;
 import java.util.List;
 
 import javakit.parse.*;
-import javakit.reflect.JavaClass;
+import javakit.resolver.JavaClass;
 import snap.text.TextBoxLine;
 import javakit.text.JavaTextArea;
 import snap.view.*;

@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import javakit.parse.JNode;
 import javakit.parse.JStmtBlock;
-import javakit.reflect.JavaClass;
+import javakit.resolver.JavaClass;
 import snap.geom.*;
 import snap.text.*;
 import snap.view.*;

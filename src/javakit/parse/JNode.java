@@ -4,7 +4,7 @@
 package javakit.parse;
 import java.util.*;
 import java.util.regex.Matcher;
-import javakit.reflect.*;
+import javakit.resolver.*;
 import snap.parse.ParseToken;
 import snap.util.*;
 
@@ -29,7 +29,7 @@ public class JNode {
     protected JavaDecl  _decl;
 
     // The type this node evaluates to (resolved, if TypeVar)
-    protected JavaType  _evalType;
+    protected JavaType _evalType;
 
     /**
      * Returns the parent file node (root).

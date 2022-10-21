@@ -1,7 +1,7 @@
-package javakit.reflect;
-import javakit.reflect.JavaField.FieldBuilder;
-import javakit.reflect.JavaMethod.MethodBuilder;
-import javakit.reflect.JavaConstructor.ConstructorBuilder;
+package javakit.resolver;
+import javakit.resolver.JavaField.FieldBuilder;
+import javakit.resolver.JavaMethod.MethodBuilder;
+import javakit.resolver.JavaConstructor.ConstructorBuilder;
 import snap.util.SnapUtils;
 import java.io.PrintStream;
 

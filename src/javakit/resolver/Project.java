@@ -1,10 +1,8 @@
 package javakit.resolver;
-import javakit.reflect.Resolver;
 import snap.props.PropChange;
 import snap.util.FilePathUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
-
 import java.net.URL;
 import java.net.URLClassLoader;
 
