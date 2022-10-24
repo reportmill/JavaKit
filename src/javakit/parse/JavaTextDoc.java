@@ -3,7 +3,7 @@
  */
 package javakit.parse;
 import javakit.resolver.Resolver;
-import javakit.app.JavaTextUtils;
+import javakit.ide.JavaTextUtils;
 import snap.gfx.Color;
 import snap.gfx.Font;
 import snap.parse.*;

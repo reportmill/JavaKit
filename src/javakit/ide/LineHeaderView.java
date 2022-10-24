@@ -1,11 +1,9 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.app;
+package javakit.ide;
 import java.util.*;
 
-import javakit.ide.Breakpoint;
-import javakit.ide.BuildIssue;
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
 import javakit.resolver.JavaExecutable;
@@ -18,13 +16,13 @@ import snap.view.*;
 /**
  * A component to paint row markers.
  */
-public class RowHeader extends View {
+public class LineHeaderView extends View {
 
     // The JavaTextPane that contains this RowHeader
-    private JavaTextPane  _textPane;
+    private JavaTextPane _textPane;
 
     // The JavaTextArea
-    private JavaTextArea  _textArea;
+    private JavaTextArea _textArea;
 
     // The list of markers
     private Marker<?>[] _markers;
@@ -45,7 +43,7 @@ public class RowHeader extends View {
     /**
      * Creates a new RowHeader.
      */
-    public RowHeader(JavaTextPane aJTP)
+    public LineHeaderView(JavaTextPane aJTP)
     {
         // Set ivars
         _textPane = aJTP;

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.app;
+package javakit.ide;
 import java.util.List;
 import javakit.parse.JFile;
 import javakit.parse.JImportDecl;

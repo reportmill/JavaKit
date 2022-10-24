@@ -1,25 +1,23 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.app;
+package javakit.ide;
 import java.util.*;
-
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
-import javakit.ide.BuildIssue;
 import snap.view.*;
 
 /**
  * A component to show locations of Errors, warnings, selected symbols, etc.
  */
-public class OverviewPane extends View {
+public class LineFooterView extends View {
 
     // The JavaTextPane holding this Overview
-    private JavaTextPane  _textPane;
+    private JavaTextPane _textPane;
 
     // The JavaTextArea
-    private JavaTextArea  _textArea;
+    private JavaTextArea _textArea;
 
     // The list of markers
     private Marker<?>[]  _markers;
@@ -34,7 +32,7 @@ public class OverviewPane extends View {
     /**
      * Creates a new OverviewPane.
      */
-    public OverviewPane(JavaTextPane aJTP)
+    public LineFooterView(JavaTextPane aJTP)
     {
         // Set vars
         _textPane = aJTP;

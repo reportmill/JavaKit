@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.app;
+package javakit.ide;
 import javakit.resolver.JavaDecl;
 import snap.gfx.Font;
 import snap.gfx.Image;

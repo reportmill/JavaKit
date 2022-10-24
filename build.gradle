@@ -33,6 +33,6 @@ dependencies {
     }
 }
 
-mainClassName = 'javakit.app.JavaTextPane'
+mainClassName = 'javakit.ide.JavaTextPane'
 
 

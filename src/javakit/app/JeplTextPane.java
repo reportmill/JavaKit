@@ -2,6 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.app;
+import javakit.ide.JavaTextArea;
+import javakit.ide.JavaTextUtils;
 import javakit.parse.JavaReplDoc;
 import snap.gfx.Color;
 import snap.gfx.Font;

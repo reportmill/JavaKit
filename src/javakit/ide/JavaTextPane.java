@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.app;
+package javakit.ide;
 import javakit.parse.*;
 import javakit.resolver.JavaDecl;
 import javakit.parse.JavaTextDoc;
@@ -25,10 +25,10 @@ public class JavaTextPane extends TextPane {
     private SplitView  _splitView;
 
     // The RowHeader
-    private RowHeader  _rowHeader;
+    private LineHeaderView _lineHeaderView;
 
     // The OverView
-    private OverviewPane  _overviewPane;
+    private LineFooterView _lineFooterView;
 
     // The code builder
     private CodeBuilder  _codeBuilder;
@@ -122,14 +122,14 @@ public class JavaTextPane extends TextPane {
         _textArea.setFont(new Font(_textArea.getDefaultFont().getName(), fontSize));
 
         // Get TextArea.RowHeader and configure
-        _rowHeader = new RowHeader(this);
+        _lineHeaderView = new LineHeaderView(this);
 
         // Get ScrollView and add RowHeader
         ScrollView scrollView = getView("ScrollView", ScrollView.class);
         scrollView.setGrowWidth(true);
         RowView scrollViewContent = new RowView();
         scrollViewContent.setFillHeight(true);
-        scrollViewContent.setChildren(_rowHeader, _textArea);
+        scrollViewContent.setChildren(_lineHeaderView, _textArea);
         scrollView.setContent(scrollViewContent);
 
         // Get SplitView and add ScrollView and CodeBuilder
@@ -138,8 +138,8 @@ public class JavaTextPane extends TextPane {
         getUI(BorderView.class).setCenter(_splitView);
 
         // Get OverviewPane and set JavaTextArea
-        _overviewPane = new OverviewPane(this);
-        getUI(BorderView.class).setRight(_overviewPane);
+        _lineFooterView = new LineFooterView(this);
+        getUI(BorderView.class).setRight(_lineFooterView);
     }
 
     /**
@@ -497,8 +497,8 @@ public class JavaTextPane extends TextPane {
         if (propName == TextDoc.Chars_Prop) {
             boolean hasUndos = getTextArea().getUndoer().hasUndos();
             setTextModified(hasUndos);
-            _rowHeader.resetAll();
-            _overviewPane.resetAll();
+            _lineHeaderView.resetAll();
+            _lineFooterView.resetAll();
         }
     }
 
@@ -507,8 +507,8 @@ public class JavaTextPane extends TextPane {
      */
     public void buildIssueOrBreakPointMarkerChanged()
     {
-        _rowHeader.resetAll();
-        _overviewPane.resetAll();
+        _lineHeaderView.resetAll();
+        _lineFooterView.resetAll();
         _textArea.repaint();
     }
 

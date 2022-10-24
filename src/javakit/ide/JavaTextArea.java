@@ -1,12 +1,8 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.app;
+package javakit.ide;
 import java.util.*;
-
-import javakit.ide.Breakpoint;
-import javakit.ide.Breakpoints;
-import javakit.ide.BuildIssue;
 import javakit.parse.*;
 import javakit.resolver.JavaClass;
 import javakit.resolver.JavaDecl;
