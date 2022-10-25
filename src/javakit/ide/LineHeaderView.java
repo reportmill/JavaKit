@@ -19,19 +19,33 @@ import snap.view.*;
 public class LineHeaderView extends View {
 
     // The JavaTextPane that contains this RowHeader
-    private JavaTextPane _textPane;
+    private JavaTextPane  _textPane;
 
-    // The JavaTextArea
-    private JavaTextArea _textArea;
+    // The TextArea
+    private TextArea  _textArea;
+
+    // The Java TextArea
+    private JavaTextArea  _javaTextArea;
+
+    // Whether to show line numbers
+    private boolean  _showLineNumbers = true;
+
+    // Whether to show line markers
+    private boolean  _showLineMarkers = true;
 
     // The list of markers
-    private Marker<?>[] _markers;
+    private Marker<?>[]  _markers;
 
     // The last mouse moved position
     private double  _mx, _my;
 
-    // Width of this component
-    public static final int WIDTH = 12;
+    // Constants
+    private static Color BACKGROUND_FILL = new Color(.98);
+    private static Color LINE_NUMBERS_COLOR = Color.GRAY5;
+
+    // Constants for Numbers/Markers width
+    public static final int LINE_MARKERS_WIDTH = 12;
+    public static final int LINE_NUMBERS_WIDTH = 25;
 
     // The marker images for Error, Warning, Breakpoint, Implements, Override
     static Image _errorImage = Image.get(JavaTextUtils.class, "ErrorMarker.png");
@@ -43,31 +57,55 @@ public class LineHeaderView extends View {
     /**
      * Creates a new RowHeader.
      */
-    public LineHeaderView(JavaTextPane aJTP)
+    public LineHeaderView(JavaTextPane aJTP, TextArea aTextArea)
     {
         // Set ivars
         _textPane = aJTP;
-        _textArea = aJTP.getTextArea();
+        _textArea = aTextArea;
+        _javaTextArea = aTextArea instanceof JavaTextArea ? (JavaTextArea) aTextArea : null;
 
         // Config
         enableEvents(MouseMove, MouseRelease);
         setToolTipEnabled(true);
-        setFill(new Color(233, 233, 233));
-        setPrefWidth(WIDTH);
+        setFill(BACKGROUND_FILL);
+
+        // Set PrefWidth
+        setPrefWidth((_showLineMarkers ? LINE_MARKERS_WIDTH : 0) + (_showLineNumbers ? LINE_NUMBERS_WIDTH : 0));
     }
 
     /**
-     * Returns the JavaTextArea.
+     * Returns whether to show line numbers.
      */
-    public JavaTextPane getTextPane()
+    public boolean isShowLineNumbers()  { return _showLineNumbers; }
+
+    /**
+     * Sets whether to show line numbers.
+     */
+    public void setShowLineNumbers(boolean aValue)
     {
-        return _textPane;
+        if (aValue == isShowLineNumbers()) return;
+        _showLineNumbers = aValue;
+
+        // Adjust PrefWidth
+        setPrefWidth((_showLineMarkers ? LINE_MARKERS_WIDTH : 0) + (_showLineNumbers ? LINE_NUMBERS_WIDTH : 0));
     }
 
     /**
-     * Returns the JavaTextArea.
+     * Returns whether to show line markers.
      */
-    public JavaTextArea getTextArea()  { return _textArea; }
+    public boolean isShowLineMarkers()  { return _showLineMarkers; }
+
+    /**
+     * Sets whether to show line markers.
+     */
+    public void setShowLineMarkers(boolean aValue)
+    {
+        if (aValue == isShowLineMarkers()) return;
+        _showLineMarkers = aValue;
+
+        // Adjust PrefWidth
+        setPrefWidth((_showLineMarkers ? LINE_MARKERS_WIDTH : 0) + (_showLineNumbers ? LINE_NUMBERS_WIDTH : 0));
+    }
 
     /**
      * Sets the JavaTextArea selection.
@@ -95,27 +133,30 @@ public class LineHeaderView extends View {
      */
     protected Marker<?>[] createMarkers()
     {
+        // If no JavaTextArea, just return
+        if (_javaTextArea == null) return new Marker[0];
+
         // Create list
         List<Marker<?>> markers = new ArrayList<>();
 
         // Add markers for member Overrides/Implements
-        JClassDecl cd = _textArea.getJFile().getClassDecl();
+        JClassDecl cd = _javaTextArea.getJFile().getClassDecl();
         if (cd != null)
             getSuperMemberMarkers(cd, markers);
 
         // Add markers for BuildIssues
-        BuildIssue[] buildIssues = _textArea.getBuildIssues();
+        BuildIssue[] buildIssues = _javaTextArea.getBuildIssues();
         for (BuildIssue issue : buildIssues)
             if (issue.getEnd() < _textArea.length())
                 markers.add(new BuildIssueMarker(issue));
 
         // Add markers for breakpoints
-        List<Breakpoint> breakpointsList = _textArea.getBreakpoints();
+        List<Breakpoint> breakpointsList = _javaTextArea.getBreakpoints();
         if (breakpointsList != null) {
             for (Breakpoint bp : breakpointsList) {
                 if (bp.getLine() < _textArea.getLineCount())
                     markers.add(new BreakpointMarker(bp));
-                else _textArea.removeBreakpoint(bp);
+                else _javaTextArea.removeBreakpoint(bp);
             }
         }
 
@@ -150,6 +191,8 @@ public class LineHeaderView extends View {
      */
     protected void processEvent(ViewEvent anEvent)
     {
+        if (_javaTextArea == null) return;
+
         // Handle MouseClick
         if (anEvent.isMouseClick()) {
 
@@ -168,7 +211,7 @@ public class LineHeaderView extends View {
                 }
                 TextBoxLine line = _textArea.getTextBox().getLineForY(anEvent.getY());
                 int lineIndex = line.getIndex();
-                _textArea.addBreakpoint(lineIndex);
+                _javaTextArea.addBreakpoint(lineIndex);
                 resetAll();
                 return;
             }
@@ -204,6 +247,49 @@ public class LineHeaderView extends View {
         aPntr.setStroke(Stroke.Stroke1);
         for (Marker<?> m : getMarkers())
             aPntr.drawImage(m._image, m.x, m.y);
+
+        if (isShowLineNumbers())
+            paintLineNumbers(aPntr);
+    }
+
+    /**
+     * Paint line numbers.
+     */
+    protected void paintLineNumbers(Painter aPntr)
+    {
+        // Get/set Font and TextColor
+        Font font = _textArea.getDefaultStyle().getFont();
+        aPntr.setFont(font);
+        aPntr.setColor(LINE_NUMBERS_COLOR);
+
+        // Get current Painter.ClipBounds to restrict painted line numbers
+        Rect clipRect = aPntr.getClipBounds();
+        double clipY = clipRect.y;
+        double clipMaxY = clipRect.getMaxY();
+
+        // Get start line index for ClipY
+        TextBoxLine startLine = _textArea.getTextBox().getLineForY(clipY);
+        int startLineIndex = startLine.getIndex();
+        int lineCount = _textArea.getLineCount();
+        double maxX = 20;
+
+        // Iterate over lines and paint line number for each
+        for (int i = startLineIndex; i < lineCount; i++) {
+
+            // Get lineY (baseline)
+            TextBoxLine textLine = _textArea.getLine(i);
+            double lineY = textLine.getY() + textLine.getAscent();
+
+            // Get String, Width and X
+            String str = String.valueOf(i + 1);
+            double strW = font.getStringAdvance(str);
+            double strX = maxX - strW;
+            aPntr.drawString(String.valueOf(i+1), strX, lineY);
+
+            // If below clip, just return
+            if (lineY > clipMaxY)
+                return;
+        }
     }
 
     /**
@@ -222,13 +308,11 @@ public class LineHeaderView extends View {
      */
     public abstract static class Marker<T> extends Rect {
 
-        /**
-         * The object that is being marked.
-         */
-        T _target;
+        // The object that is being marked.
+        protected T  _target;
 
         // The image
-        Image _image;
+        protected Image  _image;
 
         /**
          * Creates a new marker for target.
@@ -236,7 +320,7 @@ public class LineHeaderView extends View {
         public Marker(T aTarget)
         {
             _target = aTarget;
-            setRect(-2, 0, WIDTH, WIDTH);
+            setRect(-2, 0, LINE_MARKERS_WIDTH, LINE_MARKERS_WIDTH);
         }
 
         /**
@@ -255,8 +339,9 @@ public class LineHeaderView extends View {
      */
     public class SuperMemberMarker extends Marker<JMemberDecl> {
 
-        JavaExecutable _superDecl;
-        boolean _interface;
+        // Ivars
+        private JavaExecutable  _superDecl;
+        private boolean  _interface;
 
         /**
          * Creates a new marker for target.
@@ -266,26 +351,28 @@ public class LineHeaderView extends View {
             super(aTarget);
             _superDecl = aTarget.getSuperDecl();
             _interface = aTarget.isSuperDeclInterface();
-            TextBoxLine line = _textArea.getLine(aTarget.getLineIndex());
-            setY(Math.round(line.getY()));
+
+            // Get/set Y from line
+            int lineIndex = aTarget.getLineIndex();
+            TextBoxLine textLine = _textArea.getLine(lineIndex);
+            setY(Math.round(textLine.getY()));
+
+            // Set image
             _image = isInterface() ? _implImage : _overImage;
         }
 
         /**
          * Returns whether is interface.
          */
-        public boolean isInterface()
-        {
-            return _interface;
-        }
+        public boolean isInterface()  { return _interface;  }
 
         /**
          * Returns a tooltip.
          */
         public String getToolTip()
         {
-            String cname = _superDecl.getDeclaringClassName();
-            return (isInterface() ? "Implements " : "Overrides ") + cname + '.' + _target.getName();
+            String className = _superDecl.getDeclaringClassName();
+            return (isInterface() ? "Implements " : "Overrides ") + className + '.' + _target.getName();
         }
 
         /**
@@ -303,7 +390,7 @@ public class LineHeaderView extends View {
     public class BuildIssueMarker extends Marker<BuildIssue> {
 
         // Whether issue is error
-        boolean _isError;
+        private boolean  _isError;
 
         /**
          * Creates a new marker for target.
@@ -312,18 +399,20 @@ public class LineHeaderView extends View {
         {
             super(aTarget);
             _isError = aTarget.isError();
-            TextBoxLine line = _textArea.getLineForCharIndex(aTarget.getEnd());
-            setY(Math.round(line.getY()));
+
+            // Get/set Y from line
+            int charIndex = aTarget.getEnd();
+            TextBoxLine textLine = _textArea.getLineForCharIndex(charIndex);
+            setY(Math.round(textLine.getY()));
+
+            // Set image
             _image = _isError ? _errorImage : _warningImage;
         }
 
         /**
          * Returns a tooltip.
          */
-        public String getToolTip()
-        {
-            return _target.getText();
-        }
+        public String getToolTip()  { return _target.getText(); }
 
         /**
          * Handles MouseClick.
@@ -353,10 +442,7 @@ public class LineHeaderView extends View {
         /**
          * Returns a tooltip.
          */
-        public String getToolTip()
-        {
-            return _target.toString();
-        }
+        public String getToolTip()  { return _target.toString(); }
 
         /**
          * Handles MouseClick.
@@ -364,7 +450,7 @@ public class LineHeaderView extends View {
         public void mouseClicked(ViewEvent anEvent)
         {
             if (anEvent.getClickCount() == 2)
-                _textArea.removeBreakpoint(_target);
+                _javaTextArea.removeBreakpoint(_target);
             resetAll();
         }
     }

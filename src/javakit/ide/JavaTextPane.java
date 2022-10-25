@@ -122,7 +122,7 @@ public class JavaTextPane extends TextPane {
         _textArea.setFont(new Font(_textArea.getDefaultFont().getName(), fontSize));
 
         // Get TextArea.RowHeader and configure
-        _lineHeaderView = new LineHeaderView(this);
+        _lineHeaderView = new LineHeaderView(this, getTextArea());
 
         // Get ScrollView and add RowHeader
         ScrollView scrollView = getView("ScrollView", ScrollView.class);
