@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.parse;
 import javakit.resolver.JavaClass;
 import javakit.resolver.JavaDecl;

@@ -1,7 +1,10 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.parse;
 
 /**
- * A custom class.
+ * This JExpr subclass represents a method reference: obj::method.
  */
 public class JExprMethodRef extends JExpr {
 
@@ -33,17 +36,15 @@ public class JExprMethodRef extends JExpr {
      */
     public void setExpr(JExpr anExpr)
     {
-        if (_expr == null) addChild(_expr = anExpr, 0);
+        if (_expr == null)
+            addChild(_expr = anExpr, 0);
         else replaceChild(_expr, _expr = anExpr);
     }
 
     /**
      * Returns the identifier.
      */
-    public JExprId getId()
-    {
-        return _id;
-    }
+    public JExprId getId()  { return _id; }
 
     /**
      * Sets the identifier.
@@ -56,9 +57,5 @@ public class JExprMethodRef extends JExpr {
     /**
      * Returns the node name.
      */
-    public String getNodeString()
-    {
-        return "MethodRef";
-    }
-
+    public String getNodeString()  { return "MethodRef"; }
 }

@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.parse;
 import javakit.resolver.JavaDecl;
 
@@ -7,7 +10,7 @@ import javakit.resolver.JavaDecl;
 public class JExprType extends JExpr {
 
     // The type
-    JType _type;
+    JType  _type;
 
     /**
      * Creates a new JExprType for given JType.
@@ -20,10 +23,7 @@ public class JExprType extends JExpr {
     /**
      * Returns the cast JType.
      */
-    public JType getType()
-    {
-        return _type;
-    }
+    public JType getType()  { return _type; }
 
     /**
      * Sets the cast JType.
@@ -37,10 +37,7 @@ public class JExprType extends JExpr {
     /**
      * Returns the node name.
      */
-    public String getNodeString()
-    {
-        return "Type";
-    }
+    public String getNodeString()  { return "Type"; }
 
     /**
      * Override to return declaration of type.
@@ -49,5 +46,4 @@ public class JExprType extends JExpr {
     {
         return _type.getDecl();
     }
-
 }

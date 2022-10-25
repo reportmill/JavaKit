@@ -1,9 +1,12 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.parse;
 import javakit.resolver.JavaDecl;
 import javakit.resolver.JavaType;
 
 /**
- * An class to represent expressions that include an operator (math, logical, etc.).
+ * A class to represent assignment expressions (including +=, -=, etc.).
  */
 public class JExprAssign extends JExpr {
 
