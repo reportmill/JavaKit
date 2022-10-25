@@ -2,20 +2,24 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.runner.JavaShell;
 import snap.props.PropObject;
 import snap.props.PropSet;
 import snap.text.SubText;
 import snap.text.TextLine;
-import snap.util.SnapUtils;
 import snap.web.WebFile;
 import snap.web.WebURL;
-import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * This class manages collections of snippets.
  */
 public class JavaReplDoc extends PropObject {
+
+    // The name
+    private String  _name;
+
+    // The url for contents of doc
+    private WebURL  _sourceURL;
 
     // The JavaTextDoc
     private JavaTextDoc  _javaDoc;
@@ -23,23 +27,8 @@ public class JavaReplDoc extends PropObject {
     // The JavaTextDoc
     private SubText  _replDoc;
 
-    // The name
-    private String  _name;
-
-    // Whether notebook needs update
-    private boolean  _needsUpdate;
-
-    // The JavaShell
-    protected JavaShell _javaShell;
-
-    // The Repl values by line
-    private Object[]  _lineValues;
-
-    // The Repl values by line
-    private Object[]  _replValues;
-
     // Constants for properties
-    public static final String NeedsUpdate_Prop = "NeedsUpdate";
+    public static final String SourceURL_Prop = "SourceURL";
 
     /**
      * Constructor.
@@ -47,9 +36,19 @@ public class JavaReplDoc extends PropObject {
     public JavaReplDoc()
     {
         super();
+    }
 
-        // Create JavaShell
-        _javaShell = new JavaShell();
+    /**
+     * Returns the name.
+     */
+    public String getName()  { return _name; }
+
+    /**
+     * Sets the name.
+     */
+    public void setName(String aName)
+    {
+        _name = aName;
     }
 
     /**
@@ -60,7 +59,11 @@ public class JavaReplDoc extends PropObject {
     /**
      * Sets the source url.
      */
-    public void setSourceURL(WebURL aURL)  { }
+    public void setSourceURL(WebURL aURL)
+    {
+        if (Objects.equals(aURL, getSourceURL())) return;
+        firePropChange(SourceURL_Prop, _sourceURL, _sourceURL = aURL);
+    }
 
     /**
      * Returns the JavaDoc.
@@ -111,76 +114,12 @@ public class JavaReplDoc extends PropObject {
     }
 
     /**
-     * Returns the name.
-     */
-    public String getName()  { return _name; }
-
-    /**
-     * Sets the name.
-     */
-    public void setName(String aName)
-    {
-        _name = aName;
-    }
-
-    /**
-     * Returns whether notebook needs update.
-     */
-    public boolean isNeedsUpdate()  { return _needsUpdate; }
-
-    /**
-     * Sets whether notebook needs update.
-     */
-    protected void setNeedsUpdate(boolean aValue)
-    {
-        if (aValue == isNeedsUpdate()) return;
-        firePropChange(NeedsUpdate_Prop, _needsUpdate, _needsUpdate = aValue);
-    }
-
-    /**
-     * Updates the notebook.
-     */
-    public void updateDocValues()
-    {
-        // Run JavaCode
-        JavaTextDoc javaDoc = getJavaDoc();
-        _javaShell.runJavaCode(javaDoc);
-
-        // Get line values
-        _lineValues = _javaShell.getLineValues();
-
-        int replStartCharIndex = _replDoc.getStartCharIndex();
-        int replStartLineIndex = _javaDoc.getLineForCharIndex(replStartCharIndex).getIndex();
-        _replValues = Arrays.copyOfRange(_lineValues, replStartLineIndex, _lineValues.length);
-
-        // Reset NeedsUpdate
-        setNeedsUpdate(false);
-    }
-
-    /**
-     * Returns all Repl values.
-     */
-    public Object[] getReplValues()  { return _replValues; }
-
-    /**
-     * Returns the Repl value for line.
-     */
-    public Object getReplValueForLineIndex(int lineIndex)
-    {
-        int replStartCharIndex = _replDoc.getStartCharIndex();
-        int replStartLineIndex = _javaDoc.getLineForCharIndex(replStartCharIndex).getIndex();
-        int replLineIndex = replStartLineIndex + lineIndex;
-        Object replValue = replLineIndex >= 0 && replLineIndex < _lineValues.length ? _lineValues[replLineIndex] : null;
-        return replValue;
-    }
-
-    /**
      * Override to register props.
      */
     @Override
     protected void initProps(PropSet aPropSet)
     {
-        aPropSet.addPropNamed(NeedsUpdate_Prop, boolean.class, false);
+        aPropSet.addPropNamed(SourceURL_Prop, WebURL.class, null);
     }
 
     /**
@@ -192,8 +131,8 @@ public class JavaReplDoc extends PropObject {
         // Handle properties
         switch (aPropName) {
 
-            // NeedsUpdate
-            case NeedsUpdate_Prop: return isNeedsUpdate();
+            // SourceURL
+            case SourceURL_Prop: return getSourceURL();
 
             // Handle super class properties (or unknown)
             default: return super.getPropValue(aPropName);
@@ -209,8 +148,8 @@ public class JavaReplDoc extends PropObject {
         // Handle properties
         switch (aPropName) {
 
-            // NeedsUpdate
-            case NeedsUpdate_Prop: setNeedsUpdate(SnapUtils.boolValue(aValue));
+            // SourceURL
+            case SourceURL_Prop: setSourceURL((WebURL) aValue);
 
             // Handle super class properties (or unknown)
             default: super.setPropValue(aPropName, aValue);
