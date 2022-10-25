@@ -8,12 +8,9 @@ import snap.props.PropSet;
 import snap.text.SubText;
 import snap.text.TextLine;
 import snap.util.SnapUtils;
-import snap.view.View;
 import snap.web.WebFile;
 import snap.web.WebURL;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This class manages collections of snippets.
@@ -141,20 +138,6 @@ public class JavaReplDoc extends PropObject {
     }
 
     /**
-     * Returns the JavaShell.
-     */
-    public JavaShell getJavaShell()  { return _javaShell; }
-
-    /**
-     * Submit entry.
-     */
-    public void submitEntry()
-    {
-        // Set NeedsUpdate
-        setNeedsUpdate(true);
-    }
-
-    /**
      * Updates the notebook.
      */
     public void updateDocValues()
@@ -178,38 +161,6 @@ public class JavaReplDoc extends PropObject {
      * Returns all Repl values.
      */
     public Object[] getReplValues()  { return _replValues; }
-
-    /**
-     * Returns all Repl values.
-     */
-    public View[] getReplViews()
-    {
-        Object[] replValues = getReplValues();
-        Map<Object,View> replViews = new HashMap<>();
-        View[] views = new View[replValues.length];
-
-        for (int i = 0; i < replValues.length; i++) {
-            Object value = replValues[i];
-            if (value == null || value.equals(""))
-                continue;
-            View view = replViews.get(value);
-            if (view == null) {
-                view = getReplViewForReplValue(value);
-                replViews.put(value, view);
-            }
-            views[i] = view;
-        }
-
-        return views;
-    }
-
-    /**
-     * Returns View for Repl values.
-     */
-    public View getReplViewForReplValue(Object aValue)
-    {
-        return null;
-    }
 
     /**
      * Returns the Repl value for line.
