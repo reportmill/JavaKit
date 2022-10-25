@@ -139,14 +139,18 @@ public class JSStmtEval {
     {
         // Get conditional
         JExpr condExpr = anIfStmt.getConditional();
-
         Object condValue = evalExpr(condExpr);
-        if (SnapUtils.booleanValue(condValue)) {
 
-            // Get true statement and eval
+        // Handle true: Get true statement and return eval
+        if (SnapUtils.booleanValue(condValue)) {
             JStmt trueStmt = anIfStmt.getStatement();
             return evalStmt(anOR, trueStmt);
         }
+
+        // If else statement set, forward to it
+        JStmt elseStmt = anIfStmt.getElseStatement();
+        if (elseStmt != null)
+            return evalStmt(anOR, elseStmt);
 
         // Return
         return null;
