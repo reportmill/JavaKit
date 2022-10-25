@@ -68,6 +68,10 @@ public class JSExprEval {
         if (anExpr instanceof JExprMath)
             return evalMathExpr(anOR, (JExprMath) anExpr);
 
+        // Handle assign expression
+        if (anExpr instanceof JExprAssign)
+            return evalAssignExpr(anOR, (JExprAssign) anExpr);
+
         // Handle array dereference
         if (anExpr instanceof JExprArrayIndex)
             return evalArrayIndexExpr(anOR, (JExprArrayIndex) anExpr);
@@ -368,10 +372,6 @@ public class JSExprEval {
         JExprMath.Op op = anExpr.getOp();
         int opCount = anExpr.getOperandCount();
 
-        // Handle Assign special
-        if (op == JExprMath.Op.Assign)
-            return evalAssignExpr(anOR, anExpr);
-
         // Get first value
         JExpr expr1 = anExpr.getOperand(0);
         String exprName = expr1 instanceof JExprId ? expr1.getName() : null;
@@ -500,20 +500,34 @@ public class JSExprEval {
     /**
      * Handle JExprMath Assign.
      */
-    private Object evalAssignExpr(Object anOR, JExprMath anExpr) throws Exception
+    private Object evalAssignExpr(Object anOR, JExprAssign anExpr) throws Exception
     {
         // Get value expression/value
-        JExpr valExpr = anExpr.getOperand(1);
+        JExpr valExpr = anExpr.getValueExpr();
         Object value = evalExpr(anOR, valExpr);
 
         // Get name expression/name
-        JExpr leftSideExpr = anExpr.getOperand(0);
+        JExpr assignToExpr = anExpr.getIdExpr();
+
+        // If op not simple, perform math
+        JExprAssign.Op assignOp = anExpr.getOp();
+        if (assignOp != JExprAssign.Op.Assign) {
+            Object assignToValue = evalExpr(anOR, assignToExpr);
+            switch (assignOp) {
+                case Add: value = add(assignToValue, value); break;
+                case Subtract: value = subtract(assignToValue, value); break;
+                case Multiply: value = multiply(assignToValue, value); break;
+                case Divide: value = divide(assignToValue, value); break;
+                case Mod: value = mod(assignToValue, value); break;
+                default: throw new RuntimeException("JSExprEval.evalAssignExpr: Op not yet supported: " + assignOp);
+            }
+        }
 
         // Handle array
-        if (leftSideExpr instanceof JExprArrayIndex) {
+        if (assignToExpr instanceof JExprArrayIndex) {
 
             // Get name
-            JExprArrayIndex arrayIndexExpr = (JExprArrayIndex) leftSideExpr;
+            JExprArrayIndex arrayIndexExpr = (JExprArrayIndex) assignToExpr;
             JExpr arrayNameExpr = arrayIndexExpr.getArrayExpr();
             String arrayName = arrayNameExpr.getName();
 
@@ -529,7 +543,7 @@ public class JSExprEval {
         }
 
         // Get name of variable
-        String varName = leftSideExpr.getName();
+        String varName = assignToExpr.getName();
 
         // Set local var value and return value
         setLocalVarValue(varName, value);

@@ -29,13 +29,21 @@ public class JavaParserExpr extends Parser {
             if (anId == "ConditionalExpr")
                 _part = aNode.getCustomNode(JExpr.class);
 
-                // Handle Assign Op
-            else if (anId == "AssignmentOp")
-                _part = new JExprMath(JExprMath.Op.Assign, _part);
+            // Handle Assign Op
+            else if (anId == "AssignOp") {
+                ParseToken token = aNode.getStartToken();
+                String opStr = token.getString();
+                _part = new JExprAssign(opStr, _part, null);
+            }
 
-                // Handle Expression
-            else if (anId == "Expression")
-                ((JExprMath) _part).setOperand(aNode.getCustomNode(JExpr.class), 1);
+            // Handle Expression: Add to end of Math or Assign expression
+            else if (anId == "Expression") {
+                JExpr expr = aNode.getCustomNode(JExpr.class);
+                if (_part instanceof JExprMath)
+                    ((JExprMath) _part).setOperand(expr, 1);
+                else if (_part instanceof JExprAssign)
+                    ((JExprAssign) _part).setValueExpr(expr);
+            }
         }
 
         protected Class<JExpr> getPartClass()  { return JExpr.class; }

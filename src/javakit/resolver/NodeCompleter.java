@@ -276,10 +276,9 @@ public class NodeCompleter {
             return argType.getEvalClass();
 
         // If node is Assign Right-Hand-Side, return assignment Left-Hand-Side class
-        JExprMath assExpr = getExpression(aNode, JExprMath.Op.Assign);
-        JExpr leftHandSide = assExpr != null ? assExpr.getOperand(0) : null;
-        if (leftHandSide != null)
-            return leftHandSide.getEvalClass();
+        JExprAssign assExpr = aNode.getParent(JExprAssign.class);
+        if (assExpr != null)
+            return assExpr.getEvalClass();
 
         // If node is JVarDecl Initializer, return JVarDecl class
         JVarDecl initVarDecl = getVarDeclForInitializer(aNode);
@@ -372,23 +371,6 @@ public class NodeCompleter {
 
         // Return not found
         return -1;
-    }
-
-    /**
-     * Returns the expression for given node with given op, if available.
-     */
-    private static JExprMath getExpression(JNode aNode, JExprMath.Op anOp)
-    {
-        for (JNode n = aNode; n != null && !(n instanceof JStmt) && !(n instanceof JMemberDecl); n = n.getParent()) {
-            if (n instanceof JExprMath) {
-                JExprMath expr = (JExprMath) n;
-                if (expr.op == anOp)
-                    return expr;
-            }
-        }
-
-        // Return not found
-        return null;
     }
 
     /**

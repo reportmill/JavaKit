@@ -291,7 +291,7 @@ public class JavaParserStmt extends JavaParserExpr {
                 JExpr leftExpr = exprStmt.getExpr();
                 JExpr rightExpr = (JExpr) customNode;
                 if (rightExpr != null) { // Can happen if parse failed on right side expr
-                    JExprMath assignExpr = new JExprMath(JExprMath.Op.Assign, leftExpr, rightExpr);
+                    JExprAssign assignExpr = new JExprAssign("=", leftExpr, rightExpr);
                     exprStmt.setExpr(assignExpr);
                 }
             }

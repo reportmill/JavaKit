@@ -74,10 +74,10 @@ public class JavaTextDocUtils {
             JExpr expr = exprStmt.getExpr();
 
             // If assignment, check for undefined 'AssignTo' type
-            if (expr instanceof JExprMath && ((JExprMath) expr).getOp() == JExprMath.Op.Assign) {
-                JExprMath assignExpr = (JExprMath) expr;
-                JExpr assignTo = assignExpr.getOperand(0);
-                if (assignTo.getDecl() == null && assignExpr.getOperandCount() > 1 && assignExpr.getOperand(0) instanceof JExprId)
+            if (expr instanceof JExprAssign) {
+                JExprAssign assignExpr = (JExprAssign) expr;
+                JExpr assignTo = assignExpr.getIdExpr();
+                if (assignTo.getDecl() == null && assignExpr.getValueExpr() != null)
                     return true;
             }
         }
@@ -93,13 +93,13 @@ public class JavaTextDocUtils {
     {
         // Get expr statement, assign expression and assign-to expression
         JStmtExpr exprStmt = (JStmtExpr) aStmt;
-        JExprMath assignExpr = (JExprMath) exprStmt.getExpr();
-        JExpr assignTo = assignExpr.getOperand(0);
+        JExprAssign assignExpr = (JExprAssign) exprStmt.getExpr();
+        JExpr assignTo = assignExpr.getIdExpr();
 
         // Create VarDecl from Id and initializer
         JVarDecl varDecl = new JVarDecl();
         varDecl.setId((JExprId) assignTo);
-        JExpr initializer = assignExpr.getOperand(1);
+        JExpr initializer = assignExpr.getValueExpr();
         varDecl.setInitializer(initializer);
 
         // Create VarDeclStatement and add VarDecl

@@ -124,7 +124,7 @@ public class JSExprEvalUtils {
      */
     protected static Object compareLogical(Object aVal1, Object aVal2, JExprMath.Op anOp)
     {
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
+        if (isBoolean(aVal1) && isBoolean(aVal2)) {
             boolean v1 = boolValue(aVal1), v2 = boolValue(aVal2);
             boolean val = compareLogical(v1, v2, anOp);
             return mirrorOf(val);
@@ -137,8 +137,10 @@ public class JSExprEvalUtils {
      */
     protected static boolean compareLogical(boolean aVal1, boolean aVal2, JExprMath.Op anOp)
     {
-        if (anOp == JExprMath.Op.And) return aVal1 && aVal2;
-        if (anOp == JExprMath.Op.Or) return aVal1 && aVal2;
+        if (anOp == JExprMath.Op.And)
+            return aVal1 && aVal2;
+        if (anOp == JExprMath.Op.Or)
+            return aVal1 || aVal2;
         throw new RuntimeException("Not a compare op " + anOp);
     }
 

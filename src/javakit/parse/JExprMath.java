@@ -110,8 +110,6 @@ public class JExprMath extends JExpr {
                 return getJavaClassForClass(boolean.class);
             case Conditional:
                 return getEvalTypeConditional();
-            case Assign:
-                return getOperand(0).getEvalType();
             case BitOr:
             case BitXOr:
             case BitAnd:
@@ -230,64 +228,34 @@ public class JExprMath extends JExpr {
     public static String getOpString(Op anOp)
     {
         switch (anOp) {
-            case Add:
-                return "+";
-            case Subtract:
-                return "-";
-            case Multiply:
-                return "*";
-            case Divide:
-                return "/";
-            case Mod:
-                return "%";
-            case Equal:
-                return "==";
-            case NotEqual:
-                return "!=";
-            case LessThan:
-                return "<";
-            case GreaterThan:
-                return ">";
-            case LessThanOrEqual:
-                return "<=";
-            case GreaterThanOrEqual:
-                return ">=";
-            case Or:
-                return "||";
-            case And:
-                return "&&";
-            case Not:
-                return "!";
-            case BitOr:
-                return "|";
-            case BitXOr:
-                return "^";
-            case BitAnd:
-                return "&";
-            case Conditional:
-                return "?";
-            case Assign:
-                return "=";
-            case ShiftLeft:
-                return "<<";
-            case ShiftRight:
-                return ">>";
-            case ShiftRightUnsigned:
-                return ">>>";
-            case PreIncrement:
-                return "++";
-            case PreDecrement:
-                return "--";
-            case Negate:
-                return "-";
-            case BitComp:
-                return "<DUNNO>";
-            case PostIncrement:
-                return "++";
-            case PostDecrement:
-                return "--";
-            default:
-                throw new RuntimeException("JExprMath: Unknown Op: " + anOp);
+            case Add: return "+";
+            case Subtract: return "-";
+            case Multiply: return "*";
+            case Divide: return "/";
+            case Mod: return "%";
+            case Equal: return "==";
+            case NotEqual: return "!=";
+            case LessThan: return "<";
+            case GreaterThan: return ">";
+            case LessThanOrEqual: return "<=";
+            case GreaterThanOrEqual: return ">=";
+            case Or: return "||";
+            case And: return "&&";
+            case Not: return "!";
+            case BitOr: return "|";
+            case BitXOr: return "^";
+            case BitAnd: return "&";
+            case Conditional: return "?";
+            case ShiftLeft: return "<<";
+            case ShiftRight: return ">>";
+            case ShiftRightUnsigned: return ">>>";
+            case PreIncrement: return "++";
+            case PreDecrement: return "--";
+            case Negate: return "-";
+            case BitComp: return "<DUNNO>";
+            case PostIncrement: return "++";
+            case PostDecrement: return "--";
+            default: throw new RuntimeException("JExprMath: Unknown Op: " + anOp);
         }
     }
 

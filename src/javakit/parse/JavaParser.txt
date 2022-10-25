@@ -120,7 +120,7 @@ LabeledStatement { Identifier ":" Statement }
 
 AssertStatement { "assert" Expression (":" Expression)? ";" }
 
-//ExprStatement { PreIncrementExpr | PreDecrementExpr | PrimaryExpr ("++" | "--" | AssignmentOp Expression) }
+//ExprStatement { PreIncrementExpr | PreDecrementExpr | PrimaryExpr ("++" | "--" | AssignOp Expression) }
 ExprStatement { PreIncrementExpr | PreDecrementExpr | Expression }
 
 SwitchStatement { "switch" "(" Expression ")" "{" (SwitchLabel BlockStatement*)* "}" }
@@ -157,7 +157,7 @@ SynchronizedStatement { "synchronized" "(" Expression | ")" Block }
 
 TryStatement { "try" Block ("catch" "(" FormalParam ")" Block)* ("finally" Block)? }
 
-Expression { ConditionalExpr (LookAhead(2) AssignmentOp Expression)? }
+Expression { ConditionalExpr (LookAhead(2) AssignOp Expression)? }
 
 ConditionalExpr { ConditionalOrExpr ("?" Expression ":" Expression)? }
 
@@ -225,7 +225,7 @@ PrimarySuffix
 
 MemberSelector { "." TypeArgs Identifier }
 
-AssignmentOp { "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "<<=" | ">>=" | ">>>=" | "&=" | "^=" | "|=" }
+AssignOp { "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "<<=" | ">>=" | ">>>=" | "&=" | "^=" | "|=" }
 
 Arguments { "(" (Expression ("," Expression)*)? ")" }
 

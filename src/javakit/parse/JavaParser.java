@@ -721,7 +721,7 @@ public class JavaParser extends JavaParserStmt {
             "ShiftExpr", "AdditiveExpr", "MultiplicativeExpr", "UnaryExpr", "PreIncrementExpr", "PrimaryExpr", "PrimaryPrefix", "Literal",
             "IntegerLiteral", "IntLiteral", "HexLiteral", "OctalLiteral", "FloatLiteral", "CharacterLiteral", "StringLiteral",
             "BooleanLiteral", "NullLiteral", "ClassType", "TypeArgs", "TypeArg", "ReferenceType", "PrimitiveType", "WildcardBounds",
-            "LambdaExpr", "Expression", "AssignmentOp", "Block", "BlockStatement", "Modifiers", "Modifier", "Type", "VarDeclStmt",
+            "LambdaExpr", "Expression", "AssignOp", "Block", "BlockStatement", "Modifiers", "Modifier", "Type", "VarDeclStmt",
             "VarDecl", "VarInit", "ArrayInit", "Statement", "LabeledStatement", "AssertStatement", "EmptyStatement", "ExprStatement",
             "PreDecrementExpr", "SwitchStatement", "SwitchLabel", "IfStatement", "WhileStatement", "DoStatement", "ForStatement",
             "ForInit", "ExprStmtList", "BreakStatement", "ContinueStatement", "ReturnStatement", "ThrowStatement", "SynchronizedStatement",
