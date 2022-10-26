@@ -15,6 +15,12 @@ public class JSStmtEval {
     // The Expression evaluator
     private JSExprEval _exprEval = new JSExprEval();
 
+    // Whether we hit a break statement
+    private boolean  _breakWasHit;
+
+    // Constant for a loop limit
+    private static int LOOP_LIMIT = 100000;
+
     /**
      * Constructor.
      */
@@ -40,8 +46,10 @@ public class JSStmtEval {
             return evalBlockStmt(anOR, (JStmtBlock) aStmt);
 
         // Handle break statement
-        if (aStmt instanceof JStmtBreak)
-            throw new RuntimeException("JSStmtEval: break Statement not implemented");
+        if (aStmt instanceof JStmtBreak) {
+            _breakWasHit = true;
+            return null;
+        }
 
         // Handle ClassDecl
         if (aStmt instanceof JStmtClassDecl)
@@ -57,7 +65,7 @@ public class JSStmtEval {
 
         // Handle Do statement
         if (aStmt instanceof JStmtDo)
-            throw new RuntimeException("JSStmtEval: Do Statement not implemented");
+            return evalDoStmt(anOR, (JStmtDo) aStmt);
 
         // Empty statement
         if(aStmt instanceof JStmtEmpty)
@@ -105,7 +113,7 @@ public class JSStmtEval {
 
         // Handle while statement
         if (aStmt instanceof JStmtWhile)
-            throw new RuntimeException("JSStmtEval: while Statement not implemented");
+            return evalWhileStmt(anOR, (JStmtWhile) aStmt);
 
         // Complain
         throw new RuntimeException("EvalStmt.evalStmt: Unsupported statement " + aStmt.getClass());
@@ -116,9 +124,17 @@ public class JSStmtEval {
      */
     public Object evalBlockStmt(Object anOR, JStmtBlock aBlockStmt) throws Exception
     {
+        // Get statements
         List<JStmt> statements = aBlockStmt.getStatements();
-        for (JStmt stmt : statements)
+
+        // Iterate over statements and evaluate each
+        for (JStmt stmt : statements) {
             evalStmt(anOR, stmt);
+            if (_breakWasHit)
+                return null;
+        }
+
+        // Return
         return null;
     }
 
@@ -178,6 +194,10 @@ public class JSStmtEval {
         // Get update statements
         List<JStmtExpr> updateStmts = aForStmt.getUpdateStmts();
 
+        // Reset break was hit
+        _breakWasHit = false;
+        int loopCount = 0;
+
         // Iterate while conditional is true
         while (true) {
 
@@ -190,8 +210,21 @@ public class JSStmtEval {
             evalStmt(anOR, blockStmt);
 
             // Execute update statements
-            for (JStmtExpr updateStmt : updateStmts)
+            for (JStmtExpr updateStmt : updateStmts) {
+
+                // Eval statements
                 evalStmt(anOR, updateStmt);
+
+                // If break was hit, break
+                if (_breakWasHit) {
+                    _breakWasHit = false;
+                    break;
+                }
+            }
+
+            // If LoopLimit hit, throw exception
+            if (loopCount++ > LOOP_LIMIT)
+                throw new RuntimeException("JSStmtEval.evalWhileStmt: Hit loop limit");
         }
 
         // Return
@@ -220,13 +253,108 @@ public class JSStmtEval {
         if (listValue instanceof Object[])
             listValue = Arrays.asList((Object[]) listValue);
 
+        // Reset break was hit
+        _breakWasHit = false;
+
         // Handle Iterable
         if (listValue instanceof Iterable) {
+
+            // Get iterable
             Iterable<?> iterable = (Iterable<?>) listValue;
+
+            // Iterate over objects
             for (Object obj : iterable) {
+
+                // Get/set loop var
                 _exprEval.setLocalVarValue(varName, obj);
+
+                // Eval statement
                 evalStmt(anOR, blockStmt);
+
+                // If LoopLimit hit, throw exception
+                if (_breakWasHit) {
+                    _breakWasHit = false;
+                    break;
+                }
             }
+        }
+
+        // Return
+        return null;
+    }
+
+    /**
+     * Evaluate JStmtWhile.
+     */
+    public Object evalWhileStmt(Object anOR, JStmtWhile aWhileStmt) throws Exception
+    {
+        // Get conditional and block statement
+        JExpr condExpr = aWhileStmt.getConditional();
+        JStmt blockStmt = aWhileStmt.getStatement();
+
+        // Reset break was hit
+        _breakWasHit = false;
+        int loopCount = 0;
+
+        // Iterate while conditional is true
+        while (true) {
+
+            // Evaluate conditional and break if false
+            Object condValue = evalExpr(condExpr);
+            if (!SnapUtils.booleanValue(condValue))
+                break;
+
+            // Evaluate block statements
+            evalStmt(anOR, blockStmt);
+
+            // If break was hit, break
+            if (_breakWasHit) {
+                _breakWasHit = false;
+                break;
+            }
+
+            // If LoopLimit hit, throw exception
+            if (loopCount++ > LOOP_LIMIT)
+                throw new RuntimeException("JSStmtEval.evalWhileStmt: Hit loop limit");
+        }
+
+        // Return
+        return null;
+    }
+
+    /**
+     * Evaluate JStmtDo.
+     */
+    public Object evalDoStmt(Object anOR, JStmtDo aDoStmt) throws Exception
+    {
+        // Get conditional and block statement
+        JExpr condExpr = aDoStmt.getConditional();
+        JStmt blockStmt = aDoStmt.getStatement();
+
+        // Reset break was hit
+        _breakWasHit = false;
+        int loopCount = 0;
+
+        // Iterate while conditional is true
+        while (true) {
+
+            // Evaluate block statements
+            evalStmt(anOR, blockStmt);
+
+            // If break was hit, break
+            if (_breakWasHit) {
+                _breakWasHit = false;
+                break;
+            }
+
+            // Evaluate conditional and break if false
+            Object condValue = evalExpr(condExpr);
+            if (!SnapUtils.booleanValue(condValue))
+                break;
+
+            // If LoopLimit hit, throw exception
+            if (loopCount++ > LOOP_LIMIT)
+                throw new RuntimeException("JSStmtEval.evalWhileStmt: Hit loop limit");
         }
 
         // Return
