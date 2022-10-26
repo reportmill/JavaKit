@@ -264,7 +264,7 @@ public class LineHeaderView extends View {
 
         // Get current Painter.ClipBounds to restrict painted line numbers
         Rect clipRect = aPntr.getClipBounds();
-        double clipY = clipRect.y;
+        double clipY = Math.max(clipRect.y, 0);
         double clipMaxY = clipRect.getMaxY();
 
         // Get start line index for ClipY
