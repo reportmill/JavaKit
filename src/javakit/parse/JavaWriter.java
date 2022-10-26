@@ -658,9 +658,9 @@ public class JavaWriter {
         else if (aExpr instanceof JExprAlloc) writeJExprAlloc((JExprAlloc) aExpr);
         else if (aExpr instanceof JExprArrayIndex) writeJExprArrayIndex((JExprArrayIndex) aExpr);
         else if (aExpr instanceof JExprChain) writeJExprChain((JExprChain) aExpr);
-        else if (aExpr instanceof JExpr.CastExpr) writeJExprCast((JExpr.CastExpr) aExpr);
+        else if (aExpr instanceof JExprCast) writeJExprCast((JExprCast) aExpr);
         else if (aExpr instanceof JExprId) writeJExprId((JExprId) aExpr);
-        else if (aExpr instanceof JExpr.InstanceOfExpr) writeJExprInstanceOf((JExpr.InstanceOfExpr) aExpr);
+        else if (aExpr instanceof JExprInstanceOf) writeJExprInstanceOf((JExprInstanceOf) aExpr);
         else if (aExpr instanceof JExprLambda) writeJExprLambda((JExprLambda) aExpr);
         else if (aExpr instanceof JExprLiteral) writeJExprLiteral((JExprLiteral) aExpr);
         else if (aExpr instanceof JExprMath) writeJExprMath((JExprMath) aExpr);
@@ -736,7 +736,7 @@ public class JavaWriter {
     /**
      * Writes a JExpr.CastExpr.
      */
-    public void writeJExprCast(JExpr.CastExpr aExpr)
+    public void writeJExprCast(JExprCast aExpr)
     {
         append('(');
         writeJType(aExpr.getType());
@@ -769,7 +769,7 @@ public class JavaWriter {
     /**
      * Writes a JExpr.InstanceOfExpr.
      */
-    public void writeJExprInstanceOf(JExpr.InstanceOfExpr aExpr)
+    public void writeJExprInstanceOf(JExprInstanceOf aExpr)
     {
         // Get the type and type string
         JExpr expr = aExpr.getExpr();

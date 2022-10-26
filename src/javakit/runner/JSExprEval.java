@@ -85,11 +85,11 @@ public class JSExprEval {
             return evalAllocExpr(anOR, (JExprAlloc) anExpr);
 
         // Handle cast expression
-        if (anExpr instanceof JExpr.CastExpr)
+        if (anExpr instanceof JExprCast)
             throw new RuntimeException("JSExprEval.evalCastExpr() not implemented");
 
         // Handle Instanceof expression
-        if (anExpr instanceof JExpr.InstanceOfExpr)
+        if (anExpr instanceof JExprInstanceOf)
             throw new RuntimeException("JSExprEval.evalTypeExpr() not implemented");
 
         // Handle lambda expression

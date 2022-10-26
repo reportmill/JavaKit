@@ -75,8 +75,10 @@ public class JavaParserExpr extends Parser {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
-            if (anId == "Identifier")
-                _part = JExpr.join(_part, aNode.getCustomNode(JExprId.class));
+            if (anId == "Identifier") {
+                JExprId idExpr = aNode.getCustomNode(JExprId.class);
+                _part = JExpr.joinExpressions(_part, idExpr);
+            }
         }
 
         protected Class<JExpr> getPartClass()  { return JExpr.class; }
@@ -386,7 +388,7 @@ public class JavaParserExpr extends Parser {
     /**
      * CastExpr Handler.
      */
-    public static class CastExprHandler extends JNodeParseHandler<JExpr.CastExpr> {
+    public static class CastExprHandler extends JNodeParseHandler<JExprCast> {
 
         /**
          * ParseHandler method.
@@ -402,7 +404,7 @@ public class JavaParserExpr extends Parser {
                 getPart().setExpr(aNode.getCustomNode(JExpr.class));
         }
 
-        protected Class<JExpr.CastExpr> getPartClass()  { return JExpr.CastExpr.class; }
+        protected Class<JExprCast> getPartClass()  { return JExprCast.class; }
     }
 
     /**
@@ -421,7 +423,7 @@ public class JavaParserExpr extends Parser {
 
             // Handle Type node
             if (anId == "Type") {
-                JExpr.InstanceOfExpr ie = new JExpr.InstanceOfExpr();
+                JExprInstanceOf ie = new JExprInstanceOf();
                 ie.setExpr(_part);
                 ie.setType(aNode.getCustomNode(JType.class));
                 _part = ie;
@@ -448,7 +450,7 @@ public class JavaParserExpr extends Parser {
             // Handle PrimarySuffix: Join prefix and suffix
             if (anId == "PrimarySuffix") {
                 JExpr expr = aNode.getCustomNode(JExpr.class);
-                _part = JExpr.join(_part, expr);
+                _part = JExpr.joinExpressions(_part, expr);
             }
         }
 
@@ -469,42 +471,44 @@ public class JavaParserExpr extends Parser {
             if (anId == "Literal")
                 _part = aNode.getCustomNode(JExprLiteral.class);
 
-                // Handle Identifier of [ (Identifier ".")* this ] and [ "super" "." Identifier ]
-            else if (anId == "Identifier")
-                _part = JExpr.join(_part, aNode.getCustomNode(JExprId.class));
+            // Handle Identifier of [ (Identifier ".")* this ] and [ "super" "." Identifier ]
+            else if (anId == "Identifier") {
+                JExprId idExpr = aNode.getCustomNode(JExprId.class);
+                _part = JExpr.joinExpressions(_part, idExpr);
+            }
 
-                // Handle "this"/"super" of [ (Identifier ".")* this ] and [ "super" "." Identifier ]
+            // Handle "this"/"super" of [ (Identifier ".")* this ] and [ "super" "." Identifier ]
             else if (anId == "this" || anId == "super") {
                 JExprId id = new JExprId(aNode.getString());
                 id.setStartToken(aNode.getStartToken());
                 id.setEndToken(aNode.getEndToken());
-                _part = JExpr.join(_part, id);
+                _part = JExpr.joinExpressions(_part, id);
             }
 
             // Handle ClassType (using above to handle the rest: "." "super" "." Identifier
             else if (anId == "ClassType")
                 _part = new JExprType(aNode.getCustomNode(JType.class));
 
-                // Handle LambdaExpr
+            // Handle LambdaExpr
             else if (anId == "LambdaExpr")
                 _part = aNode.getCustomNode(JExpr.class);
 
-                // Handle "(" Expression ")"
+            // Handle "(" Expression ")"
             else if (anId == "Expression")
                 _part = aNode.getCustomNode(JExpr.class);
 
-                // Handle AllocExpr
+            // Handle AllocExpr
             else if (anId == "AllocExpr")
                 _part = aNode.getCustomNode(JExpr.class);
 
-                // Handle ResultType "." "class"
+            // Handle ResultType "." "class"
             else if (anId == "ResultType")
                 _part = new JExprType(aNode.getCustomNode(JType.class));
             else if (anId == "class") {
-                JExprId id = new JExprId("class");
-                id.setStartToken(aNode.getStartToken());
-                id.setEndToken(aNode.getEndToken());
-                _part = JExpr.join(_part, id);
+                JExprId idExpr = new JExprId("class");
+                idExpr.setStartToken(aNode.getStartToken());
+                idExpr.setEndToken(aNode.getEndToken());
+                _part = JExpr.joinExpressions(_part, idExpr);
             }
 
             // Handle Name
@@ -513,8 +517,10 @@ public class JavaParserExpr extends Parser {
                 if (namePrime instanceof JExprChain) {
                     JExprChain nameChain = (JExprChain) namePrime;
                     for (int i = 0, iMax = nameChain.getExprCount(); i < iMax; i++)
-                        _part = JExpr.join(_part, nameChain.getExpr(i));
-                } else _part = JExpr.join(_part, namePrime);
+                        _part = JExpr.joinExpressions(_part, nameChain.getExpr(i));
+                }
+
+                else _part = JExpr.joinExpressions(_part, namePrime);
             }
         }
 
@@ -537,18 +543,18 @@ public class JavaParserExpr extends Parser {
             if (anId == "super" || anId == "this")
                 _part = new JExprId(aNode.getString());
 
-                // Handle AllocExpr
+            // Handle AllocExpr
             else if (anId == "AllocExpr")
                 _part = aNode.getCustomNode(JExpr.class);
 
-                // Handle MemberSelector: TypeArgs Identifier (currently handed below without TypeArgs)
-                //else if(anId=="TypeArgs") _part = aNode.getCustomNode(JavaExpression.class);
+            // Handle MemberSelector: TypeArgs Identifier (currently handed below without TypeArgs)
+            //else if(anId=="TypeArgs") _part = aNode.getCustomNode(JavaExpression.class);
 
-                // Handle "[" Expression "]"
+            // Handle "[" Expression "]"
             else if (anId == "Expression")
                 _part = new JExprArrayIndex(null, aNode.getCustomNode(JExpr.class));
 
-                // Handle ("." | "::") Identifier
+            // Handle ("." | "::") Identifier
             else if (anId == "Identifier") {
                 JExprId id = aNode.getCustomNode(JExprId.class);
                 if (_methodRef) {
@@ -560,9 +566,11 @@ public class JavaParserExpr extends Parser {
             // Handle "::" Identifier
             else if (anId == "::") _methodRef = true;
 
-                // Handle Arguments
-            else if (anId == "Arguments")
-                _part = new JExprMethodCall(null, aNode.getCustomNode(List.class));
+            // Handle Arguments
+            else if (anId == "Arguments") {
+                List argsList = aNode.getCustomNode(List.class);
+                _part = new JExprMethodCall(null, argsList);
+            }
         }
 
         protected Class<JExpr> getPartClass()  { return JExpr.class; }

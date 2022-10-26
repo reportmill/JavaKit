@@ -11,52 +11,42 @@ import java.util.*;
 public class JExprChain extends JExpr {
 
     /**
-     * Creates a new JExprChain.
+     * Constructor.
      */
-    public JExprChain()
-    {
-    }
+    public JExprChain()  { }
 
     /**
-     * Creates a new JExprChain for given parts.
+     * Constructor for given parts.
      */
     public JExprChain(JExpr... theExprs)
     {
-        for (JExpr expr : theExprs) addExpr(expr);
+        for (JExpr expr : theExprs)
+            addExpr(expr);
     }
 
     /**
      * Returns the number of expressions.
      */
-    public int getExprCount()
-    {
-        return _children.size();
-    }
+    public int getExprCount()  { return _children.size(); }
 
     /**
      * Returns the individual expression at given index.
      */
-    public JExpr getExpr(int anIndex)
-    {
-        return (JExpr) _children.get(anIndex);
-    }
+    public JExpr getExpr(int anIndex)  { return (JExpr) _children.get(anIndex); }
 
     /**
      * Returns the individual expression at given index.
      */
-    public JExpr getExprLast()
+    public JExpr getLastExpr()
     {
-        int pc = getExprCount();
-        return pc > 0 ? getExpr(pc - 1) : null;
+        int exprCount = getExprCount();
+        return exprCount > 0 ? getExpr(exprCount - 1) : null;
     }
 
     /**
      * Returns the expressions list.
      */
-    public List<JExpr> getExpressions()
-    {
-        return (List) _children;
-    }
+    public List<JExpr> getExpressions()  { return (List) _children; }
 
     /**
      * Adds a expression to this JExprChain.
@@ -71,8 +61,8 @@ public class JExprChain extends JExpr {
      */
     protected JavaDecl getDeclImpl()
     {
-        JExpr p = getExprLast();
-        return p != null ? p.getDecl() : null;
+        JExpr lastExpr = getLastExpr();
+        return lastExpr != null ? lastExpr.getDecl() : null;
     }
 
     /**
@@ -95,7 +85,7 @@ public class JExprChain extends JExpr {
         // Get parent declaration
         JavaDecl parDecl = parExpr.getDecl();
         if (parDecl == null) {
-            System.err.println("JExprChain.resolve: No parent decl for " + getName() + " in " + getName());
+            System.err.println("JExprChain.getDeclForChildNode: No parent decl for " + getName() + " in " + getName());
             return null;
         }
 
@@ -172,16 +162,12 @@ public class JExprChain extends JExpr {
      */
     protected JavaType getEvalTypeImpl()
     {
-        JExpr p = getExprLast();
-        return p != null ? p.getEvalType() : null;
+        JExpr lastExpr = getLastExpr();
+        return lastExpr != null ? lastExpr.getEvalType() : null;
     }
 
     /**
      * Returns the part name.
      */
-    public String getNodeString()
-    {
-        return "ExprChain";
-    }
-
+    public String getNodeString()  { return "ExprChain"; }
 }
