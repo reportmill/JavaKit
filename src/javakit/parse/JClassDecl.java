@@ -280,25 +280,17 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the JMethodDecl for given name.
      */
-    public JMethodDecl[] getMethodDecls(String aName, boolean isStatic)
+    public JMethodDecl getMethodDeclForNameAndTypes(String aName, JavaType[] argTypes)
     {
-        List<JMethodDecl> mdecls = new ArrayList<>();
-        for (JMethodDecl md : getMethodDecls())
-            if (md.getName().equals(aName) && md.getMods().isStatic() == isStatic)
-                mdecls.add(md);
+        // Get methods
+        JMethodDecl[] methodDecls = getMethodDecls();
 
-        // Set/return
-        return mdecls.toArray(new JMethodDecl[0]);
-    }
+        // Iterate over each and return if match
+        for (JMethodDecl methodDecl : methodDecls)
+            if (methodDecl.getName().equals(aName))
+                return methodDecl;
 
-    /**
-     * Returns the JMethodDecl for given name.
-     */
-    public JMethodDecl getMethodDecl(String aName, Class[] theClasses)
-    {
-        for (JMethodDecl md : getMethodDecls())
-            if (md.getName().equals(aName))
-                return md;
+        // Return not found
         return null;
     }
 

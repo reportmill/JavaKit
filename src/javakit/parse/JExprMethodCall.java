@@ -11,20 +11,18 @@ import java.util.List;
 public class JExprMethodCall extends JExpr {
 
     // The identifier
-    JExprId _id;
+    JExprId  _id;
 
     // The args
-    List<JExpr> _args;
+    List<JExpr>  _args;
 
     /**
-     * Creates a new method call.
+     * Constructor.
      */
-    public JExprMethodCall()
-    {
-    }
+    public JExprMethodCall()  { }
 
     /**
-     * Creates a new method call for given identifier (method name) and arg list.
+     * Constructor for given identifier (method name) and arg list.
      */
     public JExprMethodCall(JExprId anId, List<JExpr> theArgs)
     {
@@ -35,10 +33,7 @@ public class JExprMethodCall extends JExpr {
     /**
      * Returns the identifier.
      */
-    public JExprId getId()
-    {
-        return _id;
-    }
+    public JExprId getId()  { return _id; }
 
     /**
      * Sets the identifier.
@@ -53,54 +48,32 @@ public class JExprMethodCall extends JExpr {
     /**
      * Returns the number of arguments.
      */
-    public int getArgCount()
-    {
-        return _args.size();
-    }
+    public int getArgCount()  { return _args.size(); }
 
     /**
      * Returns the individual argument at index.
      */
-    public JExpr getArg(int anIndex)
-    {
-        return _args.get(anIndex);
-    }
+    public JExpr getArg(int anIndex)  { return _args.get(anIndex); }
 
     /**
      * Returns the method arguments.
      */
-    public List<JExpr> getArgs()
-    {
-        return _args;
-    }
+    public List<JExpr> getArgs()  { return _args; }
 
     /**
      * Sets the method arguments.
      */
     public void setArgs(List<JExpr> theArgs)
     {
-        if (_args != null) for (JExpr arg : _args) removeChild(arg);
+        if (_args != null)
+            for (JExpr arg : _args)
+                removeChild(arg);
+
         _args = theArgs;
-        if (_args != null) for (JExpr arg : _args) addChild(arg, -1);
-    }
 
-    /**
-     * Returns the arg classes.
-     */
-    public JavaClass[] getArgClasses()
-    {
-        // Get args
-        List<JExpr> argExprs = getArgs();
-        JavaClass argClasses[] = new JavaClass[argExprs.size()];
-
-        // Iterate over arg expressions and get EvalClass for each
-        for (int i = 0, iMax = argExprs.size(); i < iMax; i++) {
-            JExpr argExpr = argExprs.get(i);
-            argClasses[i] = argExpr != null ? argExpr.getEvalClass() : null;
-        }
-
-        // Return
-        return argClasses;
+        if (_args != null)
+            for (JExpr arg : _args)
+                addChild(arg, -1);
     }
 
     /**
@@ -190,6 +163,7 @@ public class JExprMethodCall extends JExpr {
     /**
      * Override to handle method name.
      */
+    @Override
     protected JavaDecl getDeclForChildNode(JNode aNode)
     {
         if (aNode == _id)
@@ -202,6 +176,7 @@ public class JExprMethodCall extends JExpr {
     /**
      * Override to resolve Decl.EvalType from ParentExpr.EvalType.
      */
+    @Override
     protected JavaType getEvalTypeImpl(JNode aNode)
     {
         // Handle MethodCall id
@@ -297,11 +272,40 @@ public class JExprMethodCall extends JExpr {
     }
 
     /**
-     * Returns the part name.
+     * Tries to find method declaration for this node - assuming method is local to JFile.
      */
-    public String getNodeString()
+    public JMethodDecl getMethodDecl()
     {
-        return "MethodCall";
+        // Get method name and arg types
+        String name = getName();
+        JavaType[] argTypes = getArgEvalTypes();
+
+        // Get scope node type
+        JNode scopeNode = getScopeNode();
+        if (!(scopeNode instanceof JClassDecl))
+            return null;
+
+        // Get classDecl
+        JClassDecl classDecl = (JClassDecl) scopeNode;
+
+        // Look for method in class and enclosing classes
+        while (classDecl != null) {
+
+            // Look for method name+args, return if found
+            JMethodDecl methodDecl = classDecl.getMethodDeclForNameAndTypes(name, argTypes);
+            if (methodDecl != null)
+                return methodDecl;
+
+            // Get parent class
+            classDecl = scopeNode.getEnclosingClassDecl();
+        }
+
+        // Return not found
+        return null;
     }
 
+    /**
+     * Returns the part name.
+     */
+    public String getNodeString()  { return "MethodCall"; }
 }

@@ -94,7 +94,7 @@ public class JavaReplDoc extends PropObject {
         // Create SubText
         JFile jfile = _javaDoc.getJFile();
         JClassDecl classDecl = jfile.getClassDecl();
-        JMethodDecl bodyMethod = classDecl.getMethodDecl("body", null);
+        JMethodDecl bodyMethod = classDecl.getMethodDeclForNameAndTypes("body", null);
         JStmtBlock blockStmt = bodyMethod.getBlock();
 
         // Set start/end char indexes for code block ( " { ... } ")

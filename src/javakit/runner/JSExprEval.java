@@ -20,6 +20,9 @@ import snap.view.EventListener;
  */
 public class JSExprEval {
 
+    // The Statement Evaluator that created this instance
+    private JSStmtEval  _stmtEval;
+
     // The current "this" object
     protected Object  _thisObj;
 
@@ -32,9 +35,9 @@ public class JSExprEval {
     /**
      * Constructor.
      */
-    public JSExprEval()
+    public JSExprEval(JSStmtEval aStmtEval)
     {
-
+        _stmtEval = aStmtEval;
     }
 
     /**
@@ -190,31 +193,36 @@ public class JSExprEval {
     /**
      * Evaluate JExprMethodCall.
      */
-    private Object evalMethodCallExpr(Object anOR, JExprMethodCall anExpr) throws Exception
+    private Object evalMethodCallExpr(Object anOR, JExprMethodCall methodCallExpr) throws Exception
     {
         // If object null, throw NullPointerException
         if (anOR == null)
             return null;
 
-        // Get method
-        JavaMethod method = anExpr.getDecl();
-        if (method == null) {
-
-            if (anOR instanceof PropObject)
-                return evalMethodCallExprForPropObject((PropObject) anOR, anExpr);
-
-            throw new NoSuchMethodException("JSExprEval: Method not found for " + anExpr.getName());
+        // Get arg values
+        Object thisObj = thisObject();
+        int argCount = methodCallExpr.getArgCount();
+        Object[] argValues = new Object[argCount];
+        for (int i = 0; i < argCount; i++) {
+            JExpr argExpr = methodCallExpr.getArg(i);
+            argValues[i] = evalExpr(thisObj, argExpr);
         }
 
-        // Get arg info
-        Object thisObj = thisObject();
-        int argCount = anExpr.getArgCount();
-        Object[] argValues = new Object[argCount];
+        // Get method
+        JavaMethod method = methodCallExpr.getDecl();
+        if (method == null) {
 
-        // Iterate over arg expressions and get evaluated values
-        for (int i = 0; i < argCount; i++) {
-            JExpr argExpr = anExpr.getArg(i);
-            argValues[i] = evalExpr(thisObj, argExpr);
+            // Look for local MethodDecl
+            JMethodDecl methodDecl = methodCallExpr.getMethodDecl();
+            if (methodDecl != null)
+                return evalMethodCallExprForMethodDecl(anOR, methodDecl, argValues);
+
+            // Check for PropObject
+            if (anOR instanceof PropObject)
+                return evalMethodCallExprForPropObject((PropObject) anOR, methodCallExpr.getName(), argValues);
+
+            // Alright, now we can give up
+            throw new NoSuchMethodException("JSExprEval: Method not found for " + methodCallExpr.getName());
         }
 
         // Invoke method
@@ -223,11 +231,35 @@ public class JSExprEval {
     }
 
     /**
-     * Evaluate JExprMethodCall.
+     * Evaluate JExprMethodCall for local JMethodDecl.
      */
-    private Object evalMethodCallExprForPropObject(PropObject propObject, JExprMethodCall anExpr) throws Exception
+    private Object evalMethodCallExprForMethodDecl(Object anOR, JMethodDecl aMethodDecl, Object[] argValues) throws Exception
     {
-        String methName = anExpr.getName();
+        // Create stack frame and push
+        Map<String,Object> stackFrame = _varStack.newFrame();
+        _varStack.pushStackFrame(stackFrame);
+
+        // Install params
+        List<JVarDecl> params = aMethodDecl.getParameters();
+        for (int i = 0, iMax = params.size(); i < iMax; i++) {
+            JVarDecl varDecl = params.get(i);
+            _varStack.setLocalVarValue(varDecl.getName(), argValues[i]);
+        }
+
+        // Get method body and run
+        JStmtBlock methodBody = aMethodDecl.getBlock();
+        Object returnVal = _stmtEval.evalStmt(anOR, methodBody);
+        _varStack.popStackFrame();
+
+        // Return
+        return returnVal;
+    }
+
+    /**
+     * Evaluate JExprMethodCall for PropObject.
+     */
+    private Object evalMethodCallExprForPropObject(PropObject propObject, String methName, Object[] argValues) throws Exception
+    {
         if ((methName.startsWith("is") || methName.startsWith("get") || methName.startsWith("set"))) {
 
             // Get PropName
@@ -235,10 +267,8 @@ public class JSExprEval {
 
             // Handle set
             if (methName.startsWith("set")) {
-                if (anExpr.getArgCount() > 0) {
-                    JExpr argExpr = anExpr.getArg(0);
-                    Object argValue = evalExpr(thisObject(), argExpr);
-                    propObject.setPropValue(propName, argValue);
+                if (argValues.length > 0) {
+                    propObject.setPropValue(propName, argValues[0]);
                     return null;
                 }
             }
@@ -247,7 +277,7 @@ public class JSExprEval {
             return propObject.getPropValue(propName);
         }
 
-        throw new NoSuchMethodException("JSExprEval: Method not found for " + anExpr.getName());
+        throw new NoSuchMethodException("JSExprEval: Method not found for " + methName);
     }
 
     /**

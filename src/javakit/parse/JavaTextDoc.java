@@ -119,7 +119,10 @@ public class JavaTextDoc extends TextDoc {
     public JStmt[] getJFileStatements()
     {
         JFile jfile = getJFile();
-        return JavaTextDocUtils.getStatementsForJavaNode(jfile);
+        JClassDecl classDecl = jfile.getClassDecl();
+        JMethodDecl bodyMethod = classDecl.getMethodDeclForNameAndTypes("body", null);
+
+        return JavaTextDocUtils.getStatementsForJavaNode(bodyMethod);
     }
 
     /**

@@ -13,7 +13,7 @@ import snap.util.SnapUtils;
 public class JSStmtEval {
 
     // The Expression evaluator
-    private JSExprEval _exprEval = new JSExprEval();
+    private JSExprEval _exprEval;
 
     // Whether we hit a break statement
     private boolean  _breakWasHit;
@@ -26,7 +26,10 @@ public class JSStmtEval {
      */
     public JSStmtEval()
     {
+        super();
 
+        // Create ExprEval
+        _exprEval = new JSExprEval(this);
     }
 
     /**
@@ -89,7 +92,7 @@ public class JSStmtEval {
 
         // Handle return statement
         if (aStmt instanceof JStmtReturn)
-            throw new RuntimeException("JSStmtEval: return Statement not implemented");
+            return evalReturnStmt(anOR, (JStmtReturn) aStmt);
 
         // Handle switch statement
         if (aStmt instanceof JStmtSwitch)
@@ -146,6 +149,21 @@ public class JSStmtEval {
         JExpr expr = aStmt.getExpr();
         Object val = evalExpr(expr);
         return val;
+    }
+
+    /**
+     * Evaluate JStmtReturn.
+     */
+    public Object evalReturnStmt(Object anOR, JStmtReturn aReturnStmt) throws Exception
+    {
+        // Get return expression - just return null if not there
+        JExpr returnExpr = aReturnStmt.getExpr();
+        if (returnExpr == null)
+            return null;
+
+        // Evaluate return expression and return result
+        Object returnVal = evalExpr(returnExpr);
+        return returnVal;
     }
 
     /**
