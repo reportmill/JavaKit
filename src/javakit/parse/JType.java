@@ -24,59 +24,49 @@ public class JType extends JNode {
     private JavaType  _baseDecl;
 
     /**
+     * Constructor.
+     */
+    public JType()
+    {
+        super();
+    }
+
+    /**
      * Returns whether type is primitive type.
      */
-    public boolean isPrimitive()
-    {
-        return _primitive;
-    }
+    public boolean isPrimitive()  { return _primitive; }
 
     /**
      * Sets whether type is primitive type.
      */
-    public void setPrimitive(boolean aValue)
-    {
-        _primitive = aValue;
-    }
+    public void setPrimitive(boolean aValue)  { _primitive = aValue; }
 
     /**
      * Returns whether type is array.
      */
-    public boolean isArrayType()
-    {
-        return _arrayCount > 0;
-    }
+    public boolean isArrayType()  { return _arrayCount > 0; }
 
     /**
      * Returns the array count if array type.
      */
-    public int getArrayCount()
-    {
-        return _arrayCount;
-    }
+    public int getArrayCount()  { return _arrayCount; }
 
     /**
      * Sets the array count.
      */
-    public void setArrayCount(int aValue)
-    {
-        _arrayCount = aValue;
-    }
+    public void setArrayCount(int aValue)  { _arrayCount = aValue; }
 
     /**
      * Returns the generic types.
      */
-    public List<JType> getTypeArgs()
-    {
-        return _typeArgs;
-    }
+    public List<JType> getTypeArgs()  { return _typeArgs; }
 
     /**
      * Adds a type arg.
      */
     public void addTypeArg(JType aType)
     {
-        if (_typeArgs == null) _typeArgs = new ArrayList();
+        if (_typeArgs == null) _typeArgs = new ArrayList<>();
         _typeArgs.add(aType);
         addChild(aType, -1);
     }
@@ -84,18 +74,12 @@ public class JType extends JNode {
     /**
      * Returns the number of type args.
      */
-    public int getTypeArgCount()
-    {
-        return _typeArgs.size();
-    }
+    public int getTypeArgCount()  { return _typeArgs.size(); }
 
     /**
      * Returns the type arg type at given index.
      */
-    public JType getTypeArg(int anIndex)
-    {
-        return _typeArgs.get(anIndex);
-    }
+    public JType getTypeArg(int anIndex)  { return _typeArgs.get(anIndex); }
 
     /**
      * Returns the type arg decl at given index.

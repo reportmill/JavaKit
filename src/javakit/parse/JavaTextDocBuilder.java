@@ -52,6 +52,11 @@ public class JavaTextDocBuilder {
     }
 
     /**
+     * Returns the imports.
+     */
+    public String[] getImports()  { return _imports; }
+
+    /**
      * Adds an import.
      */
     public void addImport(String anImportStr)

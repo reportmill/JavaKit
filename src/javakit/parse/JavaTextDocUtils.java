@@ -124,7 +124,6 @@ public class JavaTextDocUtils {
         type.setStartToken(assignTo.getStartToken());
         type.setEndToken(assignTo.getEndToken());
         type.setPrimitive(initType.isPrimitive());
-        type.setParent(varDecl);
         varDecl.setType(type);
     }
 
