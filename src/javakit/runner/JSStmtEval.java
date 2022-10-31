@@ -139,7 +139,7 @@ public class JSStmtEval {
             Object rval = evalStmt(anOR, stmt);
             if (stmt instanceof JStmtReturn)
                 returnVal = rval;
-            if (_breakWasHit)
+            if (_breakWasHit || _stopRun)
                 return null;
         }
 
