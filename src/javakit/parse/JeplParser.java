@@ -89,6 +89,13 @@ public class JeplParser extends JavaParser {
             JFile jfile = super.createPart();
             ParseToken startToken = getStartToken();
 
+            // Create/add JImportDecls
+            String[] importNames = new JavaTextDocBuilder().getImports();
+            for (String importName : importNames)
+                addImport(jfile, importName);
+            addImport(jfile,"snapcharts.data.*");
+            addImport(jfile,"snapjava.app.*");
+
             // Create/add ClassDecl
             JClassDecl classDecl = new JClassDecl();
             classDecl.setName("JavaShellREPL");
@@ -102,12 +109,7 @@ public class JeplParser extends JavaParser {
             extendsType.setEndToken(startToken);
             classDecl.addExtendsType(extendsType);
 
-            // Create/add JImportDecls
-            String[] importNames = new JavaTextDocBuilder().getImports();
-            for (String importName : importNames)
-                addImport(jfile, importName);
-            addImport(jfile,"snapcharts.data.*");
-            addImport(jfile,"snapjava.app.*");
+            _initDecl = null;
 
             // Return
             return jfile;

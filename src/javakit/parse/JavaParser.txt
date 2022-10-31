@@ -3,7 +3,10 @@ JavaFile { PackageDecl? ImportDecl* TypeDecl+ JavaFileImports* JeplFile? }
 
 JavaFileImports { PackageDecl? ImportDecl* }
 
-JeplFile { (BlockStatement | Modifiers MethodDecl)* }
+JeplFile
+{
+    (LookAhead(Modifiers ResultType Identifier "(") Modifiers MethodDecl | BlockStatement)*
+}
 
 PackageDecl { LookAhead(Annotation* "package") Modifiers "package" Name ";" }
 

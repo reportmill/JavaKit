@@ -62,14 +62,14 @@ public class JavaTextDoc extends TextDoc {
         if (_javaParser != null) return _javaParser;
 
         // Create, set, return
-        JavaParser javaParser = JavaParser.getShared();
+        JavaParser javaParser = getJavaParserImpl();
         return _javaParser = javaParser;
     }
 
     /**
-     * Sets the parser to parse java file.
+     * Returns the parser to parse java file.
      */
-    public void setJavaParser(JavaParser aJavaParser)  { _javaParser = aJavaParser; }
+    protected JavaParser getJavaParserImpl()  { return JavaParser.getShared(); }
 
     /**
      * Returns the Resolver that is attached to parsed Java file.
