@@ -48,7 +48,7 @@ public class JSVarStack {
             return value;
 
         // Look at previous frames
-        for (int i = _frames.length - 2; i >= 0; i--) {
+        for (int i = _frameCount - 2; i >= 0; i--) {
             value = _frames[i].get(aName);
             if (value != null)
                 return value;

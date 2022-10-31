@@ -129,16 +129,19 @@ public class JSStmtEval {
     {
         // Get statements
         List<JStmt> statements = aBlockStmt.getStatements();
+        Object returnVal = null;
 
         // Iterate over statements and evaluate each
         for (JStmt stmt : statements) {
-            evalStmt(anOR, stmt);
+            Object rval = evalStmt(anOR, stmt);
+            if (stmt instanceof JStmtReturn)
+                returnVal = rval;
             if (_breakWasHit)
                 return null;
         }
 
         // Return
-        return null;
+        return returnVal;
     }
 
     /**

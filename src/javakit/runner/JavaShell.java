@@ -4,7 +4,6 @@
 package javakit.runner;
 import javakit.parse.JStmt;
 import javakit.parse.JavaTextDoc;
-
 import java.io.PrintStream;
 
 /**
@@ -64,7 +63,14 @@ public class JavaShell {
     {
         // Get parsed statements
         JStmt[] javaStmts = javaTextDoc.getJFileStatements();
+        runJavaStatements(javaStmts);
+    }
 
+    /**
+     * Evaluate string.
+     */
+    public void runJavaStatements(JStmt[] javaStmts)
+    {
         // Set System out/err to catch console output
         System.setOut(_shellOut);
         System.setErr(_shellErr);
