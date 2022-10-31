@@ -18,8 +18,11 @@ public class JSStmtEval {
     // Whether we hit a break statement
     private boolean  _breakWasHit;
 
-    // Constant for a loop limit
-    private static int LOOP_LIMIT = 100000;
+    // A Yield count
+    private long  _lastYield;
+
+    // Whether to stop current run
+    protected boolean  _stopRun;
 
     /**
      * Constructor.
@@ -215,10 +218,6 @@ public class JSStmtEval {
         // Get update statements
         List<JStmtExpr> updateStmts = aForStmt.getUpdateStmts();
 
-        // Reset break was hit
-        _breakWasHit = false;
-        int loopCount = 0;
-
         // Iterate while conditional is true
         while (true) {
 
@@ -237,15 +236,9 @@ public class JSStmtEval {
                 evalStmt(anOR, updateStmt);
 
                 // If break was hit, break
-                if (_breakWasHit) {
-                    _breakWasHit = false;
+                if (handleBreakCheck())
                     break;
-                }
             }
-
-            // If LoopLimit hit, throw exception
-            if (loopCount++ > LOOP_LIMIT)
-                throw new RuntimeException("JSStmtEval.evalWhileStmt: Hit loop limit");
         }
 
         // Return
@@ -274,9 +267,6 @@ public class JSStmtEval {
         if (listValue instanceof Object[])
             listValue = Arrays.asList((Object[]) listValue);
 
-        // Reset break was hit
-        _breakWasHit = false;
-
         // Handle Iterable
         if (listValue instanceof Iterable) {
 
@@ -293,10 +283,8 @@ public class JSStmtEval {
                 evalStmt(anOR, blockStmt);
 
                 // If LoopLimit hit, throw exception
-                if (_breakWasHit) {
-                    _breakWasHit = false;
+                if (handleBreakCheck())
                     break;
-                }
             }
         }
 
@@ -313,10 +301,6 @@ public class JSStmtEval {
         JExpr condExpr = aWhileStmt.getConditional();
         JStmt blockStmt = aWhileStmt.getStatement();
 
-        // Reset break was hit
-        _breakWasHit = false;
-        int loopCount = 0;
-
         // Iterate while conditional is true
         while (true) {
 
@@ -328,15 +312,13 @@ public class JSStmtEval {
             // Evaluate block statements
             evalStmt(anOR, blockStmt);
 
-            // If break was hit, break
-            if (_breakWasHit) {
-                _breakWasHit = false;
-                break;
-            }
+            // TeaVM needs to yield to
+            if (SnapUtils.isTeaVM)
+                Thread.yield();
 
-            // If LoopLimit hit, throw exception
-            if (loopCount++ > LOOP_LIMIT)
-                throw new RuntimeException("JSStmtEval.evalWhileStmt: Hit loop limit");
+            // If break was hit, break
+            if (handleBreakCheck())
+                break;
         }
 
         // Return
@@ -352,10 +334,6 @@ public class JSStmtEval {
         JExpr condExpr = aDoStmt.getConditional();
         JStmt blockStmt = aDoStmt.getStatement();
 
-        // Reset break was hit
-        _breakWasHit = false;
-        int loopCount = 0;
-
         // Iterate while conditional is true
         while (true) {
 
@@ -363,19 +341,13 @@ public class JSStmtEval {
             evalStmt(anOR, blockStmt);
 
             // If break was hit, break
-            if (_breakWasHit) {
-                _breakWasHit = false;
+            if (handleBreakCheck())
                 break;
-            }
 
             // Evaluate conditional and break if false
             Object condValue = evalExpr(condExpr);
             if (!SnapUtils.booleanValue(condValue))
                 break;
-
-            // If LoopLimit hit, throw exception
-            if (loopCount++ > LOOP_LIMIT)
-                throw new RuntimeException("JSStmtEval.evalWhileStmt: Hit loop limit");
         }
 
         // Return
@@ -421,5 +393,30 @@ public class JSStmtEval {
 
         // Return
         return val;
+    }
+
+    /**
+     * This method checks and returns whether a break statement was hit in a loop.
+     * For Browser, this checks whether a frame has passed and does a yield every 40 millis for progress bar.
+     */
+    private boolean handleBreakCheck()
+    {
+        // Check for BreakWasHit
+        if (_breakWasHit || _stopRun) {
+            _breakWasHit = false;
+            return true;
+        }
+
+        // If TeaVM, check whether we need a yield
+        if (SnapUtils.isTeaVM) {
+            long time = System.currentTimeMillis();
+            if (time - _lastYield > 40) {
+                Thread.yield();
+                _lastYield = time;
+            }
+        }
+
+        // Return no break
+        return false;
     }
 }

@@ -75,8 +75,9 @@ public class JavaShell {
         System.setOut(_shellOut);
         System.setErr(_shellErr);
 
-        // Clear console
+        // Clear console and StopRun
         _console.clear();
+        _stmtEval._stopRun = false;
 
         // Get line vals for statements
         _lineVals = new Object[javaStmts.length];
@@ -96,6 +97,22 @@ public class JavaShell {
         // Restore System out/err
         System.setOut(_stdOut);
         System.setErr(_stdErr);
+    }
+
+    /**
+     * Called to stop current run.
+     */
+    public void interrupt()
+    {
+        _stmtEval._stopRun = true;
+    }
+
+    /**
+     * Returns whether shell was interrupted.
+     */
+    public boolean isInterrupted()
+    {
+        return _stmtEval._stopRun;
     }
 
     /**
