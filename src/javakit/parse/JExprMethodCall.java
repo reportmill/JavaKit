@@ -16,6 +16,12 @@ public class JExprMethodCall extends JExpr {
     // The args
     List<JExpr>  _args;
 
+    // The param types
+    private JavaType[]  _paramTypes;
+
+    // The MethodDecl, if JavaMethod not found
+    private JMethodDecl  _methodDecl;
+
     /**
      * Constructor.
      */
@@ -81,16 +87,21 @@ public class JExprMethodCall extends JExpr {
      */
     public JavaType[] getArgEvalTypes()
     {
-        List<JExpr> args = getArgs();
-        JavaType[] argTypes = new JavaType[args.size()];
+        // If already set, just return
+        if (_paramTypes != null) return _paramTypes;
 
-        for (int i = 0, iMax = args.size(); i < iMax; i++) {
-            JExpr arg = args.get(i);
-            argTypes[i] = arg != null ? arg.getEvalType() : null;
+        // Get param expressions and create array for types
+        List<JExpr> paramExprs = getArgs();
+        JavaType[] paramTypes = new JavaType[paramExprs.size()];
+
+        // Iterate over expressions and evaluate to type
+        for (int i = 0, iMax = paramExprs.size(); i < iMax; i++) {
+            JExpr arg = paramExprs.get(i);
+            paramTypes[i] = arg != null ? arg.getEvalType() : null;
         }
 
-        // Return
-        return argTypes;
+        // Set/Return
+        return _paramTypes = paramTypes;
     }
 
     /**
@@ -108,6 +119,10 @@ public class JExprMethodCall extends JExpr {
     @Override
     protected JavaMethod getDeclImpl()
     {
+        // If MethodDecl was previously found, return null since Decl can't be resolved
+        if (_methodDecl != null)
+            return null;
+
         // Get method name and arg types
         String name = getName();
         JavaType[] argTypes = getArgEvalTypes();
@@ -276,6 +291,9 @@ public class JExprMethodCall extends JExpr {
      */
     public JMethodDecl getMethodDecl()
     {
+        // If already set, just return
+        if (_methodDecl != null) return _methodDecl;
+
         // Get method name and arg types
         String name = getName();
         JavaType[] argTypes = getArgEvalTypes();
@@ -294,7 +312,7 @@ public class JExprMethodCall extends JExpr {
             // Look for method name+args, return if found
             JMethodDecl methodDecl = classDecl.getMethodDeclForNameAndTypes(name, argTypes);
             if (methodDecl != null)
-                return methodDecl;
+                return _methodDecl = methodDecl;
 
             // Get parent class
             classDecl = scopeNode.getEnclosingClassDecl();
