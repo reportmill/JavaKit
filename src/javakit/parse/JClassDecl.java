@@ -50,6 +50,14 @@ public class JClassDecl extends JMemberDecl {
     public enum ClassType { Class, Interface, Enum, Annotation }
 
     /**
+     * Constructor.
+     */
+    public JClassDecl()
+    {
+        super();
+    }
+
+    /**
      * Returns the simple name.
      */
     public String getSimpleName()
@@ -270,7 +278,7 @@ public class JClassDecl extends JMemberDecl {
 
         // Get constructors from members
         Stream<JMemberDecl> membersStream = _members.stream();
-        Stream<JMemberDecl> methodsStream = membersStream.filter(m -> m instanceof JMethodDecl && !(m instanceof JConstrDecl));
+        Stream<JMemberDecl> methodsStream = membersStream.filter(m -> m instanceof JMethodDecl);
         JMethodDecl[] methods = methodsStream.toArray(size -> new JMethodDecl[size]);
 
         // Set/return
