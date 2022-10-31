@@ -17,6 +17,9 @@ public class JFile extends JNode {
     // The resolver for source file
     protected Resolver _resolver;
 
+    // The full Java string (optional)
+    private String  _javaFileString;
+
     // The package declaration
     protected JPackageDecl  _packageDecl;
 
@@ -65,6 +68,16 @@ public class JFile extends JNode {
     {
         _resolver = aResolver;
     }
+
+    /**
+     * Returns the Java file string if set.
+     */
+    public String getJavaFileString()  { return _javaFileString; }
+
+    /**
+     * Sets the Java file string.
+     */
+    public void setJavaFileString(String aString)  { _javaFileString = aString; }
 
     /**
      * Returns the package declaration.

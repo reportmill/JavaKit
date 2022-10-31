@@ -535,36 +535,67 @@ public class JNode {
      */
     public String getString()
     {
-        JavaWriter javaWriter = new JavaWriter();
-        return javaWriter.getString(this);
+        // Java string, and start/end tokens
+        JFile jfile = getFile();
+        String javaString = jfile != null ? jfile.getString() : null;
+        ParseToken startToken = getStartToken();
+        ParseToken endToken = getEndToken();
+        if (javaString == null || startToken == null || endToken == null)
+            return "(No string available - JFile, Java string or tokens not found)";
+
+        // Get JavaString
+        int startIndex = startToken.getStartCharIndex();
+        int endIndex = startToken.getEndCharIndex();
+        if (endIndex > javaString.length())
+            return "(No string available - token start/end out of range/synch)";
+
+        // Return string
+        String str = javaString.substring(startIndex, endIndex);
+        return str;
     }
+
 
     /**
      * Standard toString implementation.
      */
     public String toString()
     {
-        String simpleName = getClass().getSimpleName();
-        StringBuffer sb = new StringBuffer(simpleName);
+        // Get ClassName, PropStrings and full node String
+        String className = getClass().getSimpleName();
+        String propStrings = toStringProps();
+        String nodeString = getString();
+        if (nodeString.length() > 800)
+            nodeString = nodeString.substring(0, 800);
 
-        // Append original text
-        sb.append(": ");
-        String str = getString();
-        int ind = str.indexOf('\n');
-        if (ind > 0)
-            str = str.substring(0, ind) + " ...";
-        sb.append(str);
+        // Return
+        return className + " { " + propStrings + " } " + nodeString;
+    }
 
-//        // Append Line, Start, Len
-//        sb.append(" { ");
-//        if (getFile() != null)
-//            sb.append("File:").append(getFile().getName()).append(", ");
-//        sb.append("Line:").append(getLineIndex() + 1);
-//        sb.append(", Start:").append(getLineCharIndex());
-//        sb.append(", Len:").append(getEnd() - getStart());
-//        if (getName() != null && getName().length() > 0)
-//            sb.append(", Name:").append(getName());
-//        sb.append(" } ");
+    /**
+     * Standard toStringProps implementation.
+     */
+    public String toStringProps()
+    {
+        StringBuffer sb = new StringBuffer();
+
+        // Apend Name
+        String name = getName();
+        if (name != null)
+            StringUtils.appendProp(sb, "Name", name);
+
+        // Append LineIndex, ColumnIndex
+        ParseToken startToken = getStartToken();
+        if (startToken != null) {
+            StringUtils.appendProp(sb, "LineIndex", startToken.getLineIndex());
+            StringUtils.appendProp(sb, "ColumnIndex", startToken.getColumnIndex());
+        }
+
+        // Append Length
+        ParseToken endToken = getEndToken();
+        if (endToken != null) {
+            int length = endToken.getEndCharIndex() - startToken.getStartCharIndex();
+            StringUtils.appendProp(sb, "Length", length);
+        }
 
         // Return
         return sb.toString();

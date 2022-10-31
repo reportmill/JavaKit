@@ -105,6 +105,7 @@ public class JavaTextDoc extends TextDoc {
         Resolver resolver = getResolver();
         if (resolver != null)
             jfile.setResolver(resolver);
+        jfile.setJavaFileString(javaStr);
 
         // This sucks
         JavaTextDocUtils.getStatementsForJavaNode(jfile);
