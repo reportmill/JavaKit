@@ -3,10 +3,7 @@
  */
 package javakit.ide;
 import java.util.List;
-import javakit.parse.JFile;
-import javakit.parse.JImportDecl;
-import javakit.parse.JNode;
-import javakit.parse.JPackageDecl;
+import javakit.parse.*;
 import javakit.resolver.JavaClass;
 import javakit.resolver.JavaConstructor;
 import javakit.resolver.JavaDecl;
@@ -155,8 +152,14 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         // Get Java text
         TextArea textArea = getTextArea();
         TextDoc textDoc = textArea.getTextDoc();
-        if (textDoc instanceof SubText)
-            textDoc = ((SubText) textDoc).getTextDoc();
+
+        // If JeplTextDoc, just add import to JavaTextDocBuilder
+        if (textDoc instanceof JeplTextDoc) {
+            JeplTextDoc jeplTextDoc = (JeplTextDoc) textDoc;
+            JavaTextDocBuilder javaTextDocBuilder = jeplTextDoc.getJavaTextDocBuilder();
+            javaTextDocBuilder.addImport(classPath);
+            return;
+        }
 
         // Add import to Java text
         TextLine line = textDoc.getLine(importLineIndex);

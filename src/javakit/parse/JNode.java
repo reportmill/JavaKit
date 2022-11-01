@@ -537,7 +537,7 @@ public class JNode {
     {
         // Java string, and start/end tokens
         JFile jfile = getFile();
-        String javaString = jfile != null ? jfile.getString() : null;
+        String javaString = jfile != null ? jfile.getJavaFileString() : null;
         ParseToken startToken = getStartToken();
         ParseToken endToken = getEndToken();
         if (javaString == null || startToken == null || endToken == null)

@@ -1,4 +1,8 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.parse;
+import snap.parse.ParseHandler;
 import snap.parse.ParseNode;
 import snap.parse.ParseRule;
 import snap.parse.ParseToken;
@@ -11,13 +15,13 @@ public class JeplParser extends JavaParser {
     /**
      * Constructor.
      */
-    public JeplParser()
+    public JeplParser(JeplTextDoc aJeplTextDoc)
     {
         super();
 
         // Get/set rule for JeplFile
         ParseRule jeplRule = getRule("JeplFile");
-        jeplRule.setHandler(new JeplFileHandler());
+        jeplRule.setHandler(new JeplFileHandler(aJeplTextDoc));
         setRule(jeplRule);
     }
 
@@ -26,8 +30,20 @@ public class JeplParser extends JavaParser {
      */
     public static class JeplFileHandler extends JNodeParseHandler<JFile> {
 
+        // The JeplTextDoc that created this object
+        private JeplTextDoc  _jeplTextDoc;
+
         // A running ivar for batches of statements
         JInitializerDecl  _initDecl;
+
+        /**
+         * Constructor.
+         */
+        public JeplFileHandler(JeplTextDoc aJeplTextDoc)
+        {
+            super();
+            _jeplTextDoc = aJeplTextDoc;
+        }
 
         /**
          * ParseHandler method.
@@ -90,11 +106,10 @@ public class JeplParser extends JavaParser {
             ParseToken startToken = getStartToken();
 
             // Create/add JImportDecls
-            String[] importNames = new JavaTextDocBuilder().getImports();
+            JavaTextDocBuilder javaTextDocBuilder = _jeplTextDoc.getJavaTextDocBuilder();
+            String[] importNames = javaTextDocBuilder.getImports();
             for (String importName : importNames)
                 addImport(jfile, importName);
-            addImport(jfile,"snapcharts.data.*");
-            addImport(jfile,"snapjava.app.*");
 
             // Create/add ClassDecl
             JClassDecl classDecl = new JClassDecl();
@@ -122,7 +137,7 @@ public class JeplParser extends JavaParser {
         {
             // Get inclusive and path info
             boolean isInclusive = anImportPathName.endsWith(".*");
-            String importPathName = isInclusive ? anImportPathName.substring(anImportPathName.length() - 2) : anImportPathName;
+            String importPathName = isInclusive ? anImportPathName.substring(0, anImportPathName.length() - 2) : anImportPathName;
 
             // Create/configure/add ImportDecl
             JImportDecl importDecl = new JImportDecl();
@@ -134,6 +149,15 @@ public class JeplParser extends JavaParser {
         }
 
         protected Class<JFile> getPartClass()  { return JFile.class; }
-    }
 
+        /**
+         * This should never get called.
+         */
+        @Override
+        protected ParseHandler createBackupHandler()
+        {
+            System.err.println("JeplParser.createBackupHandler: This should never get called");
+            return new JeplFileHandler(_jeplTextDoc);
+        }
+    }
 }

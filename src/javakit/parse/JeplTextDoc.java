@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.parse;
 import snap.util.ArrayUtils;
 import snap.web.WebURL;
@@ -27,7 +30,7 @@ public class JeplTextDoc extends JavaTextDoc {
     /**
      * Returns the parser to parse java file.
      */
-    protected JavaParser getJavaParserImpl()  { return new JeplParser(); }
+    protected JavaParser getJavaParserImpl()  { return new JeplParser(this); }
 
     /**
      * Override to get statements from initializers.

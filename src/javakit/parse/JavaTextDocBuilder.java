@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import snap.util.ArrayUtils;
+import java.util.Arrays;
 
 /**
  * This class holds the text of a Java file with methods to easily build.
@@ -62,6 +63,7 @@ public class JavaTextDocBuilder {
     public void addImport(String anImportStr)
     {
         _imports = ArrayUtils.add(_imports, anImportStr);
+        Arrays.sort(_imports);
     }
 
     /**
