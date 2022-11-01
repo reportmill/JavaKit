@@ -254,6 +254,16 @@ public class JSExprEvalUtils {
             return SnapUtils.floatValue(aValue);
         if (aClass == int.class)
             return SnapUtils.intValue(aValue);
+        if (aClass == long.class)
+            return SnapUtils.longValue(aValue);
+        if (aClass == short.class)
+            return (short) SnapUtils.intValue(aValue);
+        if (aClass == byte.class)
+            return (byte) SnapUtils.intValue(aValue);
+        if (aClass == boolean.class)
+            return SnapUtils.boolValue(aValue);
+        if (aClass == char.class)
+            return (char) SnapUtils.intValue(aValue);
         return aValue;
     }
 

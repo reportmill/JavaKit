@@ -89,7 +89,7 @@ public class JSExprEval {
 
         // Handle cast expression
         if (anExpr instanceof JExprCast)
-            throw new RuntimeException("JSExprEval.evalCastExpr() not implemented");
+            return evalCastExpr(anOR, (JExprCast) anExpr);
 
         // Handle Instanceof expression
         if (anExpr instanceof JExprInstanceOf)
@@ -373,6 +373,42 @@ public class JSExprEval {
         // Invoke constructor
         Object newInstance = _resolver.invokeConstructor(realClass, javaConstructor, argValues);
         return newInstance;
+    }
+
+    /**
+     * Evaluate JExprCast.
+     */
+    protected Object evalCastExpr(Object anOR, JExprCast aCastExpr) throws Exception
+    {
+        // Get expression and evaluate
+        JExpr expr = aCastExpr.getExpr();
+        Object value = evalExpr(anOR, expr);
+
+        // Get type - if not primative, just return
+        JType type = aCastExpr.getType();
+        JavaType typeClass = type != null ? type.getDecl() : null;
+        if (typeClass == null) {
+            System.out.println("JSExprEval: Couldn't get type for cast expression: " + aCastExpr);
+            return value;
+        }
+
+        // If not primitve, just return value
+        if (!typeClass.isPrimitive())
+            return value;
+
+        // If value is null, complain
+        if (value == null)
+            throw new RuntimeException("JSExprEval: Trying to cast null to " + typeClass.getClassName());
+
+        // If valueClass is assignable to type class, just return value
+        Class<?> valueClass = value.getClass();
+        Class<?> castClass = typeClass.getEvalClass().getRealClass();
+        if (castClass.isAssignableFrom(valueClass))
+            return value;
+
+        // Cast value and return
+        Object castValue = JSExprEvalUtils.castOrConvertValueToPrimitiveClass(value, castClass);
+        return castValue;
     }
 
     /**
