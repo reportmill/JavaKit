@@ -60,12 +60,16 @@ public class JeplParser extends JavaParser {
 
                 // If no current InitDecl, create (with statement block) and add
                 if (_initDecl == null) {
+
+                    // Create InitDecl and add to class
                     _initDecl = new JInitializerDecl();
                     _initDecl.setStartToken(aNode.getStartToken());
-                    JStmtBlock stmtBlock = new JStmtBlock();
-                    stmtBlock.setStartToken(aNode.getStartToken());
-                    _initDecl.setBlock(stmtBlock);
                     classDecl.addMemberDecl(_initDecl);
+
+                    // Create block statement and add to InitDecl
+                    JStmtBlock blockStmt = new JStmtBlock();
+                    blockStmt.setStartToken(aNode.getStartToken());
+                    _initDecl.setBlock(blockStmt);
                 }
 
                 // Add block statement to current InitDecl.Block

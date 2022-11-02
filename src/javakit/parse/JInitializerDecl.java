@@ -20,26 +20,17 @@ public class JInitializerDecl extends JMemberDecl {
     /**
      * Returns whether is static.
      */
-    public boolean isStatic()
-    {
-        return isStatic;
-    }
+    public boolean isStatic()  { return isStatic; }
 
     /**
      * Sets whether is static.
      */
-    public void setStatic(boolean aValue)
-    {
-        isStatic = aValue;
-    }
+    public void setStatic(boolean aValue)  { isStatic = aValue; }
 
     /**
      * Returns the statement block.
      */
-    public JStmtBlock getBlock()
-    {
-        return _block;
-    }
+    public JStmtBlock getBlock()  { return _block; }
 
     /**
      * Sets the statement block.

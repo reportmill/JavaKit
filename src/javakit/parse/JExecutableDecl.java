@@ -21,10 +21,10 @@ public class JExecutableDecl extends JMemberDecl {
     protected List<JTypeVar>  _typeVars;
 
     // The formal parameters
-    protected List<JVarDecl>  _params = new ArrayList();
+    protected List<JVarDecl>  _params = new ArrayList<>();
 
     // The throws names list
-    protected List<JExpr>  _throwsNameList = new ArrayList();
+    protected List<JExpr>  _throwsNameList = new ArrayList<>();
 
     // The statement Block
     protected JStmtBlock  _block;

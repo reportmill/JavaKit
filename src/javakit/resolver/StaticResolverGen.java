@@ -17,7 +17,7 @@ public class StaticResolverGen {
     private boolean  _isRoot = getClass() == StaticResolverGen.class;
 
     // Package
-    protected static String _package = "javakit.reflect";
+    protected static String _package = "javakit.resolver";
 
     // StringBuffer
     protected static StringBuffer _sb = new StringBuffer();
@@ -39,7 +39,7 @@ public class StaticResolverGen {
         // Append imports
         append("package ").append(_package).appendln(";");
         if (!_isRoot)
-            appendln("import javakit.reflect.*;");
+            appendln("import javakit.resolver.*;");
         if (_isRoot) {
             appendln("import javakit.resolver.JavaField.FieldBuilder;");
             appendln("import javakit.resolver.JavaMethod.MethodBuilder;");
@@ -625,6 +625,7 @@ public class StaticResolverGen {
     private static Class[]  _javaUtilClasses = {
 
             java.lang.Object.class,
+            Objects.class,
             java.lang.Class.class,
             java.lang.String.class,
             java.lang.Number.class,
@@ -695,7 +696,7 @@ public class StaticResolverGen {
             "asList",
 
             // List
-            "get", "set",
+            "get", "set", "add",
 
             // Map
             "put",
