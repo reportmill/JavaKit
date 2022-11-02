@@ -4,7 +4,6 @@
 package javakit.parse;
 import java.util.*;
 import java.util.stream.Stream;
-import javakit.resolver.Resolver;
 import snap.parse.*;
 
 /**
@@ -26,7 +25,7 @@ public class JavaParser extends JavaParserStmt {
     private Parser  _importsParser;
 
     // The shared parser
-    private static JavaParser _shared = new JavaParser();
+    private static JavaParser  _shared;
 
     /**
      * Constructor.
@@ -42,7 +41,7 @@ public class JavaParser extends JavaParserStmt {
     public static JavaParser getShared()
     {
         if (_shared != null) return _shared;
-        return _shared;
+        return _shared = new JavaParser();
     }
 
     /**
@@ -117,7 +116,7 @@ public class JavaParser extends JavaParserStmt {
             _exception = e;
             ParseToken t = getToken();
             if (t != null)
-                System.err.println("Exeption at line " + (t.getLineIndex() + 1));
+                System.err.println("Exception at line " + (t.getLineIndex() + 1));
             e.printStackTrace();
         }
 

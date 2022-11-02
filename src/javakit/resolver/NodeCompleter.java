@@ -5,6 +5,7 @@ package javakit.resolver;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javakit.parse.*;
@@ -22,6 +23,9 @@ public class NodeCompleter {
     // The resolver
     private Resolver  _resolver;
 
+    // An identifier matcher
+    private static Matcher  _idMatcher;
+
     // The list of completions
     List<JavaDecl> _list = new ArrayList<>();
 
@@ -31,6 +35,13 @@ public class NodeCompleter {
     public NodeCompleter()
     {
         super();
+
+        // Create/set IdMatcher
+        if (_idMatcher == null) {
+            String regexStr = "[$_a-zA-Z][$\\w]*";
+            Pattern pattern = Pattern.compile(regexStr);
+            _idMatcher = pattern.matcher("");
+        }
     }
 
     /**
@@ -256,10 +267,13 @@ public class NodeCompleter {
         if (aNode instanceof JExprId)
             return aNode.getName();
 
-        // Handle any node with only one token
+        // Handle any node with only one token with id string
         ParseToken startToken = aNode.getStartToken();
-        if (startToken == aNode.getEndToken())
-            return startToken.getString();
+        if (startToken == aNode.getEndToken()) {
+            String str = startToken.getString();
+            if (_idMatcher.reset(str).lookingAt())
+                return str;
+        }
 
         // Return not found
         return null;

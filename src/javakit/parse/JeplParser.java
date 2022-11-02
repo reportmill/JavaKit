@@ -2,10 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import snap.parse.ParseHandler;
-import snap.parse.ParseNode;
-import snap.parse.ParseRule;
-import snap.parse.ParseToken;
+import snap.parse.*;
 
 /**
  * This class.
@@ -103,7 +100,8 @@ public class JeplParser extends JavaParser {
         {
             // Do normal version
             JFile jfile = super.createPart();
-            ParseToken startToken = getStartToken();
+            ParseToken startToken = PHANTOM_TOKEN; //getStartToken();
+            jfile.setStartToken(startToken);
 
             // Create/add JImportDecls
             JavaTextDocBuilder javaTextDocBuilder = _jeplTextDoc.getJavaTextDocBuilder();
@@ -143,8 +141,8 @@ public class JeplParser extends JavaParser {
             JImportDecl importDecl = new JImportDecl();
             importDecl.setName(importPathName);
             importDecl.setInclusive(isInclusive);
-            importDecl.setStartToken(aFile.getStartToken());
-            importDecl.setEndToken(aFile.getStartToken());
+            importDecl.setStartToken(PHANTOM_TOKEN);
+            importDecl.setEndToken(PHANTOM_TOKEN);
             aFile.addImportDecl(importDecl);
         }
 
@@ -159,5 +157,22 @@ public class JeplParser extends JavaParser {
             System.err.println("JeplParser.createBackupHandler: This should never get called");
             return new JeplFileHandler(_jeplTextDoc);
         }
+    }
+
+    // A special zero length token for programmatically created nodes at file start
+    private static ParseToken PHANTOM_TOKEN = new PhantomToken();
+
+    /**
+     * A bogus zero length token for phantom programmatically created nodes at file start.
+     */
+    private static class PhantomToken implements ParseToken {
+        public PhantomToken()  { super(); }
+        public String getName()  { return "InputStart"; }
+        public String getPattern()  { return""; }
+        public int getStartCharIndex() { return 0; }
+        public int getEndCharIndex()  { return 0; }
+        public int getLineIndex()  { return 0; }
+        public int getStartCharIndexInLine()  { return 0; }
+        public String getString()  { return ""; }
     }
 }
