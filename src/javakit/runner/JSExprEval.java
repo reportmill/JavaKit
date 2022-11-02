@@ -248,7 +248,7 @@ public class JSExprEval {
 
         // Get method body and run
         JStmtBlock methodBody = aMethodDecl.getBlock();
-        Object returnVal = _stmtEval.evalStmt(anOR, methodBody);
+        Object returnVal = _stmtEval.evalExecutable(anOR, methodBody);
         _varStack.popStackFrame();
 
         // Return

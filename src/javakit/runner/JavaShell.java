@@ -126,7 +126,7 @@ public class JavaShell {
         // Eval statement
         Object val;
         try {
-            val = _stmtEval.evalStmt(_thisObject, aStmt);
+            val = _stmtEval.evalExecutable(_thisObject, aStmt);
         }
 
         // Handle statement eval exception: Try expression

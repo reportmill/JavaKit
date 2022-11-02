@@ -18,11 +18,17 @@ public class JSStmtEval {
     // Whether we hit a break statement
     private boolean  _breakWasHit;
 
+    // Holds a return value if return was hit
+    protected Object  _returnValueHit;
+
     // A Yield count
     private long  _lastYield;
 
     // Whether to stop current run
     protected boolean  _stopRun;
+
+    // Constant representing a returned null value
+    private Object NULL_RETURN_VALUE = new Object();
 
     /**
      * Constructor.
@@ -33,6 +39,26 @@ public class JSStmtEval {
 
         // Create ExprEval
         _exprEval = new JSExprEval(this);
+    }
+
+    /**
+     * Executes top level statements.
+     */
+    public Object evalExecutable(Object anOR, JStmt aStmt) throws Exception
+    {
+        // Eval statement and return
+        try {
+            _returnValueHit = null;
+            Object returnVal = evalStmt(anOR, aStmt);
+            if (returnVal == NULL_RETURN_VALUE)
+                returnVal = null;
+            return returnVal;
+        }
+
+        // Reset ReturnValueHit
+        finally {
+            _returnValueHit = null;
+        }
     }
 
     /**
@@ -139,8 +165,8 @@ public class JSStmtEval {
             Object rval = evalStmt(anOR, stmt);
             if (stmt instanceof JStmtReturn)
                 returnVal = rval;
-            if (_breakWasHit || _stopRun)
-                return null;
+            if (_breakWasHit || _stopRun || _returnValueHit != null)
+                return _returnValueHit;
         }
 
         // Return
@@ -162,14 +188,19 @@ public class JSStmtEval {
      */
     public Object evalReturnStmt(Object anOR, JStmtReturn aReturnStmt) throws Exception
     {
-        // Get return expression - just return null if not there
-        JExpr returnExpr = aReturnStmt.getExpr();
-        if (returnExpr == null)
-            return null;
+        // Get return value
+        Object returnVal = NULL_RETURN_VALUE;
 
-        // Evaluate return expression and return result
-        Object returnVal = evalExpr(returnExpr);
-        return returnVal;
+        // If return expression set, evaluate and set returnVal
+        JExpr returnExpr = aReturnStmt.getExpr();
+        if (returnExpr != null) {
+            returnVal = evalExpr(returnExpr);
+            if (returnVal == null)
+                returnVal = NULL_RETURN_VALUE;
+        }
+
+        // Set and return value
+        return _returnValueHit = returnVal;
     }
 
     /**
@@ -237,7 +268,7 @@ public class JSStmtEval {
 
                 // If break was hit, break
                 if (handleBreakCheck())
-                    break;
+                    return _returnValueHit;
             }
         }
 
@@ -284,7 +315,7 @@ public class JSStmtEval {
 
                 // If LoopLimit hit, throw exception
                 if (handleBreakCheck())
-                    break;
+                    return _returnValueHit;
             }
         }
 
@@ -312,13 +343,9 @@ public class JSStmtEval {
             // Evaluate block statements
             evalStmt(anOR, blockStmt);
 
-            // TeaVM needs to yield to
-            if (SnapUtils.isTeaVM)
-                Thread.yield();
-
             // If break was hit, break
             if (handleBreakCheck())
-                break;
+                return _returnValueHit;
         }
 
         // Return
@@ -342,7 +369,7 @@ public class JSStmtEval {
 
             // If break was hit, break
             if (handleBreakCheck())
-                break;
+                return _returnValueHit;
 
             // Evaluate conditional and break if false
             Object condValue = evalExpr(condExpr);
@@ -406,6 +433,10 @@ public class JSStmtEval {
             _breakWasHit = false;
             return true;
         }
+
+        // Check for return value hit
+        if (_returnValueHit != null)
+            return true;
 
         // If TeaVM, check whether we need a yield
         if (SnapUtils.isTeaVM) {
