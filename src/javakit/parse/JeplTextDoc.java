@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
+import snap.text.TextDocUtils;
 import snap.util.ArrayUtils;
 import snap.web.WebURL;
 
@@ -52,6 +53,15 @@ public class JeplTextDoc extends JavaTextDoc {
         }
 
         return stmtsAll;
+    }
+
+    /**
+     * Override to just do full re-parse.
+     */
+    @Override
+    protected void updateJFileForChange(TextDocUtils.CharsChange charsChange)
+    {
+        _jfile = null;
     }
 
     /**

@@ -19,7 +19,7 @@ import java.util.List;
 public class JavaTextDoc extends TextDoc {
 
     // The parsed Java file
-    private JFile  _jfile;
+    protected JFile  _jfile;
 
     // The parser to parse Java
     private JavaParser  _javaParser;
@@ -276,16 +276,23 @@ public class JavaTextDoc extends TextDoc {
 
         // Handle CharsChange: Try to update JFile with partial parse
         if (propName == Chars_Prop && _jfile != null) {
-
-            // If partial parse fails, clear JFile for full reparse
             TextDocUtils.CharsChange charsChange = (TextDocUtils.CharsChange) aPC;
-            boolean jfileUpdated = JavaTextDocUtils.updateJFileForChange(this, _jfile, charsChange);
-            if (!jfileUpdated)
-                _jfile = null;
+            updateJFileForChange(charsChange);
+        }
+    }
+
+    /**
+     * Updates JFile incrementally if possible.
+     */
+    protected void updateJFileForChange(TextDocUtils.CharsChange charsChange)
+    {
+        // If partial parse fails, clear JFile for full reparse
+        boolean jfileUpdated = JavaTextDocUtils.updateJFileForChange(this, _jfile, charsChange);
+        if (!jfileUpdated)
+            _jfile = null;
 
             // This sucks!
-            else JavaTextDocUtils.getStatementsForJavaNode(_jfile);
-        }
+        else JavaTextDocUtils.getStatementsForJavaNode(_jfile);
     }
 
     /**
