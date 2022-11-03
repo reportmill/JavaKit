@@ -227,6 +227,8 @@ public class StaticResolver {
             case "java.util.List":
                 mb.name("add").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
                 mb.name("add").paramTypes(int.class,java.lang.Object.class).returnType(void.class).save();
+                mb.name("remove").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
+                mb.name("remove").paramTypes(int.class).returnType(java.lang.Object.class).save();
                 mb.name("get").paramTypes(int.class).returnType(java.lang.Object.class).save();
                 mb.name("equals").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
                 mb.name("hashCode").returnType(int.class).save();
@@ -235,19 +237,26 @@ public class StaticResolver {
                 mb.name("lastIndexOf").paramTypes(java.lang.Object.class).returnType(int.class).save();
                 mb.name("contains").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
                 mb.name("replaceAll").paramTypes(java.util.function.UnaryOperator.class).returnType(void.class).save();
+                mb.name("size").returnType(int.class).save();
                 mb.name("toArray").returnType(java.lang.Object[].class).save();
                 mb.name("toArray").paramTypes(java.lang.Object[].class).returnType(java.lang.Object[].class).save();
-                return mb.name("set").paramTypes(int.class,java.lang.Object.class).returnType(java.lang.Object.class).buildAll();
+                mb.name("addAll").paramTypes(java.util.Collection.class).returnType(boolean.class).save();
+                mb.name("addAll").paramTypes(int.class,java.util.Collection.class).returnType(boolean.class).save();
+                mb.name("set").paramTypes(int.class,java.lang.Object.class).returnType(java.lang.Object.class).save();
+                return mb.name("removeAll").paramTypes(java.util.Collection.class).returnType(boolean.class).buildAll();
 
             // Handle java.util.Map
             case "java.util.Map":
+                mb.name("remove").paramTypes(java.lang.Object.class).returnType(java.lang.Object.class).save();
+                mb.name("remove").paramTypes(java.lang.Object.class,java.lang.Object.class).returnType(boolean.class).save();
                 mb.name("get").paramTypes(java.lang.Object.class).returnType(java.lang.Object.class).save();
                 mb.name("put").paramTypes(java.lang.Object.class,java.lang.Object.class).returnType(java.lang.Object.class).save();
                 mb.name("equals").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
                 mb.name("hashCode").returnType(int.class).save();
                 mb.name("isEmpty").returnType(boolean.class).save();
                 mb.name("replace").paramTypes(java.lang.Object.class,java.lang.Object.class).returnType(java.lang.Object.class).save();
-                return mb.name("replace").paramTypes(java.lang.Object.class,java.lang.Object.class,java.lang.Object.class).returnType(boolean.class).buildAll();
+                mb.name("replace").paramTypes(java.lang.Object.class,java.lang.Object.class,java.lang.Object.class).returnType(boolean.class).save();
+                return mb.name("size").returnType(int.class).buildAll();
 
             // Handle java.util.Random
             case "java.util.Random":
@@ -258,12 +267,16 @@ public class StaticResolver {
             // Handle java.util.Set
             case "java.util.Set":
                 mb.name("add").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
+                mb.name("remove").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
                 mb.name("equals").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
                 mb.name("hashCode").returnType(int.class).save();
                 mb.name("isEmpty").returnType(boolean.class).save();
                 mb.name("contains").paramTypes(java.lang.Object.class).returnType(boolean.class).save();
+                mb.name("size").returnType(int.class).save();
                 mb.name("toArray").paramTypes(java.lang.Object[].class).returnType(java.lang.Object[].class).save();
-                return mb.name("toArray").returnType(java.lang.Object[].class).buildAll();
+                mb.name("toArray").returnType(java.lang.Object[].class).save();
+                mb.name("addAll").paramTypes(java.util.Collection.class).returnType(boolean.class).save();
+                return mb.name("removeAll").paramTypes(java.util.Collection.class).returnType(boolean.class).buildAll();
 
             // Handle java.io.PrintStream
             case "java.io.PrintStream":
@@ -289,8 +302,8 @@ public class StaticResolver {
                 mb.name("min").paramTypes(java.util.Comparator.class).returnType(java.util.Optional.class).save();
                 mb.name("max").paramTypes(java.util.Comparator.class).returnType(java.util.Optional.class).save();
                 mb.name("concat").paramTypes(java.util.stream.Stream.class,java.util.stream.Stream.class).returnType(java.util.stream.Stream.class).save();
-                mb.name("toArray").returnType(java.lang.Object[].class).save();
                 mb.name("toArray").paramTypes(java.util.function.IntFunction.class).returnType(java.lang.Object[].class).save();
+                mb.name("toArray").returnType(java.lang.Object[].class).save();
                 mb.name("of").paramTypes(java.lang.Object[].class).returnType(java.util.stream.Stream.class).varArgs().save();
                 mb.name("of").paramTypes(java.lang.Object.class).returnType(java.util.stream.Stream.class).save();
                 mb.name("filter").paramTypes(java.util.function.Predicate.class).returnType(java.util.stream.Stream.class).save();
@@ -322,10 +335,15 @@ public class StaticResolver {
 
             // Handle snap.view.View
             case "snap.view.View":
+                mb.name("getFill").returnType(snap.gfx.Paint.class).save();
+                mb.name("setFill").paramTypes(snap.gfx.Paint.class).returnType(void.class).save();
+                mb.name("setScale").paramTypes(double.class).returnType(void.class).save();
+                mb.name("getAnim").paramTypes(int.class).returnType(snap.view.ViewAnim.class).save();
+                mb.name("setText").paramTypes(java.lang.String.class).returnType(void.class).save();
                 mb.name("getPropValue").paramTypes(java.lang.String.class).returnType(java.lang.Object.class).save();
                 mb.name("setPropValue").paramTypes(java.lang.String.class,java.lang.Object.class).returnType(void.class).save();
-                mb.name("getPrefWidth").returnType(double.class).save();
                 mb.name("getPrefWidth").paramTypes(double.class).returnType(double.class).save();
+                mb.name("getPrefWidth").returnType(double.class).save();
                 mb.name("setPrefWidth").paramTypes(double.class).returnType(void.class).save();
                 mb.name("getPrefHeight").returnType(double.class).save();
                 mb.name("getPrefHeight").paramTypes(double.class).returnType(double.class).save();
@@ -334,8 +352,8 @@ public class StaticResolver {
                 mb.name("setPrefSize").paramTypes(double.class,double.class).returnType(void.class).save();
                 mb.name("setPrefSize").paramTypes(snap.geom.Size.class).returnType(void.class).save();
                 mb.name("getBorder").returnType(snap.gfx.Border.class).save();
-                mb.name("setBorder").paramTypes(snap.gfx.Color.class,double.class).returnType(void.class).save();
                 mb.name("setBorder").paramTypes(snap.gfx.Border.class).returnType(void.class).save();
+                mb.name("setBorder").paramTypes(snap.gfx.Color.class,double.class).returnType(void.class).save();
                 mb.name("getEffect").returnType(snap.gfx.Effect.class).save();
                 mb.name("setEffect").paramTypes(snap.gfx.Effect.class).returnType(void.class).save();
                 mb.name("getOpacity").returnType(double.class).save();
@@ -344,8 +362,8 @@ public class StaticResolver {
                 mb.name("setMargin").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
                 mb.name("setMargin").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
                 mb.name("getPadding").returnType(snap.geom.Insets.class).save();
-                mb.name("setPadding").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
                 mb.name("setPadding").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
+                mb.name("setPadding").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
                 mb.name("getSpacing").returnType(double.class).save();
                 mb.name("setSpacing").paramTypes(double.class).returnType(void.class).save();
                 mb.name("isVisible").returnType(boolean.class).save();
@@ -355,11 +373,6 @@ public class StaticResolver {
                 mb.name("setScaleY").paramTypes(double.class).returnType(void.class).save();
                 mb.name("setTransX").paramTypes(double.class).returnType(void.class).save();
                 mb.name("setTransY").paramTypes(double.class).returnType(void.class).save();
-                mb.name("getFill").returnType(snap.gfx.Paint.class).save();
-                mb.name("setFill").paramTypes(snap.gfx.Paint.class).returnType(void.class).save();
-                mb.name("setScale").paramTypes(double.class).returnType(void.class).save();
-                mb.name("getAnim").paramTypes(int.class).returnType(snap.view.ViewAnim.class).save();
-                mb.name("setText").paramTypes(java.lang.String.class).returnType(void.class).save();
                 mb.name("getName").returnType(java.lang.String.class).save();
                 mb.name("contains").paramTypes(double.class,double.class).returnType(boolean.class).save();
                 mb.name("contains").paramTypes(snap.geom.Shape.class).returnType(boolean.class).save();
@@ -367,12 +380,12 @@ public class StaticResolver {
 
             // Handle snap.view.ChildView
             case "snap.view.ChildView":
-                mb.name("removeChild").paramTypes(int.class).returnType(snap.view.View.class).save();
-                mb.name("removeChild").paramTypes(snap.view.View.class).returnType(int.class).save();
-                mb.name("setChildren").paramTypes(snap.view.View[].class).returnType(void.class).varArgs().save();
-                mb.name("removeChildren").returnType(void.class).save();
                 mb.name("addChild").paramTypes(snap.view.View.class,int.class).returnType(void.class).save();
-                return mb.name("addChild").paramTypes(snap.view.View.class).returnType(void.class).buildAll();
+                mb.name("addChild").paramTypes(snap.view.View.class).returnType(void.class).save();
+                mb.name("removeChild").paramTypes(snap.view.View.class).returnType(int.class).save();
+                mb.name("removeChild").paramTypes(int.class).returnType(snap.view.View.class).save();
+                mb.name("setChildren").paramTypes(snap.view.View[].class).returnType(void.class).varArgs().save();
+                return mb.name("removeChildren").returnType(void.class).buildAll();
 
             // Handle snap.view.Label
             case "snap.view.Label":
@@ -381,6 +394,10 @@ public class StaticResolver {
 
             // Handle snap.view.ViewAnim
             case "snap.view.ViewAnim":
+                mb.name("setFill").paramTypes(snap.gfx.Paint.class).returnType(snap.view.ViewAnim.class).save();
+                mb.name("setScale").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
+                mb.name("getAnim").paramTypes(int.class).returnType(snap.view.ViewAnim.class).save();
+                mb.name("play").returnType(void.class).save();
                 mb.name("setPrefWidth").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setPrefHeight").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setPrefSize").paramTypes(double.class,double.class).returnType(snap.view.ViewAnim.class).save();
@@ -391,12 +408,8 @@ public class StaticResolver {
                 mb.name("setTransX").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setTransY").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setLoopCount").paramTypes(int.class).returnType(snap.view.ViewAnim.class).save();
-                mb.name("setOnFinish").paramTypes(java.util.function.Consumer.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("setOnFinish").paramTypes(java.lang.Runnable.class).returnType(snap.view.ViewAnim.class).save();
-                mb.name("setFill").paramTypes(snap.gfx.Paint.class).returnType(snap.view.ViewAnim.class).save();
-                mb.name("setScale").paramTypes(double.class).returnType(snap.view.ViewAnim.class).save();
-                mb.name("getAnim").paramTypes(int.class).returnType(snap.view.ViewAnim.class).save();
-                mb.name("play").returnType(void.class).save();
+                mb.name("setOnFinish").paramTypes(java.util.function.Consumer.class).returnType(snap.view.ViewAnim.class).save();
                 mb.name("toString").returnType(java.lang.String.class).save();
                 return mb.name("isEmpty").returnType(boolean.class).buildAll();
 
@@ -715,6 +728,10 @@ public class StaticResolver {
                 return ((java.util.List) anObj).add(theArgs[0]);
             case "java.util.List.add(int,java.lang.Object)":
                 ((java.util.List) anObj).add(intVal(theArgs[0]),theArgs[1]); return null;
+            case "java.util.List.remove(java.lang.Object)":
+                return ((java.util.List) anObj).remove(theArgs[0]);
+            case "java.util.List.remove(int)":
+                return ((java.util.List) anObj).remove(intVal(theArgs[0]));
             case "java.util.List.get(int)":
                 return ((java.util.List) anObj).get(intVal(theArgs[0]));
             case "java.util.List.equals(java.lang.Object)":
@@ -731,14 +748,26 @@ public class StaticResolver {
                 return ((java.util.List) anObj).contains(theArgs[0]);
             case "java.util.List.replaceAll(java.util.function.UnaryOperator)":
                 ((java.util.List) anObj).replaceAll((java.util.function.UnaryOperator) theArgs[0]); return null;
+            case "java.util.List.size()":
+                return ((java.util.List) anObj).size();
             case "java.util.List.toArray()":
                 return ((java.util.List) anObj).toArray();
             case "java.util.List.toArray(java.lang.Object[])":
                 return ((java.util.List) anObj).toArray((Object[]) theArgs[0]);
+            case "java.util.List.addAll(java.util.Collection)":
+                return ((java.util.List) anObj).addAll((java.util.Collection) theArgs[0]);
+            case "java.util.List.addAll(int,java.util.Collection)":
+                return ((java.util.List) anObj).addAll(intVal(theArgs[0]),(java.util.Collection) theArgs[1]);
             case "java.util.List.set(int,java.lang.Object)":
                 return ((java.util.List) anObj).set(intVal(theArgs[0]),theArgs[1]);
+            case "java.util.List.removeAll(java.util.Collection)":
+                return ((java.util.List) anObj).removeAll((java.util.Collection) theArgs[0]);
 
             // Handle java.util.Map
+            case "java.util.Map.remove(java.lang.Object)":
+                return ((java.util.Map) anObj).remove(theArgs[0]);
+            case "java.util.Map.remove(java.lang.Object,java.lang.Object)":
+                return ((java.util.Map) anObj).remove(theArgs[0],theArgs[1]);
             case "java.util.Map.get(java.lang.Object)":
                 return ((java.util.Map) anObj).get(theArgs[0]);
             case "java.util.Map.put(java.lang.Object,java.lang.Object)":
@@ -753,6 +782,8 @@ public class StaticResolver {
                 return ((java.util.Map) anObj).replace(theArgs[0],theArgs[1]);
             case "java.util.Map.replace(java.lang.Object,java.lang.Object,java.lang.Object)":
                 return ((java.util.Map) anObj).replace(theArgs[0],theArgs[1],theArgs[2]);
+            case "java.util.Map.size()":
+                return ((java.util.Map) anObj).size();
 
             // Handle java.util.Random
             case "java.util.Random.nextInt(int)":
@@ -765,6 +796,8 @@ public class StaticResolver {
             // Handle java.util.Set
             case "java.util.Set.add(java.lang.Object)":
                 return ((java.util.Set) anObj).add(theArgs[0]);
+            case "java.util.Set.remove(java.lang.Object)":
+                return ((java.util.Set) anObj).remove(theArgs[0]);
             case "java.util.Set.equals(java.lang.Object)":
                 return ((java.util.Set) anObj).equals(theArgs[0]);
             case "java.util.Set.hashCode()":
@@ -773,10 +806,16 @@ public class StaticResolver {
                 return ((java.util.Set) anObj).isEmpty();
             case "java.util.Set.contains(java.lang.Object)":
                 return ((java.util.Set) anObj).contains(theArgs[0]);
+            case "java.util.Set.size()":
+                return ((java.util.Set) anObj).size();
             case "java.util.Set.toArray(java.lang.Object[])":
                 return ((java.util.Set) anObj).toArray((Object[]) theArgs[0]);
             case "java.util.Set.toArray()":
                 return ((java.util.Set) anObj).toArray();
+            case "java.util.Set.addAll(java.util.Collection)":
+                return ((java.util.Set) anObj).addAll((java.util.Collection) theArgs[0]);
+            case "java.util.Set.removeAll(java.util.Collection)":
+                return ((java.util.Set) anObj).removeAll((java.util.Collection) theArgs[0]);
 
             // Handle java.io.PrintStream
             case "java.io.PrintStream.println(double)":
@@ -819,10 +858,10 @@ public class StaticResolver {
                 return ((java.util.stream.Stream) anObj).max((java.util.Comparator) theArgs[0]);
             case "java.util.stream.Stream.concat(java.util.stream.Stream,java.util.stream.Stream)":
                 return java.util.stream.Stream.concat((java.util.stream.Stream) theArgs[0],(java.util.stream.Stream) theArgs[1]);
-            case "java.util.stream.Stream.toArray()":
-                return ((java.util.stream.Stream) anObj).toArray();
             case "java.util.stream.Stream.toArray(java.util.function.IntFunction)":
                 return ((java.util.stream.Stream) anObj).toArray((java.util.function.IntFunction) theArgs[0]);
+            case "java.util.stream.Stream.toArray()":
+                return ((java.util.stream.Stream) anObj).toArray();
             case "java.util.stream.Stream.of(java.lang.Object[])":
                 return java.util.stream.Stream.of(theArgs);
             case "java.util.stream.Stream.of(java.lang.Object)":
@@ -863,10 +902,20 @@ public class StaticResolver {
                 ((snap.props.PropObject) anObj).setPropValue((java.lang.String) theArgs[0],theArgs[1]); return null;
 
             // Handle snap.view.View
-            case "snap.view.View.getPrefWidth()":
-                return ((snap.view.View) anObj).getPrefWidth();
+            case "snap.view.View.getFill()":
+                return ((snap.view.View) anObj).getFill();
+            case "snap.view.View.setFill(snap.gfx.Paint)":
+                ((snap.view.View) anObj).setFill((snap.gfx.Paint) theArgs[0]); return null;
+            case "snap.view.View.setScale(double)":
+                ((snap.view.View) anObj).setScale(doubleVal(theArgs[0])); return null;
+            case "snap.view.View.getAnim(int)":
+                return ((snap.view.View) anObj).getAnim(intVal(theArgs[0]));
+            case "snap.view.View.setText(java.lang.String)":
+                ((snap.view.View) anObj).setText((java.lang.String) theArgs[0]); return null;
             case "snap.view.View.getPrefWidth(double)":
                 return ((snap.view.View) anObj).getPrefWidth(doubleVal(theArgs[0]));
+            case "snap.view.View.getPrefWidth()":
+                return ((snap.view.View) anObj).getPrefWidth();
             case "snap.view.View.setPrefWidth(double)":
                 ((snap.view.View) anObj).setPrefWidth(doubleVal(theArgs[0])); return null;
             case "snap.view.View.getPrefHeight()":
@@ -883,10 +932,10 @@ public class StaticResolver {
                 ((snap.view.View) anObj).setPrefSize((snap.geom.Size) theArgs[0]); return null;
             case "snap.view.View.getBorder()":
                 return ((snap.view.View) anObj).getBorder();
-            case "snap.view.View.setBorder(snap.gfx.Color,double)":
-                ((snap.view.View) anObj).setBorder((snap.gfx.Color) theArgs[0],doubleVal(theArgs[1])); return null;
             case "snap.view.View.setBorder(snap.gfx.Border)":
                 ((snap.view.View) anObj).setBorder((snap.gfx.Border) theArgs[0]); return null;
+            case "snap.view.View.setBorder(snap.gfx.Color,double)":
+                ((snap.view.View) anObj).setBorder((snap.gfx.Color) theArgs[0],doubleVal(theArgs[1])); return null;
             case "snap.view.View.getEffect()":
                 return ((snap.view.View) anObj).getEffect();
             case "snap.view.View.setEffect(snap.gfx.Effect)":
@@ -903,10 +952,10 @@ public class StaticResolver {
                 ((snap.view.View) anObj).setMargin((snap.geom.Insets) theArgs[0]); return null;
             case "snap.view.View.getPadding()":
                 return ((snap.view.View) anObj).getPadding();
-            case "snap.view.View.setPadding(snap.geom.Insets)":
-                ((snap.view.View) anObj).setPadding((snap.geom.Insets) theArgs[0]); return null;
             case "snap.view.View.setPadding(double,double,double,double)":
                 ((snap.view.View) anObj).setPadding(doubleVal(theArgs[0]),doubleVal(theArgs[1]),doubleVal(theArgs[2]),doubleVal(theArgs[3])); return null;
+            case "snap.view.View.setPadding(snap.geom.Insets)":
+                ((snap.view.View) anObj).setPadding((snap.geom.Insets) theArgs[0]); return null;
             case "snap.view.View.getSpacing()":
                 return ((snap.view.View) anObj).getSpacing();
             case "snap.view.View.setSpacing(double)":
@@ -925,16 +974,6 @@ public class StaticResolver {
                 ((snap.view.View) anObj).setTransX(doubleVal(theArgs[0])); return null;
             case "snap.view.View.setTransY(double)":
                 ((snap.view.View) anObj).setTransY(doubleVal(theArgs[0])); return null;
-            case "snap.view.View.getFill()":
-                return ((snap.view.View) anObj).getFill();
-            case "snap.view.View.setFill(snap.gfx.Paint)":
-                ((snap.view.View) anObj).setFill((snap.gfx.Paint) theArgs[0]); return null;
-            case "snap.view.View.setScale(double)":
-                ((snap.view.View) anObj).setScale(doubleVal(theArgs[0])); return null;
-            case "snap.view.View.getAnim(int)":
-                return ((snap.view.View) anObj).getAnim(intVal(theArgs[0]));
-            case "snap.view.View.setText(java.lang.String)":
-                ((snap.view.View) anObj).setText((java.lang.String) theArgs[0]); return null;
             case "snap.view.View.getName()":
                 return ((snap.view.View) anObj).getName();
             case "snap.view.View.contains(double,double)":
@@ -945,24 +984,32 @@ public class StaticResolver {
                 return ((snap.view.View) anObj).contains((snap.geom.Point) theArgs[0]);
 
             // Handle snap.view.ChildView
-            case "snap.view.ChildView.removeChild(int)":
-                return ((snap.view.ChildView) anObj).removeChild(intVal(theArgs[0]));
-            case "snap.view.ChildView.removeChild(snap.view.View)":
-                return ((snap.view.ChildView) anObj).removeChild((snap.view.View) theArgs[0]);
-            case "snap.view.ChildView.setChildren(snap.view.View[])":
-                ((snap.view.ChildView) anObj).setChildren((snap.view.View[]) theArgs); return null;
-            case "snap.view.ChildView.removeChildren()":
-                ((snap.view.ChildView) anObj).removeChildren(); return null;
             case "snap.view.ChildView.addChild(snap.view.View,int)":
                 ((snap.view.ChildView) anObj).addChild((snap.view.View) theArgs[0],intVal(theArgs[1])); return null;
             case "snap.view.ChildView.addChild(snap.view.View)":
                 ((snap.view.ChildView) anObj).addChild((snap.view.View) theArgs[0]); return null;
+            case "snap.view.ChildView.removeChild(snap.view.View)":
+                return ((snap.view.ChildView) anObj).removeChild((snap.view.View) theArgs[0]);
+            case "snap.view.ChildView.removeChild(int)":
+                return ((snap.view.ChildView) anObj).removeChild(intVal(theArgs[0]));
+            case "snap.view.ChildView.setChildren(snap.view.View[])":
+                ((snap.view.ChildView) anObj).setChildren((snap.view.View[]) theArgs); return null;
+            case "snap.view.ChildView.removeChildren()":
+                ((snap.view.ChildView) anObj).removeChildren(); return null;
 
             // Handle snap.view.Button
 
             // Handle snap.view.Label
 
             // Handle snap.view.ViewAnim
+            case "snap.view.ViewAnim.setFill(snap.gfx.Paint)":
+                return ((snap.view.ViewAnim) anObj).setFill((snap.gfx.Paint) theArgs[0]);
+            case "snap.view.ViewAnim.setScale(double)":
+                return ((snap.view.ViewAnim) anObj).setScale(doubleVal(theArgs[0]));
+            case "snap.view.ViewAnim.getAnim(int)":
+                return ((snap.view.ViewAnim) anObj).getAnim(intVal(theArgs[0]));
+            case "snap.view.ViewAnim.play()":
+                ((snap.view.ViewAnim) anObj).play(); return null;
             case "snap.view.ViewAnim.setPrefWidth(double)":
                 return ((snap.view.ViewAnim) anObj).setPrefWidth(doubleVal(theArgs[0]));
             case "snap.view.ViewAnim.setPrefHeight(double)":
@@ -983,18 +1030,10 @@ public class StaticResolver {
                 return ((snap.view.ViewAnim) anObj).setTransY(doubleVal(theArgs[0]));
             case "snap.view.ViewAnim.setLoopCount(int)":
                 return ((snap.view.ViewAnim) anObj).setLoopCount(intVal(theArgs[0]));
-            case "snap.view.ViewAnim.setOnFinish(java.util.function.Consumer)":
-                return ((snap.view.ViewAnim) anObj).setOnFinish((java.util.function.Consumer) theArgs[0]);
             case "snap.view.ViewAnim.setOnFinish(java.lang.Runnable)":
                 return ((snap.view.ViewAnim) anObj).setOnFinish((java.lang.Runnable) theArgs[0]);
-            case "snap.view.ViewAnim.setFill(snap.gfx.Paint)":
-                return ((snap.view.ViewAnim) anObj).setFill((snap.gfx.Paint) theArgs[0]);
-            case "snap.view.ViewAnim.setScale(double)":
-                return ((snap.view.ViewAnim) anObj).setScale(doubleVal(theArgs[0]));
-            case "snap.view.ViewAnim.getAnim(int)":
-                return ((snap.view.ViewAnim) anObj).getAnim(intVal(theArgs[0]));
-            case "snap.view.ViewAnim.play()":
-                ((snap.view.ViewAnim) anObj).play(); return null;
+            case "snap.view.ViewAnim.setOnFinish(java.util.function.Consumer)":
+                return ((snap.view.ViewAnim) anObj).setOnFinish((java.util.function.Consumer) theArgs[0]);
             case "snap.view.ViewAnim.isEmpty()":
                 return ((snap.view.ViewAnim) anObj).isEmpty();
 

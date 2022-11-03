@@ -696,7 +696,7 @@ public class StaticResolverGen {
             "asList",
 
             // List
-            "get", "set", "add",
+            "get", "set", "size", "add", "remove", "addAll", "removeAll",
 
             // Map
             "put",

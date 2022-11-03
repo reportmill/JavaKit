@@ -2,9 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.resolver;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 
 /**
@@ -139,7 +137,8 @@ public class JavaClassUtils {
 
         // Search this class and superclasses for compatible interface
         for (JavaClass cls = aClass; cls != null; cls = cls.getSuperClass()) {
-            for (JavaClass infc : cls.getInterfaces()) {
+            JavaClass[] interfaces = cls.getInterfaces();
+            for (JavaClass infc : interfaces) {
                 decl = getCompatibleMethodAll(infc, aName, theTypes);
                 if (decl != null)
                     return decl;

@@ -583,6 +583,10 @@ public class JNode {
         if (name != null)
             StringUtils.appendProp(sb, "Name", name);
 
+        // Append StartCharIndex, EndCharIndex
+        StringUtils.appendProp(sb, "Start", getStartCharIndex());
+        StringUtils.appendProp(sb, "End", getEndCharIndex());
+
         // Append LineIndex, ColumnIndex
         ParseToken startToken = getStartToken();
         if (startToken != null) {
