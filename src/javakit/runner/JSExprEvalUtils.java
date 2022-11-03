@@ -22,7 +22,7 @@ public class JSExprEvalUtils {
 
         // Handle strings
         if (isString(aVal1) || isString(aVal2))
-            return mirrorOf(toString(aVal1) + toString(aVal2));
+            return toString(aVal1) + toString(aVal2);
 
         // Complain
         throw new RuntimeException("Can't add types " + aVal1 + " + " + aVal2);
@@ -105,8 +105,7 @@ public class JSExprEvalUtils {
         if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
             double v1 = doubleValue(aVal1);
             double v2 = doubleValue(aVal2);
-            boolean val = compareNumeric(v1, v2, anOp);
-            return mirrorOf(val);
+            return compareNumeric(v1, v2, anOp);
         }
 
         // Handle anything
@@ -128,8 +127,7 @@ public class JSExprEvalUtils {
         if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
             double v1 = doubleValue(aVal1);
             double v2 = doubleValue(aVal2);
-            boolean val = compareNumeric(v1, v2, anOp);
-            return mirrorOf(val);
+            return compareNumeric(v1, v2, anOp);
         }
 
         // Complain
@@ -161,8 +159,7 @@ public class JSExprEvalUtils {
         if (isBoolean(aVal1) && isBoolean(aVal2)) {
             boolean v1 = boolValue(aVal1);
             boolean v2 = boolValue(aVal2);
-            boolean val = compareLogical(v1, v2, anOp);
-            return mirrorOf(val);
+            return compareLogical(v1, v2, anOp);
         }
 
         // Handle unsupported value types
@@ -189,16 +186,14 @@ public class JSExprEvalUtils {
     protected static Object value(double aValue, Object aVal1, Object aVal2)
     {
         if (isDouble(aVal1) || isDouble(aVal2))
-            return mirrorOf(aValue);
+            return aValue;
         if (isFloat(aVal1) || isFloat(aVal2))
-            return mirrorOf((float) aValue);
+            return (float) aValue;
         if (isLong(aVal1) || isLong(aVal2))
-            return mirrorOf((long) aValue);
-        if (isInt(aVal1) || isInt(aVal2))
-            return mirrorOf((int) aValue);
+            return (long) aValue;
 
-        // Handle unsupported value types
-        throw new RuntimeException("Can't discern value type for " + aVal1 + " and " + aVal2);
+        // Math op with anything else seems to be an int
+        return (int) aValue;
     }
 
     /**
@@ -210,11 +205,6 @@ public class JSExprEvalUtils {
      * Returns whether object is Number or Character.
      */
     protected static boolean isNumberOrChar(Object anObj)  { return anObj instanceof Number || anObj instanceof Character; }
-
-    /**
-     * Return whether object is int.
-     */
-    protected static boolean isInt(Object anObj)  { return anObj instanceof Integer; }
 
     /**
      * Return whether object is long.
@@ -266,14 +256,6 @@ public class JSExprEvalUtils {
     }
 
     /**
-     * Returns the float value.
-     */
-    protected static float floatValue(Object anObj)
-    {
-        return (float) doubleValue(anObj);
-    }
-
-    /**
      * Returns the double value.
      */
     protected static double doubleValue(Object anObj)
@@ -284,7 +266,7 @@ public class JSExprEvalUtils {
 
         // Handle Character
         if (anObj instanceof Character)
-            return (char) (Character) anObj;
+            return (Character) anObj;
 
         // Handle other
         return 0;
@@ -313,11 +295,6 @@ public class JSExprEvalUtils {
             return (char) SnapUtils.intValue(aValue);
         return aValue;
     }
-
-    /**
-     * Return the current this object.
-     */
-    protected static Object mirrorOf(Object anObj)  { return anObj; }
 
     /**
      * Return the current this object.
