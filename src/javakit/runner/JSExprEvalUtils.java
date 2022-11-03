@@ -12,15 +12,17 @@ public class JSExprEvalUtils {
      */
     protected static Object add(Object aVal1, Object aVal2)
     {
+        // Handle Number, Character
+        if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
+            double val1 = doubleValue(aVal1);
+            double val2 = doubleValue(aVal2);
+            double result = val1 + val2;
+            return value(result, aVal1, aVal2);
+        }
+
         // Handle strings
         if (isString(aVal1) || isString(aVal2))
             return mirrorOf(toString(aVal1) + toString(aVal2));
-
-        // Handle primitives
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) + doubleValue(aVal2);
-            return value(result, aVal1, aVal2);
-        }
 
         // Complain
         throw new RuntimeException("Can't add types " + aVal1 + " + " + aVal2);
@@ -31,9 +33,11 @@ public class JSExprEvalUtils {
      */
     protected static Object subtract(Object aVal1, Object aVal2)
     {
-        // Handle primitives
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) - doubleValue(aVal2);
+        // Handle Number, Character
+        if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
+            double val1 = doubleValue(aVal1);
+            double val2 = doubleValue(aVal2);
+            double result = val1 - val2;
             return value(result, aVal1, aVal2);
         }
 
@@ -46,9 +50,11 @@ public class JSExprEvalUtils {
      */
     protected static Object multiply(Object aVal1, Object aVal2)
     {
-        // Handle primitives
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) * doubleValue(aVal2);
+        // Handle Number, Character
+        if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
+            double val1 = doubleValue(aVal1);
+            double val2 = doubleValue(aVal2);
+            double result = val1 * val2;
             return value(result, aVal1, aVal2);
         }
 
@@ -61,9 +67,11 @@ public class JSExprEvalUtils {
      */
     protected static Object divide(Object aVal1, Object aVal2)
     {
-        // Handle primitives
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = doubleValue(aVal1) / doubleValue(aVal2);
+        // Handle Number, Character
+        if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
+            double val1 = doubleValue(aVal1);
+            double val2 = doubleValue(aVal2);
+            double result = val1 / val2;
             return value(result, aVal1, aVal2);
         }
 
@@ -76,9 +84,11 @@ public class JSExprEvalUtils {
      */
     protected static Object mod(Object aVal1, Object aVal2)
     {
-        // Handle primitives
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
-            double result = longValue(aVal1) % longValue(aVal2);
+        // Handle Number, Character
+        if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
+            long val1 = longValue(aVal1);
+            long val2 = longValue(aVal2);
+            double result = val1 % val2;
             return value(result, aVal1, aVal2);
         }
 
@@ -89,10 +99,33 @@ public class JSExprEvalUtils {
     /**
      * Compare two numeric values.
      */
+    protected static Object compareEquals(Object aVal1, Object aVal2, JExprMath.Op anOp)
+    {
+        // Handle Number, Character
+        if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
+            double v1 = doubleValue(aVal1);
+            double v2 = doubleValue(aVal2);
+            boolean val = compareNumeric(v1, v2, anOp);
+            return mirrorOf(val);
+        }
+
+        // Handle anything
+        if (anOp == JExprMath.Op.Equal)
+            return aVal1 == aVal2;
+        if (anOp == JExprMath.Op.NotEqual)
+            return aVal1 != aVal2;
+
+        // Complain
+        throw new RuntimeException("Invalid equals op " + anOp);
+    }
+
+    /**
+     * Compare two numeric values.
+     */
     protected static Object compareNumeric(Object aVal1, Object aVal2, JExprMath.Op anOp)
     {
-        // Handle primitives
-        if (isPrimitive(aVal1) && isPrimitive(aVal2)) {
+        // Handle Number, Character
+        if (isNumberOrChar(aVal1) && isNumberOrChar(aVal2)) {
             double v1 = doubleValue(aVal1);
             double v2 = doubleValue(aVal2);
             boolean val = compareNumeric(v1, v2, anOp);
@@ -124,11 +157,15 @@ public class JSExprEvalUtils {
      */
     protected static Object compareLogical(Object aVal1, Object aVal2, JExprMath.Op anOp)
     {
+        // Handle boolean
         if (isBoolean(aVal1) && isBoolean(aVal2)) {
-            boolean v1 = boolValue(aVal1), v2 = boolValue(aVal2);
+            boolean v1 = boolValue(aVal1);
+            boolean v2 = boolValue(aVal2);
             boolean val = compareLogical(v1, v2, anOp);
             return mirrorOf(val);
         }
+
+        // Handle unsupported value types
         throw new RuntimeException("Can't logical compare types " + aVal1 + " + " + aVal2);
     }
 
@@ -141,6 +178,8 @@ public class JSExprEvalUtils {
             return aVal1 && aVal2;
         if (anOp == JExprMath.Op.Or)
             return aVal1 || aVal2;
+
+        // Handle unsupported value types
         throw new RuntimeException("Not a compare op " + anOp);
     }
 
@@ -157,21 +196,20 @@ public class JSExprEvalUtils {
             return mirrorOf((long) aValue);
         if (isInt(aVal1) || isInt(aVal2))
             return mirrorOf((int) aValue);
-        throw new RuntimeException("Can't discern value type for " + aVal1 + " and " + aVal2);
-    }
 
-    /**
-     * Return whether object is primitive.
-     */
-    protected static boolean isPrimitive(Object anObj)
-    {
-        return isInt(anObj) || isLong(anObj) || isFloat(anObj) || isDouble(anObj);
+        // Handle unsupported value types
+        throw new RuntimeException("Can't discern value type for " + aVal1 + " and " + aVal2);
     }
 
     /**
      * Return whether object is boolean.
      */
     protected static boolean isBoolean(Object anObj)  { return anObj instanceof Boolean; }
+
+    /**
+     * Returns whether object is Number or Character.
+     */
+    protected static boolean isNumberOrChar(Object anObj)  { return anObj instanceof Number || anObj instanceof Character; }
 
     /**
      * Return whether object is int.
@@ -232,7 +270,7 @@ public class JSExprEvalUtils {
      */
     protected static float floatValue(Object anObj)
     {
-        return SnapUtils.floatValue(anObj);
+        return (float) doubleValue(anObj);
     }
 
     /**
@@ -240,7 +278,16 @@ public class JSExprEvalUtils {
      */
     protected static double doubleValue(Object anObj)
     {
-        return SnapUtils.doubleValue(anObj);
+        // Handle Number
+        if (anObj instanceof Number)
+            return ((Number) anObj).doubleValue();
+
+        // Handle Character
+        if (anObj instanceof Character)
+            return (char) (Character) anObj;
+
+        // Handle other
+        return 0;
     }
 
     /**

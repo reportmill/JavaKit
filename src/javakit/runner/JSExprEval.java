@@ -174,7 +174,7 @@ public class JSExprEval {
 
         // Look for field
         if (anOR != null && !SnapUtils.isTeaVM) {
-            Class cls = anOR instanceof Class ? (Class) anOR : anOR.getClass();
+            Class<?> cls = anOR instanceof Class ? (Class<?>) anOR : anOR.getClass();
             Field field = ClassUtils.getFieldForName(cls, aName);
             if (field != null)
                 return field.get(anOR);
@@ -416,13 +416,12 @@ public class JSExprEval {
      */
     private Object evalExprChain(Object anOR, JExprChain anExpr) throws Exception
     {
-        Object val = anOR; //Object or = anOR;
+        Object val = anOR;
 
         // Iterate over chain
         for (int i = 0, iMax = anExpr.getExprCount(); i < iMax; i++) {
             JExpr expr = anExpr.getExpr(i);
-            val = evalExpr(val, expr); //val = evalExpr(or, expr);
-            //if(val instanceof ObjectReference) or = (ObjectReference)val;
+            val = evalExpr(val, expr);
         }
 
         // Return
@@ -434,120 +433,28 @@ public class JSExprEval {
      */
     private Object evalMathExpr(Object anOR, JExprMath anExpr) throws Exception
     {
-        // Get Op and OpCount
-        JExprMath.Op op = anExpr.getOp();
-        int opCount = anExpr.getOperandCount();
-
         // Get first value
         JExpr expr1 = anExpr.getOperand(0);
         String exprName = expr1 instanceof JExprId ? expr1.getName() : null;
         Object val1 = evalExpr(anOR, expr1);
 
         // Handle Unary
-        if (opCount == 1) {
+        int opCount = anExpr.getOperandCount();
+        if (opCount == 1)
+            return evalMathExprUnary(anExpr, exprName, val1);
 
-            switch (op) {
-
-                // Handle Not
-                case Not: {
-                    if (!isBoolean(val1))
-                        throw new RuntimeException("Logical Not MathExpr not boolean: " + anExpr);
-                    boolean val = boolValue(val1);
-                    return !val;
-                }
-
-                // Handle Negate
-                case Negate: {
-                    if (!isPrimitive(val1))
-                        throw new RuntimeException("Numeric Negate Expr not numeric: " + anExpr);
-                    double val = doubleValue(val1);
-                    return -val;
-                }
-
-                // Handle Increment
-                case PreIncrement: {
-                    if (!isPrimitive(val1))
-                        throw new RuntimeException("Numeric PreIncrement Expr not numeric: " + anExpr);
-                    Object val2 = add(val1, 1);
-                    setLocalVarValue(exprName, val2);
-                    return val2;
-                }
-
-                // Handle Decrement
-                case PreDecrement: {
-                    if (!isPrimitive(val1))
-                        throw new RuntimeException("Numeric PreDecrement Expr not numeric: " + anExpr);
-                    Object val2 = add(val1, -1);
-                    setLocalVarValue(exprName, val2);
-                    return val2;
-                }
-
-                // Handle Increment
-                case PostIncrement: {
-                    if (!isPrimitive(val1))
-                        throw new RuntimeException("Numeric PostIncrement Expr not numeric: " + anExpr);
-                    setLocalVarValue(exprName, add(val1, 1));
-                    return val1;
-                }
-
-                // Handle Decrement
-                case PostDecrement: {
-                    if (!isPrimitive(val1))
-                        throw new RuntimeException("Numeric PostDecrement Expr not numeric: " + anExpr);
-                    setLocalVarValue(exprName, add(val1, -1));
-                    return val1;
-                }
-
-                // Handle unknown (BitComp?)
-                default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
-            }
-        }
-
-        // Handle Binary
+        // Handle Binary: Get second expression and value
         else if (opCount == 2) {
-
-            // Get second expression and value
             JExpr expr2 = anExpr.getOperand(1);
             Object val2 = evalExpr(anOR, expr2);
-
-            // Handle binary op
-            switch (op) {
-
-                // Handle add
-                case Add: return add(val1, val2);
-
-                // Handle subtract
-                case Subtract: return subtract(val1, val2);
-
-                // Handle multiply
-                case Multiply: return multiply(val1, val2);
-
-                // Handle divide
-                case Divide: return divide(val1, val2);
-
-                // Handle Mod
-                case Mod: return mod(val1, val2);
-
-                // Handle compare
-                case Equal:
-                case NotEqual:
-                case LessThan:
-                case GreaterThan:
-                case LessThanOrEqual:
-                case GreaterThanOrEqual: return compareNumeric(val1, val2, op);
-                case Or:
-                case And: return compareLogical(val1, val2, op);
-
-                // Handle unsupported: BitOr, BitXOr, BitAnd, InstanceOf, ShiftLeft, ShiftRight, ShiftRightUnsigned
-                default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
-            }
+            return evalMathExprBinary(anExpr, val1, val2);
         }
 
         // Handle ternary
-        else if (opCount == 3 && op == JExprMath.Op.Conditional) {
+        else if (opCount == 3) {
 
             // Validate
-            if (!isPrimitive(val1))
+            if (!isBoolean(val1))
                 throw new RuntimeException("Ternary conditional expr not bool: " + expr1);
 
             // Get resulting expression
@@ -560,7 +467,108 @@ public class JSExprEval {
         }
 
         // Complain
-        throw new RuntimeException("Invalid MathExpr " + anExpr.toString());
+        throw new RuntimeException("Invalid MathExpr " + anExpr);
+    }
+
+    /**
+     * Evaluate JExprMath unary expression.
+     */
+    private Object evalMathExprUnary(JExprMath anExpr, String exprName, Object val1)
+    {
+        JExprMath.Op op = anExpr.getOp();
+
+        switch (op) {
+
+            // Handle Not
+            case Not:
+                if (isBoolean(val1))
+                    return !boolValue(val1);
+                throw new RuntimeException("Logical Not MathExpr not boolean: " + anExpr);
+
+                // Handle Negate
+            case Negate: {
+                if (isNumberOrChar(val1))
+                    return -doubleValue(val1);
+                throw new RuntimeException("Numeric Negate Expr not numeric: " + anExpr);
+            }
+
+            // Handle Increment
+            case PreIncrement: {
+                if (isNumberOrChar(val1)) {
+                    Object val2 = add(val1, 1);
+                    setLocalVarValue(exprName, val2);
+                    return val2;
+                }
+                throw new RuntimeException("Numeric PreIncrement Expr not numeric: " + anExpr);
+            }
+
+            // Handle Decrement
+            case PreDecrement: {
+                if (isNumberOrChar(val1)) {
+                    Object val2 = add(val1, -1);
+                    setLocalVarValue(exprName, val2);
+                    return val2;
+                }
+                throw new RuntimeException("Numeric PreDecrement Expr not numeric: " + anExpr);
+            }
+
+            // Handle Increment
+            case PostIncrement: {
+                if (isNumberOrChar(val1)) {
+                    setLocalVarValue(exprName, add(val1, 1));
+                    return val1;
+                }
+                throw new RuntimeException("Numeric PostIncrement Expr not numeric: " + anExpr);
+            }
+
+            // Handle Decrement
+            case PostDecrement: {
+                if (isNumberOrChar(val1)) {
+                    setLocalVarValue(exprName, add(val1, -1));
+                    return val1;
+                }
+                throw new RuntimeException("Numeric PostDecrement Expr not numeric: " + anExpr);
+            }
+
+            // Handle unknown (BitComp?)
+            default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
+        }
+    }
+
+    /**
+     * Evaluate JExprMath binary expression.
+     */
+    private Object evalMathExprBinary(JExprMath anExpr, Object val1, Object val2)
+    {
+        JExprMath.Op op = anExpr.getOp();
+
+        // Handle binary op
+        switch (op) {
+
+            // Handle add, subtract, multiply, divide, mod
+            case Add: return add(val1, val2);
+            case Subtract: return subtract(val1, val2);
+            case Multiply: return multiply(val1, val2);
+            case Divide: return divide(val1, val2);
+            case Mod: return mod(val1, val2);
+
+            // Handle equal/not-equal
+            case Equal:
+            case NotEqual: return compareEquals(val1, val2, op);
+
+            // Handle compare numeric
+            case LessThan:
+            case GreaterThan:
+            case LessThanOrEqual:
+            case GreaterThanOrEqual: return compareNumeric(val1, val2, op);
+
+            // Handle compare logical
+            case Or:
+            case And: return compareLogical(val1, val2, op);
+
+            // Handle unsupported: BitOr, BitXOr, BitAnd, InstanceOf, ShiftLeft, ShiftRight, ShiftRightUnsigned
+            default: throw new RuntimeException("Operator not supported " + anExpr.getOp());
+        }
     }
 
     /**
@@ -798,13 +806,9 @@ public class JSExprEval {
             return (EventListener) (e) -> {
                 _varStack.pushStackFrame(stackFrame);
                 _varStack.setLocalVarValue(paramName0, e);
-                try {
-                    evalExpr(anOR, contentExpr);
-                    return;
-                }
+                try { evalExpr(anOR, contentExpr); }
                 catch (Exception e2) {
-                    throw new RuntimeException(e2);
-                }
+                    throw new RuntimeException(e2); }
                 finally {
                     _varStack.popStackFrame();
                 }
