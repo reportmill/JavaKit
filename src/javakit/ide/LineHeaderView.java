@@ -70,7 +70,7 @@ public class LineHeaderView extends View {
         setFill(BACKGROUND_FILL);
 
         // Set PrefWidth
-        setPrefWidth((_showLineMarkers ? LINE_MARKERS_WIDTH : 0) + (_showLineNumbers ? LINE_NUMBERS_WIDTH : 0));
+        setPrefWidth(getSuggestedPrefWidth());
     }
 
     /**
@@ -87,7 +87,7 @@ public class LineHeaderView extends View {
         _showLineNumbers = aValue;
 
         // Adjust PrefWidth
-        setPrefWidth((_showLineMarkers ? LINE_MARKERS_WIDTH : 0) + (_showLineNumbers ? LINE_NUMBERS_WIDTH : 0));
+        setPrefWidth(getSuggestedPrefWidth());
     }
 
     /**
@@ -104,7 +104,7 @@ public class LineHeaderView extends View {
         _showLineMarkers = aValue;
 
         // Adjust PrefWidth
-        setPrefWidth((_showLineMarkers ? LINE_MARKERS_WIDTH : 0) + (_showLineNumbers ? LINE_NUMBERS_WIDTH : 0));
+        setPrefWidth(getSuggestedPrefWidth());
     }
 
     /**
@@ -180,10 +180,23 @@ public class LineHeaderView extends View {
     /**
      * Override to reset markers.
      */
-    protected void resetAll()
+    public void resetAll()
     {
         _markers = null;
+        setPrefWidth(getSuggestedPrefWidth());
         repaint();
+    }
+
+    /**
+     * Calculates pref width based on TextArea font size and ShowLineNumbers, ShowLineMarkers.
+     */
+    private double getSuggestedPrefWidth()
+    {
+        Font font = _textArea.getFont();
+        double ratio = font.getSize() / 11;
+        double lineNumbersWidth = _showLineNumbers ? Math.ceil(LINE_NUMBERS_WIDTH * ratio) : 0;
+        double lineMarkersWidth = _showLineMarkers ? Math.ceil(LINE_MARKERS_WIDTH * ratio) : 0;
+        return lineNumbersWidth + lineMarkersWidth;
     }
 
     /**

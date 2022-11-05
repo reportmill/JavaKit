@@ -170,11 +170,6 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the default font.
-     */
-    public Font getDefaultFont()  { return JavaTextUtils.getCodeFont(); }
-
-    /**
      * Returns the JFile (parsed representation of Java file).
      */
     public JFile getJFile()
