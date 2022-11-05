@@ -481,13 +481,34 @@ public class JavaTextArea extends TextArea {
      */
     public void indentLines()
     {
+        // Get start/end lines for selection
         TextSel textSel = getSel();
-        int startLineIndex = textSel.getStartLine().getIndex();
-        int endLineIndex = textSel.getEndLine().getIndex();
-        for (int i = startLineIndex; i <= endLineIndex; i++) {
-            TextBoxLine line = getLine(i);
-            addChars(INDENT_STRING, null, line.getStartCharIndex());
+        TextBoxLine startLine = textSel.getStartLine();
+        TextBoxLine endLine = textSel.getEndLine();
+        int selStart = textSel.getStart();
+        int selEnd = textSel.getEnd();
+
+        // Iterate over selected lines
+        while (true) {
+
+            // Add indent
+            int startCharIndex = startLine.getStartCharIndex();
+            addChars(INDENT_STRING, null, startLine.getStartCharIndex());
+
+            // Adjust Sel start/end
+            if (startCharIndex <= selStart)
+                selStart += INDENT_STRING.length();
+            if (startCharIndex <= selEnd)
+                selEnd += INDENT_STRING.length();
+
+            // If at end line, break, otherwise get next line
+            if (startLine == endLine)
+                break;
+            startLine = startLine.getNext();
         }
+
+        // Reset selection
+        setSel(selStart, selEnd);
     }
 
     /**
@@ -495,14 +516,48 @@ public class JavaTextArea extends TextArea {
      */
     public void outdentLines()
     {
+        // Get start/end lines for selection
         TextSel textSel = getSel();
-        int startLineIndex = textSel.getStartLine().getIndex();
-        int endLineIndex = textSel.getEndLine().getIndex();
-        for (int i = startLineIndex; i <= endLineIndex; i++) {
-            TextBoxLine line = getLine(i);
-            if (line.length() < 4 || !line.subSequence(0, 4).toString().equals(INDENT_STRING)) continue;
-            replaceChars("", null, line.getStartCharIndex(), line.getStartCharIndex() + 4, false);
+        TextBoxLine startLine = textSel.getStartLine();
+        TextBoxLine endLine = textSel.getEndLine();
+        int selStart = textSel.getStart();
+        int selEnd = textSel.getEnd();
+
+        // Iterate over lines
+        while (true) {
+
+            // Get start/end of line indent
+            int startCharIndex = 0;
+            int endCharIndex = 0;
+            while (endCharIndex < startLine.length() && startLine.charAt(endCharIndex) == ' ' && endCharIndex - startCharIndex < INDENT_STRING.length())
+                endCharIndex++;
+
+            // If indent found, remove it
+            if (endCharIndex != startCharIndex) {
+
+                // Convert indexes to TextDoc
+                int lineStartCharIndex = startLine.getStartCharIndex();
+                startCharIndex += lineStartCharIndex;
+                endCharIndex += lineStartCharIndex;
+
+                // Remove chars
+                replaceChars("", null, startCharIndex, endCharIndex, false);
+
+                // Adjust Sel start/end
+                if (startCharIndex < selStart)
+                    selStart -= Math.min(endCharIndex - startCharIndex, selStart - startCharIndex);
+                if (startCharIndex < selEnd)
+                    selEnd -= Math.min(endCharIndex - startCharIndex, selEnd - startCharIndex);
+
+                // If at end line, break, otherwise get next line
+                if (startLine == endLine)
+                    break;
+                startLine = startLine.getNext();
+            }
         }
+
+        // Reset selection
+        setSel(selStart, selEnd);
     }
 
     /**
@@ -671,7 +726,7 @@ public class JavaTextArea extends TextArea {
     public void replaceCharsWithContent(Object theContent)
     {
         // If String, trim extra indent
-        if (theContent instanceof String && getTextDoc() instanceof SubText)
+        if (theContent instanceof String && getTextDoc() instanceof JeplTextDoc)
             theContent = JavaTextUtils.removeExtraIndentFromString((String) theContent);
 
         // Do normal version
