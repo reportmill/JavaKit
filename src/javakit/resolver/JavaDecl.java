@@ -21,17 +21,17 @@ public class JavaDecl implements Comparable<JavaDecl> {
     // The name of this declaration
     protected String  _name;
 
-    // The full name of this declaration
-    private String  _fullName;
-
     // The simple name of this declaration
     protected String  _simpleName;
+
+    // The full name of this declaration
+    private String  _fullName;
 
     // The type this decl evaluates to when referenced
     protected JavaType  _evalType;
 
     // Constants for type
-    public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar, GenArrayType }
+    public enum DeclType { Class, Field, Constructor, Method, Package, VarDecl, ParamType, TypeVar, GenArrayType, Word }
 
     /**
      * Constructor.

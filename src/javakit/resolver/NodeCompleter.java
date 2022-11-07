@@ -470,29 +470,35 @@ public class NodeCompleter {
             if (recClassScore1 != recClassScore2)
                 return recClassScore1 > recClassScore2 ? -1 : 1;
 
-            // If completion Types differ, return by type
-            JavaDecl.DeclType declType1 = decl1.getType();
-            JavaDecl.DeclType declType2 = decl2.getType();
-            if (declType1 != declType2)
-                return getOrder(declType1) < getOrder(declType2) ? -1 : 1;
-
-            // Handle Class compare
-            if (decl1 instanceof JavaClass) {
-
-                // If either is member class, sort other first
-                JavaClass class1 = (JavaClass) decl1;
-                JavaClass class2 = (JavaClass) decl2;
-                if (class1.isMemberClass() != class2.isMemberClass())
-                    return class2.isMemberClass() ? -1 : 1;
-
-                // Make certain packages get preference
-                String className1 = class1.getClassName();
-                String className2 = class2.getClassName();
-                for (String prefPkg : PREF_PACKAGES) {
-                    if (className1.startsWith(prefPkg) && !className2.startsWith(prefPkg)) return -1;
-                    if (className2.startsWith(prefPkg) && !className1.startsWith(prefPkg)) return 1;
-                }
-            }
+//            // If completion Types differ, return by type
+//            JavaDecl.DeclType declType1 = decl1.getType();
+//            JavaDecl.DeclType declType2 = decl2.getType();
+//            if (declType1 != declType2)
+//                return getOrder(declType1) < getOrder(declType2) ? -1 : 1;
+//
+//            // Handle Class compare
+//            if (decl1 instanceof JavaClass) {
+//
+//                // If either is primitive, return that
+//                JavaClass class1 = (JavaClass) decl1;
+//                JavaClass class2 = (JavaClass) decl2;
+//                if (class1.isPrimitive())
+//                    return -1;
+//                if (class2.isPrimitive())
+//                    return 1;
+//
+//                // If either is member class, sort other first
+//                if (class1.isMemberClass() != class2.isMemberClass())
+//                    return class2.isMemberClass() ? -1 : 1;
+//
+//                // Make certain packages get preference
+//                String className1 = class1.getClassName();
+//                String className2 = class2.getClassName();
+//                for (String prefPkg : PREF_PACKAGES) {
+//                    if (className1.startsWith(prefPkg) && !className2.startsWith(prefPkg)) return -1;
+//                    if (className2.startsWith(prefPkg) && !className1.startsWith(prefPkg)) return 1;
+//                }
+//            }
 
             // If simple names are unique, return order
             String simpleName1 = decl1.getSimpleName();

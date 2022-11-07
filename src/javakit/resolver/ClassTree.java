@@ -35,6 +35,18 @@ public class ClassTree {
         // Create RootPackage
         _rootPackage = new PackageNode(null, "");
         _packages.put("", _rootPackage);
+
+        // Add primitives
+        _rootPackage.classes = new ClassNode[] {
+                new ClassNode(_rootPackage, boolean.class.getName()),
+                new ClassNode(_rootPackage, char.class.getName()),
+                new ClassNode(_rootPackage, byte.class.getName()),
+                new ClassNode(_rootPackage, short.class.getName()),
+                new ClassNode(_rootPackage, int.class.getName()),
+                new ClassNode(_rootPackage, long.class.getName()),
+                new ClassNode(_rootPackage, float.class.getName()),
+                new ClassNode(_rootPackage, double.class.getName())
+        };
     }
 
     /**
