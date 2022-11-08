@@ -12,6 +12,8 @@ import snap.text.TextDoc;
 import snap.util.*;
 import snap.view.*;
 import snap.viewx.TextPane;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A panel for editing Java files.
@@ -166,48 +168,28 @@ public class JavaTextPane extends TextPane {
         String javaDocText = getJavaDocText();
         setViewText("JavaDocButton", javaDocText);
 
-        // Clear path box and add Lin/Col position label
-        RowView nodePathBox = getView("BottomBox", RowView.class);
-        while (nodePathBox.getChildCount() > 1) nodePathBox.removeChild(1);
-        Font font = Font.get("Arial", 11);
-
-        // Iterate up from DeepPart and add parts
-        JNode deepNode = getTextArea()._deepNode, selNode = getTextArea().getSelNode();
-        for (JNode part = deepNode, spart = selNode; part != null; part = part.getParent()) {
-            Label label = new Label();
-            label.setText(part.getNodeString());
-            label.setFont(font);
-            label.setName("NodePathLabel");
-            label.setProp("JNode", part);
-            if (part == spart) label.setFill(Color.LIGHTGRAY);
-            nodePathBox.addChild(label, 1);
-            label.setOwner(this);
-            enableEvents(label, MouseRelease);
-            Label div = new Label();
-            div.setText(" \u2022 ");
-            div.setFont(font);
-            if (part.getParent() == null) break;
-            nodePathBox.addChild(div, 1);
-        }
-
-        // Add Eval Type Name of selected node to end
-        JavaDecl etype = selNode != null ? selNode.getEvalType() : null;
-        if (etype != null) {
-            String str = " (" + etype.getSimpleName() + ')';
-            Label label = new Label();
-            label.setText(str);
-            label.setFont(font);
-            label.setToolTip(etype.getName());
-            nodePathBox.addChild(label);
-        }
+        // Reset NodePathBox
+        resetNodePathBox();
     }
 
     /**
-     * Get compile info.
+     * Resets the NodePath box.
      */
-    public String getSelectionInfo()
+    private void resetNodePathBox()
     {
-        return super.getSelectionInfo() + ": ";
+        // Clear path box and add Lin/Col position label
+        RowView nodePathBox = getView("BottomBox", RowView.class);
+        while (nodePathBox.getChildCount() > 1)
+            nodePathBox.removeChild(1);
+
+        // Get Path node labels
+        JavaTextArea javaTextArea = getTextArea();
+        Label[] pathNodeLabels = getLabelsForSelNodePath(javaTextArea, JFile.class);
+        for (Label pathNodeLabel : pathNodeLabels) {
+            pathNodeLabel.setOwner(this);
+            enableEvents(pathNodeLabel, MouseRelease);
+            nodePathBox.addChild(pathNodeLabel);
+        }
     }
 
     /**
@@ -296,9 +278,11 @@ public class JavaTextPane extends TextPane {
 
         // Handle NodePathLabel
         else if (anEvent.equals("NodePathLabel")) {
-            JNode part = (JNode) anEvent.getView().getProp("JNode"), dnode = _textArea._deepNode;
-            _textArea.setSel(part.getStartCharIndex(), part.getEndCharIndex());
-            _textArea._deepNode = dnode;
+            JavaTextArea javaTextArea = getTextArea();
+            JNode clickedNode = (JNode) anEvent.getView().getProp("JNode");
+            JNode deepNode = javaTextArea.getDeepNode();
+            javaTextArea.setSel(clickedNode.getStartCharIndex(), clickedNode.getEndCharIndex());
+            javaTextArea.setDeepNode(deepNode);
         }
     }
 
@@ -448,6 +432,12 @@ public class JavaTextPane extends TextPane {
     }
 
     /**
+     * Override to add trailing colon.
+     */
+    @Override
+    public String getSelectionInfo()  { return super.getSelectionInfo() + ": "; }
+
+    /**
      * Open declaration.
      */
     public void openDeclaration(JNode aNode)  { }
@@ -510,6 +500,57 @@ public class JavaTextPane extends TextPane {
         _lineHeaderView.resetAll();
         _lineFooterView.resetAll();
         _textArea.repaint();
+    }
+
+    /**
+     * Returns an array of labels for selected JNode hierarchy.
+     */
+    public static Label[] getLabelsForSelNodePath(JavaTextArea javaTextArea, Class<? extends JNode> excludeClass)
+    {
+        // Get SelNode and DeepNode
+        JNode selNode = javaTextArea.getSelNode();
+        JNode deepNode = javaTextArea._deepNode;
+        Font font = Font.Arial11;
+        List<Label> pathLabels = new ArrayList<>();
+
+        // Iterate up from DeepPart and add parts
+        for (JNode jnode = deepNode; jnode != null; jnode = jnode.getParent()) {
+
+            // Create label for node
+            Label label = new Label();
+            label.setText(jnode.getNodeString());
+            label.setFont(font);
+            label.setName("NodePathLabel");
+            label.setProp("JNode", jnode);
+            if (jnode == selNode)
+                label.setFill(Color.LIGHTGRAY);
+            pathLabels.add(0, label);
+
+            // If last part, break
+            JNode parentNode = jnode.getParent();
+            if (parentNode == null || excludeClass != null && excludeClass.isAssignableFrom(parentNode.getClass()))
+                break;
+
+            // Add separator
+            Label separator = new Label();
+            separator.setText(" \u2022 ");
+            separator.setFont(font);
+            pathLabels.add(0, separator);
+        }
+
+        // Add Eval Type Name of selected node to end
+        JavaDecl evalType = selNode != null ? selNode.getEvalType() : null;
+        if (evalType != null) {
+            String str = " (" + evalType.getSimpleName() + ')';
+            Label label = new Label();
+            label.setText(str);
+            label.setFont(font);
+            label.setToolTip(evalType.getName());
+            pathLabels.add(label);
+        }
+
+        // Return
+        return pathLabels.toArray(new Label[0]);
     }
 
     /**

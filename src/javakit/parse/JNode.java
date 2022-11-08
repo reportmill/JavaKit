@@ -527,7 +527,10 @@ public class JNode {
      */
     public String getNodeString()
     {
-        return getClass().getSimpleName();
+        String className = getClass().getSimpleName();
+        if (className.charAt(0) == 'J')
+            className = className.substring(1);
+        return className;
     }
 
     /**

@@ -374,6 +374,16 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
+     * Returns the deep node - last node selected by user mouse.
+     */
+    public JNode getDeepNode()  { return _deepNode; }
+
+    /**
+     * Sets the deep node.
+     */
+    public void setDeepNode(JNode aNode)  { _deepNode = aNode; }
+
+    /**
      * Returns the node under the mouse (if command is down).
      */
     public JNode getHoverNode()  { return _hoverNode; }
