@@ -39,7 +39,7 @@ public class JavaDecl implements Comparable<JavaDecl> {
     protected JavaDecl(Resolver aResolver, DeclType aType)
     {
         // Set Resolver, Type
-        _resolver = aResolver; assert (aResolver != null);
+        _resolver = aResolver;
         _type = aType; assert (aType != null);
     }
 

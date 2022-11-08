@@ -4,8 +4,6 @@
 package javakit.resolver;
 import java.lang.reflect.*;
 import java.util.*;
-
-import snap.props.PropObject;
 import snap.util.ArrayUtils;
 import snap.util.ClassUtils;
 import snap.util.SnapUtils;
@@ -35,6 +33,9 @@ public class Resolver {
 
     // A cache of JavaGenericArrayType by id
     private Map<String,JavaGenericArrayType>  _arrayTypes = new HashMap<>();
+
+    // Global literals
+    private static JavaLocalVar[]  _literals;
 
     // TeaVM
     public static boolean isTeaVM = SnapUtils.isTeaVM;
@@ -444,9 +445,23 @@ public class Resolver {
     /**
      * Needed for TeaVM.
      */
-    public boolean isDefaultMethod(Method aMethod)
+    public boolean isDefaultMethod(Method aMethod)  { return false; }
+
+    /**
+     * Returns global literals: true, false, null, this, super.
+     */
+    public JavaLocalVar[] getGlobalLiterals()
     {
-        return false;
+        // If already set, just return
+        if (_literals != null) return _literals;
+
+        // Create global literals
+        JavaLocalVar TRUE = new JavaLocalVar(this, "true", getJavaClassForClass(boolean.class), "true");
+        JavaLocalVar FALSE = new JavaLocalVar(this, "false", getJavaClassForClass(boolean.class), "false");
+        JavaLocalVar NULL = new JavaLocalVar(this, "null", getJavaClassForClass(Object.class), "null");
+        JavaLocalVar THIS = new JavaLocalVar(this, "this", getJavaClassForClass(Object.class), "this");
+        JavaLocalVar SUPER = new JavaLocalVar(this, "super", getJavaClassForClass(Object.class), "super");
+        return _literals = new JavaLocalVar[] { TRUE, FALSE, NULL, THIS, SUPER };
     }
 
     /**

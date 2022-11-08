@@ -27,7 +27,7 @@ public class NodeCompleter {
     private static Matcher  _idMatcher;
 
     // The list of completions
-    List<JavaDecl> _list = new ArrayList<>();
+    List<JavaDecl>  _list = new ArrayList<>();
 
     /**
      * Constructor.
@@ -100,6 +100,9 @@ public class NodeCompleter {
         ClassTreeMatcher classPathMatcher = getClassTreeMatcher();
         String[] classNamesForMatcher = classPathMatcher.getClassNamesForPrefixMatcher(prefix, prefixMatcher);
 
+        // Add word completions
+        addWordCompletionsForMatcher(prefixMatcher);
+
         // Handle JType as AllocExpr
         JNode typeParent = aJType.getParent();
         if (typeParent instanceof JExprAlloc) {
@@ -145,6 +148,9 @@ public class NodeCompleter {
         // Get prefix string and matcher
         String prefix = anId.getName();
         Matcher prefixMatcher = StringUtils.getSkipCharsMatcherForLiteralString(prefix);
+
+        // Add word completions
+        addWordCompletionsForMatcher(prefixMatcher);
 
         // Handle parent is Package: Add packages and classes with prefix
         if (parExpr instanceof JExprId && ((JExprId) parExpr).isPackageName()) {
@@ -200,6 +206,9 @@ public class NodeCompleter {
         // Get prefix matcher
         Matcher prefixMatcher = StringUtils.getSkipCharsMatcherForLiteralString(prefix);
 
+        // Add word completions
+        addWordCompletionsForMatcher(prefixMatcher);
+
         // Get variables with prefix of name and add to completions
         List<JVarDecl> varDecls = aNode.getVarDeclsForMatcher(prefixMatcher, new ArrayList<>());
         for (JVarDecl varDecl : varDecls)
@@ -229,6 +238,23 @@ public class NodeCompleter {
         String[] packageNamesForMatcher = classPathMatcher.getPackageNamesForMatcher(prefixMatcher);
         for (String packageName : packageNamesForMatcher)
             addJavaPackageForName(packageName);
+    }
+
+    /**
+     * Adds word completions for matcher.
+     */
+    private void addWordCompletionsForMatcher(Matcher prefixMatcher)
+    {
+        // Add JavaWords
+        for (JavaWord word : JavaWord.ALL)
+            if (prefixMatcher.reset(word.getName()).lookingAt())
+                addCompletionDecl(word);
+
+        // Add Global Literals (true, false, null, this, super
+        JavaLocalVar[] globalLiters = _resolver.getGlobalLiterals();
+        for (JavaDecl literal : globalLiters)
+            if (prefixMatcher.reset(literal.getName()).lookingAt())
+                addCompletionDecl(literal);
     }
 
     /**
@@ -470,11 +496,11 @@ public class NodeCompleter {
             if (recClassScore1 != recClassScore2)
                 return recClassScore1 > recClassScore2 ? -1 : 1;
 
-//            // If completion Types differ, return by type
-//            JavaDecl.DeclType declType1 = decl1.getType();
-//            JavaDecl.DeclType declType2 = decl2.getType();
-//            if (declType1 != declType2)
-//                return getOrder(declType1) < getOrder(declType2) ? -1 : 1;
+            // If order Types differ, return by type
+            int declType1 = getOrder(decl1.getType());
+            int declType2 = getOrder(decl2.getType());
+            if (declType1 != declType2)
+                return declType1 < declType2 ? -1 : 1;
 //
 //            // Handle Class compare
 //            if (decl1 instanceof JavaClass) {
@@ -519,12 +545,13 @@ public class NodeCompleter {
         public static final int getOrder(JavaDecl.DeclType aType)
         {
             switch (aType) {
+                case Word:
                 case VarDecl: return 0;
-                case Field: return 1;
-                case Method: return 2;
+                case Field:
+                case Method:
                 case Class: return 3;
-                case Package: return 4;
-                default: return 5;
+                case Package: return 5;
+                default: return 6;
             }
         }
     }

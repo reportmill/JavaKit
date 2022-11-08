@@ -39,6 +39,7 @@ public class JavaTextUtils {
     public static Image ClassImage = Image.get(JavaTextUtils.class, "PublicClass.png");
     public static Image PackageImage = Image.get(JavaTextUtils.class, "Package.png");
     public static Image CodeImage = Image.get(JavaTextUtils.class, "Code.png");
+    public static Image DefaultImage;
 
     /**
      * Returns an icon image for given JavaDecl.
@@ -51,7 +52,10 @@ public class JavaTextUtils {
             case Method: return MethodImage;
             case Class: return ClassImage;
             case Package: return PackageImage;
-            default: return null;
+            default:
+                if (DefaultImage == null)
+                    DefaultImage = Image.getImageForSize(16, 16, true);
+                return DefaultImage;
         }
     }
 
