@@ -486,24 +486,31 @@ public class JavaParserExpr extends Parser {
             }
 
             // Handle ClassType (using above to handle the rest: "." "super" "." Identifier
-            else if (anId == "ClassType")
-                _part = new JExprType(aNode.getCustomNode(JType.class));
+            else if (anId == "ClassType") {
+                JType classType = aNode.getCustomNode(JType.class);
+                _part = new JExprType(classType);
+            }
 
             // Handle LambdaExpr
             else if (anId == "LambdaExpr")
-                _part = aNode.getCustomNode(JExpr.class);
+                _part = aNode.getCustomNode(JExprLambda.class);
 
             // Handle "(" Expression ")"
-            else if (anId == "Expression")
-                _part = aNode.getCustomNode(JExpr.class);
+            else if (anId == "Expression") {
+                JExpr innerExpr =  aNode.getCustomNode(JExpr.class);
+                _part = new JExprParen(innerExpr);
+                _part.setStartToken(getStartToken());
+            }
 
             // Handle AllocExpr
             else if (anId == "AllocExpr")
                 _part = aNode.getCustomNode(JExpr.class);
 
             // Handle ResultType "." "class"
-            else if (anId == "ResultType")
-                _part = new JExprType(aNode.getCustomNode(JType.class));
+            else if (anId == "ResultType") {
+                JType resultType = aNode.getCustomNode(JType.class);
+                _part = new JExprType(resultType);
+            }
             else if (anId == "class") {
                 JExprId idExpr = new JExprId("class");
                 idExpr.setStartToken(aNode.getStartToken());
@@ -513,6 +520,8 @@ public class JavaParserExpr extends Parser {
 
             // Handle Name
             else if (anId == "Name") {
+
+                // Handle Name chain expression
                 JExpr namePrime = aNode.getCustomNode(JExpr.class);
                 if (namePrime instanceof JExprChain) {
                     JExprChain nameChain = (JExprChain) namePrime;
@@ -520,6 +529,7 @@ public class JavaParserExpr extends Parser {
                         _part = JExpr.joinExpressions(_part, nameChain.getExpr(i));
                 }
 
+                // Handle simple Name
                 else _part = JExpr.joinExpressions(_part, namePrime);
             }
         }

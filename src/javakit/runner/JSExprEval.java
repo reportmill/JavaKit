@@ -63,13 +63,17 @@ public class JSExprEval {
         if (anExpr instanceof JExprId)
             return evalIdExpr(anOR, (JExprId) anExpr);
 
-        // Handle method call
-        if (anExpr instanceof JExprMethodCall)
-            return evalMethodCallExpr(anOR, (JExprMethodCall) anExpr);
+        // Handle expression chain
+        if (anExpr instanceof JExprChain)
+            return evalExprChain(anOR, (JExprChain) anExpr);
 
         // Handle math expression
         if (anExpr instanceof JExprMath)
             return evalMathExpr(anOR, (JExprMath) anExpr);
+
+        // Handle method call
+        if (anExpr instanceof JExprMethodCall)
+            return evalMethodCallExpr(anOR, (JExprMethodCall) anExpr);
 
         // Handle assign expression
         if (anExpr instanceof JExprAssign)
@@ -79,10 +83,6 @@ public class JSExprEval {
         if (anExpr instanceof JExprArrayIndex)
             return evalArrayIndexExpr(anOR, (JExprArrayIndex) anExpr);
 
-        // Handle expression chain
-        if (anExpr instanceof JExprChain)
-            return evalExprChain(anOR, (JExprChain) anExpr);
-
         // Handle alloc expression
         if (anExpr instanceof JExprAlloc)
             return evalAllocExpr(anOR, (JExprAlloc) anExpr);
@@ -90,6 +90,12 @@ public class JSExprEval {
         // Handle cast expression
         if (anExpr instanceof JExprCast)
             return evalCastExpr(anOR, (JExprCast) anExpr);
+
+        // Handle paren expression
+        if (anExpr instanceof JExprParen) {
+            JExpr innerExpr = ((JExprParen) anExpr).getExpr();
+            return evalExpr(anOR, innerExpr);
+        }
 
         // Handle Instanceof expression
         if (anExpr instanceof JExprInstanceOf)
