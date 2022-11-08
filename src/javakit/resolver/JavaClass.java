@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.resolver;
+import snap.util.SnapUtils;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -85,6 +86,8 @@ public class JavaClass extends JavaType {
         _enum = aClass.isEnum();
         _interface = aClass.isInterface();
         _primitive = aClass.isPrimitive();
+        if (_primitive && SnapUtils.isTeaVM)
+            _mods |= Modifier.PUBLIC;
 
         // Set EvalType to this
         _evalType = this;
