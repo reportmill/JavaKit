@@ -268,33 +268,36 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
-            // Handle JavaExpression rules
+            // Get part and custom node
+            JStmtExpr exprStmt = getPart();
             Object customNode = aNode.getCustomNode();
-            if (customNode instanceof JExpr && _part == null) {
-                JStmtExpr exprStmt = getPart();
+
+            // Handle JavaExpression rules
+            if (customNode instanceof JExpr) {
                 JExpr expr = (JExpr) customNode;
-                exprStmt.setExpr(expr);
+
+                // If no expression yet, just set
+                JExpr stmtExpr = exprStmt.getExpr();
+                if (stmtExpr == null)
+                    exprStmt.setExpr(expr);
+
+                // Otherwise assume it is broken assignment stmt and fill it in
+                else {
+                    JExprAssign assignExpr = new JExprAssign("=", stmtExpr, expr);
+                    exprStmt.setExpr(assignExpr);
+                }
             }
 
             // Handle post increment/decrement
             else if (anId == "++" || anId == "--") {
-                JStmtExpr exprStmt = getPart();
                 JExpr expr = exprStmt.getExpr();
                 JExprMath.Op op = anId == "++" ? JExprMath.Op.PostIncrement : JExprMath.Op.PostDecrement;
                 JExprMath unaryExpr = new JExprMath(op, expr);
                 exprStmt.setExpr(unaryExpr);
             }
 
-            // Handle Assign Expression: Build assign expr and swap in
-            else if (anId == "Expression") {
-                JStmtExpr exprStmt = getPart();
-                JExpr leftExpr = exprStmt.getExpr();
-                JExpr rightExpr = (JExpr) customNode;
-                if (rightExpr != null) { // Can happen if parse failed on right side expr
-                    JExprAssign assignExpr = new JExprAssign("=", leftExpr, rightExpr);
-                    exprStmt.setExpr(assignExpr);
-                }
-            }
+            // Shouldn't be possible
+            else System.err.println("ExprStatementHandler: Unexpected node: " + anId);
         }
 
         protected Class<JStmtExpr> getPartClass()  { return JStmtExpr.class; }

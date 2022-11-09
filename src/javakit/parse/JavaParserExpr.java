@@ -619,36 +619,62 @@ public class JavaParserExpr extends Parser {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get AllocExpr and Type (always create part)
+            JExprAlloc allocExpr = getPart();
+            JType allocType = allocExpr.getType();
+
             // Handle PrimitiveType
             if (anId == "PrimitiveType")
-                getPart().setType(aNode.getCustomNode(JType.class));
+                allocExpr.setType(aNode.getCustomNode(JType.class));
 
             // Handle ArrayDimsAndInits
-            else if (anId == "Expression" && getPart().getType() != null && getPart().getType().isArrayType())
-                getPart().setArrayDims(aNode.getCustomNode(JExpr.class));
+            else if (anId == "Expression" && allocType != null && allocType.isArrayType())
+                allocExpr.setArrayDims(aNode.getCustomNode(JExpr.class));
 
             // Handle ArrayDimsAndInits ArrayInit
             else if (anId == "ArrayInit")
-                getPart().setArrayInits(aNode.getCustomNode(List.class));
+                allocExpr.setArrayInits(aNode.getCustomNode(List.class));
 
             // Handle ClassType
             else if (anId == "ClassType")
-                getPart().setType(aNode.getCustomNode(JType.class));
+                allocExpr.setType(aNode.getCustomNode(JType.class));
 
             // Handle TypeArgs, ArrayDimsAndInits
-            else if (anId == "[" && getPart().getType() != null)
-                getPart().getType().setArrayCount(getPart().getType().getArrayCount() + 1);
+            else if (anId == "[" && allocType != null)
+                allocType.setArrayCount(allocType.getArrayCount() + 1);
 
             // Handle Arguments
             else if (anId == "Arguments")
-                getPart().setArgs(aNode.getCustomNode(List.class));
+                allocExpr.setArgs(aNode.getCustomNode(List.class));
 
             // Handle ClassBody
             else if (anId == "ClassBody") {
-                JClassDecl cd = aNode.getCustomNode(JClassDecl.class);
-                cd.addExtendsType(getPart().getType());
-                getPart().setClassDecl(cd);
+                JClassDecl classDecl = aNode.getCustomNode(JClassDecl.class);
+                classDecl.addExtendsType(allocType);
+                allocExpr.setClassDecl(classDecl);
             }
+        }
+
+        /**
+         * Override to make sure there is a type.
+         */
+        @Override
+        public JExprAlloc parsedAll()
+        {
+            // Do normal version
+            JExprAlloc allocExpr = super.parsedAll();
+
+            // If no type, add bogus
+            if (allocExpr.getType() == null) {
+                JType type = new JType();
+                type.setName("Object");
+                type.setStartToken(allocExpr.getStartToken());
+                type.setEndToken(allocExpr.getStartToken());
+                allocExpr.setType(type);
+            }
+
+            // Return
+            return allocExpr;
         }
 
         protected Class<JExprAlloc> getPartClass()  { return JExprAlloc.class; }

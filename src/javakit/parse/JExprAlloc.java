@@ -27,6 +27,14 @@ public class JExprAlloc extends JExpr {
     protected JClassDecl  _classDecl;
 
     /**
+     * Constructor.
+     */
+    public JExprAlloc()
+    {
+        super();
+    }
+
+    /**
      * Returns the allocation JType.
      */
     public JType getType()

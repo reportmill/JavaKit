@@ -11,6 +11,14 @@ import java.util.List;
 public abstract class JExpr extends JNode {
 
     /**
+     * Constructor.
+     */
+    public JExpr()
+    {
+        super();
+    }
+
+    /**
      * Returns the node the expression should be evaluated against.
      */
     public JNode getScopeNode()
