@@ -192,6 +192,66 @@ public class StaticResolver {
                 mb.name("tanh").paramTypes(double.class).returnType(double.class).save();
                 return mb.name("hypot").paramTypes(double.class,double.class).returnType(double.class).buildAll();
 
+            // Handle java.lang.StringBuffer
+            case "java.lang.StringBuffer":
+                mb.name("toString").returnType(java.lang.String.class).save();
+                mb.name("append").paramTypes(float.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(double.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(boolean.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(char.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(int.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(long.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class).returnType(java.lang.Appendable.class).save();
+                mb.name("append").paramTypes(java.lang.Object.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(java.lang.String.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(char.class).returnType(java.lang.Appendable.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class,int.class,int.class).returnType(java.lang.Appendable.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class,int.class,int.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(char[].class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(java.lang.StringBuffer.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("append").paramTypes(char[].class,int.class,int.class).returnType(java.lang.StringBuffer.class).save();
+                mb.name("indexOf").paramTypes(java.lang.String.class).returnType(int.class).save();
+                mb.name("indexOf").paramTypes(java.lang.String.class,int.class).returnType(int.class).save();
+                mb.name("length").returnType(int.class).save();
+                mb.name("charAt").paramTypes(int.class).returnType(char.class).save();
+                mb.name("lastIndexOf").paramTypes(java.lang.String.class,int.class).returnType(int.class).save();
+                mb.name("lastIndexOf").paramTypes(java.lang.String.class).returnType(int.class).save();
+                mb.name("substring").paramTypes(int.class).returnType(java.lang.String.class).save();
+                mb.name("substring").paramTypes(int.class,int.class).returnType(java.lang.String.class).save();
+                mb.name("replace").paramTypes(int.class,int.class,java.lang.String.class).returnType(java.lang.StringBuffer.class).save();
+                return mb.name("delete").paramTypes(int.class,int.class).returnType(java.lang.StringBuffer.class).buildAll();
+
+            // Handle java.lang.StringBuilder
+            case "java.lang.StringBuilder":
+                mb.name("toString").returnType(java.lang.String.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class).returnType(java.lang.Appendable.class).save();
+                mb.name("append").paramTypes(char.class).returnType(java.lang.Appendable.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class,int.class,int.class).returnType(java.lang.Appendable.class).save();
+                mb.name("append").paramTypes(boolean.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(char.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(int.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(java.lang.StringBuffer.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(char[].class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(java.lang.CharSequence.class,int.class,int.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(double.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(char[].class,int.class,int.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(java.lang.String.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(java.lang.Object.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(long.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("append").paramTypes(float.class).returnType(java.lang.StringBuilder.class).save();
+                mb.name("indexOf").paramTypes(java.lang.String.class,int.class).returnType(int.class).save();
+                mb.name("indexOf").paramTypes(java.lang.String.class).returnType(int.class).save();
+                mb.name("length").returnType(int.class).save();
+                mb.name("charAt").paramTypes(int.class).returnType(char.class).save();
+                mb.name("lastIndexOf").paramTypes(java.lang.String.class,int.class).returnType(int.class).save();
+                mb.name("lastIndexOf").paramTypes(java.lang.String.class).returnType(int.class).save();
+                mb.name("substring").paramTypes(int.class).returnType(java.lang.String.class).save();
+                mb.name("substring").paramTypes(int.class,int.class).returnType(java.lang.String.class).save();
+                mb.name("replace").paramTypes(int.class,int.class,java.lang.String.class).returnType(java.lang.StringBuilder.class).save();
+                return mb.name("delete").paramTypes(int.class,int.class).returnType(java.lang.StringBuilder.class).buildAll();
+
             // Handle java.util.Arrays
             case "java.util.Arrays":
                 mb.name("equals").paramTypes(byte[].class,byte[].class).returnType(boolean.class).save();
@@ -345,8 +405,8 @@ public class StaticResolver {
                 mb.name("getPrefWidth").paramTypes(double.class).returnType(double.class).save();
                 mb.name("getPrefWidth").returnType(double.class).save();
                 mb.name("setPrefWidth").paramTypes(double.class).returnType(void.class).save();
-                mb.name("getPrefHeight").returnType(double.class).save();
                 mb.name("getPrefHeight").paramTypes(double.class).returnType(double.class).save();
+                mb.name("getPrefHeight").returnType(double.class).save();
                 mb.name("setPrefHeight").paramTypes(double.class).returnType(void.class).save();
                 mb.name("getPrefSize").returnType(snap.geom.Size.class).save();
                 mb.name("setPrefSize").paramTypes(double.class,double.class).returnType(void.class).save();
@@ -359,8 +419,8 @@ public class StaticResolver {
                 mb.name("getOpacity").returnType(double.class).save();
                 mb.name("setOpacity").paramTypes(double.class).returnType(void.class).save();
                 mb.name("getMargin").returnType(snap.geom.Insets.class).save();
-                mb.name("setMargin").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
                 mb.name("setMargin").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
+                mb.name("setMargin").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
                 mb.name("getPadding").returnType(snap.geom.Insets.class).save();
                 mb.name("setPadding").paramTypes(double.class,double.class,double.class,double.class).returnType(void.class).save();
                 mb.name("setPadding").paramTypes(snap.geom.Insets.class).returnType(void.class).save();
@@ -665,6 +725,98 @@ public class StaticResolver {
             case "java.lang.Math.hypot(double,double)":
                 return java.lang.Math.hypot(doubleVal(theArgs[0]),doubleVal(theArgs[1]));
 
+            // Handle java.lang.StringBuffer
+            case "java.lang.StringBuffer.toString()":
+                return ((java.lang.StringBuffer) anObj).toString();
+            case "java.lang.StringBuffer.append(float)":
+                return ((java.lang.StringBuffer) anObj).append(floatVal(theArgs[0]));
+            case "java.lang.StringBuffer.append(double)":
+                return ((java.lang.StringBuffer) anObj).append(doubleVal(theArgs[0]));
+            case "java.lang.StringBuffer.append(boolean)":
+                return ((java.lang.StringBuffer) anObj).append(boolVal(theArgs[0]));
+            case "java.lang.StringBuffer.append(char)":
+                return ((java.lang.StringBuffer) anObj).append((char) theArgs[0]);
+            case "java.lang.StringBuffer.append(int)":
+                return ((java.lang.StringBuffer) anObj).append(intVal(theArgs[0]));
+            case "java.lang.StringBuffer.append(long)":
+                return ((java.lang.StringBuffer) anObj).append((long) theArgs[0]);
+            case "java.lang.StringBuffer.append(java.lang.Object)":
+                return ((java.lang.StringBuffer) anObj).append(theArgs[0]);
+            case "java.lang.StringBuffer.append(java.lang.String)":
+                return ((java.lang.StringBuffer) anObj).append((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuffer.append(java.lang.CharSequence)":
+                return ((java.lang.StringBuffer) anObj).append((java.lang.CharSequence) theArgs[0]);
+            case "java.lang.StringBuffer.append(java.lang.CharSequence,int,int)":
+                return ((java.lang.StringBuffer) anObj).append((java.lang.CharSequence) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]));
+            case "java.lang.StringBuffer.append(char[])":
+                return ((java.lang.StringBuffer) anObj).append((char[]) theArgs[0]);
+            case "java.lang.StringBuffer.append(java.lang.StringBuffer)":
+                return ((java.lang.StringBuffer) anObj).append((java.lang.StringBuffer) theArgs[0]);
+            case "java.lang.StringBuffer.append(char[],int,int)":
+                return ((java.lang.StringBuffer) anObj).append((char[]) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]));
+            case "java.lang.StringBuffer.indexOf(java.lang.String)":
+                return ((java.lang.StringBuffer) anObj).indexOf((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuffer.indexOf(java.lang.String,int)":
+                return ((java.lang.StringBuffer) anObj).indexOf((java.lang.String) theArgs[0],intVal(theArgs[1]));
+            case "java.lang.StringBuffer.length()":
+                return ((java.lang.StringBuffer) anObj).length();
+            case "java.lang.StringBuffer.charAt(int)":
+                return ((java.lang.StringBuffer) anObj).charAt(intVal(theArgs[0]));
+            case "java.lang.StringBuffer.lastIndexOf(java.lang.String,int)":
+                return ((java.lang.StringBuffer) anObj).lastIndexOf((java.lang.String) theArgs[0],intVal(theArgs[1]));
+            case "java.lang.StringBuffer.lastIndexOf(java.lang.String)":
+                return ((java.lang.StringBuffer) anObj).lastIndexOf((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuffer.substring(int)":
+                return ((java.lang.StringBuffer) anObj).substring(intVal(theArgs[0]));
+            case "java.lang.StringBuffer.substring(int,int)":
+                return ((java.lang.StringBuffer) anObj).substring(intVal(theArgs[0]),intVal(theArgs[1]));
+            case "java.lang.StringBuffer.replace(int,int,java.lang.String)":
+                return ((java.lang.StringBuffer) anObj).replace(intVal(theArgs[0]),intVal(theArgs[1]),(java.lang.String) theArgs[2]);
+            case "java.lang.StringBuffer.delete(int,int)":
+                return ((java.lang.StringBuffer) anObj).delete(intVal(theArgs[0]),intVal(theArgs[1]));
+
+            // Handle java.lang.StringBuilder
+            case "java.lang.StringBuilder.toString()":
+                return ((java.lang.StringBuilder) anObj).toString();
+            case "java.lang.StringBuilder.append(boolean)":
+                return ((java.lang.StringBuilder) anObj).append(boolVal(theArgs[0]));
+            case "java.lang.StringBuilder.append(java.lang.CharSequence)":
+                return ((java.lang.StringBuilder) anObj).append((java.lang.CharSequence) theArgs[0]);
+            case "java.lang.StringBuilder.append(char)":
+                return ((java.lang.StringBuilder) anObj).append((char) theArgs[0]);
+            case "java.lang.StringBuilder.append(int)":
+                return ((java.lang.StringBuilder) anObj).append(intVal(theArgs[0]));
+            case "java.lang.StringBuilder.append(java.lang.StringBuffer)":
+                return ((java.lang.StringBuilder) anObj).append((java.lang.StringBuffer) theArgs[0]);
+            case "java.lang.StringBuilder.append(char[])":
+                return ((java.lang.StringBuilder) anObj).append((char[]) theArgs[0]);
+            case "java.lang.StringBuilder.append(java.lang.CharSequence,int,int)":
+                return ((java.lang.StringBuilder) anObj).append((java.lang.CharSequence) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]));
+            case "java.lang.StringBuilder.append(double)":
+                return ((java.lang.StringBuilder) anObj).append(doubleVal(theArgs[0]));
+            case "java.lang.StringBuilder.append(char[],int,int)":
+                return ((java.lang.StringBuilder) anObj).append((char[]) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]));
+            case "java.lang.StringBuilder.append(java.lang.String)":
+                return ((java.lang.StringBuilder) anObj).append((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuilder.append(java.lang.Object)":
+                return ((java.lang.StringBuilder) anObj).append(theArgs[0]);
+            case "java.lang.StringBuilder.append(long)":
+                return ((java.lang.StringBuilder) anObj).append((long) theArgs[0]);
+            case "java.lang.StringBuilder.append(float)":
+                return ((java.lang.StringBuilder) anObj).append(floatVal(theArgs[0]));
+            case "java.lang.StringBuilder.indexOf(java.lang.String,int)":
+                return ((java.lang.StringBuilder) anObj).indexOf((java.lang.String) theArgs[0],intVal(theArgs[1]));
+            case "java.lang.StringBuilder.indexOf(java.lang.String)":
+                return ((java.lang.StringBuilder) anObj).indexOf((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuilder.lastIndexOf(java.lang.String,int)":
+                return ((java.lang.StringBuilder) anObj).lastIndexOf((java.lang.String) theArgs[0],intVal(theArgs[1]));
+            case "java.lang.StringBuilder.lastIndexOf(java.lang.String)":
+                return ((java.lang.StringBuilder) anObj).lastIndexOf((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuilder.replace(int,int,java.lang.String)":
+                return ((java.lang.StringBuilder) anObj).replace(intVal(theArgs[0]),intVal(theArgs[1]),(java.lang.String) theArgs[2]);
+            case "java.lang.StringBuilder.delete(int,int)":
+                return ((java.lang.StringBuilder) anObj).delete(intVal(theArgs[0]),intVal(theArgs[1]));
+
             // Handle java.util.Arrays
             case "java.util.Arrays.equals(byte[],byte[])":
                 return java.util.Arrays.equals((byte[]) theArgs[0],(byte[]) theArgs[1]);
@@ -918,10 +1070,10 @@ public class StaticResolver {
                 return ((snap.view.View) anObj).getPrefWidth();
             case "snap.view.View.setPrefWidth(double)":
                 ((snap.view.View) anObj).setPrefWidth(doubleVal(theArgs[0])); return null;
-            case "snap.view.View.getPrefHeight()":
-                return ((snap.view.View) anObj).getPrefHeight();
             case "snap.view.View.getPrefHeight(double)":
                 return ((snap.view.View) anObj).getPrefHeight(doubleVal(theArgs[0]));
+            case "snap.view.View.getPrefHeight()":
+                return ((snap.view.View) anObj).getPrefHeight();
             case "snap.view.View.setPrefHeight(double)":
                 ((snap.view.View) anObj).setPrefHeight(doubleVal(theArgs[0])); return null;
             case "snap.view.View.getPrefSize()":
@@ -946,10 +1098,10 @@ public class StaticResolver {
                 ((snap.view.View) anObj).setOpacity(doubleVal(theArgs[0])); return null;
             case "snap.view.View.getMargin()":
                 return ((snap.view.View) anObj).getMargin();
-            case "snap.view.View.setMargin(double,double,double,double)":
-                ((snap.view.View) anObj).setMargin(doubleVal(theArgs[0]),doubleVal(theArgs[1]),doubleVal(theArgs[2]),doubleVal(theArgs[3])); return null;
             case "snap.view.View.setMargin(snap.geom.Insets)":
                 ((snap.view.View) anObj).setMargin((snap.geom.Insets) theArgs[0]); return null;
+            case "snap.view.View.setMargin(double,double,double,double)":
+                ((snap.view.View) anObj).setMargin(doubleVal(theArgs[0]),doubleVal(theArgs[1]),doubleVal(theArgs[2]),doubleVal(theArgs[3])); return null;
             case "snap.view.View.getPadding()":
                 return ((snap.view.View) anObj).getPadding();
             case "snap.view.View.setPadding(double,double,double,double)":
@@ -1070,6 +1222,18 @@ public class StaticResolver {
                 cb.paramTypes(char[].class).save();
                 return cb.paramTypes(char[].class,int.class,int.class).buildAll();
 
+            // Handle java.lang.StringBuffer
+            case "java.lang.StringBuffer":
+                cb.paramTypes(java.lang.CharSequence.class).save();
+                cb.paramTypes(java.lang.String.class).save();
+                return cb.paramTypes(int.class).buildAll();
+
+            // Handle java.lang.StringBuilder
+            case "java.lang.StringBuilder":
+                cb.paramTypes(java.lang.CharSequence.class).save();
+                cb.paramTypes(java.lang.String.class).save();
+                return cb.paramTypes(int.class).buildAll();
+
             // Handle java.util.Random
             case "java.util.Random":
                 return cb.paramTypes(long.class).buildAll();
@@ -1132,6 +1296,22 @@ public class StaticResolver {
                 return new java.lang.String((char[]) theArgs[0]);
             case "java.lang.String(char[],int,int)":
                 return new java.lang.String((char[]) theArgs[0],intVal(theArgs[1]),intVal(theArgs[2]));
+
+            // Handle java.lang.StringBuffer
+            case "java.lang.StringBuffer(java.lang.CharSequence)":
+                return new java.lang.StringBuffer((java.lang.CharSequence) theArgs[0]);
+            case "java.lang.StringBuffer(java.lang.String)":
+                return new java.lang.StringBuffer((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuffer(int)":
+                return new java.lang.StringBuffer(intVal(theArgs[0]));
+
+            // Handle java.lang.StringBuilder
+            case "java.lang.StringBuilder(java.lang.CharSequence)":
+                return new java.lang.StringBuilder((java.lang.CharSequence) theArgs[0]);
+            case "java.lang.StringBuilder(java.lang.String)":
+                return new java.lang.StringBuilder((java.lang.String) theArgs[0]);
+            case "java.lang.StringBuilder(int)":
+                return new java.lang.StringBuilder(intVal(theArgs[0]));
 
             // Handle java.util.Random
             case "java.util.Random(long)":

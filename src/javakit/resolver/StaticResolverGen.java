@@ -342,9 +342,18 @@ public class StaticResolverGen {
 
         // Iterate over methods
         for (JavaMethod method : methods) {
-            if (!isValidMethod(method)) continue;
+
+            // If method is not valid, skip
+            Method realMethod = method.getMethod();
+            if (!isValidMethod(realMethod))
+                continue;
+
+            // If super method is available, skip
             JavaMethod methSuper = method.getSuper();
-            if (methSuper != null && methSuper.isPublic()) continue;
+            if (methSuper != null && methSuper.isPublic() && Modifier.isPublic(methSuper.getDeclaringClass().getModifiers()))
+                continue;
+
+            // Print method
             printInvokeMethodForClassMethod(method);
         }
     }
@@ -510,21 +519,25 @@ public class StaticResolverGen {
      */
     private boolean isValidMethod(Method m)
     {
-        if (!Modifier.isPublic(m.getModifiers())) return false;
-        if (!_whiteList.contains(m.getName())) return false;
-        JavaClass javaClass = _resolver.getJavaClassForClass(m.getDeclaringClass());
-        if (_blackList.contains(new JavaMethod(_resolver, javaClass, m).getId())) return false;
-        return true;
-    }
+        // If not public, return false
+        if (!Modifier.isPublic(m.getModifiers()))
+            return false;
 
-    /**
-     * Returns whether method should be included.
-     */
-    private boolean isValidMethod(JavaMethod m)
-    {
-        if (!m.isPublic()) return false;
-        if (!_whiteList.contains(m.getName())) return false;
-        if (_blackList.contains(m.getId())) return false;
+        // If return type not public, return false
+        Class<?> returnType = m.getReturnType();
+        if (returnType != null && !Modifier.isPublic(returnType.getModifiers()))
+            return false;
+
+        // If not in WhiteList, return false
+        if (!_whiteList.contains(m.getName()))
+            return false;
+
+        // If method in blacklist, return false
+        JavaClass javaClass = _resolver.getJavaClassForClass(m.getDeclaringClass());
+        if (_blackList.contains(new JavaMethod(_resolver, javaClass, m).getId()))
+            return false;
+
+        // Return true
         return true;
     }
 
@@ -634,6 +647,9 @@ public class StaticResolverGen {
             java.lang.System.class,
             java.lang.Math.class,
 
+            StringBuffer.class,
+            StringBuilder.class,
+
             java.util.Arrays.class,
             //java.util.BitSet.class,
             //java.util.Collection.class,
@@ -694,6 +710,9 @@ public class StaticResolverGen {
 
             // Arrays
             "asList",
+
+            // StringBuilder, StringBuffer
+            "append", "replace", "delete",
 
             // List
             "get", "set", "size", "add", "remove", "addAll", "removeAll",
@@ -763,6 +782,9 @@ public class StaticResolverGen {
             "java.io.PrintStream(java.lang.String,java.lang.String)",
             "java.io.PrintStream(java.io.File,java.lang.String)",
             "java.io.PrintStream(java.io.File)",
+            "java.io.PrintStream.append(char)",
+            "java.io.PrintStream.append(java.lang.CharSequence,int,int)",
+            "java.io.PrintStream.append(java.lang.CharSequence)",
 
             // DoubleStream
             "java.util.stream.DoubleStream.of(double[])"
