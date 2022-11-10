@@ -4,6 +4,8 @@
 package javakit.runner;
 import javakit.parse.JStmt;
 import javakit.parse.JavaTextDoc;
+import snap.util.CharSequenceUtils;
+
 import java.io.PrintStream;
 
 /**
@@ -17,11 +19,17 @@ public class JavaShell {
     // An object to act as "this"
     private Object  _thisObject = new Object();
 
-    // The console
-    private Console  _console;
+    // The client
+    private ShellClient  _client;
 
-    // The values
-    protected Object[]  _lineVals;
+    // Current running statement
+    private JStmt  _evalStmt;
+
+    // Current console out object
+    private ConsoleOutput  _consoleOut;
+
+    // Current console err object
+    private ConsoleOutput  _consoleErr;
 
     // The public out and err PrintStreams
     private PrintStream  _stdOut = System.out;
@@ -31,6 +39,10 @@ public class JavaShell {
     private PrintStream  _shellOut = new JavaShellUtils.ProxyPrintStream(this, _stdOut);
     private PrintStream  _shellErr = new JavaShellUtils.ProxyPrintStream(this,_stdErr);
 
+    // Constants
+    public static final String STANDARD_OUT = "Standard Out";
+    public static final String STANDARD_ERR = "Standard Err";
+
     /**
      * Creates a new PGEvaluator.
      */
@@ -38,22 +50,19 @@ public class JavaShell {
     {
         // Create Statement eval
         _stmtEval = new JSStmtEval();
-
-        // Create default console
-        _console = new JavaShellUtils.DefaultConsole();
     }
 
     /**
-     * Returns the console.
+     * Returns the client.
      */
-    public Console getConsole()  { return _console; }
+    public ShellClient getClient()  { return _client; }
 
     /**
-     * Sets the console.
+     * Sets the client.
      */
-    public void setConsole(Console aConsole)
+    public void setClient(ShellClient aClient)
     {
-        _console = aConsole;
+        _client = aClient;
     }
 
     /**
@@ -63,35 +72,28 @@ public class JavaShell {
     {
         // Get parsed statements
         JStmt[] javaStmts = javaTextDoc.getJFileStatements();
-        runJavaStatements(javaStmts);
-    }
 
-    /**
-     * Evaluate string.
-     */
-    public void runJavaStatements(JStmt[] javaStmts)
-    {
         // Set System out/err to catch console output
         System.setOut(_shellOut);
         System.setErr(_shellErr);
 
-        // Clear console and StopRun
-        _console.clear();
+        // Clear StopRun
         _stmtEval._stopRun = false;
-
-        // Get line vals for statements
-        _lineVals = new Object[javaStmts.length];
 
         // Iterate over lines and eval each
         for (int i = 0, iMax = javaStmts.length; i < iMax; i++) {
 
             // Get Statement (if null, just set empty string value and continue)
             JStmt stmt = javaStmts[i];
-            if (stmt == null) {
-                _lineVals[i] = ""; continue; }
+            if (stmt == null)
+                continue;
 
             // Evaluate statement
-            _lineVals[i] = evalStatement(stmt);
+            Object lineVal = evalStatement(stmt);
+
+            // Process output
+            if (_client != null && lineVal != null)
+                _client.processOutput(stmt, lineVal);
         }
 
         // Restore System out/err
@@ -120,12 +122,10 @@ public class JavaShell {
      */
     protected Object evalStatement(JStmt aStmt)
     {
-        // Get textview and mark current length, in case we need to check for console output
-        int start = _console.getTextLength();
-
         // Eval statement
         Object val;
         try {
+            _evalStmt = aStmt;
             val = _stmtEval.evalExecutable(_thisObject, aStmt);
         }
 
@@ -135,11 +135,9 @@ public class JavaShell {
             val = e;
         }
 
-        // If val is null, see if there was any console output
-        if (val == null) {
-            int end = _console.getTextLength();
-            if (start != end)
-                val = '"' + _console.getTextSubstring(start, end).trim() + '"';
+        // Handle finally
+        finally {
+            _evalStmt = null;
         }
 
         // Return
@@ -147,38 +145,86 @@ public class JavaShell {
     }
 
     /**
-     * Returns the resulting line values from last execution.
+     * Appends output.
      */
-    public Object[] getLineValues()  { return _lineVals; }
+    protected void appendOut(String aString)
+    {
+        // Get/update ConsoleOut with string
+        if (_consoleOut == null)
+            _consoleOut = new ConsoleOutput(STANDARD_OUT, aString);
+        else _consoleOut._string += aString;
+
+        // If newline, process and clear
+        if (CharSequenceUtils.isLastCharNewline(_consoleOut.getString())) {
+            _client.processOutput(_evalStmt, _consoleOut);
+            _consoleOut = null;
+        }
+    }
 
     /**
-     * An interface to capture console output.
+     * Appends error.
      */
-    public interface Console {
+    protected void appendErr(String aString)
+    {
+        // Get/update ConsoleOut with string
+        if (_consoleErr == null)
+            _consoleErr = new ConsoleOutput(STANDARD_ERR, aString);
+        else _consoleErr._string += aString;
+
+        // If newline, process and clear
+        if (CharSequenceUtils.isLastCharNewline(_consoleErr.getString())) {
+            _client.processOutput(_evalStmt, _consoleErr);
+            _consoleErr = null;
+        }
+    }
+
+    /**
+     * An interface to process shell output.
+     */
+    public interface ShellClient {
 
         /**
-         * Clears the RunConsole text.
+         * Called when a statement is evaluated with console and result output.
          */
-        void clear();
+        void processOutput(JStmt aStmt, Object anOutput);
+    }
+
+    /**
+     * A class to hold standard out/err output strings.
+     */
+    public static class ConsoleOutput {
+
+        // Ivars
+        private String  _name;
+        protected String  _string;
 
         /**
-         * Appends to out.
+         * Constructor.
          */
-        void appendOut(String aStr);
+        public ConsoleOutput(String aName, String aString)
+        {
+            _name = aName;
+            _string = aString;
+        }
 
         /**
-         * Appends to err.
+         * Returns the name.
          */
-        void appendErr(String aStr);
+        public String getName()  { return _name; }
 
         /**
-         * Returns the text length at any given point.
+         * Returns the string.
          */
-        int getTextLength();
+        public String getString()  { return _string; }
 
         /**
-         * Returns a substring of appended text.
+         * Returns whether is error.
          */
-        String getTextSubstring(int aStart, int anEnd);
+        public boolean isError()  { return _name == STANDARD_ERR; }
+
+        /**
+         * Standard toString.
+         */
+        public String toString()  { return _string.trim(); }
     }
 }

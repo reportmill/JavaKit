@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.runner;
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**
@@ -32,14 +31,6 @@ public class JavaShellUtils {
         }
 
         /**
-         * Creates new PGPrintStream.
-         */
-        public ProxyPrintStream(OutputStream aPS)
-        {
-            super(aPS);
-        }
-
-        /**
          * Override to send to ScanView.
          */
         public void write(int b)
@@ -48,11 +39,10 @@ public class JavaShellUtils {
             super.write(b);
 
             // Write char to console
-            JavaShell.Console console = _javaShell.getConsole();
             String str = String.valueOf(Character.valueOf((char) b));
             if (_stdErr)
-                console.appendErr(str);
-            else console.appendOut(str);
+                _javaShell.appendErr(str);
+            else _javaShell.appendOut(str);
         }
 
         /**
@@ -64,39 +54,10 @@ public class JavaShellUtils {
             super.write(buf, off, len);
 
             // Write buff to console
-            JavaShell.Console console = _javaShell.getConsole();
             String str = new String(buf, off, len);
             if (_stdErr)
-               console.appendErr(str);
-            else console.appendOut(str);
-        }
-    }
-
-
-    /**
-     * This class implements JavaShell.Console.
-     */
-    protected static class DefaultConsole implements JavaShell.Console {
-
-        // Holds
-        private StringBuilder _sb = new StringBuilder();
-
-        @Override
-        public void clear()  { _sb.setLength(0); }
-
-        @Override
-        public void appendOut(String aStr)  { _sb.append(aStr); }
-
-        @Override
-        public void appendErr(String aStr)  { _sb.append(aStr); }
-
-        @Override
-        public int getTextLength()  { return _sb.length(); }
-
-        @Override
-        public String getTextSubstring(int aStart, int anEnd)
-        {
-            return _sb.substring(aStart, anEnd);
+                _javaShell.appendErr(str);
+            else _javaShell.appendOut(str);
         }
     }
 }
