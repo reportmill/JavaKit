@@ -216,7 +216,7 @@ public class JSExprEval {
 
         // Get method
         JavaMethod method = methodCallExpr.getDecl();
-        if (method == null) {
+        if (method == null || method.getMethod() == null) {
 
             // Look for local MethodDecl
             JMethodDecl methodDecl = methodCallExpr.getMethodDecl();

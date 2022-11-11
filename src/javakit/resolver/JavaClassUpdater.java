@@ -12,7 +12,7 @@ import java.util.*;
 public class JavaClassUpdater {
 
     // The JavaClass
-    private JavaClass  _javaClass;
+    protected JavaClass  _javaClass;
 
     // The Resolver that produced this decl
     protected Resolver  _resolver;

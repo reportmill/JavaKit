@@ -140,7 +140,9 @@ public class JavaMethod extends JavaExecutable {
         // Properties.
         public MethodBuilder mods(int mods)  { _mods = mods; return this; }
         public MethodBuilder name(String name)  { _name = name; return this; }
+        public MethodBuilder paramTypes(JavaType ...  paramTypes)  { _paramTypes = paramTypes; return this; }
         public MethodBuilder paramTypes(Type ...  paramTypes)  { _paramTypes = _resolver.getJavaTypesForTypes(paramTypes); return this; }
+        public MethodBuilder returnType(JavaType returnType)  { _returnType = returnType; return this; }
         public MethodBuilder returnType(Type returnType)  { _returnType = _resolver.getJavaTypeForType(returnType); return this; }
         public MethodBuilder typeVars(String aName)  { return this; }
         public MethodBuilder isDefault(boolean isDefault)  { _default = isDefault; return this; }

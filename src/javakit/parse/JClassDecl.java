@@ -438,8 +438,11 @@ public class JClassDecl extends JMemberDecl {
 
         // Get class for name - if not found, use SuperClass (assume this class not compiled)
         JavaClass javaClass = getJavaClassForName(className);
-        if (javaClass == null)
-            javaClass = getSuperClass();
+        if (javaClass == null) {
+            //javaClass = getSuperClass();
+            Resolver resolver = getResolver();
+            javaClass = new JavaClass(resolver, this, className);
+        }
 
         // Return
         return javaClass;

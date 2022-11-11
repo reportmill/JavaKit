@@ -2,6 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.resolver;
+import javakit.parse.JClassDecl;
+import javakit.parse.JFile;
 import snap.util.SnapUtils;
 import java.lang.reflect.*;
 import java.util.*;
@@ -105,6 +107,49 @@ public class JavaClass extends JavaType {
             Class<?> compClass = aClass.getComponentType();
             _componentType = getJavaClassForClass(compClass);
         }
+    }
+
+    /**
+     * Constructor from JClassDecl.
+     */
+    public JavaClass(Resolver aResolver, JClassDecl aClassDecl, String aClassName)
+    {
+        // Do normal version
+        super(aResolver, DeclType.Class);
+
+        // Set Id, Name, SimpleName
+        _id = _name = aClassName;
+        _simpleName = aClassDecl.getSimpleName();
+
+        // Set DeclaringClass or Package
+        JClassDecl enclosingClass = aClassDecl.getEnclosingClassDecl();
+        if (enclosingClass != null) {
+            _declaringClass = enclosingClass.getDecl();
+            _package = _declaringClass.getPackage();
+        }
+        else {
+            JFile jFile = aClassDecl.getFile();
+            String pkgName = jFile.getPackageName();
+            if (pkgName == null) pkgName = "";
+            _package = aResolver.getJavaPackageForName(pkgName);
+        }
+
+        // Add to decls
+        aResolver._classes.put(_id, this);
+
+        // Set Mods, Enum, Interface, Primitive
+        _mods = aClassDecl.getMods().getValue();
+        _enum = aClassDecl.isEnum();
+        _interface = aClassDecl.isInterface();
+
+        // Set EvalType to this
+        _evalType = this;
+
+        // Create/set updater
+        _updater = new JavaClassUpdaterDecl(this, aClassDecl);
+
+        // Get type super type and set in decl
+        _superClass = aClassDecl.getSuperClass();
     }
 
     /**
