@@ -85,6 +85,7 @@ public class JavaClassUpdaterDecl extends JavaClassUpdater {
             // Get/set name
             String methodName = methodDecl.getName();
             mb.name(methodName);
+            mb.methodDecl(methodDecl);
 
             // Get/set param types
             List<JVarDecl> paramsList = methodDecl.getParameters();

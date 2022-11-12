@@ -216,12 +216,7 @@ public class JSExprEval {
 
         // Get method
         JavaMethod method = methodCallExpr.getDecl();
-        if (method == null || method.getMethod() == null) {
-
-            // Look for local MethodDecl
-            JMethodDecl methodDecl = methodCallExpr.getMethodDecl();
-            if (methodDecl != null)
-                return evalMethodCallExprForMethodDecl(anOR, methodDecl, argValues);
+        if (method == null) {
 
             // Check for PropObject
             if (anOR instanceof PropObject)
@@ -230,6 +225,11 @@ public class JSExprEval {
             // Alright, now we can give up
             throw new NoSuchMethodException("JSExprEval: Method not found for " + methodCallExpr.getName());
         }
+
+        // Look for local MethodDecl
+        JMethodDecl methodDecl = method.getMethodDecl();
+        if (methodDecl != null)
+            return evalMethodCallExprForMethodDecl(anOR, methodDecl, argValues);
 
         // Invoke method
         Object value = _resolver.invokeMethod(anOR, method, argValues);

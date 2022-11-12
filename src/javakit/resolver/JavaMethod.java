@@ -2,6 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.resolver;
+import javakit.parse.JMethodDecl;
+
 import java.lang.reflect.*;
 import java.util.Arrays;
 
@@ -18,6 +20,9 @@ public class JavaMethod extends JavaExecutable {
 
     // The method
     protected Method  _method;
+
+    // The method decl
+    private JMethodDecl  _methodDecl;
 
     /**
      * Constructor.
@@ -56,6 +61,11 @@ public class JavaMethod extends JavaExecutable {
      * Returns the Method.
      */
     public Method getMethod()  { return _method; }
+
+    /**
+     * Returns the JMethodDecl.
+     */
+    public JMethodDecl getMethodDecl()  { return _methodDecl; }
 
     /**
      * Returns the super decl of this JavaDecl (Class, Method, Constructor).
@@ -118,6 +128,7 @@ public class JavaMethod extends JavaExecutable {
         JavaTypeVariable[]  _typeVars = new JavaTypeVariable[0];
         boolean  _default;
         boolean  _varArgs;
+        JMethodDecl  _methodDecl;
 
         // For build all
         private JavaMethod[]  _methods = new JavaMethod[200];
@@ -147,6 +158,7 @@ public class JavaMethod extends JavaExecutable {
         public MethodBuilder typeVars(String aName)  { return this; }
         public MethodBuilder isDefault(boolean isDefault)  { _default = isDefault; return this; }
         public MethodBuilder varArgs()  { _varArgs = true; return this; }
+        public MethodBuilder methodDecl(JMethodDecl methodDecl)  { _methodDecl = methodDecl; return this; }
 
         /**
          * Build.
@@ -163,11 +175,13 @@ public class JavaMethod extends JavaExecutable {
             m._typeVars = _typeVars;
             m._default = _default;
             m._varArgs = _varArgs;
+            m._methodDecl = _methodDecl;
             _mods = Modifier.PUBLIC;
             _name = null;
             _paramTypes = new JavaType[0];
             _typeVars = new JavaTypeVariable[0];
             _default = _varArgs = false;
+            _methodDecl = null;
             return m;
         }
 
