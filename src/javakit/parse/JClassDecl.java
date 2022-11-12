@@ -444,6 +444,13 @@ public class JClassDecl extends JMemberDecl {
             javaClass = new JavaClass(resolver, this, className);
         }
 
+        // Otherwise see if we need to update
+        else if (javaClass.getUpdater() instanceof JavaClassUpdaterDecl) {
+            JavaClassUpdaterDecl updater = (JavaClassUpdaterDecl) javaClass.getUpdater();
+            updater.setClassDecl(this);
+            javaClass.updateDecls();
+        }
+
         // Return
         return javaClass;
     }

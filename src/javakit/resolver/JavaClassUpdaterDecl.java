@@ -26,6 +26,14 @@ public class JavaClassUpdaterDecl extends JavaClassUpdater {
     }
 
     /**
+     * Sets the class decl.
+     */
+    public void setClassDecl(JClassDecl aClassDecl)
+    {
+        _classDecl = aClassDecl;
+    }
+
+    /**
      * Updates JavaDecls. Returns whether the decls changed since last update.
      */
     @Override
@@ -84,6 +92,8 @@ public class JavaClassUpdaterDecl extends JavaClassUpdater {
             for (int i = 0, iMax = paramsList.size(); i < iMax; i++) {
                 JVarDecl paramDecl = paramsList.get(i);
                 JavaType paramType = paramDecl.getEvalType();
+                if (paramType == null)
+                    paramType = _resolver.getJavaTypeForType(Object.class);
                 params[i] = paramType;
             }
             mb.paramTypes(params);
