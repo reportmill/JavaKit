@@ -103,18 +103,15 @@ public class JavaDoc {
         if (javaDocClass.isArray())
             javaDocClass = javaDocClass.getComponentType();
 
-        // Iterate up through class parents until URL found or null
-        while (javaDocClass != null) {
+        // If class is JavaDoc class, return class
+        boolean isJavaDocClass = isJavaDocClass(javaDocClass);
+        if (isJavaDocClass)
+            return new JavaDoc(javaDocClass);
 
-            // If class is JavaDoc class, return class
-            boolean isJavaDocClass = isJavaDocClass(javaDocClass);
-            if (isJavaDocClass)
-                return new JavaDoc(javaDocClass);
-
-            // Get superclass and try again until URL found or class is null
-            Class<?> superClass = javaDocClass.getSuperclass();
-            javaDocClass = superClass != null && superClass != Object.class ? superClass : null;
-        }
+        // If superClass is valid, try to use it
+        Class<?> superClass = javaDocClass.getSuperclass();
+        if (superClass != null && superClass != Object.class)
+            return getJavaDocForClass(superClass);
 
         // Return not found
         return null;
