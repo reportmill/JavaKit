@@ -3,7 +3,6 @@
  */
 package javakit.ide;
 import javakit.parse.*;
-import javakit.resolver.JavaClass;
 import javakit.resolver.JavaDecl;
 import javakit.parse.JavaTextDoc;
 import snap.gfx.*;
@@ -165,10 +164,10 @@ public class JavaTextPane extends TextPane {
         setViewEnabled("RedoButton", hasUndos);
 
         // Update JavaDocButton
-        String javaDocURL = getJavaDocURL();
-        setViewVisible("JavaDocButton", javaDocURL != null);
-        String javaDocText = getJavaDocText();
-        setViewText("JavaDocButton", javaDocText);
+        JavaDoc javaDoc = getJavaDoc();
+        setViewVisible("JavaDocButton", javaDoc != null);
+        String javaDocButtonText = javaDoc != null ? (javaDoc.getSimpleName() + " Doc") : null;
+        setViewText("JavaDocButton", javaDocButtonText);
 
         // Reset NodePathBox
         resetNodePathBox();
@@ -228,11 +227,11 @@ public class JavaTextPane extends TextPane {
             // Handle MouseClick: If alt-down, open JavaDoc. If HoverNode, open declaration
             else if (anEvent.isMouseClick()) {
 
-                // If alt is down and there is a JavaDoc URL, open it
-                if (anEvent.isAltDown() && getJavaDocURL() != null)
-                    URLUtils.openURL(getJavaDocURL());
+                // If alt is down and there is JavaDoc, open it
+                if (anEvent.isAltDown() && getJavaDoc() != null)
+                    getJavaDoc().openUrl();
 
-                    // If there is a hover node, open it (and clear Hover)
+                // If there is a hover node, open it (and clear Hover)
                 else if (getTextArea().getHoverNode() != null) {
                     openDeclaration(getTextArea().getHoverNode());
                     setTextAreaHoverEnabled(false);
@@ -257,10 +256,15 @@ public class JavaTextPane extends TextPane {
         }
 
         // Handle JavaDocButton
-        else if (anEvent.equals("JavaDocButton")) URLUtils.openURL(getJavaDocURL());
+        else if (anEvent.equals("JavaDocButton")) {
+            JavaDoc javaDoc = getJavaDoc();
+            if (javaDoc != null)
+                javaDoc.openUrl();
+        }
 
         // Handle CodeBuilderButton
-        else if (anEvent.equals("CodeBuilderButton")) setCodeBuilderVisible(!isCodeBuilderVisible());
+        else if (anEvent.equals("CodeBuilderButton"))
+            setCodeBuilderVisible(!isCodeBuilderVisible());
 
         // Handle FontSizeText, IncreaseFontButton, DecreaseFontButton
         else if (anEvent.equals("FontSizeText") || anEvent.equals("IncreaseFontButton") || anEvent.equals("DecreaseFontButton"))
@@ -304,32 +308,12 @@ public class JavaTextPane extends TextPane {
     }
 
     /**
-     * Returns the string for the JavaDocButton. Called from binding set up in rib file.
+     * Returns the JavaDoc for currently selected node.
      */
-    public String getJavaDocText()
-    {
-        // Get JavaDoc entry for TextArea.SelNode
-        JNode selNode = _textArea.getSelNode();
-        Class<?> javaDocClass = getJavaDocClassForNode(selNode);
-
-        // If found, return class name
-        if (javaDocClass != null)
-            return javaDocClass.getSimpleName() + " Doc";
-
-        // Return not found
-        return null;
-    }
-
-    /**
-     * Returns the JavaDoc url for currently selected node.
-     */
-    public String getJavaDocURL()
+    public JavaDoc getJavaDoc()
     {
         JNode selNode = _textArea.getSelNode();
-        Class<?> javaDocClass = getJavaDocClassForNode(selNode);
-        if (javaDocClass != null)
-            return getJavaDocUrlForJavaDocClass(javaDocClass);
-        return null;
+        return JavaDoc.getJavaDocForNode(selNode);
     }
 
     /**
@@ -450,105 +434,6 @@ public class JavaTextPane extends TextPane {
         _lineHeaderView.resetAll();
         _lineFooterView.resetAll();
         _textArea.repaint();
-    }
-
-    /**
-     * Returns the JavaDoc class for given JNode.
-     */
-    public static Class<?> getJavaDocClassForNode(JNode aNode)
-    {
-        JavaClass javaClass = aNode != null ? aNode.getEvalClass() : null;
-        Class<?> selNodeClass = javaClass != null ? javaClass.getRealClass() : null;
-        return getJavaDocClassForClass(selNodeClass);
-    }
-
-    /**
-     * Returns the JavaDoc url for given JNode.
-     */
-    public static String getJavaDocUrlForNode(JNode aNode)
-    {
-        JavaClass javaClass = aNode != null ? aNode.getEvalClass() : null;
-        Class<?> selNodeClass = javaClass != null ? javaClass.getRealClass() : null;
-        return getJavaDocUrlForClass(selNodeClass);
-    }
-
-    /**
-     * Returns the JavaDoc class for given class.
-     */
-    public static Class<?> getJavaDocClassForClass(Class<?> aClass)
-    {
-        // Handle null
-        if (aClass == null) return null;
-
-        // Handle array
-        Class<?> javaDocClass = aClass;
-        if (javaDocClass.isArray())
-            javaDocClass = javaDocClass.getComponentType();
-
-        // Iterate up through class parents until URL found or null
-        while (javaDocClass != null) {
-
-            // If class is JavaDoc class, return class
-            boolean isJavaDocClass = isJavaDocClass(javaDocClass);
-            if (isJavaDocClass)
-                return javaDocClass;
-
-            // Get superclass and try again until URL found or class is null
-            Class<?> superClass = javaDocClass.getSuperclass();
-            javaDocClass = superClass != null && superClass != Object.class ? superClass : null;
-        }
-
-        // Return not found
-        return null;
-    }
-
-    /**
-     * Returns the JavaDoc url for given class.
-     */
-    public static String getJavaDocUrlForClass(Class<?> aClass)
-    {
-        Class<?> javaDocClass = getJavaDocClassForClass(aClass);
-        if (javaDocClass != null)
-            return getJavaDocUrlForJavaDocClass(javaDocClass);
-        return null;
-    }
-
-    /**
-     * Returns whether given class is a JavaDoc class.
-     */
-    private static boolean isJavaDocClass(Class<?> aClass)
-    {
-        String className = aClass.getName();
-        if (className.startsWith("snap.") ||
-            className.startsWith("com.reportmill.") ||
-            className.startsWith("java.") ||
-            className.startsWith("javax."))
-            return true;
-        return false;
-    }
-
-    /**
-     * Returns the JavaDoc url for given JavaDoc class.
-     */
-    private static String getJavaDocUrlForJavaDocClass(Class<?> aClass)
-    {
-        // Get class name for selected JNode
-        String className = aClass.getName();
-
-        // Handle snap classes
-        if (className.startsWith("snap."))
-            return "http://reportmill.com/snap1/javadoc/index.html?" + className.replace('.', '/') + ".html";
-
-        // Handle ReportMill classes
-        else if (className.startsWith("com.reportmill."))
-            return "http://reportmill.com/rm14/javadoc/index.html?" + className.replace('.', '/') + ".html";
-
-        // Handle standard java classes
-        else if (className.startsWith("java.") || className.startsWith("javax."))
-            return "http://docs.oracle.com/javase/8/docs/api/index.html?" + className.replace('.', '/') + ".html";
-
-        // Return not found
-        return null;
     }
 
     /**
