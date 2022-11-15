@@ -3,6 +3,7 @@
  */
 package javakit.ide;
 import javakit.parse.*;
+import javakit.resolver.JavaClass;
 import javakit.resolver.JavaDecl;
 import javakit.parse.JavaTextDoc;
 import snap.gfx.*;
@@ -12,6 +13,7 @@ import snap.text.TextDoc;
 import snap.util.*;
 import snap.view.*;
 import snap.viewx.TextPane;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -306,80 +308,28 @@ public class JavaTextPane extends TextPane {
      */
     public String getJavaDocText()
     {
-        // Get class name for selected JNode
-        Class<?> selNodeClass = _textArea.getSelNodeClass();
-        if (selNodeClass == null)
-            return null;
-        if (selNodeClass.isArray())
-            selNodeClass = selNodeClass.getComponentType();
+        // Get JavaDoc entry for TextArea.SelNode
+        JNode selNode = _textArea.getSelNode();
+        Class<?> javaDocClass = getJavaDocClassForNode(selNode);
 
-        // Iterate up through class parents until URL found or null
-        while (selNodeClass != null) {
-            String url = getJavaDocURL(selNodeClass);
-            if (url != null)
-                return selNodeClass.getSimpleName() + " Doc";
-            Class<?> superclass = selNodeClass.getSuperclass();
-            selNodeClass = superclass != null && superclass != Object.class ? superclass : null;
-        }
+        // If found, return class name
+        if (javaDocClass != null)
+            return javaDocClass.getSimpleName() + " Doc";
 
         // Return not found
         return null;
     }
 
     /**
-     * Returns the JavaDoc url for currently selected type.
+     * Returns the JavaDoc url for currently selected node.
      */
     public String getJavaDocURL()
     {
-        // Get class name for selected JNode
-        Class<?> selNodeClass = _textArea.getSelNodeClass();
-        if (selNodeClass == null)
-            return null;
-        if (selNodeClass.isArray())
-            selNodeClass = selNodeClass.getComponentType();
-
-        // Iterate up through class parents until URL found or null
-        while (selNodeClass != null) {
-            String url = getJavaDocURL(selNodeClass);
-            if (url != null)
-                return url;
-            Class<?> superClass = selNodeClass.getSuperclass();
-            selNodeClass = superClass != null && superClass != Object.class ? superClass : null;
-        }
-
-        // Return not found
+        JNode selNode = _textArea.getSelNode();
+        Class<?> javaDocClass = getJavaDocClassForNode(selNode);
+        if (javaDocClass != null)
+            return getJavaDocUrlForJavaDocClass(javaDocClass);
         return null;
-    }
-
-    /**
-     * Returns the JavaDoc url for currently selected type.
-     */
-    public String getJavaDocURL(Class<?> aClass)
-    {
-        // Get class name for selected JNode
-        String className = aClass.getName();
-
-        // Handle reportmill class
-        String url = null;
-        if (className.startsWith("snap."))
-            url = "http://reportmill.com/snap1/javadoc/index.html?" + className.replace('.', '/') + ".html";
-        else if (className.startsWith("com.reportmill."))
-            url = "http://reportmill.com/rm14/javadoc/index.html?" + className.replace('.', '/') + ".html";
-
-            // Handle standard java classes
-        else if (className.startsWith("java.") || className.startsWith("javax."))
-            url = "http://docs.oracle.com/javase/8/docs/api/index.html?" + className.replace('.', '/') + ".html";
-
-            // Handle JavaFX classes
-        else if (className.startsWith("javafx."))
-            url = "http://docs.oracle.com/javafx/2/api/index.html?" + className.replace('.', '/') + ".html";
-
-            // Handle Greenfoot classes
-        else if (className.startsWith("greenfoot."))
-            url = "https://www.greenfoot.org/files/javadoc/index.html?" + className.replace('.', '/') + ".html";
-
-        // Return url
-        return url;
     }
 
     /**
@@ -503,6 +453,105 @@ public class JavaTextPane extends TextPane {
     }
 
     /**
+     * Returns the JavaDoc class for given JNode.
+     */
+    public static Class<?> getJavaDocClassForNode(JNode aNode)
+    {
+        JavaClass javaClass = aNode != null ? aNode.getEvalClass() : null;
+        Class<?> selNodeClass = javaClass != null ? javaClass.getRealClass() : null;
+        return getJavaDocClassForClass(selNodeClass);
+    }
+
+    /**
+     * Returns the JavaDoc url for given JNode.
+     */
+    public static String getJavaDocUrlForNode(JNode aNode)
+    {
+        JavaClass javaClass = aNode != null ? aNode.getEvalClass() : null;
+        Class<?> selNodeClass = javaClass != null ? javaClass.getRealClass() : null;
+        return getJavaDocUrlForClass(selNodeClass);
+    }
+
+    /**
+     * Returns the JavaDoc class for given class.
+     */
+    public static Class<?> getJavaDocClassForClass(Class<?> aClass)
+    {
+        // Handle null
+        if (aClass == null) return null;
+
+        // Handle array
+        Class<?> javaDocClass = aClass;
+        if (javaDocClass.isArray())
+            javaDocClass = javaDocClass.getComponentType();
+
+        // Iterate up through class parents until URL found or null
+        while (javaDocClass != null) {
+
+            // If class is JavaDoc class, return class
+            boolean isJavaDocClass = isJavaDocClass(javaDocClass);
+            if (isJavaDocClass)
+                return javaDocClass;
+
+            // Get superclass and try again until URL found or class is null
+            Class<?> superClass = javaDocClass.getSuperclass();
+            javaDocClass = superClass != null && superClass != Object.class ? superClass : null;
+        }
+
+        // Return not found
+        return null;
+    }
+
+    /**
+     * Returns the JavaDoc url for given class.
+     */
+    public static String getJavaDocUrlForClass(Class<?> aClass)
+    {
+        Class<?> javaDocClass = getJavaDocClassForClass(aClass);
+        if (javaDocClass != null)
+            return getJavaDocUrlForJavaDocClass(javaDocClass);
+        return null;
+    }
+
+    /**
+     * Returns whether given class is a JavaDoc class.
+     */
+    private static boolean isJavaDocClass(Class<?> aClass)
+    {
+        String className = aClass.getName();
+        if (className.startsWith("snap.") ||
+            className.startsWith("com.reportmill.") ||
+            className.startsWith("java.") ||
+            className.startsWith("javax."))
+            return true;
+        return false;
+    }
+
+    /**
+     * Returns the JavaDoc url for given JavaDoc class.
+     */
+    private static String getJavaDocUrlForJavaDocClass(Class<?> aClass)
+    {
+        // Get class name for selected JNode
+        String className = aClass.getName();
+
+        // Handle snap classes
+        if (className.startsWith("snap."))
+            return "http://reportmill.com/snap1/javadoc/index.html?" + className.replace('.', '/') + ".html";
+
+        // Handle ReportMill classes
+        else if (className.startsWith("com.reportmill."))
+            return "http://reportmill.com/rm14/javadoc/index.html?" + className.replace('.', '/') + ".html";
+
+        // Handle standard java classes
+        else if (className.startsWith("java.") || className.startsWith("javax."))
+            return "http://docs.oracle.com/javase/8/docs/api/index.html?" + className.replace('.', '/') + ".html";
+
+        // Return not found
+        return null;
+    }
+
+    /**
      * Returns an array of labels for selected JNode hierarchy.
      */
     public static Label[] getLabelsForSelNodePath(JavaTextArea javaTextArea, Class<? extends JNode> excludeClass)
@@ -518,9 +567,9 @@ public class JavaTextPane extends TextPane {
 
             // Create label for node
             Label label = new Label();
+            label.setName("NodePathLabel");
             label.setText(jnode.getNodeString());
             label.setFont(font);
-            label.setName("NodePathLabel");
             label.setProp("JNode", jnode);
             if (jnode == selNode)
                 label.setFill(Color.LIGHTGRAY);
@@ -542,11 +591,12 @@ public class JavaTextPane extends TextPane {
         JavaDecl evalType = selNode != null ? selNode.getEvalType() : null;
         if (evalType != null) {
             String str = " (" + evalType.getSimpleName() + ')';
-            Label label = new Label();
-            label.setText(str);
-            label.setFont(font);
-            label.setToolTip(evalType.getName());
-            pathLabels.add(label);
+            Label classLabel = new Label();
+            classLabel.setName("ClassLabel");
+            classLabel.setText(str);
+            classLabel.setFont(font);
+            classLabel.setToolTip(evalType.getName());
+            pathLabels.add(classLabel);
         }
 
         // Return
