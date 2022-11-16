@@ -18,9 +18,6 @@ public class ClassPathInfo {
     // A class tree
     private ClassTree  _classTree;
 
-    // A class tree matcher
-    private ClassTreeMatcher  _classTreeMatcher;
-
     /**
      * Constructor.
      */
@@ -143,20 +140,6 @@ public class ClassPathInfo {
         // Set PackageNode child packages/classes
         if (packageNode != null)
             packageNode.classes = childClasses.toArray(new ClassNode[0]);
-    }
-
-    /**
-     * Returns the ClassTreeMatcher.
-     */
-    public ClassTreeMatcher getClassTreeMatcher()
-    {
-        // If already set, just return
-        if (_classTreeMatcher != null) return _classTreeMatcher;
-
-        // Create, set, return
-        ClassTree classTree = getClassTree();
-        ClassTreeMatcher classTreeMatcher = new ClassTreeMatcher(classTree);
-        return _classTreeMatcher = classTreeMatcher;
     }
 
     /**

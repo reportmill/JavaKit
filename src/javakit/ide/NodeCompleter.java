@@ -1,12 +1,13 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.resolver;
+package javakit.ide;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javakit.parse.*;
+import javakit.resolver.*;
 import snap.parse.ParseToken;
 import snap.util.StringUtils;
 
@@ -19,10 +20,13 @@ public class NodeCompleter {
     private JNode  _node;
 
     // The resolver
-    private Resolver  _resolver;
+    private Resolver _resolver;
 
     // An identifier matcher
     private static Matcher  _idMatcher;
+
+    // A class tree matcher
+    private ClassTreeMatcher  _classTreeMatcher;
 
     // The list of completions
     List<JavaDecl>  _list = new ArrayList<>();
@@ -257,8 +261,14 @@ public class NodeCompleter {
      */
     private ClassTreeMatcher getClassTreeMatcher()
     {
+        // If already set, just return
+        if (_classTreeMatcher != null) return _classTreeMatcher;
+
+        // Create, set, return
         ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
-        return classPathInfo.getClassTreeMatcher();
+        ClassTree classTree = classPathInfo.getClassTree();
+        ClassTreeMatcher classTreeMatcher = new ClassTreeMatcher(classTree);
+        return _classTreeMatcher = classTreeMatcher;
     }
 
     /**

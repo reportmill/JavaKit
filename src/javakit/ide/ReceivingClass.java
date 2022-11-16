@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.resolver;
+package javakit.ide;
 import javakit.parse.*;
+import javakit.resolver.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

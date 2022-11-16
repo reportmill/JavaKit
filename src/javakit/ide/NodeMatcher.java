@@ -1,8 +1,11 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.resolver;
+package javakit.ide;
 import javakit.parse.*;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaType;
+
 import java.util.ArrayList;
 import java.util.List;
 
