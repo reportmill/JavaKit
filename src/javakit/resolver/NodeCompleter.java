@@ -6,8 +6,6 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javakit.parse.*;
 import snap.parse.ParseToken;
 import snap.util.StringUtils;
@@ -71,15 +69,12 @@ public class NodeCompleter {
             getCompletionsForNodeString(aNode);
         else return new JavaDecl[0];
 
-        // Get receiving class and more than 10 items, filter out completions that don't apply (unless none do)
-        JavaClass receivingClass = getReceivingClass(aNode);
-        if (receivingClass != null && _list.size() > 10 && aNode.getName().length() < 5) {
-            Stream<JavaDecl> sugsStream = _list.stream();
-            Stream<JavaDecl> sugsStreamAssignable = sugsStream.filter(p -> isReceivingClassAssignable(p, receivingClass));
-            List<JavaDecl> sugsListAssignable = sugsStreamAssignable.collect(Collectors.toList());
-            if (sugsListAssignable.size() > 0)
-                _list = sugsListAssignable;
-        }
+        // Get receiving class
+        JavaClass receivingClass = ReceivingClass.getReceivingClass(aNode);
+
+        // If receiving class and more than 10 items, filter out completions that don't apply (unless none do)
+        if (receivingClass != null)
+            _list = ReceivingClass.filterListForReceivingClass(_list, receivingClass);
 
         // Get array and sort
         JavaDecl[] decls = _list.toArray(new JavaDecl[0]);
@@ -306,170 +301,6 @@ public class NodeCompleter {
     }
 
     /**
-     * Returns the assignable type of given node assuming it's the receiving expression of assign or a method arg.
-     */
-    private static JavaClass getReceivingClass(JNode aNode)
-    {
-        // If MethocCall arg, return arg class
-        JavaType argType = getMethodCallArgType(aNode);
-        if (argType != null)
-            return argType.getEvalClass();
-
-        // If node is Assign Right-Hand-Side, return assignment Left-Hand-Side class
-        JExprAssign assExpr = aNode.getParent(JExprAssign.class);
-        if (assExpr != null)
-            return assExpr.getEvalClass();
-
-        // If node is JVarDecl Initializer, return JVarDecl class
-        JVarDecl initVarDecl = getVarDeclForInitializer(aNode);
-        if (initVarDecl != null)
-            return initVarDecl.getEvalClass();
-
-        // If node is JExprMath, return op class
-        JExprMath mathExpr = aNode.getParent(JExprMath.class);
-        if (mathExpr != null) {
-            switch (mathExpr.getOp()) {
-                case Or:
-                case And:
-                case Not: return aNode.getJavaClassForClass(Boolean.class);
-                default: return aNode.getJavaClassForClass(Double.class);
-            }
-        }
-
-        // If node is expression and top parent is conditional statement, return boolean
-        JExpr exp = aNode instanceof JExpr ? (JExpr) aNode : aNode.getParent(JExpr.class);
-        if (exp != null) {
-            while (exp.getParent() instanceof JExpr) exp = (JExpr) exp.getParent();
-            JNode par = exp.getParent();
-            if (par instanceof JStmtIf || par instanceof JStmtWhile || par instanceof JStmtDo)
-                return aNode.getJavaClassForClass(Boolean.class);
-        }
-
-        // Return null since no assignment type found for class
-        return null;
-    }
-
-    /**
-     * Returns the method call parent of given node, if available.
-     */
-    private static JExprMethodCall getMethodCall(JNode aNode)
-    {
-        JNode node = aNode;
-        while (node != null && !(node instanceof JStmt) && !(node instanceof JMemberDecl)) {
-            if (node instanceof JExprMethodCall)
-                return (JExprMethodCall) node;
-            node = node.getParent();
-        }
-        return null;
-    }
-
-    /**
-     * Return the method call arg class of node, if node is MethodCall arg.
-     */
-    private static JavaType getMethodCallArgType(JNode aNode)
-    {
-        // Get methodc all
-        JExprMethodCall methodCall = getMethodCall(aNode);
-        if (methodCall == null)
-            return null;
-
-        // Get Arg index for node
-        int argIndex = getMethodCallArgIndex(methodCall, aNode);
-        if (argIndex < 0)
-            return null;
-
-        // Get method
-        JavaMethod method = methodCall.getDecl();
-        if (method == null)
-            return null;
-
-        // Get arg type and return
-        JavaType argType = argIndex < method.getParamCount() ? method.getParamType(argIndex) : null;
-        return argType;
-    }
-
-    /**
-     * Return the method call arg index of node.
-     */
-    private static int getMethodCallArgIndex(JExprMethodCall aMethodCall, JNode aNode)
-    {
-        // Get methodCall for node
-        JExprMethodCall methodCall = aMethodCall != null ? aMethodCall : getMethodCall(aNode);
-        if (methodCall == null) return -1;
-
-        // Get args
-        List<JExpr> args = methodCall.getArgs();
-
-        // Iterate over args and return index if found
-        JNode node = aNode;
-        while (node != methodCall) {
-            for (int i = 0, iMax = args.size(); i < iMax; i++)
-                if (args.get(i) == node)
-                    return i;
-            node = node.getParent();
-        }
-
-        // Return not found
-        return -1;
-    }
-
-    /**
-     * Returns the JVarDecl for given node, if node is initializer.
-     */
-    private static JVarDecl getVarDeclForInitializer(JNode aNode)
-    {
-        JNode node = aNode;
-        while (node != null && !(node instanceof JStmt) && !(node instanceof JMemberDecl)) {
-            if (node instanceof JExpr) {
-                JExpr expr = (JExpr) node;
-                if (expr.getParent() instanceof JVarDecl) {
-                    JVarDecl vd = (JVarDecl) expr.getParent();
-                    if (vd.getInitializer() == expr)
-                        return vd;
-                }
-            }
-            node = node.getParent();
-        }
-
-        // Return not found
-        return null;
-    }
-
-    /**
-     * Returns whether completion is receiving class.
-     */
-    private static final boolean isReceivingClassAssignable(JavaDecl aJD, JavaClass aRC)
-    {
-        return getReceivingClassAssignableScore(aJD, aRC) > 0;
-    }
-
-    /**
-     * Returns whether completion is receiving class.
-     */
-    private static final int getReceivingClassAssignableScore(JavaDecl aJD, JavaClass aRC)
-    {
-        // Ignore package or null
-        if (aRC == null || aJD instanceof JavaPackage)
-            return 0;
-
-        // Get real class
-        JavaClass evalClass = aJD.getEvalClass();
-        if (evalClass == null)
-            return 0;
-
-        // If classes equal, return 2
-        if (evalClass == aRC)
-            return 2;
-
-        // If assignable, return 1
-        if (aRC.isAssignable(evalClass))
-            return 1;
-
-        // Return 0 since incompatible
-        return 0;
-    }
-
-    /**
      * A Comparator to sort JavaDecls.
      */
     private static class DeclCompare implements Comparator<JavaDecl> {
@@ -491,8 +322,8 @@ public class NodeCompleter {
         public int compare(JavaDecl decl1, JavaDecl decl2)
         {
             // Get whether either completion is of Assignable to ReceivingClass
-            int recClassScore1 = getReceivingClassAssignableScore(decl1, _receivingClass);
-            int recClassScore2 = getReceivingClassAssignableScore(decl2, _receivingClass);
+            int recClassScore1 = ReceivingClass.getReceivingClassAssignableScore(decl1, _receivingClass);
+            int recClassScore2 = ReceivingClass.getReceivingClassAssignableScore(decl2, _receivingClass);
             if (recClassScore1 != recClassScore2)
                 return recClassScore1 > recClassScore2 ? -1 : 1;
 
@@ -542,13 +373,13 @@ public class NodeCompleter {
         /**
          * Returns the type order.
          */
-        public static final int getOrder(JavaDecl.DeclType aType)
+        public static int getOrder(JavaDecl.DeclType aType)
         {
             switch (aType) {
                 case Word:
                 case VarDecl: return 0;
                 case Field:
-                case Method:
+                case Method: return 2;
                 case Class: return 3;
                 case Package: return 5;
                 default: return 6;
