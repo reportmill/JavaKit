@@ -31,6 +31,7 @@ public class JavaClassUpdaterDecl extends JavaClassUpdater {
     public void setClassDecl(JClassDecl aClassDecl)
     {
         _classDecl = aClassDecl;
+        _javaClass._fieldDecls = null;
     }
 
     /**
