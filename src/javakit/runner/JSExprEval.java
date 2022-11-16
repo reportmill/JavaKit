@@ -203,7 +203,7 @@ public class JSExprEval {
     {
         // If object null, throw NullPointerException
         if (anOR == null)
-            return null;
+            throw new NullPointerException("JSExprEval: Can't call " + methodCallExpr.getName() + " on null");
 
         // Get arg values
         Object thisObj = thisObject();

@@ -31,6 +31,9 @@ public class JNode {
     // The type this node evaluates to (resolved, if TypeVar)
     protected JavaType _evalType;
 
+    // The errors in this node
+    private NodeError[]  _errors;
+
     /**
      * Returns the parent file node (root).
      */
@@ -548,7 +551,7 @@ public class JNode {
 
         // Get JavaString
         int startIndex = startToken.getStartCharIndex();
-        int endIndex = startToken.getEndCharIndex();
+        int endIndex = endToken.getEndCharIndex();
         if (endIndex > javaString.length())
             return "(No string available - token start/end out of range/synch)";
 
@@ -557,6 +560,19 @@ public class JNode {
         return str;
     }
 
+    /**
+     * Returns the node errors.
+     */
+    public NodeError[] getErrors()
+    {
+        if (_errors != null) return _errors;
+        return _errors = getErrorsImpl();
+    }
+
+    /**
+     * Returns the node errors.
+     */
+    protected NodeError[] getErrorsImpl()  { return NodeError.NO_ERRORS; }
 
     /**
      * Standard toString implementation.

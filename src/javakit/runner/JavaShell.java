@@ -4,6 +4,7 @@
 package javakit.runner;
 import javakit.parse.JStmt;
 import javakit.parse.JavaTextDoc;
+import javakit.parse.NodeError;
 import snap.util.CharSequenceUtils;
 
 import java.io.PrintStream;
@@ -24,6 +25,9 @@ public class JavaShell {
 
     // Current running statement
     private JStmt  _evalStmt;
+
+    // Whether error was hit
+    private boolean  _errorWasHit;
 
     // Current console out object
     private ConsoleOutput  _consoleOut;
@@ -78,7 +82,7 @@ public class JavaShell {
         System.setErr(_shellErr);
 
         // Clear StopRun
-        _stmtEval._stopRun = false;
+        _stmtEval._stopRun = _errorWasHit = false;
 
         // Iterate over lines and eval each
         for (int i = 0, iMax = javaStmts.length; i < iMax; i++) {
@@ -94,6 +98,10 @@ public class JavaShell {
             // Process output
             if (_client != null && lineVal != null)
                 _client.processOutput(stmt, lineVal);
+
+            // If StopRun hit, break
+            if (_stmtEval._stopRun || _errorWasHit)
+                break;
         }
 
         // Restore System out/err
@@ -122,6 +130,12 @@ public class JavaShell {
      */
     protected Object evalStatement(JStmt aStmt)
     {
+        // Handle statement with errors
+        if (aStmt.getErrors() != NodeError.NO_ERRORS) {
+            _errorWasHit = true;
+            return aStmt.getErrors();
+        }
+
         // Eval statement
         Object val;
         try {
@@ -131,8 +145,9 @@ public class JavaShell {
 
         // Handle statement eval exception: Try expression
         catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(_stdErr);
             val = e;
+            _errorWasHit = true;
         }
 
         // Handle finally

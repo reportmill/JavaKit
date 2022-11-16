@@ -3,6 +3,8 @@
  */
 package javakit.parse;
 
+import snap.util.ArrayUtils;
+
 /**
  * A Java statement for conditional/nested statements (while, do, if, for).
  */
@@ -69,5 +71,29 @@ public class JStmtConditional extends JStmt {
     public void setBlock(JStmtBlock aBlock)
     {
         setStatement(aBlock);
+    }
+
+    /**
+     * Override to provide errors for conditional statements.
+     */
+    @Override
+    protected NodeError[] getErrorsImpl()
+    {
+        NodeError[] errors = NodeError.NO_ERRORS;
+
+        // Handle missing conditional
+        if (_cond == null && !(this instanceof JStmtFor && ((JStmtFor) this).isForEach())) {
+            NodeError error = new NodeError(this, "Missing conditional");
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Handle missing statement
+        if (_stmt == null) {
+            NodeError error = new NodeError(this, "Missing statement block");
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Return
+        return errors;
     }
 }

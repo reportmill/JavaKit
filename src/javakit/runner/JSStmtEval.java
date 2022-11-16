@@ -396,8 +396,9 @@ public class JSStmtEval {
             // If initializer expression, evaluate and set local var
             JExpr initExpr = varDecl.getInitializer();
             if (initExpr != null) {
+                String varName = varDecl.getName();
                 Object val = evalExpr(initExpr);
-                _exprEval.setLocalVarValue(varDecl.getName(), val);
+                _exprEval.setLocalVarValue(varName, val);
                 vals.add(val);
             }
         }
