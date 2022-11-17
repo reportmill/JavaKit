@@ -178,16 +178,14 @@ public class DeclMatcher {
             getVarDeclsForJClassDecl((JClassDecl) aNode, theVariables);
 
         // Handle JExecutableDecl
-        else if (aNode instanceof JExecutableDecl) {
+        else if (aNode instanceof JExecutableDecl)
             getVarDeclsForJExecutableDecl((JExecutableDecl) aNode, theVariables);
-            return theVariables; // Return since REPL hack adds parents
-        }
 
         // Handle JInitializerDecl
         else if (aNode instanceof JInitializerDecl)
             getVarDeclsForJInitializerDecl((JInitializerDecl) aNode, theVariables);
 
-        // Handle JInitializerDecl
+        // Handle JStmtBlock
         else if (aNode instanceof JStmtBlock)
             getVarDeclsForJStmtBlock((JStmtBlock) aNode, theVariables);
 
@@ -225,11 +223,14 @@ public class DeclMatcher {
         // REPL hack - find initializer before this method and run for its block
         JClassDecl classDecl = executableDecl.getEnclosingClassDecl();
         JInitializerDecl[] initDecls = classDecl.getInitDecls();
+
+        // REPL hack - find initializer before this method and run for its block
         for (JInitializerDecl initDecl : initDecls) {
             if (initDecl.getStartCharIndex() < executableDecl.getStartCharIndex()) {
                 JStmtBlock blockStmt = initDecl.getBlock();
                 getVarDeclsForJStmtBlock(blockStmt, varDeclList);
             }
+            else break;
         }
     }
 

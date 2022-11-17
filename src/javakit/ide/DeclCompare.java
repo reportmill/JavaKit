@@ -16,7 +16,7 @@ class DeclCompare implements Comparator<JavaDecl> {
     private boolean  _literal;
 
     // The receiving class for completions
-    private JavaClass _receivingClass;
+    private JavaClass  _receivingClass;
 
     /**
      * Creates a DeclCompare.

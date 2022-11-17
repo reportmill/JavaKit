@@ -172,8 +172,37 @@ public class JExecutableDecl extends JMemberDecl {
         if (typeVar != null)
             return typeVar.getDecl();
 
-        // Do normal version
-        return super.getDeclForChildNode(aNode);
+        // Do normal version (search class)
+        JavaDecl superValue = super.getDeclForChildNode(aNode);
+        if (superValue != null)
+            return superValue;
+
+        // REPL hack - Get/search initializers before this method
+        return getDeclForChildNodeReplHack(aNode);
+    }
+
+    /**
+     * REPL hack - Get/search initializers before this method for unresolved ids.
+     */
+    protected JavaDecl getDeclForChildNodeReplHack(JNode aNode)
+    {
+        // Get class initializers
+        JClassDecl classDecl = getEnclosingClassDecl();
+        JInitializerDecl[] initDecls = classDecl.getInitDecls();
+
+        // Search initializers before this method and return node decl if found
+        for (JInitializerDecl initDecl : initDecls) {
+            if (initDecl.getStartCharIndex() < getStartCharIndex()) {
+                JStmtBlock blockStmt = initDecl.getBlock();
+                JavaDecl nodeDecl = blockStmt.getDeclForChildNode(aNode);
+                if (nodeDecl != null)
+                    return nodeDecl;
+            }
+            else break;
+        }
+
+        // Return not found
+        return null;
     }
 
     /**
