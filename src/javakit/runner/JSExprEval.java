@@ -163,8 +163,12 @@ public class JSExprEval {
     private Object evalName(Object anOR, String aName) throws Exception
     {
         // If name is "this", return ThisObject
-        if (aName == null) return null;
-        if (aName.equals("this")) return thisObject();
+        if (aName == null)
+            return null;
+        if (aName.equals("this"))
+            return thisObject();
+        if (aName.equals("class"))
+            return anOR;
 
         // Handle array length
         if (aName.equals("length") && isArray(anOR))
@@ -201,10 +205,6 @@ public class JSExprEval {
      */
     private Object evalMethodCallExpr(Object anOR, JExprMethodCall methodCallExpr) throws Exception
     {
-        // If object null, throw NullPointerException
-        if (anOR == null)
-            throw new NullPointerException("JSExprEval: Can't call " + methodCallExpr.getName() + " on null");
-
         // Get arg values
         Object thisObj = thisObject();
         int argCount = methodCallExpr.getArgCount();
@@ -225,6 +225,10 @@ public class JSExprEval {
             // Alright, now we can give up
             throw new NoSuchMethodException("JSExprEval: Method not found for " + methodCallExpr.getName());
         }
+
+        // If object null, throw NullPointerException
+        if (anOR == null && !method.isStatic())
+            throw new NullPointerException("JSExprEval: Can't call " + methodCallExpr.getName() + " on null");
 
         // Look for local MethodDecl
         JMethodDecl methodDecl = method.getMethodDecl();

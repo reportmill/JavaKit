@@ -55,6 +55,11 @@ public class JavaMember extends JavaDecl {
     public boolean isPublic()  { return Modifier.isPublic(_mods); }
 
     /**
+     * Returns whether member is static.
+     */
+    public boolean isStatic()  { return Modifier.isStatic(_mods); }
+
+    /**
      * Returns the full name.
      */
     @Override
