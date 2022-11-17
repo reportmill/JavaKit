@@ -3,67 +3,11 @@
  */
 package javakit.resolver;
 import java.util.*;
-import java.util.regex.Matcher;
 
 /**
  * This class provides utility methods for JavaClass.
  */
 public class JavaClassUtils {
-
-    /**
-     * Returns a compatible method for given name and param types.
-     */
-    public static List<JavaField> getFieldsForMatcher(JavaClass aClass, Matcher aMatcher)
-    {
-        // Create return list of prefix fields
-        List<JavaField> fieldsWithPrefix = new ArrayList<>();
-
-        // Iterate over classes
-        for (JavaClass cls = aClass; cls != null; cls = cls.getSuperClass()) {
-
-            // Get Class fields
-            List<JavaField> fields = cls.getFields();
-            for (JavaField field : fields)
-                if (aMatcher.reset(field.getName()).lookingAt())
-                    fieldsWithPrefix.add(field);
-
-            // Should iterate over class interfaces, too
-        }
-
-        // Return list of prefix fields
-        return fieldsWithPrefix;
-    }
-
-    /**
-     * Returns methods that match given matcher.
-     */
-    public static List<JavaMethod> getMethodsForMatcher(JavaClass aClass, Matcher aPrefix)
-    {
-        // Create return list of prefix methods
-        List<JavaMethod> methodsWithPrefix = new ArrayList<>();
-
-        // Iterate over classes
-        for (JavaClass cls = aClass; cls != null; cls = cls.getSuperClass()) {
-
-            // Get Class methods
-            List<JavaMethod> methods = cls.getMethods();
-            for (JavaMethod method : methods)
-                if (aPrefix.reset(method.getName()).lookingAt())
-                    methodsWithPrefix.add(method);
-
-            // If interface, iterate over class interfaces, too (should probably do this anyway to catch default methods).
-            if (cls.isInterface()) {
-                JavaClass[] interfaces = cls.getInterfaces();
-                for (JavaClass interf : interfaces) {
-                    List<JavaMethod> moreMethods = getMethodsForMatcher(interf, aPrefix);
-                    methodsWithPrefix.addAll(moreMethods);
-                }
-            }
-        }
-
-        // Return list of prefix methods
-        return methodsWithPrefix;
-    }
 
     /**
      * Returns a compatible constructor for given name and param types.

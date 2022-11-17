@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import javakit.parse.*;
 import javakit.resolver.*;
 import snap.parse.ParseToken;
-import snap.util.StringUtils;
 
 /**
  * A class to provide code completion suggestions for a given JNode.
@@ -93,7 +92,7 @@ public class NodeCompleter {
     {
         // Get prefix from type name
         String prefix = aJType.getName();
-        Matcher prefixMatcher = StringUtils.getSkipCharsMatcherForLiteralString(prefix);
+        DeclMatcher prefixMatcher = new DeclMatcher(prefix);
 
         // Get class names for prefix
         ClassTreeMatcher classPathMatcher = getClassTreeMatcher();
@@ -146,7 +145,7 @@ public class NodeCompleter {
 
         // Get prefix string and matcher
         String prefix = anId.getName();
-        Matcher prefixMatcher = StringUtils.getSkipCharsMatcherForLiteralString(prefix);
+        DeclMatcher prefixMatcher = new DeclMatcher(prefix);
 
         // Add word completions
         addWordCompletionsForMatcher(prefixMatcher);
@@ -181,12 +180,12 @@ public class NodeCompleter {
             JavaClass parExprEvalClass = parExprEvalType.getEvalClass();
 
             // Get fields for prefix and add
-            List<JavaField> fieldsForMatcher = JavaClassUtils.getFieldsForMatcher(parExprEvalClass, prefixMatcher);
+            List<JavaField> fieldsForMatcher = prefixMatcher.getFieldsForClass(parExprEvalClass);
             for (JavaField fieldDecl : fieldsForMatcher)
                 addCompletionDecl(fieldDecl);
 
             // Get methods for prefix and add
-            List<JavaMethod> methodsForMatcher = JavaClassUtils.getMethodsForMatcher(parExprEvalClass, prefixMatcher);
+            List<JavaMethod> methodsForMatcher = prefixMatcher.getMethodsForClass(parExprEvalClass);
             for (JavaMethod method : methodsForMatcher)
                 addCompletionDecl(method);
         }
@@ -203,13 +202,13 @@ public class NodeCompleter {
             return;
 
         // Get prefix matcher
-        Matcher prefixMatcher = StringUtils.getSkipCharsMatcherForLiteralString(prefix);
+        DeclMatcher prefixMatcher = new DeclMatcher(prefix);
 
         // Add word completions
         addWordCompletionsForMatcher(prefixMatcher);
 
         // Get variables with prefix of name and add to completions
-        List<JVarDecl> varDecls = aNode.getVarDeclsForMatcher(prefixMatcher, new ArrayList<>());
+        List<JVarDecl> varDecls = prefixMatcher.getVarDeclsForJNode(aNode, new ArrayList<>());
         for (JVarDecl varDecl : varDecls)
             addCompletionDecl(varDecl.getDecl());
 
@@ -217,7 +216,7 @@ public class NodeCompleter {
         JClassDecl enclosingClassDecl = aNode.getEnclosingClassDecl();
         JavaClass enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
         while (enclosingClassDecl != null && enclosingClass != null) {
-            List<JavaMethod> methodsForMatcher = JavaClassUtils.getMethodsForMatcher(enclosingClass, prefixMatcher);
+            List<JavaMethod> methodsForMatcher = prefixMatcher.getMethodsForClass(enclosingClass);
             for (JavaMethod meth : methodsForMatcher)
                 addCompletionDecl(meth);
             enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
@@ -242,17 +241,17 @@ public class NodeCompleter {
     /**
      * Adds word completions for matcher.
      */
-    private void addWordCompletionsForMatcher(Matcher prefixMatcher)
+    private void addWordCompletionsForMatcher(DeclMatcher prefixMatcher)
     {
         // Add JavaWords
         for (JavaWord word : JavaWord.ALL)
-            if (prefixMatcher.reset(word.getName()).lookingAt())
+            if (prefixMatcher.matchesString(word.getName()))
                 addCompletionDecl(word);
 
         // Add Global Literals (true, false, null, this, super
         JavaLocalVar[] globalLiters = _resolver.getGlobalLiterals();
         for (JavaDecl literal : globalLiters)
-            if (prefixMatcher.reset(literal.getName()).lookingAt())
+            if (prefixMatcher.matchesString(literal.getName()))
                 addCompletionDecl(literal);
     }
 

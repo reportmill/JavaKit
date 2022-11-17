@@ -3,7 +3,6 @@
  */
 package javakit.parse;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 import javakit.resolver.*;
 import snap.util.*;
@@ -583,25 +582,6 @@ public class JClassDecl extends JMemberDecl {
 
         // Do normal version
         return super.getEvalTypeImpl(aNode);
-    }
-
-    /**
-     * Override to search Class fields.
-     */
-    @Override
-    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> theVDs)
-    {
-        // Iterate over statements and see if any JStmtVarDecl contains variable with that name
-        JFieldDecl[] fieldDecls = getFieldDecls();
-        for (JFieldDecl fieldDecl : fieldDecls) {
-            List<JVarDecl> fieldVarDecls = fieldDecl.getVarDecls();
-            for (JVarDecl fieldVarDecl : fieldVarDecls)
-                if (aMatcher.reset(fieldVarDecl.getName()).lookingAt())
-                    theVDs.add(fieldVarDecl);
-        }
-
-        // Do normal version
-        return super.getVarDeclsForMatcher(aMatcher, theVDs);
     }
 
     /**

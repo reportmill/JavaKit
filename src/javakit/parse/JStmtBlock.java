@@ -3,7 +3,6 @@
  */
 package javakit.parse;
 import java.util.*;
-import java.util.regex.Matcher;
 import javakit.resolver.JavaDecl;
 
 /**
@@ -71,22 +70,6 @@ public class JStmtBlock extends JStmt {
     }
 
     /**
-     * Override to search VarDecl statements.
-     */
-    @Override
-    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> varDeclList)
-    {
-        // Get statements
-        List<JStmt> statements = getStatements();
-
-        // Get VarDecls for prefix from statements
-        getVarDeclsForMatcherFromStatements(aMatcher, statements, varDeclList);
-
-        // Do normal version
-        return super.getVarDeclsForMatcher(aMatcher, varDeclList);
-    }
-
-    /**
      * Finds JVarDecls for given Node.Name in given statements and adds them to given list.
      */
     public static JVarDecl getVarDeclForNameFromStatements(JNode aNode, List<JStmt> theStmts)
@@ -128,27 +111,5 @@ public class JStmtBlock extends JStmt {
 
         // Do normal version
         return null;
-    }
-
-    /**
-     * Finds JVarDecls for given matcher in given statements and adds them to given list.
-     */
-    public static void getVarDeclsForMatcherFromStatements(Matcher aMatcher, List<JStmt> theStmts, List<JVarDecl> varDeclList)
-    {
-        // Iterate over statements and see if any JStmtVarDecl contains variable with that name
-        for (JStmt stmt : theStmts) {
-
-            // Skip non-VarDecl statements
-            if (!(stmt instanceof JStmtVarDecl)) continue;
-
-            // Get varDeclStmt.VarDecls
-            JStmtVarDecl varDeclStmt = (JStmtVarDecl) stmt;
-            List<JVarDecl> varDecls = varDeclStmt.getVarDecls();
-
-            // Iterate over VarDecls and add those that match prefix
-            for (JVarDecl varDecl : varDecls)
-                if (aMatcher.reset(varDecl.getName()).lookingAt())
-                    varDeclList.add(varDecl);
-        }
     }
 }

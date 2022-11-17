@@ -4,7 +4,6 @@
 package javakit.parse;
 import javakit.resolver.JavaDecl;
 import java.util.List;
-import java.util.regex.Matcher;
 
 /**
  * A JMemberDecl for Initializer declarations.
@@ -68,31 +67,5 @@ public class JInitializerDecl extends JMemberDecl {
 
         // Return not found
         return null;
-    }
-
-    /**
-     * Override to add REPL hack to check prior JInitDecls for VarDecl matching node name.
-     */
-    @Override
-    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> varDeclList)
-    {
-        // Do normal version
-        super.getVarDeclsForMatcher(aMatcher, varDeclList);
-
-        // Get enclosing class initDecls
-        JClassDecl classDecl = getEnclosingClassDecl();
-        JInitializerDecl[] initDecls = classDecl.getInitDecls();
-
-        // Iterate over initDecls
-        for (JInitializerDecl initDecl : initDecls) {
-            if (initDecl == this)
-                break;
-            JStmtBlock initDeclBlock = initDecl.getBlock();
-            List<JStmt> initDeclStmts = initDeclBlock.getStatements();
-            JStmtBlock.getVarDeclsForMatcherFromStatements(aMatcher, initDeclStmts, varDeclList);
-        }
-
-        // Return
-        return varDeclList;
     }
 }

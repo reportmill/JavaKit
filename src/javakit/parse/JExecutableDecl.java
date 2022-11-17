@@ -7,7 +7,6 @@ import javakit.resolver.JavaType;
 import snap.util.SnapUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 
 /**
  * A Java member for MethodDeclaration.
@@ -209,26 +208,5 @@ public class JExecutableDecl extends JMemberDecl {
 
         // Return
         return paramTypes;
-    }
-
-    /**
-     * Override to search method/constructor params and VarDecl statements.
-     */
-    @Override
-    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> varDeclList)
-    {
-        // Add VarDecls for formal params
-        for (JVarDecl varDecl : _params)
-            if (aMatcher.reset(varDecl.getName()).lookingAt())
-                varDeclList.add(varDecl);
-
-        // Add VarDecls for block statements
-        if (_block != null) {
-            List<JStmt> statements = _block.getStatements();
-            JStmtBlock.getVarDeclsForMatcherFromStatements(aMatcher, statements, varDeclList);
-        }
-
-        // Do normal version
-        return super.getVarDeclsForMatcher(aMatcher, varDeclList);
     }
 }

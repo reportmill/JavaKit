@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.ide;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 import javakit.resolver.ClassTree;
 import javakit.resolver.ClassTree.*;
@@ -27,7 +26,7 @@ public class ClassTreeMatcher {
     /**
      * Returns all packages with prefix.
      */
-    public String[] getPackageNamesForMatcher(Matcher aMatcher)
+    public String[] getPackageNamesForMatcher(DeclMatcher aMatcher)
     {
         PackageNode rootPackage = _classTree.getRootPackage();
         PackageNode[] rootPackages = rootPackage.packages;
@@ -40,7 +39,7 @@ public class ClassTreeMatcher {
     /**
      * Returns packages for prefix.
      */
-    public String[] getPackageChildrenNamesForMatcher(String aPkgName, Matcher aMatcher)
+    public String[] getPackageChildrenNamesForMatcher(String aPkgName, DeclMatcher aMatcher)
     {
         // Get dir for package name
         PackageNode packageNode = _classTree.getPackageForName(aPkgName);
@@ -58,7 +57,7 @@ public class ClassTreeMatcher {
     /**
      * Returns class names for prefix.
      */
-    public String[] getPackageClassNamesForMatcher(String aPkgName, Matcher aMatcher)
+    public String[] getPackageClassNamesForMatcher(String aPkgName, DeclMatcher aMatcher)
     {
         PackageNode packageNode = _classTree.getPackageForName(aPkgName);
         ClassNode[] pkgClasses = packageNode.classes;
@@ -69,7 +68,7 @@ public class ClassTreeMatcher {
     /**
      * Returns class names for prefix matcher.
      */
-    public String[] getClassNamesForPrefixMatcher(String aPrefix, Matcher prefixMatcher)
+    public String[] getClassNamesForPrefixMatcher(String aPrefix, DeclMatcher prefixMatcher)
     {
         // If less than 3 letters, return common names for prefix
         ClassNode[] classes = _classTree.getAllClasses();
@@ -83,7 +82,7 @@ public class ClassTreeMatcher {
     /**
      * Returns a list of class files for a package dir and a prefix.
      */
-    private PackageNode[] getChildPackagesForMatcher(PackageNode[] thePackages, Matcher aMatcher)
+    private PackageNode[] getChildPackagesForMatcher(PackageNode[] thePackages, DeclMatcher aMatcher)
     {
         Stream<PackageNode> filesStream = Stream.of(thePackages);
         Stream<PackageNode> packageDirsStream = filesStream.filter(f -> matchesSimpleName(f, aMatcher));
@@ -94,7 +93,7 @@ public class ClassTreeMatcher {
     /**
      * Returns all classes with prefix.
      */
-    private String[] getClassNamesForClassesAndMatcher(ClassNode[] theClasses, Matcher aMatcher)
+    private String[] getClassNamesForClassesAndMatcher(ClassNode[] theClasses, DeclMatcher aMatcher)
     {
         // Simple case
         if (theClasses.length == 0) return new String[0];
@@ -112,10 +111,10 @@ public class ClassTreeMatcher {
     /**
      * Matches.
      */
-    private static boolean matchesSimpleName(ClassTreeNode classTreeNode, Matcher aMatcher)
+    private static boolean matchesSimpleName(ClassTreeNode classTreeNode, DeclMatcher aMatcher)
     {
         String simpleName = classTreeNode.simpleName;
-        return aMatcher.reset(simpleName).lookingAt();
+        return aMatcher.matchesString(simpleName);
     }
 
     /**

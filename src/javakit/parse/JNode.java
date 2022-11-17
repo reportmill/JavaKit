@@ -3,7 +3,6 @@
  */
 package javakit.parse;
 import java.util.*;
-import java.util.regex.Matcher;
 import javakit.resolver.*;
 import snap.parse.ParseToken;
 import snap.util.*;
@@ -426,16 +425,6 @@ public class JNode {
 
         // Return
         return this;
-    }
-
-    /**
-     * Finds JVarDecls for given prefix matcher and adds them to given list.
-     */
-    public List<JVarDecl> getVarDeclsForMatcher(Matcher aMatcher, List<JVarDecl> theVariables)
-    {
-        if (_parent != null)
-            _parent.getVarDeclsForMatcher(aMatcher, theVariables);
-        return theVariables;
     }
 
     /**
