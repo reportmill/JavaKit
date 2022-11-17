@@ -82,39 +82,30 @@ public class ClassTreeMatcher {
     /**
      * Returns a list of class files for a package dir and a prefix.
      */
-    private PackageNode[] getChildPackagesForMatcher(PackageNode[] thePackages, DeclMatcher aMatcher)
+    private PackageNode[] getChildPackagesForMatcher(PackageNode[] thePackages, DeclMatcher declMatcher)
     {
-        Stream<PackageNode> filesStream = Stream.of(thePackages);
-        Stream<PackageNode> packageDirsStream = filesStream.filter(f -> matchesSimpleName(f, aMatcher));
-        PackageNode[] packageDirs = packageDirsStream.toArray(size -> new PackageNode[size]);
-        return packageDirs;
+        Stream<PackageNode> packagesStream = Stream.of(thePackages);
+        Stream<PackageNode> matchingPackagesStream = packagesStream.filter(pkg -> declMatcher.matchesString(pkg.simpleName));
+        PackageNode[] matchingPackages = matchingPackagesStream.toArray(size -> new PackageNode[size]);
+        return matchingPackages;
     }
 
     /**
      * Returns all classes with prefix.
      */
-    private String[] getClassNamesForClassesAndMatcher(ClassNode[] theClasses, DeclMatcher aMatcher)
+    private String[] getClassNamesForClassesAndMatcher(ClassNode[] theClasses, DeclMatcher declMatcher)
     {
         // Simple case
         if (theClasses.length == 0) return new String[0];
 
         // Get all class files with prefix
         Stream<ClassNode> classesStream = Stream.of(theClasses);
-        Stream<ClassNode> classesWithPrefixStream = classesStream.filter(cls -> matchesSimpleName(cls, aMatcher));
+        Stream<ClassNode> matchingClassesStream = classesStream.filter(cls -> declMatcher.matchesString(cls.simpleName));
 
         // Get class names for class files and return
-        Stream<String> classNamesStream = classesWithPrefixStream.map(crec -> crec.fullName);
+        Stream<String> classNamesStream = matchingClassesStream.map(cls -> cls.fullName);
         String[] classNames = classNamesStream.toArray(size -> new String[size]);
         return classNames;
-    }
-
-    /**
-     * Matches.
-     */
-    private static boolean matchesSimpleName(ClassTreeNode classTreeNode, DeclMatcher aMatcher)
-    {
-        String simpleName = classTreeNode.simpleName;
-        return aMatcher.matchesString(simpleName);
     }
 
     /**
