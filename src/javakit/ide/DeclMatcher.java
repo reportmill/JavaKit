@@ -4,6 +4,7 @@
 package javakit.ide;
 import javakit.parse.*;
 import javakit.resolver.*;
+import snap.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -34,6 +35,11 @@ public class DeclMatcher {
      * Returns the prefix string.
      */
     public String getPrefix()  { return _prefix; }
+
+    /**
+     * Returns the matcher.
+     */
+    public Matcher getMatcher()  { return _matcher; }
 
     /**
      * Returns whether this matcher matches given string.
@@ -172,8 +178,10 @@ public class DeclMatcher {
             getVarDeclsForJClassDecl((JClassDecl) aNode, theVariables);
 
         // Handle JExecutableDecl
-        else if (aNode instanceof JExecutableDecl)
+        else if (aNode instanceof JExecutableDecl) {
             getVarDeclsForJExecutableDecl((JExecutableDecl) aNode, theVariables);
+            return theVariables; // Return since REPL hack adds parents
+        }
 
         // Handle JInitializerDecl
         else if (aNode instanceof JInitializerDecl)
@@ -213,6 +221,16 @@ public class DeclMatcher {
         // Get Executable.Parameters and search
         List<JVarDecl> params = executableDecl.getParameters();
         getVarDeclsForJVarDecls(params, varDeclList);
+
+        // REPL hack - find initializer before this method and run for its block
+        JClassDecl classDecl = executableDecl.getEnclosingClassDecl();
+        JInitializerDecl[] initDecls = classDecl.getInitDecls();
+        for (JInitializerDecl initDecl : initDecls) {
+            if (initDecl.getStartCharIndex() < executableDecl.getStartCharIndex()) {
+                JStmtBlock blockStmt = initDecl.getBlock();
+                getVarDeclsForJStmtBlock(blockStmt, varDeclList);
+            }
+        }
     }
 
     /**
@@ -270,35 +288,61 @@ public class DeclMatcher {
     }
 
     /**
+     * Standard toString implementation.
+     */
+    public String toString()
+    {
+        String className = getClass().getSimpleName();
+        String propStrings = toStringProps();
+        return className + " { " + propStrings + " }";
+    }
+
+    /**
+     * Standard toStringProps implementation.
+     */
+    public String toStringProps()
+    {
+        StringBuffer sb = new StringBuffer();
+        StringUtils.appendProp(sb, "Prefix", _prefix);
+        StringUtils.appendProp(sb, "Pattern", _matcher.pattern().pattern());
+        return sb.toString();
+    }
+
+    /**
      * Returns a regex Matcher for given literal string that allows for skipping chars before any uppercase chars.
-     * For instance, "AL" or "ArrLi" will match ArrayList with this matcher.
+     * For instance, "AL" or "ArrLi" will both match ArrayList with this matcher.
      * Use matcher.reset(str).lookingAt() to check prefix (like string.startWith()).
      */
     private static Matcher getSkipCharsMatcherForLiteralString(String aStr)
     {
         String regexStr = getSkipCharsRegexForLiteralString(aStr);
-        //int flags = Character.isUpperCase(aStr.charAt(0)) ? 0 : Pattern.CASE_INSENSITIVE;
-        Pattern pattern = Pattern.compile(regexStr);  // , flags);
+        int flags = regexStr.length() > aStr.length() ? 0 : Pattern.CASE_INSENSITIVE;
+        Pattern pattern = Pattern.compile(regexStr, flags);
         Matcher matcher = pattern.matcher("");
         return matcher;
     }
 
     /**
      * Returns a regex string for given literal string that allows for skipping chars before any uppercase chars.
-     * For instance, "AL" will match ArrayList.
+     * For instance, "AL" or "ArrLi" will both match ArrayList.
+     * "AL" returns "A[^L]*L"
+     * "ArrLi" returns "Arr[^L]*Li"
      */
     private static String getSkipCharsRegexForLiteralString(String aStr)
     {
-        // Generate prefix regex, e.g.: 'abc' turns to 'a[^b]*b[^c]c'
-        StringBuffer regexSB = new StringBuffer();
-        for (int i = 0; i < aStr.length(); i++) {
+        // Start regex with first char as is
+        char char0 = aStr.charAt(0);
+        StringBuffer regexSB = new StringBuffer().append(char0);
+
+        // Iterate over successive chars to generate regex
+        for (int i = 1; i < aStr.length(); i++) {
             char prefixChar = aStr.charAt(i);
 
             // Handle upper case: turn 'A' into "[^A]*A"
-            if (Character.isUpperCase(prefixChar) && i > 0)
+            if (Character.isUpperCase(prefixChar))
                 regexSB.append("[^").append(prefixChar).append("]*").append(prefixChar);
 
-                // Otherwise, just append char
+            // Otherwise, just append char
             else regexSB.append(prefixChar);
         }
 

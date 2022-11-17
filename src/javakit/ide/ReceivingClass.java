@@ -5,8 +5,6 @@ package javakit.ide;
 import javakit.parse.*;
 import javakit.resolver.*;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This class provides functionality for determining the class a node should be.
@@ -14,22 +12,6 @@ import java.util.stream.Stream;
  * Only works for assignment values, param values, math expression operands, conditional expressions.
  */
 public class ReceivingClass {
-
-    /**
-     * Filters given Decl list for given receiving class.
-     */
-    public static List<JavaDecl> filterListForReceivingClass(List<JavaDecl> declList, JavaClass receivingClass)
-    {
-        if (declList.size() > 10) {
-            Stream<JavaDecl> sugsStream = declList.stream();
-            Stream<JavaDecl> sugsStreamAssignable = sugsStream.filter(p -> ReceivingClass.isReceivingClassAssignable(p, receivingClass));
-            List<JavaDecl> sugsListAssignable = sugsStreamAssignable.collect(Collectors.toList());
-            if (sugsListAssignable.size() > 0)
-                declList = sugsListAssignable;
-        }
-
-        return declList;
-    }
 
     /**
      * Returns the assignable type of given node assuming it's the receiving expression of assign or a method arg.
@@ -161,39 +143,5 @@ public class ReceivingClass {
 
         // Return not found
         return null;
-    }
-
-    /**
-     * Returns whether completion is receiving class.
-     */
-    public static boolean isReceivingClassAssignable(JavaDecl aJD, JavaClass aRC)
-    {
-        return getReceivingClassAssignableScore(aJD, aRC) > 0;
-    }
-
-    /**
-     * Returns whether completion is receiving class.
-     */
-    public static int getReceivingClassAssignableScore(JavaDecl aJD, JavaClass aRC)
-    {
-        // Ignore package or null
-        if (aRC == null || aJD instanceof JavaPackage)
-            return 0;
-
-        // Get real class
-        JavaClass evalClass = aJD.getEvalClass();
-        if (evalClass == null)
-            return 0;
-
-        // If classes equal, return 2
-        if (evalClass == aRC)
-            return 2;
-
-        // If assignable, return 1
-        if (aRC.isAssignable(evalClass))
-            return 1;
-
-        // Return 0 since incompatible
-        return 0;
     }
 }

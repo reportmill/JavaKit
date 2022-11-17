@@ -19,13 +19,16 @@ public class NodeCompleter {
     private JNode  _node;
 
     // The resolver
-    private Resolver _resolver;
+    private Resolver  _resolver;
+
+    // The list of completions
+    private List<JavaDecl>  _list = new ArrayList<>();
 
     // An identifier matcher
     private static Matcher  _idMatcher;
 
-    // The list of completions
-    List<JavaDecl>  _list = new ArrayList<>();
+    // Constant for no matches
+    private static JavaDecl[]  NO_MATCHES = new JavaDecl[0];
 
     /**
      * Constructor.
@@ -57,40 +60,41 @@ public class NodeCompleter {
             JClassDecl classDecl = jfile.getClassDecl();
             String className = classDecl != null ? classDecl.getName() : "Unknown";
             System.err.println("JavaCompleter: No resolver for source file: " + className);
-            return new JavaDecl[0];
+            return NO_MATCHES;
         }
+
+        // Get prefix matcher
+        String prefix = getNodeString(aNode);
+        DeclMatcher prefixMatcher = prefix != null ? new DeclMatcher(prefix) : null;
+        if (prefixMatcher == null)
+            return NO_MATCHES;
 
         // Add completions for node
         if (aNode instanceof JType)
-            getCompletionsForType((JType) aNode);
+            getCompletionsForType((JType) aNode, prefixMatcher);
         else if (aNode instanceof JExprId)
-            getCompletionsForExprId((JExprId) aNode);
+            getCompletionsForExprId((JExprId) aNode, prefixMatcher);
         else if (aNode.getStartToken() == aNode.getEndToken())
-            getCompletionsForNodeString(aNode);
-        else return new JavaDecl[0];
+            getCompletionsForNodeString(aNode, prefixMatcher);
+
+        // If no matches, just return
+        if (_list.size() == 0)
+            return NO_MATCHES;
 
         // Get receiving class
         JavaClass receivingClass = ReceivingClass.getReceivingClass(aNode);
 
-        // If receiving class and more than 10 items, filter out completions that don't apply (unless none do)
-        if (receivingClass != null)
-            _list = ReceivingClass.filterListForReceivingClass(_list, receivingClass);
-
         // Get array and sort
         JavaDecl[] decls = _list.toArray(new JavaDecl[0]);
-        Arrays.sort(decls, new DeclCompare(receivingClass));
+        Arrays.sort(decls, new DeclCompare(prefixMatcher, receivingClass));
         return decls;
     }
 
     /**
      * Find completions for JType.
      */
-    private void getCompletionsForType(JType aJType)
+    private void getCompletionsForType(JType aJType, DeclMatcher prefixMatcher)
     {
-        // Get prefix matcher from type name
-        String prefix = aJType.getName();
-        DeclMatcher prefixMatcher = new DeclMatcher(prefix);
-
         // Add word completions
         addWordCompletionsForMatcher(prefixMatcher);
 
@@ -131,18 +135,14 @@ public class NodeCompleter {
     /**
      * Find completions for JExprId.
      */
-    private void getCompletionsForExprId(JExprId anId)
+    private void getCompletionsForExprId(JExprId anId, DeclMatcher prefixMatcher)
     {
         // Get parent expression - if none, forward to basic getCompletionsForNodeString()
         JExpr parExpr = anId.getParentExpr();
         if (parExpr == null) {
-            getCompletionsForNodeString(anId);
+            getCompletionsForNodeString(anId, prefixMatcher);
             return;
         }
-
-        // Get prefix string and matcher
-        String prefix = anId.getName();
-        DeclMatcher prefixMatcher = new DeclMatcher(prefix);
 
         // Add word completions
         addWordCompletionsForMatcher(prefixMatcher);
@@ -194,14 +194,8 @@ public class NodeCompleter {
     /**
      * Find completions for any node (name/string)
      */
-    private void getCompletionsForNodeString(JNode aNode)
+    private void getCompletionsForNodeString(JNode aNode, DeclMatcher prefixMatcher)
     {
-        // Get prefix matcher
-        String prefix = getNodeString(aNode);
-        DeclMatcher prefixMatcher = prefix != null ? new DeclMatcher(prefix) : null;
-        if (prefixMatcher == null)
-            return;
-
         // Add word completions
         addWordCompletionsForMatcher(prefixMatcher);
 
@@ -304,97 +298,4 @@ public class NodeCompleter {
         // Return not found
         return null;
     }
-
-    /**
-     * A Comparator to sort JavaDecls.
-     */
-    private static class DeclCompare implements Comparator<JavaDecl> {
-
-        // The receiving class for completions
-        private JavaClass  _receivingClass;
-
-        /**
-         * Creates a DeclCompare.
-         */
-        DeclCompare(JavaClass aRC)
-        {
-            _receivingClass = aRC;
-        }
-
-        /**
-         * Standard compare to method.
-         */
-        public int compare(JavaDecl decl1, JavaDecl decl2)
-        {
-            // Get whether either completion is of Assignable to ReceivingClass
-            int recClassScore1 = ReceivingClass.getReceivingClassAssignableScore(decl1, _receivingClass);
-            int recClassScore2 = ReceivingClass.getReceivingClassAssignableScore(decl2, _receivingClass);
-            if (recClassScore1 != recClassScore2)
-                return recClassScore1 > recClassScore2 ? -1 : 1;
-
-            // If order Types differ, return by type
-            int declType1 = getOrder(decl1.getType());
-            int declType2 = getOrder(decl2.getType());
-            if (declType1 != declType2)
-                return declType1 < declType2 ? -1 : 1;
-//
-//            // Handle Class compare
-//            if (decl1 instanceof JavaClass) {
-//
-//                // If either is primitive, return that
-//                JavaClass class1 = (JavaClass) decl1;
-//                JavaClass class2 = (JavaClass) decl2;
-//                if (class1.isPrimitive())
-//                    return -1;
-//                if (class2.isPrimitive())
-//                    return 1;
-//
-//                // If either is member class, sort other first
-//                if (class1.isMemberClass() != class2.isMemberClass())
-//                    return class2.isMemberClass() ? -1 : 1;
-//
-//                // Make certain packages get preference
-//                String className1 = class1.getClassName();
-//                String className2 = class2.getClassName();
-//                for (String prefPkg : PREF_PACKAGES) {
-//                    if (className1.startsWith(prefPkg) && !className2.startsWith(prefPkg)) return -1;
-//                    if (className2.startsWith(prefPkg) && !className1.startsWith(prefPkg)) return 1;
-//                }
-//            }
-
-            // If simple names are unique, return order
-            String simpleName1 = decl1.getSimpleName();
-            String simpleName2 = decl2.getSimpleName();
-            int simpleNameComp = simpleName1.compareToIgnoreCase(simpleName2);
-            if (simpleNameComp != 0)
-                return simpleNameComp;
-
-            // Otherwise use full name
-            String fullName1 = decl1.getFullName();
-            String fullName2 = decl2.getFullName();
-            return fullName1.compareToIgnoreCase(fullName2);
-        }
-
-        /**
-         * Returns the type order.
-         */
-        public static int getOrder(JavaDecl.DeclType aType)
-        {
-            switch (aType) {
-                case Word:
-                case VarDecl: return 0;
-                case Field:
-                case Method: return 2;
-                case Class: return 3;
-                case Package: return 5;
-                default: return 6;
-            }
-        }
-    }
-
-    /**
-     * List or preferred packages.
-     */
-    private static String PREF_PACKAGES[] = {"java.lang.", "java.util.", "snap.", "java."};
-
 }

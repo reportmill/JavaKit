@@ -65,7 +65,7 @@ public class JavaWord extends JavaDecl {
     protected JavaWord(String aName, WordType aWordType)
     {
         super(null, DeclType.Word);
-        _name = _simpleName = aName;
+        _id = _name = _simpleName = aName;
         _wordType = aWordType;
     }
 
