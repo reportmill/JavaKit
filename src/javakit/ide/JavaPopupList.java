@@ -7,6 +7,7 @@ import javakit.parse.*;
 import javakit.resolver.JavaClass;
 import javakit.resolver.JavaConstructor;
 import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaExecutable;
 import snap.geom.Insets;
 import snap.gfx.*;
 import snap.props.PropChange;
@@ -70,11 +71,9 @@ public class JavaPopupList extends PopupList<JavaDecl> {
      */
     public void applySuggestion()
     {
-        // Get selected decl
-        JavaDecl selDecl = getSelItem();
-
-        // Get completeString
-        String completion = selDecl.getReplaceString();
+        // Get completion and completionString
+        JavaDecl completionDecl = getSelItem();
+        String completionStr = completionDecl.getReplaceString();
 
         // Get start/stop char index for completion (adjust for SubText if needed)
         JavaTextArea textArea = getTextArea();
@@ -84,19 +83,21 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         int selEnd = textArea.getSelEnd();
 
         // Replace selection with completeString
-        textArea.replaceChars(completion, null, selStart, selEnd, false);
+        textArea.replaceChars(completionStr, null, selStart, selEnd, false);
 
-        // If complete string has args, select inside
-        int argStart = completion.indexOf('(');
-        if (argStart > 0) {
-            int argEnd = completion.indexOf(')', argStart);
-            if (argEnd > argStart + 1)
-                textArea.setSel(selStart + argStart + 1, selStart + argEnd);
+        // If completion is method/constructor, select inside
+        if (completionDecl instanceof JavaExecutable) {
+            int argStart = completionStr.indexOf('(');
+            if (argStart > 0) {
+                int argEnd = completionStr.indexOf(')', argStart);
+                if (argEnd > argStart + 1)
+                    textArea.setSel(selStart + argStart + 1, selStart + argEnd);
+            }
         }
 
         // Add import for suggestion Class, if not present
         JFile jfile = selNode.getFile();
-        addImportForDecl(selDecl, jfile);
+        addImportForDecl(completionDecl, jfile);
 
         // Hide PopupList
         hide();
