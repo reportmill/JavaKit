@@ -3,13 +3,12 @@
  */
 package javakit.ide;
 import javakit.parse.*;
-import javakit.resolver.JavaClass;
-import javakit.resolver.JavaField;
-import javakit.resolver.JavaMethod;
+import javakit.resolver.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * This class handles matching typed chars to JavaDecls.
@@ -45,12 +44,76 @@ public class DeclMatcher {
     }
 
     /**
+     * Returns matching root packages.
+     */
+    public ClassTree.PackageNode[] getPackagesForClassTree(ClassTree aClassTree)
+    {
+        ClassTree.PackageNode rootPackage = aClassTree.getRootPackage();
+        return getMatchingPackages(rootPackage.packages);
+    }
+
+    /**
+     * Returns matching packages for given package name.
+     */
+    public ClassTree.PackageNode[] getChildPackagesForClassTreePackageName(ClassTree aClassTree, String aPkgName)
+    {
+        // Get dir for package name
+        ClassTree.PackageNode packageNode = aClassTree.getPackageForName(aPkgName);
+        if (packageNode == null)
+            return new ClassTree.PackageNode[0];
+        return getMatchingPackages(packageNode.packages);
+    }
+
+    /**
+     * Returns matching classes in given package name.
+     */
+    public ClassTree.ClassNode[] getClassesForClassTreePackageName(ClassTree aClassTree, String aPkgName)
+    {
+        ClassTree.PackageNode packageNode = aClassTree.getPackageForName(aPkgName);
+        return getMatchingClasses(packageNode.classes);
+    }
+
+    /**
+     * Returns all matching classes in ClassTree.
+     */
+    public ClassTree.ClassNode[] getClassesForClassTree(ClassTree aClassTree)
+    {
+        // If less than 3 letters, return common names for prefix
+        ClassTree.ClassNode[] classes = aClassTree.getAllClasses();
+        if (getPrefix().length() < 3)
+            classes = aClassTree.getCommonClasses();
+        return getMatchingClasses(classes);
+    }
+
+    /**
+     * Returns matching packages in given packages array.
+     */
+    private ClassTree.PackageNode[] getMatchingPackages(ClassTree.PackageNode[] thePackages)
+    {
+        Stream<ClassTree.PackageNode> packagesStream = Stream.of(thePackages);
+        Stream<ClassTree.PackageNode> matchingPackagesStream = packagesStream.filter(pkg -> matchesString(pkg.simpleName));
+        ClassTree.PackageNode[] matchingPackages = matchingPackagesStream.toArray(size -> new ClassTree.PackageNode[size]);
+        return matchingPackages;
+    }
+
+    /**
+     * Returns matching classes in given classes array.
+     */
+    private ClassTree.ClassNode[] getMatchingClasses(ClassTree.ClassNode[] theClasses)
+    {
+        Stream<ClassTree.ClassNode> classesStream = Stream.of(theClasses);
+        Stream<ClassTree.ClassNode> matchingClassesStream = classesStream.filter(cls -> matchesString(cls.simpleName));
+        ClassTree.ClassNode[] matchingClasses = matchingClassesStream.toArray(size -> new ClassTree.ClassNode[size]);
+        return matchingClasses;
+    }
+
+    /**
      * Returns a compatible method for given name and param types.
      */
     public List<JavaField> getFieldsForClass(JavaClass aClass)
     {
         // Create return list of prefix fields
-        List<JavaField> fieldsWithPrefix = new ArrayList<>();
+        List<JavaField> matchingFields = new ArrayList<>();
 
         // Iterate over classes
         for (JavaClass cls = aClass; cls != null; cls = cls.getSuperClass()) {
@@ -59,13 +122,13 @@ public class DeclMatcher {
             List<JavaField> fields = cls.getFields();
             for (JavaField field : fields)
                 if (matchesString(field.getName()))
-                    fieldsWithPrefix.add(field);
+                    matchingFields.add(field);
 
             // Should iterate over class interfaces, too
         }
 
-        // Return list of prefix fields
-        return fieldsWithPrefix;
+        // Return
+        return matchingFields;
     }
 
     /**
@@ -73,30 +136,30 @@ public class DeclMatcher {
      */
     public List<JavaMethod> getMethodsForClass(JavaClass aClass)
     {
-        // Create return list of prefix methods
-        List<JavaMethod> methodsWithPrefix = new ArrayList<>();
+        // Create return list of matching methods
+        List<JavaMethod> matchingMethods = new ArrayList<>();
 
-        // Iterate over classes
+        // Iterate over super classes
         for (JavaClass cls = aClass; cls != null; cls = cls.getSuperClass()) {
 
             // Get Class methods
             List<JavaMethod> methods = cls.getMethods();
             for (JavaMethod method : methods)
                 if (matchesString(method.getName()))
-                    methodsWithPrefix.add(method);
+                    matchingMethods.add(method);
 
             // If interface, iterate over class interfaces, too (should probably do this anyway to catch default methods).
             if (cls.isInterface()) {
                 JavaClass[] interfaces = cls.getInterfaces();
                 for (JavaClass interf : interfaces) {
                     List<JavaMethod> moreMethods = getMethodsForClass(interf);
-                    methodsWithPrefix.addAll(moreMethods);
+                    matchingMethods.addAll(moreMethods);
                 }
             }
         }
 
-        // Return list of prefix methods
-        return methodsWithPrefix;
+        // Return
+        return matchingMethods;
     }
 
     /**

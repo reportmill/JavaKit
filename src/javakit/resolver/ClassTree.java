@@ -108,6 +108,16 @@ public class ClassTree {
     }
 
     /**
+     * Returns an array of most common classes.
+     */
+    public ClassNode[] getCommonClasses()
+    {
+        ClassTree webClassTree = ClassTreeWeb.getShared();
+        ClassNode[] commonClasses = webClassTree.getAllClasses();
+        return commonClasses;
+    }
+
+    /**
      * Prints the tree.
      */
     protected void printTree(ClassTreeNode aNode, String indent)

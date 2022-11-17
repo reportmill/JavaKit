@@ -24,9 +24,6 @@ public class NodeCompleter {
     // An identifier matcher
     private static Matcher  _idMatcher;
 
-    // A class tree matcher
-    private ClassTreeMatcher  _classTreeMatcher;
-
     // The list of completions
     List<JavaDecl>  _list = new ArrayList<>();
 
@@ -90,26 +87,26 @@ public class NodeCompleter {
      */
     private void getCompletionsForType(JType aJType)
     {
-        // Get prefix from type name
+        // Get prefix matcher from type name
         String prefix = aJType.getName();
         DeclMatcher prefixMatcher = new DeclMatcher(prefix);
 
-        // Get class names for prefix
-        ClassTreeMatcher classPathMatcher = getClassTreeMatcher();
-        String[] classNamesForMatcher = classPathMatcher.getClassNamesForPrefixMatcher(prefix, prefixMatcher);
-
         // Add word completions
         addWordCompletionsForMatcher(prefixMatcher);
+
+        // Get all matching classes
+        ClassTree classTree = getClassTree();
+        ClassTree.ClassNode[] matchingClasses = prefixMatcher.getClassesForClassTree(classTree);
 
         // Handle JType as AllocExpr
         JNode typeParent = aJType.getParent();
         if (typeParent instanceof JExprAlloc) {
 
-            // Iterate over classNames and add constructors
-            for (String className : classNamesForMatcher) {
+            // Iterate over classes and add constructors
+            for (ClassTree.ClassNode matchingClass : matchingClasses) {
 
                 // Get class (skip if not found or not public)
-                JavaClass javaClass = _resolver.getJavaClassForName(className);
+                JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
                 if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers()))
                     continue;
 
@@ -124,8 +121,8 @@ public class NodeCompleter {
 
         // Handle normal JType
         else {
-            for (String className : classNamesForMatcher) {
-                JavaClass javaClass = _resolver.getJavaClassForName(className);
+            for (ClassTree.ClassNode matchingClass : matchingClasses) {
+                JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
                 addCompletionDecl(javaClass);
             }
         }
@@ -157,37 +154,40 @@ public class NodeCompleter {
             JExprId parId = (JExprId) parExpr;
             String parPkgName = parId.getPackageName();
 
-            // Get class names for classes in parent package with prefix
-            ClassTreeMatcher classPathMatcher = getClassTreeMatcher();
-            String[] packageClassNames = classPathMatcher.getPackageClassNamesForMatcher(parPkgName, prefixMatcher);
-            for (String className : packageClassNames) {
-                JavaClass javaClass = _resolver.getJavaClassForName(className);
-                if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
+            // Get matching classes for classes in parent package with prefix
+            ClassTree classTree = getClassTree();
+            ClassTree.ClassNode[] matchingClasses = prefixMatcher.getClassesForClassTreePackageName(classTree, parPkgName);
+
+            // Iterate over matching classes and add public classes
+            for (ClassTree.ClassNode matchingClass : matchingClasses) {
+                JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
+                if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers()))
+                    continue;
                 addCompletionDecl(javaClass);
             }
 
             // Get package names for packages in parent package with prefix
-            String[] packageChildNames = classPathMatcher.getPackageChildrenNamesForMatcher(parPkgName, prefixMatcher);
-            for (String packageName : packageChildNames)
-                addJavaPackageForName(packageName);
+            ClassTree.PackageNode[] packageChildren = prefixMatcher.getChildPackagesForClassTreePackageName(classTree, parPkgName);
+            for (ClassTree.PackageNode pkg : packageChildren)
+                addJavaPackageForName(pkg.fullName);
         }
 
         // Handle anything else with a parent class
         else if (parExpr.getEvalType() != null) {
 
-            // Get
+            // Get ParentExpr.EvalClass
             JavaType parExprEvalType = parExpr.getEvalType();
             JavaClass parExprEvalClass = parExprEvalType.getEvalClass();
 
-            // Get fields for prefix and add
-            List<JavaField> fieldsForMatcher = prefixMatcher.getFieldsForClass(parExprEvalClass);
-            for (JavaField fieldDecl : fieldsForMatcher)
-                addCompletionDecl(fieldDecl);
+            // Get matching fields for class and add
+            List<JavaField> matchingFields = prefixMatcher.getFieldsForClass(parExprEvalClass);
+            for (JavaField matchingField : matchingFields)
+                addCompletionDecl(matchingField);
 
-            // Get methods for prefix and add
-            List<JavaMethod> methodsForMatcher = prefixMatcher.getMethodsForClass(parExprEvalClass);
-            for (JavaMethod method : methodsForMatcher)
-                addCompletionDecl(method);
+            // Get matching methods for class and add
+            List<JavaMethod> matchingMethods = prefixMatcher.getMethodsForClass(parExprEvalClass);
+            for (JavaMethod matchingMethod : matchingMethods)
+                addCompletionDecl(matchingMethod);
         }
     }
 
@@ -196,13 +196,11 @@ public class NodeCompleter {
      */
     private void getCompletionsForNodeString(JNode aNode)
     {
-        // Get prefix
-        String prefix = getNodeString(aNode);
-        if (prefix == null)
-            return;
-
         // Get prefix matcher
-        DeclMatcher prefixMatcher = new DeclMatcher(prefix);
+        String prefix = getNodeString(aNode);
+        DeclMatcher prefixMatcher = prefix != null ? new DeclMatcher(prefix) : null;
+        if (prefixMatcher == null)
+            return;
 
         // Add word completions
         addWordCompletionsForMatcher(prefixMatcher);
@@ -212,30 +210,34 @@ public class NodeCompleter {
         for (JVarDecl varDecl : varDecls)
             addCompletionDecl(varDecl.getDecl());
 
-        // Add methods of enclosing class
+        // Get enclosing class
         JClassDecl enclosingClassDecl = aNode.getEnclosingClassDecl();
         JavaClass enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
+
+        // Add methods of enclosing class
         while (enclosingClassDecl != null && enclosingClass != null) {
-            List<JavaMethod> methodsForMatcher = prefixMatcher.getMethodsForClass(enclosingClass);
-            for (JavaMethod meth : methodsForMatcher)
-                addCompletionDecl(meth);
+            List<JavaMethod> matchingMethods = prefixMatcher.getMethodsForClass(enclosingClass);
+            for (JavaMethod matchingMethod : matchingMethods)
+                addCompletionDecl(matchingMethod);
             enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
             enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
         }
 
-        // If starts with upper case or is greater than 3 chars, add classes with prefix that are public
-        ClassTreeMatcher classPathMatcher = getClassTreeMatcher();
-        String[] classNamesForMatcher = classPathMatcher.getClassNamesForPrefixMatcher(prefix, prefixMatcher);
-        for (String className : classNamesForMatcher) {
-            JavaClass javaClass = _resolver.getJavaClassForName(className);
+        // Get matching classes
+        ClassTree classTree = getClassTree();
+        ClassTree.ClassNode[] matchingClasses = prefixMatcher.getClassesForClassTree(classTree);
+
+        // Iterate over classes and add if public
+        for (ClassTree.ClassNode matchingClass : matchingClasses) {
+            JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
             if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
             addCompletionDecl(javaClass);
         }
 
-        // Add packages with prefix
-        String[] packageNamesForMatcher = classPathMatcher.getPackageNamesForMatcher(prefixMatcher);
-        for (String packageName : packageNamesForMatcher)
-            addJavaPackageForName(packageName);
+        // Get matching packages and add
+        ClassTree.PackageNode[] matchingPackages = prefixMatcher.getPackagesForClassTree(classTree);
+        for (ClassTree.PackageNode matchingPkg : matchingPackages)
+            addJavaPackageForName(matchingPkg.fullName);
     }
 
     /**
@@ -256,18 +258,12 @@ public class NodeCompleter {
     }
 
     /**
-     * Returns a ClassTreeMatcher to find packages and classes for regex matcher.
+     * Returns the ClassTree for current Resolver.
      */
-    private ClassTreeMatcher getClassTreeMatcher()
+    private ClassTree getClassTree()
     {
-        // If already set, just return
-        if (_classTreeMatcher != null) return _classTreeMatcher;
-
-        // Create, set, return
         ClassPathInfo classPathInfo = _resolver.getClassPathInfo();
-        ClassTree classTree = classPathInfo.getClassTree();
-        ClassTreeMatcher classTreeMatcher = new ClassTreeMatcher(classTree);
-        return _classTreeMatcher = classTreeMatcher;
+        return classPathInfo.getClassTree();
     }
 
     /**
