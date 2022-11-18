@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import javakit.resolver.JavaDecl;
+import snap.util.ArrayUtils;
 
 /**
  * A Java statement for statements that are just expressions (increment, decrement, assignment).
@@ -11,6 +12,14 @@ public class JStmtExpr extends JStmt {
 
     // The expression
     protected JExpr  _expr;
+
+    /**
+     * Constructor.
+     */
+    public JStmtExpr()
+    {
+        super();
+    }
 
     /**
      * Returns the expression.
@@ -30,6 +39,26 @@ public class JStmtExpr extends JStmt {
      */
     protected JavaDecl getDeclImpl()
     {
+        if (_expr == null)
+            return null;
         return _expr.getDecl();
+    }
+
+    /**
+     * Override to provide errors for JStmtExpr.
+     */
+    @Override
+    protected NodeError[] getErrorsImpl()
+    {
+        NodeError[] errors = NodeError.NO_ERRORS;
+
+        // Handle missing statement
+        if (_expr == null) {
+            NodeError error = new NodeError(this, "Missing or incomplete expression");
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Return
+        return errors;
     }
 }
