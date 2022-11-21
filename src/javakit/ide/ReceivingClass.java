@@ -18,7 +18,7 @@ public class ReceivingClass {
      */
     public static JavaClass getReceivingClass(JNode aNode)
     {
-        // If MethocCall arg, return arg class
+        // If MethodCall arg, return arg class
         JavaType argType = getMethodCallArgType(aNode);
         if (argType != null)
             return argType.getEvalClass();

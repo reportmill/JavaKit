@@ -77,6 +77,14 @@ class DeclCompare implements Comparator<JavaDecl> {
                 if (_receivingClass.isAssignable(evalType))
                     rating += 5;
             }
+
+            // Constructor for inner class makes us less happy
+            if (aDecl instanceof JavaConstructor) {
+                JavaConstructor constructor = (JavaConstructor) aDecl;
+                JavaClass evalClass = constructor.getEvalClass();
+                if (evalClass.isMemberClass())
+                    rating -= 2;
+            }
         }
 
         // Class in pref package makes us more happy
@@ -102,6 +110,10 @@ class DeclCompare implements Comparator<JavaDecl> {
             // If class is ReceivingClass, user might want cast
             if (javaClass == _receivingClass)
                 rating += 5;
+
+            // Inner class makes us less happy
+            if (javaClass.isMemberClass())
+                rating -= 2;
         }
 
         // Additional chars make us less happy

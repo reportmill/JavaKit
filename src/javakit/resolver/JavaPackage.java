@@ -22,7 +22,7 @@ public class JavaPackage extends JavaDecl {
         _package = aParent;
 
         // Set Name, SimpleName
-        _name = aPackageName;
+        _id = _name = aPackageName;
         _simpleName = getSimpleName(aPackageName);
     }
 

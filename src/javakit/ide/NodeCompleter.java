@@ -81,8 +81,10 @@ public class NodeCompleter {
         if (_list.size() == 0)
             return NO_MATCHES;
 
-        // Get receiving class
+        // Get receiving class - If just Object, clear it out
         JavaClass receivingClass = ReceivingClass.getReceivingClass(aNode);
+        if (receivingClass != null && receivingClass.getName().equals("java.lang.Object"))
+            receivingClass = null;
 
         // Get array and sort
         JavaDecl[] decls = _list.toArray(new JavaDecl[0]);
@@ -120,6 +122,10 @@ public class NodeCompleter {
                 // Add constructors
                 for (JavaConstructor constructor : constructors)
                     addCompletionDecl(constructor);
+
+                // Handle primitive
+                if (javaClass.isPrimitive())
+                    addCompletionDecl(javaClass);
             }
         }
 
@@ -287,9 +293,14 @@ public class NodeCompleter {
         if (aNode instanceof JExprId)
             return aNode.getName();
 
-        // Handle any node with only one token with id string
+        // Handle no node: Not sure how this can happen yet
         ParseToken startToken = aNode.getStartToken();
-        if (startToken == aNode.getEndToken()) {
+        if (startToken == null) {
+            System.err.println("NodeCompleter.getNodeString: Node with no tokens: " + aNode);
+        }
+
+        // Handle any node with only one token with id string
+        else if (startToken == aNode.getEndToken()) {
             String str = startToken.getString();
             if (_idMatcher.reset(str).lookingAt())
                 return str;
