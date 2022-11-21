@@ -4,9 +4,12 @@
 package javakit.ide;
 import javakit.parse.*;
 import javakit.resolver.*;
+import snap.util.SnapUtils;
 import snap.util.StringUtils;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -140,32 +143,39 @@ public class DeclMatcher {
     /**
      * Returns methods that match given matcher.
      */
-    public List<JavaMethod> getMethodsForClass(JavaClass aClass)
+    public JavaMethod[] getMethodsForClass(JavaClass aClass)
     {
-        // Create return list of matching methods
-        List<JavaMethod> matchingMethods = new ArrayList<>();
+        Set<JavaMethod> matchingMethods = new HashSet<>();
+        getMethodsForClassImpl(aClass, matchingMethods);
+        return matchingMethods.toArray(new JavaMethod[0]);
+    }
 
+    /**
+     * Returns methods that match given matcher.
+     */
+    private void getMethodsForClassImpl(JavaClass aClass, Set<JavaMethod> matchingMethods)
+    {
         // Iterate over super classes
         for (JavaClass cls = aClass; cls != null; cls = cls.getSuperClass()) {
 
             // Get Class methods
             List<JavaMethod> methods = cls.getMethods();
             for (JavaMethod method : methods)
-                if (matchesString(method.getName()))
+                if (matchesString(method.getName()) && method.getSuper() == null)
                     matchingMethods.add(method);
 
-            // If interface, iterate over class interfaces, too (should probably do this anyway to catch default methods).
-            if (cls.isInterface()) {
-                JavaClass[] interfaces = cls.getInterfaces();
-                for (JavaClass interf : interfaces) {
-                    List<JavaMethod> moreMethods = getMethodsForClass(interf);
-                    matchingMethods.addAll(moreMethods);
-                }
+            // Iterate over class interfaces and recurse
+            JavaClass[] interfaces = cls.getInterfaces();
+            for (JavaClass interf : interfaces)
+                getMethodsForClassImpl(interf, matchingMethods);
+
+            // Help TeaVM: Thinks that interfaces subclass Object
+            if (SnapUtils.isTeaVM && cls.isInterface()) {
+                JavaClass superClass = cls.getSuperClass();
+                if (superClass.getClassName().equals("java.lang.Object"))
+                    break;
             }
         }
-
-        // Return
-        return matchingMethods;
     }
 
     /**

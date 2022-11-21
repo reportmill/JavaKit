@@ -689,7 +689,7 @@ public class StaticResolverGen {
             "clone", "equals", "getClass", "hashCode", "toString",
 
             // Class
-            "getName", "getSimpleName",
+            "getName", "getSimpleName", "getSuperclass", "getInterfaces",
 
             // String
             "charAt", "compareTo", "compareToIgnoreCase", "concat", "contains", "endsWith", "equals", "equalsIgnoreCase",

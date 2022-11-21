@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.resolver;
-import snap.util.SnapUtils;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -122,22 +121,6 @@ public class JavaClassUpdater {
     {
         // Get interfaces
         Class<?>[] interfaces = realClass.getInterfaces();
-
-        // TeaVM has some wrong interfaces set
-        if (SnapUtils.isTeaVM) {
-            if (realClass == ArrayList.class)
-                interfaces = new Class[0];
-            else if (realClass == AbstractList.class)
-                interfaces = new Class[] { java.util.List.class };
-            else if (realClass == HashMap.class)
-                interfaces = new Class[0];
-            else if (realClass == AbstractMap.class)
-                interfaces = new Class[] { java.util.Map.class };
-            else if (realClass == HashSet.class)
-                interfaces = new Class[0];
-            else if (realClass == AbstractSet.class)
-                interfaces = new Class[] { java.util.Set.class };
-        }
 
         // Iterate over interfaces and add
         _javaClass._interfaces = new JavaClass[interfaces.length];

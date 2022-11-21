@@ -191,7 +191,7 @@ public class NodeCompleter {
                 addCompletionDecl(matchingField);
 
             // Get matching methods for class and add
-            List<JavaMethod> matchingMethods = prefixMatcher.getMethodsForClass(parExprEvalClass);
+            JavaMethod[] matchingMethods = prefixMatcher.getMethodsForClass(parExprEvalClass);
             for (JavaMethod matchingMethod : matchingMethods)
                 addCompletionDecl(matchingMethod);
         }
@@ -216,7 +216,7 @@ public class NodeCompleter {
 
         // Add methods of enclosing class
         while (enclosingClassDecl != null && enclosingClass != null) {
-            List<JavaMethod> matchingMethods = prefixMatcher.getMethodsForClass(enclosingClass);
+            JavaMethod[] matchingMethods = prefixMatcher.getMethodsForClass(enclosingClass);
             for (JavaMethod matchingMethod : matchingMethods)
                 addCompletionDecl(matchingMethod);
             enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();

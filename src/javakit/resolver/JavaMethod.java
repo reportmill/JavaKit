@@ -3,6 +3,7 @@
  */
 package javakit.resolver;
 import javakit.parse.JMethodDecl;
+import snap.util.StringUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
@@ -86,12 +87,38 @@ public class JavaMethod extends JavaExecutable {
         String name = getName();
         JavaType[] paramTypes = getParamTypes();
         JavaMethod superMethod = superClass.getMethodDeepForNameAndTypes(name, paramTypes);
+
+        // If not found, check interfaces
+        if (superMethod == null) {
+            JavaClass[] interfaces = declaringClass.getInterfaces();
+            for (JavaClass inf : interfaces) {
+                superMethod = inf.getMethodDeepForNameAndTypes(name, paramTypes);
+                if (superMethod != null)
+                    break;
+            }
+        }
+
+        // If not found, set to this
         if (superMethod == null)
             superMethod = this;
 
         // Set/return
         _super = superMethod;
         return _super != this ? _super : null;
+    }
+
+    /**
+     * Returns a string representation of suggestion.
+     */
+    @Override
+    public String getSuggestionString()
+    {
+        // Get normal version and ClassName
+        String superName = super.getSuggestionString();
+        String classStr = getDeclaringClassName();
+
+        // Construct string SimpleName(ParamType.SimpleName, ...) - ClassName
+        return superName + " - " + classStr;
     }
 
     /**
