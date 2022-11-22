@@ -121,7 +121,7 @@ public class JeplParser extends JavaParser {
 
             // Add Superclass
             JType extendsType = new JType();
-            extendsType.setName("snapjava.app.ChartsREPL");
+            extendsType.setName("snapcode.app.ChartsREPL");
             extendsType.setStartToken(startToken);
             extendsType.setEndToken(startToken);
             classDecl.addExtendsType(extendsType);
