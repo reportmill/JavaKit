@@ -10,6 +10,8 @@ import snap.parse.*;
 import snap.props.PropChange;
 import snap.text.*;
 import snap.web.WebFile;
+import snap.web.WebURL;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -300,9 +302,12 @@ public class JavaTextDoc extends TextDoc {
      */
     public static JavaTextDoc newFromSource(Object aSource)
     {
-        // Create TextDoc
+        // Get Source URL
+        WebURL url = WebURL.getURL(aSource);
+
+        // Create TextDoc and read from URL
         JavaTextDoc javaTextDoc = new JavaTextDoc();
-        javaTextDoc.setSource(aSource);
+        javaTextDoc.readFromSourceURL(url);
 
         // Return
         return javaTextDoc;

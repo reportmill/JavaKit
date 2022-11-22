@@ -69,9 +69,9 @@ public class JeplTextDoc extends JavaTextDoc {
      */
     public static JeplTextDoc newFromSourceURL(WebURL aURL)
     {
-        // Create TextDoc
+        // Create TextDoc and read from URL
         JeplTextDoc jeplTextDoc = new JeplTextDoc();
-        jeplTextDoc.setSource(aURL);
+        jeplTextDoc.readFromSourceURL(aURL);
 
         // Return
         return jeplTextDoc;
