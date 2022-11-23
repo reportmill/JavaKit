@@ -211,8 +211,19 @@ public class JavaClass extends JavaType {
     {
         String className = getClassName();
         Class<?> realClass = className != null ? _resolver.getClassForName(className) : null;
-        if (realClass == null)
-            System.err.println("JavaClass.getRealClass: Couldn't find real class for name: " + className);
+        if (realClass == null) {
+
+            // If from JClassDecl, not surprising
+            if (_updater instanceof JavaClassUpdaterDecl) {
+                JavaClassUpdaterDecl updater = (JavaClassUpdaterDecl) _updater;
+                JavaClass superClass = updater._classDecl.getSuperClass();
+                Class<?> superClassReal = superClass.getRealClass();
+                return superClassReal;
+            }
+
+            // Bigger deal
+            else System.out.println("JavaClass.getRealClass: Couldn't find real class for name: " + className);
+        }
         return realClass;
     }
 

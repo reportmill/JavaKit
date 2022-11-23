@@ -14,7 +14,7 @@ import java.util.*;
 public class JavaClassUpdaterDecl extends JavaClassUpdater {
 
     // The ClassDecl
-    private JClassDecl  _classDecl;
+    protected JClassDecl  _classDecl;
 
     /**
      * Constructor.
