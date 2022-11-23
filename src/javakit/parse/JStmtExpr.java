@@ -58,6 +58,9 @@ public class JStmtExpr extends JStmt {
             errors = ArrayUtils.add(errors, error);
         }
 
+        // Otherwise init to expression errors
+        else errors = _expr.getErrorsImpl();
+
         // Return
         return errors;
     }

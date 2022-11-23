@@ -3,6 +3,8 @@
  */
 package javakit.parse;
 import javakit.resolver.*;
+import snap.util.ArrayUtils;
+
 import java.util.List;
 
 /**
@@ -18,9 +20,6 @@ public class JExprMethodCall extends JExpr {
 
     // The param types
     private JavaType[]  _paramTypes;
-
-    // The MethodDecl, if JavaMethod not found
-    private JMethodDecl  _methodDecl;
 
     /**
      * Constructor.
@@ -119,10 +118,6 @@ public class JExprMethodCall extends JExpr {
     @Override
     protected JavaMethod getDeclImpl()
     {
-        // If MethodDecl was previously found, return null since Decl can't be resolved
-        if (_methodDecl != null)
-            return null;
-
         // Get method name and arg types
         String name = getName();
         JavaType[] argTypes = getArgEvalTypes();
@@ -287,39 +282,60 @@ public class JExprMethodCall extends JExpr {
     }
 
     /**
-     * Tries to find method declaration for this node - assuming method is local to JFile.
+     * Override to provide errors for JStmtExpr.
      */
-    public JMethodDecl getMethodDecl()
+    @Override
+    protected NodeError[] getErrorsImpl()
     {
-        // If already set, just return
-        if (_methodDecl != null) return _methodDecl;
+        NodeError[] errors = NodeError.NO_ERRORS;
 
+        // Handle can't resolve method
+        JavaMethod method = getDecl();
+        if (method == null) {
+            String methodString = getMethodString();
+            NodeError error = new NodeError(this, "Can't resolve method: " + methodString);
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Return
+        return errors;
+    }
+
+    /**
+     * Returns a string for method.
+     */
+    private String getMethodString()
+    {
         // Get method name and arg types
-        String name = getName();
+        String methodName = getName();
+        if (methodName == null)
+            return "No name found";
         JavaType[] argTypes = getArgEvalTypes();
 
         // Get scope node type
         JNode scopeNode = getScopeNode();
-        if (!(scopeNode instanceof JClassDecl))
-            return null;
+        JavaType scopeType = scopeNode != null ? scopeNode.getEvalType() : null;
+        String scopeClassName = scopeType != null ? scopeType.getEvalClassName() : null;
 
-        // Get classDecl
-        JClassDecl classDecl = (JClassDecl) scopeNode;
+        // Add ClassName.MethodName
+        StringBuffer sb = new StringBuffer();
+        if (scopeClassName != null)
+            sb.append(scopeClassName).append('.');
+        sb.append(methodName).append('(');
 
-        // Look for method in class and enclosing classes
-        while (classDecl != null) {
-
-            // Look for method name+args, return if found
-            JMethodDecl methodDecl = classDecl.getMethodDeclForNameAndTypes(name, argTypes);
-            if (methodDecl != null)
-                return _methodDecl = methodDecl;
-
-            // Get parent class
-            classDecl = scopeNode.getEnclosingClassDecl();
+        // Add Args
+        for (int i = 0; i < argTypes.length; i++) {
+            if (i > 0)
+                sb.append(',');
+            JavaType argType = argTypes[i];
+            if (argType != null)
+                sb.append(argType.getSimpleName());
+            else sb.append("null");
         }
+        sb.append(')');
 
-        // Return not found
-        return null;
+        // Return
+        return sb.toString();
     }
 
     /**
