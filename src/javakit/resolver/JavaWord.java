@@ -1,5 +1,7 @@
 package javakit.resolver;
 
+import snap.util.ArrayUtils;
+
 /**
  * This JavaDecl subclass represents reserved words
  */
@@ -75,11 +77,40 @@ public class JavaWord extends JavaDecl {
     @Override
     public String getSuggestionString()
     {
+        // Get full name
+        String fullNameStr = getFullName();
+
+        // Get descriptor string
         String desc = "modifier";
         if (_wordType == WordType.Declaration)
             desc = "declaration word";
         else if (_wordType == WordType.Statement)
             desc = "statement word";
-        return super.getFullNameImpl() + " - " + desc;
+
+        // Return
+        return fullNameStr + " - " + desc;
     }
+
+    /**
+     * Override to add parens to some statement words.
+     */
+    @Override
+    public String getReplaceString()
+    {
+        String superStr = super.getReplaceString();
+        if (wantsParens())
+            superStr += " ()";
+        return superStr;
+    }
+
+    /**
+     * Returns whether word wants parens.
+     */
+    private boolean wantsParens()
+    {
+        return _wordType == WordType.Statement && ArrayUtils.containsId(WANTS_PARENS, this);
+    }
+
+    // Array of JavaWords that want parens
+    private static final JavaWord[] WANTS_PARENS = { If, For, While, Assert, Switch };
 }

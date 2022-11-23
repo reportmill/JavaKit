@@ -4,10 +4,7 @@
 package javakit.ide;
 import java.util.List;
 import javakit.parse.*;
-import javakit.resolver.JavaClass;
-import javakit.resolver.JavaConstructor;
-import javakit.resolver.JavaDecl;
-import javakit.resolver.JavaExecutable;
+import javakit.resolver.*;
 import snap.geom.Insets;
 import snap.gfx.*;
 import snap.props.PropChange;
@@ -85,14 +82,12 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         // Replace selection with completeString
         textArea.replaceChars(completionStr, null, selStart, selEnd, false);
 
-        // If completion is method/constructor, select inside
-        if (completionDecl instanceof JavaExecutable) {
-            int argStart = completionStr.indexOf('(');
-            if (argStart > 0) {
-                int argEnd = completionStr.indexOf(')', argStart);
-                if (argEnd > argStart + 1)
-                    textArea.setSel(selStart + argStart + 1, selStart + argEnd);
-            }
+        // If completion has parens needing content, select inside parens
+        int argStart = indexOfParenContent(completionDecl, completionStr);
+        if (argStart > 0) {
+            int argEnd = completionStr.indexOf(')', argStart);
+            if (argEnd > 0)
+                textArea.setSel(selStart + argStart + 1, selStart + argEnd);
         }
 
         // Add import for suggestion Class, if not present
@@ -101,6 +96,49 @@ public class JavaPopupList extends PopupList<JavaDecl> {
 
         // Hide PopupList
         hide();
+    }
+
+    /**
+     * Returns whether suggestion has parens that want content.
+     */
+    private int indexOfParenContent(JavaDecl javaDecl, String completionStr)
+    {
+        // If no open paren, just return
+        int argStart = completionStr.indexOf('(');
+        if (argStart < 0)
+            return -1;
+
+        // If not executable, just return paren index (probably is "if (...)" or "for (...)" )
+        if (!(javaDecl instanceof JavaExecutable))
+            return argStart;
+
+        // If method/constructor with non-zero params, return paren index
+        JavaExecutable exec = (JavaExecutable) javaDecl;
+        if (exec.getParamCount() > 0)
+            return argStart;
+
+        // If constructor
+        JavaClass declClass = exec.getDeclaringClass();
+        if (exec instanceof JavaConstructor) {
+            boolean multipleConstructors = declClass.getConstructors().size() > 1;
+            return multipleConstructors ? argStart : -1;
+        }
+
+        // If more methods with this name
+        List<JavaMethod> methods = declClass.getMethods();
+        JavaMethod javaMethod = (JavaMethod) exec;
+        String methodName = javaMethod.getName();
+        int count = 0;
+        for (JavaMethod method : methods) {
+            if (method.getName().equals(methodName)) {
+                count++;
+                if (count > 1)
+                    return argStart;
+            }
+        }
+
+        // Return no paren content
+        return -1;
     }
 
     /**
