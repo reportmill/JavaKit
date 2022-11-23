@@ -245,16 +245,6 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the class name for the currently selected JNode.
-     */
-    public Class<?> getSelNodeClass()
-    {
-        JavaClass javaClass = _selNode != null ? _selNode.getEvalClass() : null;
-        Class<?> realClass = javaClass != null ? javaClass.getRealClass() : null;
-        return realClass;
-    }
-
-    /**
      * Returns the array of selected tokens.
      */
     public TextBoxToken[] getSelTokens()  { return _selTokens; }

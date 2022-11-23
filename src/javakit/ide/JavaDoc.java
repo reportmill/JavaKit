@@ -52,7 +52,8 @@ public class JavaDoc {
         if (_urlString != null) return _urlString;
 
         // Get, set, return
-        return _urlString = getJavaDocUrlForJavaDocClass(_javaDocClass);
+        String className = _javaDocClass.getName();
+        return _urlString = getJavaDocUrlForJavaDocClassName(className);
     }
 
     /**
@@ -77,7 +78,7 @@ public class JavaDoc {
     /**
      * Returns the JavaDoc class for given class.
      */
-    public static JavaDoc getJavaDocForClass(Class<?> aClass)
+    private static JavaDoc getJavaDocForClass(Class<?> aClass)
     {
         // Check cache - if found, just return
         JavaDoc javaDoc = _javaDocs.get(aClass);
@@ -104,7 +105,8 @@ public class JavaDoc {
             javaDocClass = javaDocClass.getComponentType();
 
         // If class is JavaDoc class, return class
-        boolean isJavaDocClass = isJavaDocClass(javaDocClass);
+        String className = javaDocClass.getName();
+        boolean isJavaDocClass = isJavaDocClassName(className);
         if (isJavaDocClass)
             return new JavaDoc(javaDocClass);
 
@@ -120,9 +122,8 @@ public class JavaDoc {
     /**
      * Returns whether given class is a JavaDoc class.
      */
-    private static boolean isJavaDocClass(Class<?> aClass)
+    private static boolean isJavaDocClassName(String className)
     {
-        String className = aClass.getName();
         if (className.startsWith("snap.") ||
                 className.startsWith("com.reportmill.") ||
                 className.startsWith("java.") ||
@@ -134,11 +135,8 @@ public class JavaDoc {
     /**
      * Returns the JavaDoc url for given JavaDoc class.
      */
-    public static String getJavaDocUrlForJavaDocClass(Class<?> aClass)
+    private static String getJavaDocUrlForJavaDocClassName(String className)
     {
-        // Get class name for selected JNode
-        String className = aClass.getName();
-
         // Handle snap classes
         if (className.startsWith("snap."))
             return "http://reportmill.com/snap1/javadoc/index.html?" + className.replace('.', '/') + ".html";
