@@ -125,5 +125,5 @@ class DeclCompare implements Comparator<JavaDecl> {
     }
 
     // Constant for above
-    private static String PREF_PACKAGES[] = { "java.lang", "java.util", "snap.view" };
+    private static String PREF_PACKAGES[] = { "java.lang", "java.util", "snap.view", "snapcode.app" };
 }
