@@ -1,5 +1,6 @@
 package javakit.parse;
 import javakit.resolver.JavaDecl;
+import snap.util.ArrayUtils;
 
 /**
  * A JExpr subclass for expressions inside parenthesis.
@@ -49,6 +50,29 @@ public class JExprParen extends JExpr {
      */
     protected JavaDecl getDeclImpl()
     {
+        if (_expr == null)
+            return null;
         return _expr.getDecl();
+    }
+
+    /**
+     * Override to provide errors for JStmtExpr.
+     */
+    @Override
+    protected NodeError[] getErrorsImpl()
+    {
+        NodeError[] errors = NodeError.NO_ERRORS;
+
+        // Handle missing statement
+        if (_expr == null) {
+            NodeError error = new NodeError(this, "Missing or incomplete expression");
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Otherwise init to expression errors
+        else errors = _expr.getErrors();
+
+        // Return
+        return errors;
     }
 }
