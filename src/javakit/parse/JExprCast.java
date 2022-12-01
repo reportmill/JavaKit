@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import javakit.resolver.JavaDecl;
+import snap.util.ArrayUtils;
 
 /**
  * A JExpr subclass for Cast expressions.
@@ -51,6 +52,39 @@ public class JExprCast extends JExpr {
      */
     protected JavaDecl getDeclImpl()
     {
+        if (_type == null)
+            return null;
         return _type.getDecl();
+    }
+
+    /**
+     * Override to provide errors for JStmtExpr.
+     */
+    @Override
+    protected NodeError[] getErrorsImpl()
+    {
+        NodeError[] errors = NodeError.NO_ERRORS;
+
+        // Handle missing type
+        if (_type == null) {
+            NodeError error = new NodeError(this, "Missing or incomplete type");
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Handle missing expression
+        if (_expr == null) {
+            NodeError error = new NodeError(this, "Missing or incomplete expression");
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Otherwise init to expression errors
+        else {
+            NodeError[] exprErrors = _expr.getErrors();
+            if (exprErrors.length > 0)
+                errors = ArrayUtils.addAll(errors, exprErrors);
+        }
+
+        // Return
+        return errors;
     }
 }
