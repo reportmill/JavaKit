@@ -24,6 +24,15 @@ public class JavaField extends JavaMember {
     }
 
     /**
+     * Returns whether field is enum constant.
+     */
+    public boolean isEnumConstant()
+    {
+        JavaClass fieldClass = getDeclaringClass();
+        return fieldClass != null && fieldClass.isEnum();
+    }
+
+    /**
      * Returns a string representation of suggestion.
      */
     @Override
