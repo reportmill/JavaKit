@@ -395,7 +395,7 @@ public class JavaClass extends JavaType {
             }
         }
 
-        // Return
+        // Return not found
         return null;
     }
 
@@ -419,6 +419,8 @@ public class JavaClass extends JavaType {
         for (JavaClass innerClass : innerClasses)
             if (innerClass.getSimpleName().equals(aName))
                 return innerClass;
+
+        // Return not found
         return null;
     }
 
@@ -427,10 +429,17 @@ public class JavaClass extends JavaType {
      */
     public JavaClass getInnerClassDeepForName(String aName)
     {
-        JavaClass decl = getInnerClassForName(aName);
-        if (decl == null && _superClass != null)
-            decl = _superClass.getInnerClassDeepForName(aName);
-        return decl;
+        // Check class
+        JavaClass innerClass = getInnerClassForName(aName);
+
+        // Check super classes
+        if (innerClass == null && _superClass != null)
+            innerClass = _superClass.getInnerClassDeepForName(aName);
+
+        // Check interfaces
+
+        // Return
+        return innerClass;
     }
 
     /**
