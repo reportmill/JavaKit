@@ -455,46 +455,17 @@ public class JClassDecl extends JMemberDecl {
 
     /**
      * Override to check field declarations for id.
+     * @param anExprId
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    @Override
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // If class id, return class declaration
-        if (aNode == _id)
+        if (anExprId == _id)
             return getDecl();
 
-        // Handle JType in Extends or Implements lists: forward on
-        if (aNode instanceof JType) {
-
-            // Get parent of nested type
-            JType type = (JType) aNode;
-            JType parentType = type;
-            while (parentType.getParent() instanceof JType)
-                parentType = (JType) parentType.getParent();
-
-            // If parent of nested type is this JClassDecl, either check for TypeVar or forward to file
-            if (parentType.getParent() == this) {
-
-                // Check for TypeVar
-                if (type.getParent() instanceof JType) {
-                    JType par = (JType) type.getParent();
-                    JavaType baseType = par.getBaseDecl();
-                    if (baseType instanceof JavaClass) {
-                        JavaClass baseClass = (JavaClass) baseType;
-                        String typeName = type.getName();
-                        JavaDecl typeVarType = baseClass.getTypeVarForName(typeName);
-                        if (typeVarType != null)
-                            return typeVarType;
-                    }
-                }
-
-                // Forward to file
-                return super.getDeclForChildNode(aNode);
-            }
-        }
-
         // If it's "this", set class and return ClassField
-        String name = aNode.getName();
-        boolean isId = aNode instanceof JExprId;
+        String name = anExprId.getName();
         if (name.equals("this"))
             return getDecl();
 
@@ -503,18 +474,16 @@ public class JClassDecl extends JMemberDecl {
             return getSuperClass();
 
         // Iterate over fields and return declaration if found
-        if (isId) {
-            JFieldDecl[] fieldDecls = getFieldDecls();
-            for (JFieldDecl fieldDecl : fieldDecls) {
-                List<JVarDecl> fieldVarDecls = fieldDecl.getVarDecls();
-                for (JVarDecl fieldVarDecl : fieldVarDecls)
-                    if (SnapUtils.equals(fieldVarDecl.getName(), name))
-                        return fieldVarDecl.getDecl();
-            }
+        JFieldDecl[] fieldDecls = getFieldDecls();
+        for (JFieldDecl fieldDecl : fieldDecls) {
+            List<JVarDecl> fieldVarDecls = fieldDecl.getVarDecls();
+            for (JVarDecl fieldVarDecl : fieldVarDecls)
+                if (SnapUtils.equals(fieldVarDecl.getName(), name))
+                    return fieldVarDecl.getDecl();
         }
 
         // Iterate over enum constants
-        if (isId && isEnum()) {
+        if (isEnum()) {
             List<JEnumConst> enumConstants = getEnumConstants();
             for (JEnumConst enumConst : enumConstants) {
                 if (name.equals(enumConst.getName()))
@@ -531,14 +500,12 @@ public class JClassDecl extends JMemberDecl {
         }
 
         // Check interfaces:  Not sure what's going on here
-        if (isId) {
-            List<JType> implementsTypes = getImplementsTypes();
-            for (JType implementsType : implementsTypes) {
-                JavaClass interf = implementsType.getEvalClass();
-                JavaField field2 = interf != null ? interf.getFieldForName(name) : null;
-                if (field2 != null)
-                    return field2;
-            }
+        List<JType> implementsTypes = getImplementsTypes();
+        for (JType implementsType : implementsTypes) {
+            JavaClass interf = implementsType.getEvalClass();
+            JavaField field2 = interf != null ? interf.getFieldForName(name) : null;
+            if (field2 != null)
+                return field2;
         }
 
         // Look for JTypeVar for given name
@@ -555,7 +522,72 @@ public class JClassDecl extends JMemberDecl {
         }
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
+    }
+
+    /**
+     * Returns the JavaDecl most closely associated with given child JType node.
+     */
+    @Override
+    protected JavaDecl getDeclForChildTypeNode(JType type)
+    {
+        // Get parent of nested type
+        JType parentType = type;
+        while (parentType.getParent() instanceof JType)
+            parentType = (JType) parentType.getParent();
+
+        // If parent of nested type is this JClassDecl, either check for TypeVar or forward to file
+        if (parentType.getParent() == this) {
+
+            // Check for TypeVar
+            if (type.getParent() instanceof JType) {
+                JType par = (JType) type.getParent();
+                JavaType baseType = par.getBaseDecl();
+                if (baseType instanceof JavaClass) {
+                    JavaClass baseClass = (JavaClass) baseType;
+                    String typeName = type.getName();
+                    JavaDecl typeVarType = baseClass.getTypeVarForName(typeName);
+                    if (typeVarType != null)
+                        return typeVarType;
+                }
+            }
+
+            // Forward to file
+            return super.getDeclForChildTypeNode(type);
+        }
+
+        // If it's "this", set class and return ClassField - from old getDeclForChildNode() is this really needed ???
+        String name = type.getName();
+        if (name.equals("this"))
+            return getDecl();
+
+        // If it's "super", set class and return ClassField - from old getDeclForChildNode() is this really needed ???
+        if (name.equals("super"))
+            return getSuperClass();
+
+        // See if it's a field reference from superclass - from old getDeclForChildNode() is this really needed ???
+        JavaClass superClass = getSuperClass();
+        if (superClass != null) {
+            JavaField field = superClass.getFieldForName(name);
+            if (field != null)
+                return field;
+        }
+
+        // Look for JTypeVar for given name - from old getDeclForChildNode() is this really needed ???
+        JTypeVar typeVar = getTypeVar(name);
+        if (typeVar != null)
+            return typeVar.getDecl();
+
+        // Look for InnerClass of given name - from old getDeclForChildNode() is this really needed ???
+        JavaClass evalClass = getEvalClass();
+        if (evalClass != null) {
+            JavaClass innerClass = evalClass.getInnerClassForName(name);
+            if (innerClass != null)
+                return innerClass;
+        }
+
+        // Do normal version
+        return super.getDeclForChildTypeNode(type);
     }
 
     /**

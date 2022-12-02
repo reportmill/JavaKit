@@ -95,18 +95,32 @@ public class JTypeVar extends JNode {
     /**
      * Override to handle ID and nested case, e.g.: T extends Class <? super T>
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    @Override
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // Handle ID
-        if (aNode == _id)
+        if (anExprId == _id)
             return getDecl();
 
         // Handle nested case, e.g.: T extends Class <? super T>
-        if (aNode.getName().equals(getName()))
+        if (anExprId.getName().equals(getName()))
             return getJavaClassForClass(Object.class);
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
     }
 
+    /**
+     * Override - from old getDeclForChildNode(). Is it really needed ???
+     */
+    @Override
+    protected JavaDecl getDeclForChildTypeNode(JType aJType)
+    {
+        // Handle nested case, e.g.: T extends Class <? super T>
+        if (aJType.getName().equals(getName()))
+            return getJavaClassForClass(Object.class);
+
+        // Do normal version
+        return super.getDeclForChildTypeNode(aJType);
+    }
 }

@@ -68,24 +68,18 @@ public class JExprChain extends JExpr {
     /**
      * Override to resolve names in chain.
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
-        // Get node info
-        String name = aNode.getName();
-        boolean isId = aNode instanceof JExprId, isType = !isId;
-        if (isType)
-            return super.getDeclForChildNode(aNode);
-
         // Get parent expression - if not found (first in chain) do normal version
-        JExprId id = (JExprId) aNode;
-        JExpr parExpr = id.getParentExpr();
+        JExpr parExpr = anExprId.getParentExpr();
         if (parExpr == null)
-            return super.getDeclForChildNode(aNode);
+            return super.getDeclForChildExprIdNode(anExprId);
 
         // Get parent declaration
+        String name = anExprId.getName();
         JavaDecl parDecl = parExpr.getDecl();
         if (parDecl == null) {
-            System.err.println("JExprChain.getDeclForChildNode: No parent decl for " + getName() + " in " + getName());
+            System.err.println("JExprChain.getDeclForChildExprIdNode: No parent decl for " + name + " in " + getName());
             return null;
         }
 
@@ -154,7 +148,7 @@ public class JExprChain extends JExpr {
         }
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
     }
 
     /**

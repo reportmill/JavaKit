@@ -174,13 +174,13 @@ public class JExprMethodCall extends JExpr {
      * Override to handle method name.
      */
     @Override
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
-        if (aNode == _id)
+        if (anExprId == _id)
             return getDecl();
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
     }
 
     /**
@@ -201,7 +201,6 @@ public class JExprMethodCall extends JExpr {
             if (method == null)
                 return null;
             JavaType evalType = method.getEvalType();
-            JavaType scopeType = getScopeNodeEvalType();
 
             // If eval type is TypeVar, try to resolve
             if (evalType instanceof JavaTypeVariable) {
@@ -213,6 +212,8 @@ public class JExprMethodCall extends JExpr {
                     return resolvedDecl;
 
                 // See if TypeVar can be resolved by ScopeNode.Type
+                JNode scopeNode = getScopeNode();
+                JavaType scopeType = scopeNode != null ? scopeNode.getEvalType() : null;
                 resolvedDecl = scopeType.getResolvedType(evalType);
                 if (resolvedDecl != null)
                     return resolvedDecl;

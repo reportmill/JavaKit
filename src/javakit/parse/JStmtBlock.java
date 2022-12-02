@@ -57,29 +57,26 @@ public class JStmtBlock extends JStmt {
      * Override to check inner variable declaration statements.
      */
     @Override
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // Get VarDecl for name from statements
         List<JStmt> statements = getStatements();
-        JVarDecl varDecl = getVarDeclForNameFromStatements(aNode, statements);
+        JVarDecl varDecl = getVarDeclForNameFromStatements(anExprId, statements);
         if (varDecl != null)
             return varDecl.getDecl();
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
     }
 
     /**
      * Finds JVarDecls for given Node.Name in given statements and adds them to given list.
      */
-    public static JVarDecl getVarDeclForNameFromStatements(JNode aNode, List<JStmt> theStmts)
+    public static JVarDecl getVarDeclForNameFromStatements(JExprId anExprId, List<JStmt> theStmts)
     {
         // Get node info
-        String name = aNode.getName(); if (name == null) return null;
-
-        // This shouldn't happen
-        boolean isType = aNode instanceof JExprType;
-        if (isType)
+        String name = anExprId.getName();
+        if (name == null)
             return null;
 
         // Iterate over statements and see if any contains variable
@@ -93,7 +90,7 @@ public class JStmtBlock extends JStmt {
             }
 
             // If block statement is past id reference, break
-            if (stmt.getStartCharIndex() > aNode.getStartCharIndex())
+            if (stmt.getStartCharIndex() > anExprId.getStartCharIndex())
                 break;
 
             // Handle VarDecl
@@ -102,14 +99,14 @@ public class JStmtBlock extends JStmt {
                 List<JVarDecl> varDecls = varDeclStmt.getVarDecls();
                 for (JVarDecl varDecl : varDecls) {
                     if (name.equals(varDecl.getName())) {
-                        if (varDecl.getStartCharIndex() < aNode.getStartCharIndex())
+                        if (varDecl.getStartCharIndex() < anExprId.getStartCharIndex())
                             return varDecl;
                     }
                 }
             }
         }
 
-        // Do normal version
+        // Return not found
         return null;
     }
 }

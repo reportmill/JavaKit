@@ -153,19 +153,18 @@ public class JExecutableDecl extends JMemberDecl {
     /**
      * Override to check formal parameters.
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    @Override
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // If node is method name, return method decl
-        if (aNode == _id)
+        if (anExprId == _id)
             return getDecl();
 
         // Handle parameter name id: return param decl
-        String name = aNode.getName();
-        if (aNode instanceof JExprId) {
-            JVarDecl param = getParam(name);
-            if (param != null)
-                return param.getDecl();
-        }
+        String name = anExprId.getName();
+        JVarDecl param = getParam(name);
+        if (param != null)
+            return param.getDecl();
 
         // Handle TypeVar name: return typevar decl
         JTypeVar typeVar = getTypeVar(name);
@@ -173,18 +172,18 @@ public class JExecutableDecl extends JMemberDecl {
             return typeVar.getDecl();
 
         // Do normal version (search class)
-        JavaDecl superValue = super.getDeclForChildNode(aNode);
+        JavaDecl superValue = super.getDeclForChildExprIdNode(anExprId);
         if (superValue != null)
             return superValue;
 
         // REPL hack - Get/search initializers before this method
-        return getDeclForChildNodeReplHack(aNode);
+        return getDeclForChildExprIdNodeReplHack(anExprId);
     }
 
     /**
      * REPL hack - Get/search initializers before this method for unresolved ids.
      */
-    protected JavaDecl getDeclForChildNodeReplHack(JNode aNode)
+    protected JavaDecl getDeclForChildExprIdNodeReplHack(JExprId anExprId)
     {
         // Get class initializers
         JClassDecl classDecl = getEnclosingClassDecl();
@@ -194,7 +193,7 @@ public class JExecutableDecl extends JMemberDecl {
         for (JInitializerDecl initDecl : initDecls) {
             if (initDecl.getStartCharIndex() < getStartCharIndex()) {
                 JStmtBlock blockStmt = initDecl.getBlock();
-                JavaDecl nodeDecl = blockStmt.getDeclForChildNode(aNode);
+                JavaDecl nodeDecl = blockStmt.getDeclForChildExprIdNode(anExprId);
                 if (nodeDecl != null)
                     return nodeDecl;
             }
@@ -203,6 +202,22 @@ public class JExecutableDecl extends JMemberDecl {
 
         // Return not found
         return null;
+    }
+
+    /**
+     * Override - from old getDeclForChildNode(). Is it really needed ???
+     */
+    @Override
+    protected JavaDecl getDeclForChildTypeNode(JType aJType)
+    {
+        // Handle TypeVar name: return typevar decl
+        String name = aJType.getName();
+        JTypeVar typeVar = getTypeVar(name);
+        if (typeVar != null)
+            return typeVar.getDecl();
+
+        // Do normal version
+        return super.getDeclForChildTypeNode(aJType);
     }
 
     /**

@@ -68,7 +68,7 @@ public class JExprId extends JExpr {
     @Override
     protected JavaDecl getDeclImpl()
     {
-        return getDeclForChildNode(this);
+        return getDeclForChildExprIdNode(this);
     }
 
     /**

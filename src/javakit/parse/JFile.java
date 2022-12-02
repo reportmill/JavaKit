@@ -165,10 +165,11 @@ public class JFile extends JNode {
     /**
      * Override to check for package name, import class name, static import class member.
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    @Override
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // Get node info
-        String name = aNode.getName();
+        String name = anExprId.getName();
 
         // If it's in JPackageDecl, it's a Package
         if (isKnownPackageName(name))
@@ -186,7 +187,35 @@ public class JFile extends JNode {
             return field;
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
+    }
+
+    /**
+     * Override - from old getDeclForChildNode(). Is it really needed ???
+     */
+    @Override
+    protected JavaDecl getDeclForChildTypeNode(JType aJType)
+    {
+        // Get node info
+        String name = aJType.getName();
+
+        // If it's in JPackageDecl, it's a Package
+        if (isKnownPackageName(name))
+            return getJavaPackageForName(name);
+
+        // See if it's a known class name using imports
+        String className = getImportClassName(name);
+        JavaClass javaClass = className != null ? getJavaClassForName(className) : null;
+        if (javaClass != null)
+            return javaClass;
+
+        // See if it's a known static import class member
+        JavaDecl field = getImportClassMember(name, null);
+        if (field != null)
+            return field;
+
+        // Do normal version
+        return super.getDeclForChildTypeNode(aJType);
     }
 
     /**

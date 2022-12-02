@@ -118,10 +118,11 @@ public class JStmtSwitch extends JStmt {
         /**
          * Override to check inner variable declaration statements.
          */
-        protected JavaDecl getDeclForChildNode(JNode aNode)
+        @Override
+        protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
         {
             // If node is case label and is id, try to evaluate against Switch expression enum type
-            if (aNode == _expr && _expr instanceof JExprId) {
+            if (anExprId == _expr) {
 
                 // Get Switch expression type
                 JStmtSwitch switchStmt = getParent(JStmtSwitch.class);
@@ -140,13 +141,12 @@ public class JStmtSwitch extends JStmt {
 
             // If statements (as block) can resolve node, return decl
             List<JStmt> statements = getStatements();
-            JVarDecl varDecl = JStmtBlock.getVarDeclForNameFromStatements(aNode, statements);
+            JVarDecl varDecl = JStmtBlock.getVarDeclForNameFromStatements(anExprId, statements);
             if (varDecl != null)
                 return varDecl.getDecl();
 
             // Do normal version
-            return super.getDeclForChildNode(aNode);
+            return super.getDeclForChildExprIdNode(anExprId);
         }
     }
-
 }

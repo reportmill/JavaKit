@@ -229,14 +229,14 @@ public class JVarDecl extends JNode {
     /**
      * Override to resolve id node.
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // VarDecl.Id evaluates same as whole
-        if (aNode == _id)
+        if (anExprId == _id)
             return getDecl();
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
     }
 
     /**

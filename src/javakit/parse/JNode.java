@@ -100,13 +100,24 @@ public class JNode {
     protected JavaDecl getDeclImpl()  { return null; }
 
     /**
-     * Returns the JavaDecl most closely associated with given child JNode.
+     * Returns the JavaDecl most closely associated with given child JExprId node.
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // Forward to parent
         if (_parent != null)
-            return _parent.getDeclForChildNode(aNode);
+            return _parent.getDeclForChildExprIdNode(anExprId);
+        return null;
+    }
+
+    /**
+     * Returns the JavaDecl most closely associated with given child JType node.
+     */
+    protected JavaDecl getDeclForChildTypeNode(JType aJType)
+    {
+        // Forward to parent
+        if (_parent != null)
+            return _parent.getDeclForChildTypeNode(aJType);
         return null;
     }
 

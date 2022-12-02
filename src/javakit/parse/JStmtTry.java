@@ -4,7 +4,6 @@
 package javakit.parse;
 import java.util.*;
 import javakit.resolver.JavaDecl;
-import snap.util.SnapUtils;
 
 /**
  * A Java statement for TryStatement.
@@ -140,14 +139,16 @@ public class JStmtTry extends JStmt {
         /**
          * Override to check param.
          */
-        protected JavaDecl getDeclForChildNode(JNode aNode)
+        @Override
+        protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
         {
-            String name = aNode.getName();
-            boolean isType = aNode instanceof JExprType;
-            if (!isType && _param != null && SnapUtils.equals(_param.getName(), aNode.getName()))
+            // Check params
+            String name = anExprId.getName();
+            if (_param != null && Objects.equals(_param.getName(), name))
                 return _param.getDecl();
-            return super.getDeclForChildNode(aNode);
+
+            // Do normal version
+            return super.getDeclForChildExprIdNode(anExprId);
         }
     }
-
 }

@@ -80,14 +80,14 @@ public class JStmtFor extends JStmtConditional {
     /**
      * Override to check init declaration.
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    @Override
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // Get node info
-        String name = aNode.getName();
-        boolean isType = aNode instanceof JExprType;
+        String name = anExprId.getName();
 
         // Check init declaration
-        if (!isType && _initDecl != null) {
+        if (_initDecl != null) {
             List<JVarDecl> varDecls = _initDecl.getVarDecls();
             for (JVarDecl varDecl : varDecls)
                 if (SnapUtils.equals(varDecl.getName(), name))
@@ -95,6 +95,6 @@ public class JStmtFor extends JStmtConditional {
         }
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
     }
 }

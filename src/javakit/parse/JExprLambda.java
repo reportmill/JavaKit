@@ -209,18 +209,16 @@ public class JExprLambda extends JExpr {
     /**
      * Override to check lambda parameters.
      */
-    protected JavaDecl getDeclForChildNode(JNode aNode)
+    protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
         // If node is parameter name, return param decl
-        if (aNode instanceof JExprId) {
-            String name = aNode.getName();
-            JVarDecl param = getParamForName(name);
-            if (param != null)
-                return param.getDecl();
-        }
+        String name = anExprId.getName();
+        JVarDecl param = getParamForName(name);
+        if (param != null)
+            return param.getDecl();
 
         // Do normal version
-        return super.getDeclForChildNode(aNode);
+        return super.getDeclForChildExprIdNode(anExprId);
     }
 
     /**
@@ -242,7 +240,8 @@ public class JExprLambda extends JExpr {
         }
 
         // Get scope node class type and search for compatible method for name and arg types
-        JavaType scopeType = methodCallExpr.getScopeNodeEvalType();
+        JNode scopeNode = methodCallExpr.getScopeNode();
+        JavaType scopeType = scopeNode != null ? scopeNode.getEvalType() : null;
         JavaClass scopeClass = scopeType != null ? scopeType.getEvalClass() : null;
         if (scopeClass == null)
             return null;

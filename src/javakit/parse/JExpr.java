@@ -33,16 +33,6 @@ public abstract class JExpr extends JNode {
     }
 
     /**
-     * Returns the ScopeNode EvalType.
-     */
-    public JavaType getScopeNodeEvalType()
-    {
-        JNode scopeNode = getScopeNode();
-        JavaType scopeType = scopeNode != null ? scopeNode.getEvalType() : null;
-        return scopeType;
-    }
-
-    /**
      * Returns the expression prior to this expression, if parent is JExprChain and this expression isn't first.
      */
     public JExpr getParentExpr()
