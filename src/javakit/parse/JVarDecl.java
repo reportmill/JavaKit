@@ -28,11 +28,11 @@ public class JVarDecl extends JNode {
     protected List<JExpr>  _arrayInits = Collections.EMPTY_LIST;
 
     /**
-     * Returns whether type is set.
+     * Constructor.
      */
-    public boolean isTypeSet()
+    public JVarDecl()
     {
-        return _type != null;
+        super();
     }
 
     /**
@@ -44,7 +44,8 @@ public class JVarDecl extends JNode {
 
         // Get parent type from JFieldDecl, JStmtVarDecl
         _type = getParentType();
-        if (_type == null) return null;
+        if (_type == null)
+            return null;
 
         // If array count is set, replace with type to account for it
         if (_arrayCount > 0) {
@@ -57,7 +58,7 @@ public class JVarDecl extends JNode {
             _type._parent = this;
         }
 
-        // Return type
+        // Return
         return _type;
     }
 
@@ -121,10 +122,7 @@ public class JVarDecl extends JNode {
     /**
      * Returns the identifier.
      */
-    public JExprId getId()
-    {
-        return _id;
-    }
+    public JExprId getId()  { return _id; }
 
     /**
      * Sets the identifier.
@@ -132,16 +130,14 @@ public class JVarDecl extends JNode {
     public void setId(JExprId anId)
     {
         replaceChild(_id, _id = anId);
-        if (_id != null) setName(_id.getName());
+        if (_id != null)
+            setName(_id.getName());
     }
 
     /**
      * Returns the array count.
      */
-    public int getArrayCount()
-    {
-        return _arrayCount;
-    }
+    public int getArrayCount()  { return _arrayCount; }
 
     /**
      * Sets the array count.
@@ -154,10 +150,7 @@ public class JVarDecl extends JNode {
     /**
      * Returns the initializer.
      */
-    public JExpr getInitializer()
-    {
-        return _initializer;
-    }
+    public JExpr getInitializer()  { return _initializer; }
 
     /**
      * Sets the initializer.
@@ -170,10 +163,7 @@ public class JVarDecl extends JNode {
     /**
      * Returns the array init expressions, if array.
      */
-    public List<JExpr> getArrayInits()
-    {
-        return _arrayInits;
-    }
+    public List<JExpr> getArrayInits()  { return _arrayInits; }
 
     /**
      * Sets the array init expressions, if array.

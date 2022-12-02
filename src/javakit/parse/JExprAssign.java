@@ -3,7 +3,6 @@
  */
 package javakit.parse;
 import javakit.resolver.JavaDecl;
-import javakit.resolver.JavaType;
 
 /**
  * A class to represent assignment expressions (including +=, -=, etc.).
@@ -45,10 +44,7 @@ public class JExprAssign extends JExpr {
     /**
      * Returns the op.
      */
-    public Op getOp()
-    {
-        return op;
-    }
+    public Op getOp()  { return op; }
 
     /**
      * Returns the id expression.
@@ -92,7 +88,8 @@ public class JExprAssign extends JExpr {
      */
     public String getNodeString()
     {
-        if (op == Op.Assign) return "AssignExpr";
+        if (op == Op.Assign)
+            return "AssignExpr";
         return "Assign" + op + "Expr";
     }
 
