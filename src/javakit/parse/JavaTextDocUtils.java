@@ -2,129 +2,42 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.resolver.JavaType;
-import javakit.resolver.Resolver;
 import snap.parse.*;
 import snap.text.TextDocUtils;
 import snap.util.CharSequenceUtils;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utility methods and support for JavaShell.
+ * Utility methods and support for JavaTextDoc.
  */
 public class JavaTextDocUtils {
 
     /**
-     * Returns an array of statements for given JFile.
+     * Returns an array of statements in given node.
      */
     public static JStmt[] getStatementsForJavaNode(JNode aJNode)
     {
-        // Get last line for node
-        int childCount = aJNode.getChildCount();
-        if (childCount == 0) // Can happen if Parse totally fails (e.g., tokenizer fails)
-            return new JStmt[0];
-        JNode lastChild = aJNode.getChild(childCount - 1);
-        int lastLineIndex = lastChild.getEndToken().getLineIndex();
-
-        // Create statement array and load
-        JStmt[] stmtArray = new JStmt[lastLineIndex + 2];
-        getStatementsForJavaNode(aJNode, stmtArray);
-
-        // Iterate over statement array and if partial VarDecl if needed
-        for (JStmt stmt : stmtArray) {
-            if (JavaTextDocUtils.isIncompleteVarDecl(stmt)) {
-                JStmtBlock blockStmt = stmt.getParent(JStmtBlock.class);
-                JavaTextDocUtils.fixIncompleteVarDecl(stmt, blockStmt);
-            }
-        }
-
-        // Return
-        return stmtArray;
+        List<JStmt> stmtsList = new ArrayList<>();
+        findStatementsForJavaNode(aJNode, stmtsList);
+        return stmtsList.toArray(new JStmt[0]);
     }
 
     /**
-     * Returns an array of statements for given JFile.
+     * Recursively finds all statements in node and adds to given list.
      */
-    public static void getStatementsForJavaNode(JNode aJNode, JStmt[] stmtArray)
+    private static void findStatementsForJavaNode(JNode aJNode, List<JStmt> theStmtsList)
     {
         // Handle statement node (but not block), get line index and set in array
         if (aJNode instanceof JStmt && !(aJNode instanceof JStmtBlock)) {
-            JStmt stmt = (JStmt) aJNode;
-            int lineIndex = stmt.getLineIndex();
-            stmtArray[lineIndex] = (JStmt) aJNode;
+            theStmtsList.add((JStmt) aJNode);
             return;
         }
 
         // Handle any node: Iterate over children and recurse
         List<JNode> children = aJNode.getChildren();
         for (JNode child : children)
-            getStatementsForJavaNode(child, stmtArray);
-    }
-
-    /**
-     * Returns whether expression statement is really a variable decl without type.
-     */
-    public static boolean isIncompleteVarDecl(JStmt aStmt)
-    {
-        // If expression statement, check for assignment
-        if (aStmt instanceof JStmtExpr) {
-
-            // Get expression
-            JStmtExpr exprStmt = (JStmtExpr) aStmt;
-            JExpr expr = exprStmt.getExpr();
-
-            // If assignment, check for undefined 'AssignTo' type
-            if (expr instanceof JExprAssign) {
-                JExprAssign assignExpr = (JExprAssign) expr;
-                JExpr assignTo = assignExpr.getIdExpr();
-                if (assignTo.getDecl() == null && assignExpr.getValueExpr() != null)
-                    return true;
-            }
-        }
-
-        // Return
-        return false;
-    }
-
-    /**
-     * Fixes incomplete VarDecl.
-     */
-    public static void fixIncompleteVarDecl(JStmt aStmt, JStmtBlock stmtBlock)
-    {
-        // Get expr statement, assign expression and assign-to expression
-        JStmtExpr exprStmt = (JStmtExpr) aStmt;
-        JExprAssign assignExpr = (JExprAssign) exprStmt.getExpr();
-        JExpr assignTo = assignExpr.getIdExpr();
-
-        // Create VarDecl from Id and initializer
-        JVarDecl varDecl = new JVarDecl();
-        varDecl.setId((JExprId) assignTo);
-        JExpr initializer = assignExpr.getValueExpr();
-        varDecl.setInitializer(initializer);
-
-        // Create VarDeclStatement and add VarDecl
-        JStmtVarDecl varDeclStmt = new JStmtVarDecl();
-        varDeclStmt.addVarDecl(varDecl);
-
-        // Swap VarDecl statement in for expr statement
-        int index = stmtBlock.removeStatement(aStmt);
-        stmtBlock.addStatement(varDeclStmt, index);
-
-        // Get initializer type
-        JavaType initType = initializer.getEvalType();
-        if (initType == null) {
-            System.out.println("JSParser.fixIncompleteVarDecl: Failed to get init type for " + initializer.getString());
-            Resolver resolver = aStmt.getResolver();
-            initType = resolver.getJavaClassForClass(Object.class);
-        }
-
-        // Create bogus type from initializer
-        JType type = new JType();
-        type.setName(initType.getName());
-        type.setStartToken(assignTo.getStartToken());
-        type.setEndToken(assignTo.getEndToken());
-        type.setPrimitive(initType.isPrimitive());
-        varDecl.setType(type);
+            findStatementsForJavaNode(child, theStmtsList);
     }
 
     /**

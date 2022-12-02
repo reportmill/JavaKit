@@ -310,28 +310,19 @@ public class JNode {
     }
 
     /**
+     * Returns the array of child nodes.
+     */
+    public List<JNode> getChildren()  { return _children; }
+
+    /**
      * Returns the number of child nodes.
      */
-    public final int getChildCount()
-    {
-        return _children.size();
-    }
+    public final int getChildCount()  { return _children.size(); }
 
     /**
      * Returns the individual child node at given index.
      */
-    public final JNode getChild(int anIndex)
-    {
-        return _children.get(anIndex);
-    }
-
-    /**
-     * Returns the array of child nodes.
-     */
-    public List<JNode> getChildren()
-    {
-        return _children;
-    }
+    public final JNode getChild(int anIndex)  { return _children.get(anIndex); }
 
     /**
      * Add child node to list.

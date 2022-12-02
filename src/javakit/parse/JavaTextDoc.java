@@ -91,6 +91,16 @@ public class JavaTextDoc extends TextDoc {
         // If already set, just return
         if (_jfile != null) return _jfile;
 
+        // Create, Set, return
+        JFile jfile = createJFile();
+        return _jfile = jfile;
+    }
+
+    /**
+     * Parses and returns JFile.
+     */
+    protected JFile createJFile()
+    {
         // Get parsed java file
         JavaParser javaParser = getJavaParser();
         String javaStr = getString();
@@ -109,11 +119,8 @@ public class JavaTextDoc extends TextDoc {
             jfile.setResolver(resolver);
         jfile.setJavaFileString(javaStr);
 
-        // This sucks
-        JavaTextDocUtils.getStatementsForJavaNode(jfile);
-
-        // Set, return
-        return _jfile = jfile;
+        // Return
+        return jfile;
     }
 
     /**
@@ -121,10 +128,12 @@ public class JavaTextDoc extends TextDoc {
      */
     public JStmt[] getJFileStatements()
     {
+        // Get main method
         JFile jfile = getJFile();
         JClassDecl classDecl = jfile.getClassDecl();
         JMethodDecl bodyMethod = classDecl.getMethodDeclForNameAndTypes("body", null);
 
+        // Get statements from main method
         return JavaTextDocUtils.getStatementsForJavaNode(bodyMethod);
     }
 
@@ -292,9 +301,6 @@ public class JavaTextDoc extends TextDoc {
         boolean jfileUpdated = JavaTextDocUtils.updateJFileForChange(this, _jfile, charsChange);
         if (!jfileUpdated)
             _jfile = null;
-
-            // This sucks!
-        else JavaTextDocUtils.getStatementsForJavaNode(_jfile);
     }
 
     /**
