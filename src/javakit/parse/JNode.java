@@ -135,9 +135,11 @@ public class JNode {
 
         // Get EvalType
         JavaType evalType = decl.getEvalType();
+
+        // Handle TypeVariables: Try to resolve from Class/Method TypeVars
         if (evalType != null && !evalType.isResolvedType()) {
-            JavaType etype2 = getEvalTypeImpl(this);
-            evalType = etype2 != null ? etype2 : evalType.getEvalType();
+            JavaType resolvedType = getEvalTypeImpl(this);
+            evalType = resolvedType != null ? resolvedType : evalType.getEvalType();
         }
 
         // Return

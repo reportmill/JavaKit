@@ -158,15 +158,6 @@ public class JExprChain extends JExpr {
     }
 
     /**
-     * Returns the resolved eval type for child node, if this ancestor can.
-     */
-    protected JavaType getEvalTypeImpl()
-    {
-        JExpr lastExpr = getLastExpr();
-        return lastExpr != null ? lastExpr.getEvalType() : null;
-    }
-
-    /**
      * Returns the part name.
      */
     public String getNodeString()  { return "ExprChain"; }
