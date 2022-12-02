@@ -49,10 +49,7 @@ public class JVarDecl extends JNode {
 
         // If array count is set, replace with type to account for it
         if (_arrayCount > 0) {
-            JType type2 = new JType();
-            type2._name = _type._name;
-            type2._startToken = type2._endToken = _startToken;
-            type2._primitive = _type._primitive;
+            JType type2 = new JType.Builder().name(_type._name).token(_startToken).type(_type.getEvalType()).build();
             type2._arrayCount = _type._arrayCount + _arrayCount;
             _type = type2;
             _type._parent = this;

@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
+import javakit.resolver.JavaClass;
 import javakit.resolver.JavaDecl;
 import snap.util.SnapUtils;
 
@@ -53,9 +54,8 @@ public class JStmtLabeled extends JStmt {
         _varDecl._id = _labelId;
 
         // Create type and add to VarDecl
-        JType type = new JType();
-        type._name = "String";
-        type._decl = getJavaClassForClass(String.class);
+        JavaClass stringClass = getJavaClassForClass(String.class);
+        JType type = new JType.Builder().name("String").type(stringClass).build();
         _varDecl._type = type;
         type.setParent(_varDecl);
 

@@ -58,11 +58,11 @@ public class JeplTextDocUtils {
     {
         // Get expr statement, assign expression and assign-to expression
         JExprAssign assignExpr = (JExprAssign) exprStmt.getExpr();
-        JExpr assignTo = assignExpr.getIdExpr();
+        JExprId assignTo = (JExprId) assignExpr.getIdExpr();
 
         // Create VarDecl from Id and initializer
         JVarDecl varDecl = new JVarDecl();
-        varDecl.setId((JExprId) assignTo);
+        varDecl.setId(assignTo);
         JExpr initializer = assignExpr.getValueExpr();
         varDecl.setInitializer(initializer);
 
@@ -84,11 +84,7 @@ public class JeplTextDocUtils {
         }
 
         // Create bogus type from initializer
-        JType type = new JType();
-        type.setName(initType.getName());
-        type.setStartToken(assignTo.getStartToken());
-        type.setEndToken(assignTo.getEndToken());
-        type.setPrimitive(initType.isPrimitive());
+        JType type = new JType.Builder().token(assignTo.getStartToken()).type(initType).build();
         varDecl.setType(type);
     }
 }

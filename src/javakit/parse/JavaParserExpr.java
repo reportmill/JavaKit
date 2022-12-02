@@ -666,10 +666,8 @@ public class JavaParserExpr extends Parser {
 
             // If no type, add bogus
             if (allocExpr.getType() == null) {
-                JType type = new JType();
-                type.setName("Object");
-                type.setStartToken(allocExpr.getStartToken());
-                type.setEndToken(allocExpr.getStartToken());
+                ParseToken token = allocExpr.getStartToken();
+                JType type = new JType.Builder().name("Object").token(token).build();
                 allocExpr.setType(type);
             }
 

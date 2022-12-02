@@ -4,6 +4,7 @@
 package javakit.parse;
 import java.util.*;
 import javakit.resolver.JavaType;
+import snap.parse.ParseToken;
 import snap.util.ClassUtils;
 
 /**
@@ -205,5 +206,37 @@ public class JType extends JNode {
     public int hashCode()
     {
         return getDecl() != null ? getDecl().hashCode() : super.hashCode();
+    }
+
+    /**
+     * A convenient builder class.
+     */
+    public static class Builder {
+
+        // Ivars
+        private ParseToken  _startToken, _endToken;
+        private String  _name;
+        private JavaType  _type;
+
+        public Builder()  { }
+        public Builder token(ParseToken aToken)  { _startToken = _endToken = aToken; return this; }
+        public Builder startToken(ParseToken aToken)  { _startToken = aToken; return this; }
+        public Builder endToken(ParseToken aToken)  { _endToken = aToken; return this; }
+        public Builder name(String aName)  { _name = aName; return this; }
+        public Builder type(JavaType aType)  { _type = aType; return this; }
+        public JType build()
+        {
+            JType type = new JType();
+            type._startToken = _startToken;
+            type._endToken = _startToken;
+            type._name = _name;
+            type._decl = _type;
+            if (_type != null) {
+                type._primitive = _type.isPrimitive();
+                if (_name == null)
+                    _name = _type.getName();
+            }
+            return type;
+        }
     }
 }
