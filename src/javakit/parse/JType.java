@@ -75,7 +75,7 @@ public class JType extends JNode {
     /**
      * Returns the number of type args.
      */
-    public int getTypeArgCount()  { return _typeArgs.size(); }
+    public int getTypeArgCount()  { return _typeArgs != null ? _typeArgs.size() : 0; }
 
     /**
      * Returns the type arg type at given index.
@@ -85,11 +85,10 @@ public class JType extends JNode {
     /**
      * Returns the type arg decl at given index.
      */
-    public JavaType getTypeArgDecl(int anIndex)
+    public JavaType getTypeArgType(int anIndex)
     {
-        JType targ = getTypeArg(anIndex);
-        JavaType jd = targ.getDecl();
-        return jd;
+        JType typeArg = getTypeArg(anIndex);
+        return typeArg.getDecl();
     }
 
     /**
@@ -98,26 +97,7 @@ public class JType extends JNode {
     public String getSimpleName()
     {
         int index = _name.lastIndexOf('.');
-        return index > 0 ? _name.substring(index + 1, _name.length()) : _name;
-    }
-
-    /**
-     * Returns whether type is number type.
-     */
-    public boolean isNumberType()
-    {
-        JavaType javaType = getBaseDecl();
-        String className = javaType != null ? javaType.getClassName() : null;
-        if (className == null)
-            return false;
-
-        className = className.intern();
-        return className == "byte" || className == "short" ||
-                className == "int" || className == "long" ||
-                className == "float" || className == "double" ||
-                className == "java.lang.Byte" || className == "java.lang.Short" ||
-                className == "java.lang.Integer" || className == "java.lang.Long" ||
-                className == "java.lang.Float" || className == "java.lang.Double" || className == "java.lang.Number";
+        return index > 0 ? _name.substring(index + 1) : _name;
     }
 
     /**
@@ -139,7 +119,7 @@ public class JType extends JNode {
         if (_baseDecl != null) return _baseDecl;
 
         // Handle primitive type
-        Class primitiveClass = ClassUtils.getPrimitiveClass(_name);
+        Class<?> primitiveClass = ClassUtils.getPrimitiveClass(_name);
         if (primitiveClass != null)
             return _baseDecl = getJavaClassForClass(primitiveClass);
 
@@ -168,44 +148,24 @@ public class JType extends JNode {
         }
 
         // If type args, build array and get decl for ParamType
-        if (_typeArgs != null) {
-            int len = _typeArgs.size();
-            JavaType[] decls = new JavaType[len];
-            for (int i = 0; i < len; i++)
-                decls[i] = getTypeArgDecl(i);
-            javaType = javaType.getParamTypeDecl(decls);
+        int typeArgCount = getTypeArgCount();
+        if (typeArgCount > 0) {
+            JavaType[] typeArgTypes = new JavaType[typeArgCount];
+            for (int i = 0; i < typeArgCount; i++)
+                typeArgTypes[i] = getTypeArgType(i);
+            javaType = javaType.getParamTypeDecl(typeArgTypes);
         }
 
         // If ArrayCount, get decl for array
         for (int i = 0; i < _arrayCount; i++)
             javaType = javaType.getArrayType();
 
-        // Return declaration
+        // If no type, complain
         if (javaType == null)
             System.err.println("JType.getDeclImpl: Shouldn't happen: decl not found for " + getName());
+
+        // Return
         return javaType;
-    }
-
-    /**
-     * Standard equals implementation.
-     */
-    public boolean equals(Object anObj)
-    {
-        System.out.println("JType.equals: Was called"); // I don't think this method is ever used
-
-        // Check identity, get other JType, check SimpleNames and Decls
-        if (anObj == this) return true;
-        JType other = anObj instanceof JType ? (JType) anObj : null;
-        if (other == null) return false;
-        return getSimpleName().equals(other.getSimpleName()) && getDecl() == other.getDecl();
-    }
-
-    /**
-     * Standard hashCode implementation.
-     */
-    public int hashCode()
-    {
-        return getDecl() != null ? getDecl().hashCode() : super.hashCode();
     }
 
     /**
@@ -228,14 +188,16 @@ public class JType extends JNode {
         {
             JType type = new JType();
             type._startToken = _startToken;
-            type._endToken = _startToken;
+            type._endToken = _endToken;
             type._name = _name;
             type._decl = _type;
             if (_type != null) {
                 type._primitive = _type.isPrimitive();
                 if (_name == null)
-                    _name = _type.getName();
+                    type._name = _type.getName();
             }
+
+            // Return
             return type;
         }
     }
