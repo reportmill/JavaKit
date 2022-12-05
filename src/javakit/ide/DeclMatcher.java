@@ -350,7 +350,7 @@ public class DeclMatcher {
             char prefixChar = aStr.charAt(i);
 
             // Handle upper case: turn 'A' into "[^A]*A"
-            if (Character.isUpperCase(prefixChar))
+            if (Character.isUpperCase(prefixChar) || Character.isDigit(prefixChar))
                 regexSB.append("[^").append(prefixChar).append("]*").append(prefixChar);
 
             // Otherwise, just append char
