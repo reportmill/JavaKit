@@ -43,7 +43,7 @@ public class JeplTextDocUtils {
         if (expr instanceof JExprAssign) {
             JExprAssign assignExpr = (JExprAssign) expr;
             JExpr assignTo = assignExpr.getIdExpr();
-            if (assignTo.getDecl() == null && assignExpr.getValueExpr() != null)
+            if (assignTo instanceof JExprId && assignTo.getDecl() == null && assignExpr.getValueExpr() != null)
                 return true;
         }
 
