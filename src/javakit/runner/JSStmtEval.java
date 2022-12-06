@@ -287,8 +287,8 @@ public class JSStmtEval {
         // Get main variable name
         JStmtVarDecl initDeclStmt = aForStmt.getInitDecl();
         List<JVarDecl> varDecls = initDeclStmt.getVarDecls();
-        JVarDecl varDecl0 = varDecls.get(0);
-        String varName = varDecl0.getName();
+        JVarDecl varDecl = varDecls.get(0);
+        JExprId varId = varDecl.getId();
 
         // Get list value
         JExpr listExpr = aForStmt.getConditional();
@@ -308,7 +308,7 @@ public class JSStmtEval {
             for (Object obj : iterable) {
 
                 // Get/set loop var
-                _exprEval.setLocalVarValue(varName, obj);
+                _exprEval.setExprIdValue(varId, obj);
 
                 // Eval statement
                 evalStmt(anOR, blockStmt);
@@ -396,9 +396,9 @@ public class JSStmtEval {
             // If initializer expression, evaluate and set local var
             JExpr initExpr = varDecl.getInitializer();
             if (initExpr != null) {
-                String varName = varDecl.getName();
+                JExprId varId = varDecl.getId();
                 Object val = evalExpr(initExpr);
-                _exprEval.setLocalVarValue(varName, val);
+                _exprEval.setExprIdValue(varId, val);
                 vals.add(val);
             }
         }

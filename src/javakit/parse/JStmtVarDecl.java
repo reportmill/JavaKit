@@ -2,46 +2,49 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import java.util.*;
 
 /**
  * A Java statement for local variable declarations.
  */
 public class JStmtVarDecl extends JStmt {
+
     // The modifiers
-    JModifiers _mods;
+    JModifiers  _mods;
 
     // The type/return-type
-    JType _type;
+    JType  _type;
 
     // List of variable declarations
-    List<JVarDecl> _varDecls = new ArrayList();
+    List<JVarDecl>  _varDecls = new ArrayList<>();
+
+    /**
+     * Constructor.
+     */
+    public JStmtVarDecl()
+    {
+        super();
+    }
 
     /**
      * Returns the modifiers.
      */
-    public JModifiers getMods()
-    {
-        return _mods;
-    }
+    public JModifiers getMods()  { return _mods; }
 
     /**
      * Sets the modifiers.
      */
     public void setMods(JModifiers theMods)
     {
-        if (_mods == null) addChild(_mods = theMods);
+        if (_mods == null)
+            addChild(_mods = theMods);
         else replaceChild(_mods, _mods = theMods);
     }
 
     /**
      * Returns the type.
      */
-    public JType getType()
-    {
-        return _type;
-    }
+    public JType getType()  { return _type; }
 
     /**
      * Sets the type.
@@ -67,5 +70,4 @@ public class JStmtVarDecl extends JStmt {
         _varDecls.add(aVD);
         addChild(aVD, -1);
     }
-
 }

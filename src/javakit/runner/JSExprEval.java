@@ -191,7 +191,7 @@ public class JSExprEval {
         }
 
         // Check for class name
-        Class cls = getClassForName(anOR, aName);
+        Class<?> cls = getClassForName(anOR, aName);
         if (cls != null)
             return cls;
 
@@ -253,7 +253,8 @@ public class JSExprEval {
         List<JVarDecl> params = aMethodDecl.getParameters();
         for (int i = 0, iMax = params.size(); i < iMax; i++) {
             JVarDecl varDecl = params.get(i);
-            _varStack.setLocalVarValue(varDecl.getName(), argValues[i]);
+            JExprId varId = varDecl.getId();
+            setExprIdValue(varId, argValues[i]);
         }
 
         // Get method body and run
@@ -445,13 +446,12 @@ public class JSExprEval {
     {
         // Get first value
         JExpr expr1 = anExpr.getOperand(0);
-        String exprName = expr1 instanceof JExprId ? expr1.getName() : null;
         Object val1 = evalExpr(anOR, expr1);
 
         // Handle Unary
         int opCount = anExpr.getOperandCount();
         if (opCount == 1)
-            return evalMathExprUnary(anExpr, exprName, val1);
+            return evalMathExprUnary(anExpr, expr1, val1);
 
         // Handle Binary: Get second expression and value
         else if (opCount == 2) {
@@ -483,7 +483,7 @@ public class JSExprEval {
     /**
      * Evaluate JExprMath unary expression.
      */
-    private Object evalMathExprUnary(JExprMath anExpr, String exprName, Object val1)
+    private Object evalMathExprUnary(JExprMath anExpr, JExpr assignToExpr, Object val1) throws Exception
     {
         JExprMath.Op op = anExpr.getOp();
 
@@ -506,7 +506,7 @@ public class JSExprEval {
             case PreIncrement: {
                 if (isNumberOrChar(val1)) {
                     Object val2 = add(val1, 1);
-                    setLocalVarValue(exprName, val2);
+                    setAssignExprValue(assignToExpr, val2);
                     return val2;
                 }
                 throw new RuntimeException("Numeric PreIncrement Expr not numeric: " + anExpr);
@@ -516,7 +516,7 @@ public class JSExprEval {
             case PreDecrement: {
                 if (isNumberOrChar(val1)) {
                     Object val2 = add(val1, -1);
-                    setLocalVarValue(exprName, val2);
+                    setAssignExprValue(assignToExpr, val2);
                     return val2;
                 }
                 throw new RuntimeException("Numeric PreDecrement Expr not numeric: " + anExpr);
@@ -525,7 +525,7 @@ public class JSExprEval {
             // Handle Increment
             case PostIncrement: {
                 if (isNumberOrChar(val1)) {
-                    setLocalVarValue(exprName, add(val1, 1));
+                    setAssignExprValue(assignToExpr, add(val1, 1));
                     return val1;
                 }
                 throw new RuntimeException("Numeric PostIncrement Expr not numeric: " + anExpr);
@@ -534,7 +534,7 @@ public class JSExprEval {
             // Handle Decrement
             case PostDecrement: {
                 if (isNumberOrChar(val1)) {
-                    setLocalVarValue(exprName, add(val1, -1));
+                    setAssignExprValue(assignToExpr, add(val1, -1));
                     return val1;
                 }
                 throw new RuntimeException("Numeric PostDecrement Expr not numeric: " + anExpr);
@@ -596,7 +596,11 @@ public class JSExprEval {
         // If op not simple, perform math
         JExprAssign.Op assignOp = anExpr.getOp();
         if (assignOp != JExprAssign.Op.Assign) {
+
+            // Get AssignToExpr value
             Object assignToValue = evalExpr(anOR, assignToExpr);
+
+            // Get value with assign op
             switch (assignOp) {
                 case Add: value = add(assignToValue, value); break;
                 case Subtract: value = subtract(assignToValue, value); break;
@@ -607,37 +611,15 @@ public class JSExprEval {
             }
         }
 
-        // Handle array
-        if (assignToExpr instanceof JExprArrayIndex) {
-
-            // Get name
-            JExprArrayIndex arrayIndexExpr = (JExprArrayIndex) assignToExpr;
-            JExpr arrayNameExpr = arrayIndexExpr.getArrayExpr();
-            String arrayName = arrayNameExpr.getName();
-
-            // Get Index
-            Object thisObj = thisObject();
-            JExpr indexExpr = arrayIndexExpr.getIndexExpr();
-            Object indexObj = evalExpr(thisObj, indexExpr); //if (!isPrimitive(indexObj)) return null;
-            int index = intValue(indexObj);
-
-            // Set value
-            setLocalVarArrayValueAtIndex(arrayName, value, index);
-            return value;
-        }
-
-        // Get name of variable
-        String varName = assignToExpr.getName();
-
-        // Set local var value and return value
-        setLocalVarValue(varName, value);
-        return value;
+        // Set value
+        Object assignedValue = setAssignExprValue(assignToExpr, value);
+        return assignedValue;
     }
 
     /**
      * Handle JExprLambda.
      */
-    private Object evalLambdaExpr(Object anOR, JExprLambda aLambdaExpr) throws Exception
+    private Object evalLambdaExpr(Object anOR, JExprLambda aLambdaExpr)
     {
         // Get lambda class
         JavaClass lambdaClass = aLambdaExpr.getEvalClass();
@@ -655,13 +637,68 @@ public class JSExprEval {
     /**
      * Handle JExprType.
      */
-    private Object evalTypeExpr(Object anOR, JExprType typeExpr) throws Exception
+    private Object evalTypeExpr(Object anOR, JExprType typeExpr)
     {
         JavaClass evalClass = typeExpr.getEvalClass();
         Class<?> realClass = evalClass != null ? evalClass.getRealClass() : null;
         if (realClass == null)
             throw new RuntimeException("JSExprEval.evalTypeExpr: Can't find type for expr: " + typeExpr);
         return realClass;
+    }
+
+    /**
+     * Sets an assignment value for given assignTo expression and value.
+     */
+    public Object setAssignExprValue(JExpr assignToExpr, Object aValue) throws Exception
+    {
+        // Handle ExprId
+        if (assignToExpr instanceof JExprId)
+            return setExprIdValue((JExprId) assignToExpr, aValue);
+
+        // Handle array
+        if (assignToExpr instanceof JExprArrayIndex)
+            return setExprArrayIndexValue((JExprArrayIndex) assignToExpr, aValue);
+
+        // I don't think this can happen
+        throw new RuntimeException("JExprEval.setAssignExprValue: Unexpected assign to class: " + assignToExpr.getClass());
+    }
+
+    /**
+     * Sets an assignment value for given identifier expression and value.
+     */
+    protected Object setExprIdValue(JExprId idExpr, Object aValue)
+    {
+        // Get name
+        String name = idExpr.getName();
+
+        // Convert type
+        JavaClass assignClass = idExpr.getEvalClass();
+        Class<?> realClass = assignClass.getRealClass();
+        Object assignValue = castOrConvertValueToPrimitiveClass(aValue, realClass);
+
+        // Set value
+        _varStack.setLocalVarValue(name, assignValue);
+        return assignValue;
+    }
+
+    /**
+     * Sets an assignment value for given identifier expression and value.
+     */
+    protected Object setExprArrayIndexValue(JExprArrayIndex arrayIndexExpr, Object aValue) throws Exception
+    {
+        // Get name
+        JExpr arrayNameExpr = arrayIndexExpr.getArrayExpr();
+        String arrayName = arrayNameExpr.getName();
+
+        // Get Index
+        Object thisObj = thisObject();
+        JExpr indexExpr = arrayIndexExpr.getIndexExpr();
+        Object indexObj = evalExpr(thisObj, indexExpr); //if (!isPrimitive(indexObj)) return null;
+        int index = intValue(indexObj);
+
+        // Set value
+        setLocalVarArrayValueAtIndex(arrayName, aValue, index);
+        return aValue;
     }
 
     /**
@@ -688,45 +725,34 @@ public class JSExprEval {
     /**
      * Sets a local variable value by name.
      */
-    public void setLocalVarValue(String aName, Object aValue)
-    {
-        _varStack.setLocalVarValue(aName, aValue);
-    }
-
-    /**
-     * Sets a local variable value by name.
-     */
     public void setLocalVarArrayValueAtIndex(String aName, Object aValue, int anIndex)
     {
         _varStack.setLocalVarArrayValueAtIndex(aName, aValue, anIndex);
     }
 
-    /**
-     * Returns whether name is a field of given object.
-     */
-    public boolean isField(Object anObj, String aName)
-    {
-        Class cls = anObj instanceof Class ? (Class) anObj : anObj.getClass();
-        Field field = ClassUtils.getFieldForName(cls, aName);
-        return field != null;
-    }
-
-    /**
-     * Returns the value of the field.
-     */
-    public Object getFieldValue(Object anObj, String aName)
-    {
-        Class cls = anObj instanceof Class ? (Class) anObj : anObj.getClass();
-        Field field = ClassUtils.getFieldForName(cls, aName);
-        try {
-            return field.get(anObj);
-        } catch (Exception e) {
-            return null;
-        }
-        //ReferenceType refType = anOR.referenceType();
-        //Field field = refType.fieldByName(name);
-        //if(field!=null) return anOR.getValue(field);
-    }
+//    /**
+//     * Returns whether name is a field of given object.
+//     */
+//    public boolean isField(Object anObj, String aName)
+//    {
+//        Class cls = anObj instanceof Class ? (Class) anObj : anObj.getClass();
+//        Field field = ClassUtils.getFieldForName(cls, aName);
+//        return field != null;
+//    }
+//
+//    /**
+//     * Returns the value of the field.
+//     */
+//    public Object getFieldValue(Object anObj, String aName)
+//    {
+//        Class cls = anObj instanceof Class ? (Class) anObj : anObj.getClass();
+//        Field field = ClassUtils.getFieldForName(cls, aName);
+//        try { return field.get(anObj); }
+//        catch (Exception e) { return null; }
+//        //ReferenceType refType = anOR.referenceType();
+//        //Field field = refType.fieldByName(name);
+//        //if(field!=null) return anOR.getValue(field);
+//    }
 
     /**
      * Returns a class for given name.

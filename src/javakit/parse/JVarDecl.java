@@ -91,23 +91,20 @@ public class JVarDecl extends JNode {
                 return null;
 
             // Get index
-            int ind = ListUtils.indexOfId(lambda.getParams(), this);
-            if (ind < 0 || ind >= lambdaMethod.getParamCount())
+            List<JVarDecl> lambdaParams = lambda.getParams();
+            int argIndex = ListUtils.indexOfId(lambdaParams, this);
+            if (argIndex < 0 || argIndex >= lambdaMethod.getParamCount())
                 return null;
 
-            //
-            JavaType paramType = lambdaMethod.getParamType(ind);
+            // Get param type for lambda arg index
+            JavaType paramType = lambdaMethod.getParamType(argIndex);
             if (!paramType.isResolvedType()) {
                 JavaType lambdaType = lambda.getDecl();
                 paramType = lambdaType.getResolvedType(paramType);
             }
 
             // Create type for type decl and return
-            JType type = new JType();
-            type._name = paramType.getSimpleName();
-            type._startToken = type._endToken = _startToken;
-            type._decl = paramType;
-            type._primitive = paramType.isPrimitive();
+            JType type = new JType.Builder().type(paramType).token(_startToken).build();
             type._parent = this;
             return type;
         }
