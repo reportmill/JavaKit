@@ -18,6 +18,9 @@ public class JSStmtEval {
     // Whether we hit a break statement
     private boolean  _breakWasHit;
 
+    // Whether we hit a continue statement
+    private boolean  _continueWasHit;
+
     // Holds a return value if return was hit
     protected Object  _returnValueHit;
 
@@ -92,8 +95,10 @@ public class JSStmtEval {
             throw new RuntimeException("JSStmtEval: constructor Statement not implemented");
 
         // Handle continue statement
-        if (aStmt instanceof JStmtContinue)
-            throw new RuntimeException("JSStmtEval: continue Statement not implemented");
+        if (aStmt instanceof JStmtContinue) {
+            _continueWasHit = true;
+            return null;
+        }
 
         // Handle Do statement
         if (aStmt instanceof JStmtDo)
@@ -165,7 +170,7 @@ public class JSStmtEval {
             Object rval = evalStmt(anOR, stmt);
             if (stmt instanceof JStmtReturn)
                 returnVal = rval;
-            if (_breakWasHit || _stopRun || _returnValueHit != null)
+            if (_breakWasHit || _continueWasHit || _stopRun || _returnValueHit != null)
                 return _returnValueHit;
         }
 
@@ -438,6 +443,10 @@ public class JSStmtEval {
         // Check for return value hit
         if (_returnValueHit != null)
             return true;
+
+        // Check for continueWasHit
+        if (_continueWasHit)
+            _continueWasHit = false;
 
         // If TeaVM, check whether we need a yield
         if (SnapUtils.isTeaVM) {
