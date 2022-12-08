@@ -120,7 +120,7 @@ public class JavaTextPane extends TextPane {
         textDoc.addPropChangeListener(pc -> textDocDidPropChange(pc));
 
         // Reset TextArea font
-        double fontSize = Prefs.get().getDouble("JavaFontSize", 12);
+        double fontSize = Prefs.getDefaultPrefs().getDouble("JavaFontSize", 12);
         if (fontSize < 8) fontSize = 12;
         _textArea.setFont(new Font(_textArea.getDefaultFont().getName(), fontSize));
 
@@ -268,7 +268,7 @@ public class JavaTextPane extends TextPane {
 
         // Handle FontSizeText, IncreaseFontButton, DecreaseFontButton
         else if (anEvent.equals("FontSizeText") || anEvent.equals("IncreaseFontButton") || anEvent.equals("DecreaseFontButton"))
-            Prefs.get().setValue("JavaFontSize", _textArea.getFont().getSize());
+            Prefs.getDefaultPrefs().setValue("JavaFontSize", _textArea.getFont().getSize());
 
         // Handle OpenDeclarationMenuItem
         else if (anEvent.equals("OpenDeclarationMenuItem"))
