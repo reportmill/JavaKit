@@ -15,7 +15,8 @@ public class JStmtBlock extends JStmt {
      */
     public List<JStmt> getStatements()
     {
-        return (List) _children;
+        List<JStmt> stmts = (List<JStmt>) (List<?>) _children;
+        return stmts;
     }
 
     /**
@@ -81,13 +82,6 @@ public class JStmtBlock extends JStmt {
 
         // Iterate over statements and see if any contains variable
         for (JStmt stmt : theStmts) {
-
-            // Handle Label statement
-            if (stmt instanceof JStmtLabeled) {
-                JStmtLabeled labeledStmt = (JStmtLabeled) stmt;
-                if (name.equals(labeledStmt.getLabelName()))
-                    return labeledStmt.getLabelVarDecl();
-            }
 
             // If block statement is past id reference, break
             if (stmt.getStartCharIndex() > anExprId.getStartCharIndex())

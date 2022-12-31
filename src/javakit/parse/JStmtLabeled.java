@@ -7,7 +7,7 @@ import javakit.resolver.JavaDecl;
 import snap.util.SnapUtils;
 
 /**
- * A Java statement for LabledStatement.
+ * A Java statement for Labeled Statement.
  */
 public class JStmtLabeled extends JStmt {
 
@@ -52,6 +52,7 @@ public class JStmtLabeled extends JStmt {
         // Create VarDecl
         _varDecl = new JVarDecl();
         _varDecl._id = _labelId;
+        _varDecl.setName(_labelId.getName());
 
         // Create type and add to VarDecl
         JavaClass stringClass = getJavaClassForClass(String.class);
