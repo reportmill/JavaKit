@@ -313,25 +313,25 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get Switch statement
+            JStmtSwitch switchStmt = getPart();
+
             // Handle Expression
             if (anId == "Expression")
-                getPart().setExpr(aNode.getCustomNode(JExpr.class));
+                switchStmt.setExpr(aNode.getCustomNode(JExpr.class));
 
             // Handle SwitchLabel
             else if (anId == "SwitchLabel")
-                getPart().addSwitchLabel(aNode.getCustomNode(JStmtSwitch.SwitchLabel.class));
+                switchStmt.addSwitchCase(aNode.getCustomNode(JStmtSwitchCase.class));
 
             // Handle BlockStatement
             else if (anId == "BlockStatement") {
-                List<JStmtSwitch.SwitchLabel> switchLabels = getPart().getSwitchLabels();
-                JStmtSwitch.SwitchLabel switchLabel = switchLabels.get(switchLabels.size() - 1);
+                List<JStmtSwitchCase> switchCases = switchStmt.getSwitchCases();
+                JStmtSwitchCase switchCase = switchCases.get(switchCases.size() - 1);
                 JStmt blockStmt = aNode.getCustomNode(JStmt.class);
                 if (blockStmt != null) // Can be null when parse fails
-                    switchLabel.addStatement(blockStmt);
+                    switchCase.addStatement(blockStmt);
             }
-
-            // Handle anything else
-            else getPart();
         }
 
         protected Class<JStmtSwitch> getPartClass()  { return JStmtSwitch.class; }
@@ -340,26 +340,28 @@ public class JavaParserStmt extends JavaParserExpr {
     /**
      * SwitchLabel Handler.
      */
-    public static class SwitchLabelHandler extends JNodeParseHandler<JStmtSwitch.SwitchLabel> {
+    public static class SwitchLabelHandler extends JNodeParseHandler<JStmtSwitchCase> {
 
         /**
          * ParseHandler method.
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get Switch case
+            JStmtSwitchCase switchCase = getPart();
+
             // Handle Expression
-            if (anId == "Expression")
-                getPart().setExpr(aNode.getCustomNode(JExpr.class));
+            if (anId == "Expression") {
+                JExpr caseExpr = aNode.getCustomNode(JExpr.class);
+                switchCase.setExpr(caseExpr);
+            }
 
             // Handle "default"
             else if (anId == "default")
-                getPart().setDefault(true);
-
-            // Handle anything else
-            else getPart();
+                switchCase.setDefault(true);
         }
 
-        protected Class<JStmtSwitch.SwitchLabel> getPartClass()  { return JStmtSwitch.SwitchLabel.class; }
+        protected Class<JStmtSwitchCase> getPartClass()  { return JStmtSwitchCase.class; }
     }
 
     /**
@@ -372,19 +374,22 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get if statement
+            JStmtIf ifStmt = getPart();
+
             // Handle Expression
-            if (anId == "Expression")
-                getPart().setConditional(aNode.getCustomNode(JExpr.class));
+            if (anId == "Expression") {
+                JExpr condExpr = aNode.getCustomNode(JExpr.class);
+                ifStmt.setConditional(condExpr);
+            }
 
             // Handle Statement
             else if (anId == "Statement") {
-                JStmt stmt = aNode.getCustomNode(JStmt.class);
-                if (getPart().getStatement() == null) getPart().setStatement(stmt);
-                else getPart().setElseStatement(stmt);
+                JStmt bodyStmt = aNode.getCustomNode(JStmt.class);
+                if (ifStmt.getStatement() == null)
+                    ifStmt.setStatement(bodyStmt);
+                else ifStmt.setElseStatement(bodyStmt);
             }
-
-            // Handle anything else
-            else getPart();
         }
 
         protected Class<JStmtIf> getPartClass()  { return JStmtIf.class; }
@@ -400,16 +405,20 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get while statement
+            JStmtWhile whileStmt = getPart();
+
             // Handle Expression
-            if (anId == "Expression")
-                getPart().setConditional(aNode.getCustomNode(JExpr.class));
+            if (anId == "Expression") {
+                JExpr condExpr = aNode.getCustomNode(JExpr.class);
+                whileStmt.setConditional(condExpr);
+            }
 
             // Handle Statement
-            else if (anId == "Statement")
-                getPart().setStatement(aNode.getCustomNode(JStmt.class));
-
-            // Handle anything else
-            else getPart();
+            else if (anId == "Statement") {
+                JStmt bodyStmt = aNode.getCustomNode(JStmt.class);
+                whileStmt.setStatement(bodyStmt);
+            }
         }
 
         protected Class<JStmtWhile> getPartClass()  { return JStmtWhile.class; }
@@ -425,16 +434,20 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get do statement
+            JStmtDo doStmt = getPart();
+
             // Handle Statement
-            if (anId == "Statement")
-                getPart().setStatement(aNode.getCustomNode(JStmt.class));
+            if (anId == "Statement") {
+                JStmt bodyStmt = aNode.getCustomNode(JStmt.class);
+                doStmt.setStatement(bodyStmt);
+            }
 
             // Handle Expression
-            else if (anId == "Expression")
-                getPart().setConditional(aNode.getCustomNode(JExpr.class));
-
-            // Handle anything else
-            else getPart();
+            else if (anId == "Expression") {
+                JExpr condExpr = aNode.getCustomNode(JExpr.class);
+                doStmt.setConditional(condExpr);
+            }
         }
 
         protected Class<JStmtDo> getPartClass()  { return JStmtDo.class; }
@@ -453,7 +466,7 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
-            // Go ahead and get ForStmt
+            // Get ForStmt
             JStmtFor forStmt = getPart();
 
             // Handle Type

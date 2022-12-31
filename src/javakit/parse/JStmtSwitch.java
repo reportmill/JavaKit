@@ -2,14 +2,10 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.resolver.JavaDecl;
-import javakit.resolver.JavaClass;
-import javakit.resolver.JavaField;
-import javakit.resolver.JavaType;
 import java.util.*;
 
 /**
- * A Java statement for SwitchStatement.
+ * A Java statement for Switch statement.
  */
 public class JStmtSwitch extends JStmt {
 
@@ -17,15 +13,20 @@ public class JStmtSwitch extends JStmt {
     protected JExpr  _expr;
 
     // The list of SwitchLabels
-    protected List<SwitchLabel>  _switchLabels = new ArrayList<>();
+    protected List<JStmtSwitchCase>  _switchCases = new ArrayList<>();
+
+    /**
+     * Constructor.
+     */
+    public JStmtSwitch()
+    {
+        super();
+    }
 
     /**
      * Returns the expression.
      */
-    public JExpr getExpr()
-    {
-        return _expr;
-    }
+    public JExpr getExpr()  { return _expr; }
 
     /**
      * Sets the expression.
@@ -38,115 +39,14 @@ public class JStmtSwitch extends JStmt {
     /**
      * Returns the switch labels.
      */
-    public List<SwitchLabel> getSwitchLabels()
-    {
-        return _switchLabels;
-    }
+    public List<JStmtSwitchCase> getSwitchCases()  { return _switchCases; }
 
     /**
-     * Adds a switch label.
+     * Adds a switch case.
      */
-    public void addSwitchLabel(SwitchLabel aSL)
+    public void addSwitchCase(JStmtSwitchCase aSwitchCase)
     {
-        _switchLabels.add(aSL);
-        addChild(aSL, -1);
-    }
-
-    /**
-     * A class to represent individual labels in a switch statement.
-     */
-    public static class SwitchLabel extends JNode {
-
-        // Whether label is default
-        private boolean _default;
-
-        // The expression
-        private JExpr  _expr;
-
-        // The block statements
-        private List<JStmt>  _stmts = new ArrayList<>();
-
-        /**
-         * Returns whether label is default.
-         */
-        public boolean isDefault()
-        {
-            return _default;
-        }
-
-        /**
-         * Sets whether label is default.
-         */
-        public void setDefault(boolean aValue)
-        {
-            _default = aValue;
-        }
-
-        /**
-         * Returns the expression.
-         */
-        public JExpr getExpr()
-        {
-            return _expr;
-        }
-
-        /**
-         * Sets the expression.
-         */
-        public void setExpr(JExpr anExpr)
-        {
-            replaceChild(_expr, _expr = anExpr);
-        }
-
-        /**
-         * Returns the statements.
-         */
-        public List<JStmt> getStatements()
-        {
-            return _stmts;
-        }
-
-        /**
-         * Adds a statement.
-         */
-        public void addStatement(JStmt aStmt)
-        {
-            _stmts.add(aStmt);
-            addChild(aStmt, -1);
-        }
-
-        /**
-         * Override to check inner variable declaration statements.
-         */
-        @Override
-        protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
-        {
-            // If node is case label and is id, try to evaluate against Switch expression enum type
-            if (anExprId == _expr) {
-
-                // Get Switch expression type
-                JStmtSwitch switchStmt = getParent(JStmtSwitch.class);
-                JExpr switchExpr = switchStmt.getExpr();
-                JavaType switchExprType = switchExpr != null ? switchExpr.getEvalType() : null;
-
-                // Handle enum switch
-                if (switchExprType != null && switchExprType.isEnum()) {
-                    JavaClass enumClass = (JavaClass) switchExprType;
-                    String enumName = _expr.getName();
-                    JavaField enumConst = enumClass.getFieldForName(enumName);
-                    if (enumConst != null)
-                        return enumConst;
-                }
-            }
-
-            // If statements (as block) can resolve node, return decl
-            List<JStmt> statements = getStatements();
-            JVarDecl varDecl = JStmtBlock.getVarDeclForNameFromStatements(anExprId, statements);
-            if (varDecl != null)
-                return varDecl.getDecl();
-
-            // Do normal version
-            return super.getDeclForChildExprIdNode(anExprId);
-        }
+        _switchCases.add(aSwitchCase);
+        addChild(aSwitchCase);
     }
 }
