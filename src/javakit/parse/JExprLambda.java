@@ -5,7 +5,6 @@ package javakit.parse;
 import java.util.*;
 import javakit.resolver.*;
 import snap.util.ListUtils;
-import snap.util.SnapUtils;
 
 /**
  * A JExpr to represent lambda expressions.
@@ -54,7 +53,7 @@ public class JExprLambda extends JExpr {
     public JVarDecl getParamForName(String aName)
     {
         for (JVarDecl varDecl : _params)
-            if (SnapUtils.equals(varDecl.getName(), aName))
+            if (Objects.equals(varDecl.getName(), aName))
                 return varDecl;
 
         // Return not found

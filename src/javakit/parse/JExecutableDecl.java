@@ -4,9 +4,9 @@
 package javakit.parse;
 import javakit.resolver.JavaDecl;
 import javakit.resolver.JavaType;
-import snap.util.SnapUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A Java member for MethodDeclaration.
@@ -104,7 +104,7 @@ public class JExecutableDecl extends JMemberDecl {
     public JVarDecl getParam(String aName)
     {
         for (JVarDecl varDecl : _params)
-            if (SnapUtils.equals(varDecl.getName(), aName))
+            if (Objects.equals(varDecl.getName(), aName))
                 return varDecl;
 
         // Return not found

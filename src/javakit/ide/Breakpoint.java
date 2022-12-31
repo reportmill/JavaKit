@@ -1,8 +1,7 @@
 package javakit.ide;
-import snap.util.SnapUtils;
 import snap.web.WebFile;
-
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a debugger break point for a project file.
@@ -297,8 +296,8 @@ public class Breakpoint implements Comparable<Breakpoint> {
 
         // Check Type, SourceName, ClassName
         if (other._type != _type) return false;
-        if (!SnapUtils.equals(other._file, _file)) return false;
-        if (!SnapUtils.equals(other._className, _className)) return false;
+        if (!Objects.equals(other._file, _file)) return false;
+        if (!Objects.equals(other._className, _className)) return false;
 
         // Handle Type LineNumber
         if (getType() == Type.LineBreakpoint)

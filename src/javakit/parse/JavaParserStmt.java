@@ -100,7 +100,7 @@ public class JavaParserStmt extends JavaParserExpr {
 
             // Handle Statement
             else if (anId == "Statement")
-                getPart().setStmt(aNode.getCustomNode(JStmt.class));
+                getPart().setStatement(aNode.getCustomNode(JStmt.class));
         }
 
         protected Class<JStmtLabeled> getPartClass()  { return JStmtLabeled.class; }
@@ -527,12 +527,14 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
-            // Handle Identifier
-            if (anId == "Identifier")
-                getPart().setLabel(aNode.getCustomNode(JExprId.class));
+            // Get break statement
+            JStmtBreak breakStmt = getPart();
 
-            // Handle anything else
-            else getPart();
+            // Handle Identifier
+            if (anId == "Identifier") {
+                JExprId labelId = aNode.getCustomNode(JExprId.class);
+                breakStmt.setLabel(labelId);
+            }
         }
 
         protected Class<JStmtBreak> getPartClass()  { return JStmtBreak.class; }

@@ -4,7 +4,6 @@
 package javakit.parse;
 import java.util.*;
 import javakit.resolver.JavaDecl;
-import snap.util.SnapUtils;
 
 /**
  * A JStatement for for() statements.
@@ -90,7 +89,7 @@ public class JStmtFor extends JStmtConditional {
         if (_initDecl != null) {
             List<JVarDecl> varDecls = _initDecl.getVarDecls();
             for (JVarDecl varDecl : varDecls)
-                if (SnapUtils.equals(varDecl.getName(), name))
+                if (Objects.equals(varDecl.getName(), name))
                     return varDecl.getDecl();
         }
 

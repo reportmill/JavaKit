@@ -95,7 +95,13 @@ public class JExprId extends JExpr {
             case Method: return "MethodId";
             case Package: return "PackageId";
             case TypeVar: return "TypeVarId";
-            case VarDecl: return "VariableId";
+
+            // Handle VarDecl
+            case VarDecl:
+                JNode parentNode = getParent();
+                if (parentNode instanceof JStmtBreak || parentNode instanceof JStmtLabeled)
+                    return "LabelId";
+                return "VariableId";
             default: return "UnknownId";
         }
     }

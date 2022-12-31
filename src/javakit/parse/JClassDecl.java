@@ -5,7 +5,6 @@ package javakit.parse;
 import java.util.*;
 import java.util.stream.Stream;
 import javakit.resolver.*;
-import snap.util.*;
 
 /**
  * A Java member for ClassDecl.
@@ -478,7 +477,7 @@ public class JClassDecl extends JMemberDecl {
         for (JFieldDecl fieldDecl : fieldDecls) {
             List<JVarDecl> fieldVarDecls = fieldDecl.getVarDecls();
             for (JVarDecl fieldVarDecl : fieldVarDecls)
-                if (SnapUtils.equals(fieldVarDecl.getName(), name))
+                if (Objects.equals(fieldVarDecl.getName(), name))
                     return fieldVarDecl.getDecl();
         }
 

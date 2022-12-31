@@ -1,12 +1,12 @@
 package javakit.ide;
 import snap.props.PropObject;
 import snap.util.ArrayUtils;
-import snap.util.SnapUtils;
 import snap.util.StringUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * This class manages project properties.
@@ -67,7 +67,7 @@ public class ProjectConfig extends PropObject {
     public void setBuildPath(String aPath)
     {
         // Update ivar
-        if (SnapUtils.equals(aPath, getBuildPath())) return;
+        if (Objects.equals(aPath, getBuildPath())) return;
 
         String newPath = aPath != null ? getRelativePath(aPath) : null;
         firePropChange(BuildPath_Prop, _buildPath, _buildPath = newPath);
