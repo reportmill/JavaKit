@@ -2,9 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.resolver.JavaClass;
-import javakit.resolver.JavaDecl;
-import snap.util.SnapUtils;
+import javakit.resolver.*;
+import java.util.Objects;
 
 /**
  * A Java statement for Labeled Statement.
@@ -12,13 +11,10 @@ import snap.util.SnapUtils;
 public class JStmtLabeled extends JStmt {
 
     // The label identifier
-    JExprId  _labelId;
+    protected JExprId  _labelId;
 
     // The actual statement
-    JStmt  _stmt;
-
-    // The bogus label variable declaration
-    JVarDecl _varDecl;
+    protected JStmt  _stmt;
 
     /**
      * Returns the label.
@@ -31,53 +27,37 @@ public class JStmtLabeled extends JStmt {
     public void setLabel(JExprId anExpr)
     {
         replaceChild(_labelId, _labelId = anExpr);
-    }
-
-    /**
-     * Returns the label name.
-     */
-    public String getLabelName()
-    {
-        return _labelId != null ? _labelId.getName() : null;
-    }
-
-    /**
-     * Returns a bogus label variable declaration.
-     */
-    public JVarDecl getLabelVarDecl()
-    {
-        // If already set, just return
-        if (_varDecl != null) return _varDecl;
-
-        // Create VarDecl
-        _varDecl = new JVarDecl();
-        _varDecl._id = _labelId;
-        _varDecl.setName(_labelId.getName());
-
-        // Create type and add to VarDecl
-        JavaClass stringClass = getJavaClassForClass(String.class);
-        JType type = new JType.Builder().name("String").type(stringClass).build();
-        _varDecl._type = type;
-        type.setParent(_varDecl);
-
-        // Add VarDecl to this node
-        _varDecl.setParent(this);
-
-        // Return
-        return _varDecl;
+        setName(_labelId.getName());
     }
 
     /**
      * Returns the statement.
      */
-    public JStmt getStmt()  { return _stmt; }
+    public JStmt getStatement()  { return _stmt; }
 
     /**
      * Sets the statement.
      */
-    public void setStmt(JStmt aStmt)
+    public void setStatement(JStmt aStmt)
     {
         replaceChild(_stmt, _stmt = aStmt);
+    }
+
+    /**
+     * Override to create LocalVarDecl.
+     */
+    @Override
+    protected JavaDecl getDeclImpl()
+    {
+        // Create JavaLocalVar for label
+        Resolver resolver = getResolver();
+        String name = getName();
+        JavaType evalType = getJavaClassForClass(void.class);
+        String uniqueId = JVarDecl.getUniqueId(this, name, evalType);
+        JavaLocalVar localVar = new JavaLocalVar(resolver, name, evalType, uniqueId);
+
+        // Return
+        return localVar;
     }
 
     /**
@@ -88,8 +68,8 @@ public class JStmtLabeled extends JStmt {
     {
         // Check label name
         String name = anExprId.getName();
-        if (SnapUtils.equals(getLabelName(), name))
-            return getLabelVarDecl().getDecl();
+        if (Objects.equals(name, getName()))
+            return getDecl();
 
         // Do normal version
         return super.getDeclForChildExprIdNode(anExprId);

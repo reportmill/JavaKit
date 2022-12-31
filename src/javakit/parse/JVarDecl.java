@@ -216,7 +216,7 @@ public class JVarDecl extends JNode {
 
         // Otherwise, return JavaLocalVar for Name/EvalType (UniqueId might help for debugging)
         Resolver resolver = getResolver();
-        String uniqueId = getUniqueId(name, evalType);
+        String uniqueId = getUniqueId(this, name, evalType);
         return new JavaLocalVar(resolver, name, evalType, uniqueId);
     }
 
@@ -236,16 +236,16 @@ public class JVarDecl extends JNode {
     /**
      * Returns an identifier string describing where this variable declaration is defined.
      */
-    private String getUniqueId(String aName, JavaType aType)
+    protected static String getUniqueId(JNode aNode, String aName, JavaType aType)
     {
-        // Get enclosing Method/Constructor and Class
-        JMemberDecl enclosingExec = getEnclosingMemberDecl();
-        JClassDecl enclosingClass = getEnclosingClassDecl();
-
-        // Get Enclosing path string
+        // Get enclosing class string
         String enclosingPathStr = "";
+        JClassDecl enclosingClass = aNode.getEnclosingClassDecl();
         if (enclosingClass != null)
             enclosingPathStr = enclosingClass.getName() + '.';
+
+        // Add enclosing method
+        JMemberDecl enclosingExec = aNode.getEnclosingMemberDecl();
         if (enclosingExec != null)
             enclosingPathStr += enclosingExec.getName() + '.';
 

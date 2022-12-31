@@ -4,26 +4,23 @@
 package javakit.parse;
 
 /**
- * A Java statement for BreakStatement.
+ * A Java statement for Break statement.
  */
 public class JStmtBreak extends JStmt {
+
     // The break label
-    public JExpr _label;
+    protected JExprId  _label;
 
     /**
-     * Returns the label.
+     * Returns the label id.
      */
-    public JExpr getLabel()
-    {
-        return _label;
-    }
+    public JExprId getLabel()  { return _label; }
 
     /**
-     * Sets the label.
+     * Sets the label id.
      */
-    public void setLabel(JExpr anExpr)
+    public void setLabel(JExprId anExpr)
     {
         replaceChild(_label, _label = anExpr);
     }
-
 }
