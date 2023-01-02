@@ -9,7 +9,7 @@ import snap.util.ListUtils;
 /**
  * A JExpr to represent lambda expressions.
  */
-public class JExprLambda extends JExpr {
+public class JExprLambda extends JExpr implements WithBlockStmt {
 
     // The parameters
     protected List<JVarDecl>  _params = new ArrayList<>();
@@ -104,11 +104,6 @@ public class JExprLambda extends JExpr {
     {
         replaceChild(_expr, _expr = anExpr);
     }
-
-    /**
-     * Returns whether statement has a block associated with it.
-     */
-    public boolean isBlock()  { return true; }
 
     /**
      * Returns the block.

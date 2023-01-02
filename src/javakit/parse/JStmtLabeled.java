@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * A Java statement for Labeled Statement.
  */
-public class JStmtLabeled extends JStmt {
+public class JStmtLabeled extends JStmt implements WithBodyStmt {
 
     // The label identifier
     protected JExprId  _labelId;

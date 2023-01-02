@@ -385,21 +385,6 @@ public class JNode {
     }
 
     /**
-     * Returns whether statement has a block associated with it.
-     */
-    public boolean isBlock()  { return false; }
-
-    /**
-     * Returns the statement block.
-     */
-    public JStmtBlock getBlock()  { return null; }
-
-    /**
-     * Returns the statement block.
-     */
-    public void setBlock(JStmtBlock aBlock)  { }
-
-    /**
      * Returns the node at given char index.
      */
     public JNode getNodeAtCharIndex(int anIndex)
@@ -429,34 +414,6 @@ public class JNode {
 
         // Return
         return this;
-    }
-
-    /**
-     * Returns the node path.
-     */
-    public List<JNode> getNodeParents()
-    {
-        List<JNode> parents = new ArrayList<>();
-        for (JNode parent = getParent(); parent != null; parent = parent.getParent())
-            parents.add(0, parent);
-
-        // Return
-        return parents;
-    }
-
-    /**
-     * Returns the node parent path, with separator.
-     */
-    public String getNodePath(String aSep)
-    {
-        List<JNode> parents = getNodeParents();
-        StringBuffer sb = new StringBuffer();
-        for (JNode parent : parents)
-            sb.append(parent.getNodeString()).append(aSep);
-        sb.append(getNodeString());
-
-        // Return
-        return sb.toString();
     }
 
     /**

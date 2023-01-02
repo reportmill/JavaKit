@@ -6,20 +6,26 @@ package javakit.parse;
 /**
  * A Java statement for SynchronizedStatement.
  */
-public class JStmtSynchronized extends JStmt {
+public class JStmtSynchronized extends JStmt implements WithBlockStmt {
+
     // The synchronized expression
-    JExpr _expr;
+    protected JExpr  _expr;
 
     // The statement block
-    JStmtBlock _block;
+    protected JStmtBlock  _block;
+
+    /**
+     * Constructor.
+     */
+    public JStmtSynchronized()
+    {
+        super();
+    }
 
     /**
      * Returns the expression.
      */
-    public JExpr getExpression()
-    {
-        return _expr;
-    }
+    public JExpr getExpression()  { return _expr; }
 
     /**
      * Sets the expression.
@@ -32,10 +38,7 @@ public class JStmtSynchronized extends JStmt {
     /**
      * Returns the statement block.
      */
-    public JStmtBlock getBlock()
-    {
-        return _block;
-    }
+    public JStmtBlock getBlock()  { return _block; }
 
     /**
      * Sets the block.
@@ -44,5 +47,4 @@ public class JStmtSynchronized extends JStmt {
     {
         replaceChild(_block, _block = aBlock);
     }
-
 }

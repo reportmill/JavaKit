@@ -8,7 +8,7 @@ import javakit.resolver.JavaDecl;
 /**
  * A Java statement for a block of statements.
  */
-public class JStmtBlock extends JStmt {
+public class JStmtBlock extends JStmt implements WithStmts {
 
     /**
      * Returns the list of statements.
@@ -42,17 +42,6 @@ public class JStmtBlock extends JStmt {
     {
         return removeChild(aStmt);
     }
-
-    /**
-     * Returns whether statement has a block associated with it.
-     */
-    public boolean isBlock()  { return true; }
-
-    /**
-     * Returns the statement block.
-     */
-    @Override
-    public JStmtBlock getBlock()  { return this; }
 
     /**
      * Override to check inner variable declaration statements.

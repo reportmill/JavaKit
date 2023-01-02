@@ -88,7 +88,9 @@ public class JavaTextDocUtils {
 
         // Replace old statement with new statement
         JNode stmtParent = oldStmt.getParent();
-        stmtParent.setBlock(newStmt);
+        if (stmtParent instanceof WithBlockStmt)
+            ((WithBlockStmt) stmtParent).setBlock(newStmt);
+        else System.err.println("JavaTextDocUtils.updateJFileForChange: Parent not WithBlockStmt: " + stmtParent);
 
         // Extend ancestor ends if needed
         JNode ancestor = stmtParent.getParent();

@@ -3,7 +3,6 @@
  */
 package javakit.parse;
 import java.util.*;
-import javakit.resolver.JavaDecl;
 
 /**
  * A Java statement for TryStatement.
@@ -11,10 +10,10 @@ import javakit.resolver.JavaDecl;
 public class JStmtTry extends JStmt {
 
     // The statement block
-    protected JStmtBlock  _tryBlock;
+    protected JStmtBlock  _block;
 
     // The catch blocks
-    protected List<CatchBlock>  _catchBlocks = new ArrayList();
+    protected List<JStmtTryCatch>  _catchBlocks = new ArrayList<>();
 
     // The finally block
     protected JStmtBlock  _finallyBlock;
@@ -22,31 +21,25 @@ public class JStmtTry extends JStmt {
     /**
      * Returns the try block.
      */
-    public JStmtBlock getTryBlock()
-    {
-        return _tryBlock;
-    }
+    public JStmtBlock getBlock()  { return _block; }
 
     /**
      * Sets the try block.
      */
     public void setTryBlock(JStmtBlock aBlock)
     {
-        replaceChild(_tryBlock, _tryBlock = aBlock);
+        replaceChild(_block, _block = aBlock);
     }
 
     /**
      * Returns the catch blocks.
      */
-    public List<CatchBlock> getCatchBlocks()
-    {
-        return _catchBlocks;
-    }
+    public List<JStmtTryCatch> getCatchBlocks()  { return _catchBlocks; }
 
     /**
      * Adds a catch block.
      */
-    public void addCatchBlock(CatchBlock aBlock)
+    public void addCatchBlock(JStmtTryCatch aBlock)
     {
         _catchBlocks.add(aBlock);
         addChild(aBlock, -1);
@@ -55,10 +48,7 @@ public class JStmtTry extends JStmt {
     /**
      * Returns the finally block.
      */
-    public JStmtBlock getFinallyBlock()
-    {
-        return _finallyBlock;
-    }
+    public JStmtBlock getFinallyBlock()  { return _finallyBlock; }
 
     /**
      * Sets the finally block.
@@ -74,17 +64,17 @@ public class JStmtTry extends JStmt {
     public void addStatementBlock(JStmtBlock aBlock)
     {
         // If TryBlock not set, set it
-        if (_tryBlock == null) {
+        if (_block == null) {
             setTryBlock(aBlock);
             return;
         }
 
         // If last CatchBlock doesn't have StatementBlock, set it
-        int ccount = _catchBlocks.size();
-        if (ccount > 0) {
-            CatchBlock lcatch = _catchBlocks.get(ccount - 1);
-            if (lcatch.getBlock() == null) {
-                lcatch.setBlock(aBlock);
+        int catchCount = _catchBlocks.size();
+        if (catchCount > 0) {
+            JStmtTryCatch lastCatchNode = _catchBlocks.get(catchCount - 1);
+            if (lastCatchNode.getBlock() == null) {
+                lastCatchNode.setBlock(aBlock);
                 return;
             }
         }
@@ -93,62 +83,4 @@ public class JStmtTry extends JStmt {
         setFinallyBlock(aBlock);
     }
 
-    /**
-     * A JNode for a catch block
-     */
-    public static class CatchBlock extends JNode {
-
-        // The formal parameter
-        JVarDecl _param;
-
-        // The catch block
-        JStmtBlock _block;
-
-        /**
-         * Returns the parameter.
-         */
-        public JVarDecl getParameter()
-        {
-            return _param;
-        }
-
-        /**
-         * Sets the parameter.
-         */
-        public void setParameter(JVarDecl aVD)
-        {
-            replaceChild(_param, _param = aVD);
-        }
-
-        /**
-         * Returns the statement block.
-         */
-        public JStmtBlock getBlock()
-        {
-            return _block;
-        }
-
-        /**
-         * Sets the statement block.
-         */
-        public void setBlock(JStmtBlock aStmtBlock)
-        {
-            replaceChild(_block, _block = aStmtBlock);
-        }
-
-        /**
-         * Override to check param.
-         */
-        @Override
-        protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
-        {
-            // Check params
-            String name = anExprId.getName();
-            if (_param != null && Objects.equals(_param.getName(), name))
-                return _param.getDecl();
-
-            // Do normal version
-            return super.getDeclForChildExprIdNode(anExprId);
-        }
-    }
 }

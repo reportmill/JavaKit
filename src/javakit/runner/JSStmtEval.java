@@ -133,8 +133,10 @@ public class JSStmtEval {
             throw new RuntimeException("JSStmtEval: switch Statement not implemented");
 
         // Handle sync statement
-        if (aStmt instanceof JStmtSynchronized)
-            return evalStmt(anOR, aStmt.getBlock());
+        if (aStmt instanceof JStmtSynchronized) {
+            JStmtSynchronized syncStmt = (JStmtSynchronized) aStmt;
+            return evalStmt(anOR, syncStmt.getBlock());
+        }
 
         // Handle throw statement
         if (aStmt instanceof JStmtThrow)

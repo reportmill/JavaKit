@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * A Java member for MethodDeclaration.
  */
-public class JExecutableDecl extends JMemberDecl {
+public class JExecutableDecl extends JMemberDecl implements WithBlockStmt {
 
     // The type/return-type
     protected JType  _type;
@@ -131,11 +131,6 @@ public class JExecutableDecl extends JMemberDecl {
             for (JExpr t : _throwsNameList)
                 addChild(t, -1);
     }
-
-    /**
-     * Returns whether statement has a block associated with it.
-     */
-    public boolean isBlock()  { return true; }
 
     /**
      * Returns the block.

@@ -2,13 +2,12 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-
 import snap.util.ArrayUtils;
 
 /**
  * A Java statement for conditional/nested statements (while, do, if, for).
  */
-public class JStmtConditional extends JStmt {
+public class JStmtConditional extends JStmt implements WithBodyStmt, WithBlockStmt {
 
     // The conditional expression
     protected JExpr  _cond;
@@ -41,11 +40,6 @@ public class JStmtConditional extends JStmt {
     {
         replaceChild(_stmt, _stmt = aStmt);
     }
-
-    /**
-     * Returns whether statement has a block associated with it.
-     */
-    public boolean isBlock()  { return true; }
 
     /**
      * Returns the statement block.

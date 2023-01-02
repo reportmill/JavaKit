@@ -659,7 +659,7 @@ public class JavaParserStmt extends JavaParserExpr {
 
             // Handle FormalParam
             else if (anId == "FormalParam") {
-                JStmtTry.CatchBlock cblock = new JStmtTry.CatchBlock();
+                JStmtTryCatch cblock = new JStmtTryCatch();
                 cblock.setParameter(aNode.getCustomNode(JVarDecl.class));
                 getPart().addCatchBlock(cblock);
             }

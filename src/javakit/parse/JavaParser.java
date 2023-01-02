@@ -594,41 +594,44 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get constructor decl
+            JConstrDecl constrDecl = getPart();
+
             // Handle TypeParams
             if (anId == "TypeParams")
-                getPart().setTypeVars(aNode.getCustomNode(List.class));
+                constrDecl.setTypeVars(aNode.getCustomNode(List.class));
 
-                // Handle Identifier
+            // Handle Identifier
             else if (anId == "Identifier")
-                getPart().setId(aNode.getCustomNode(JExprId.class));
+                constrDecl.setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle FormalParam
+            // Handle FormalParam
             else if (anId == "FormalParam")
-                getPart().addParam(aNode.getCustomNode(JVarDecl.class));
+                constrDecl.addParam(aNode.getCustomNode(JVarDecl.class));
 
-                // Handle ThrowsList
+            // Handle ThrowsList
             else if (anId == "ThrowsList")
-                getPart().setThrowsList(aNode.getCustomNode(List.class));
+                constrDecl.setThrowsList(aNode.getCustomNode(List.class));
 
-                // Handle BlockStatement start "{"
+            // Handle BlockStatement start "{"
             else if (anId == "{") {
                 JStmtBlock block = new JStmtBlock();
                 block.setStartToken(aNode.getStartToken());
                 block.setEndToken(aNode.getEndToken());
-                getPart().setBlock(block);
+                constrDecl.setBlock(block);
             }
 
             // Handle ConstrCall
             else if (anId == "ConstrCall")
-                getPart().getBlock().addStatement(aNode.getCustomNode(JStmtConstrCall.class));
+                constrDecl.getBlock().addStatement(aNode.getCustomNode(JStmtConstrCall.class));
 
-                // Handle BlockStatement
+            // Handle BlockStatement
             else if (anId == "BlockStatement")
-                getPart().getBlock().addStatement(aNode.getCustomNode(JStmt.class));
+                constrDecl.getBlock().addStatement(aNode.getCustomNode(JStmt.class));
 
-                // Handle BlockStatement end
+            // Handle BlockStatement end
             else if (aNode.getPattern() == "}")
-                getPart().getBlock().setEndToken(aNode.getEndToken());
+                constrDecl.getBlock().setEndToken(aNode.getEndToken());
         }
 
         protected Class<JConstrDecl> getPartClass()  { return JConstrDecl.class; }

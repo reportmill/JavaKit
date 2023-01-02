@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * A class to represent individual cases in a switch statement.
  */
-public class JStmtSwitchCase extends JNode {
+public class JStmtSwitchCase extends JNode implements WithStmts {
 
     // The case expression
     private JExpr  _expr;

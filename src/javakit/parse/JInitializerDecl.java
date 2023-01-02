@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * A JMemberDecl for Initializer declarations.
  */
-public class JInitializerDecl extends JMemberDecl {
+public class JInitializerDecl extends JMemberDecl implements WithBlockStmt {
 
     // Whether initializer is static
     protected boolean  isStatic;
