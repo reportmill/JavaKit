@@ -8,6 +8,9 @@ package javakit.resolver;
  */
 public class JavaLocalVar extends JavaDecl {
 
+    // The index of this local var in the current frame of the call stack
+    private int  _indexInStackFrame;
+
     /**
      * Constructor.
      */
@@ -20,6 +23,16 @@ public class JavaLocalVar extends JavaDecl {
         _name = _simpleName = aName;
         _evalType = aType;
     }
+
+    /**
+     * Returns the index of this local var in the current frame of the call stack.
+     */
+    public int getIndexInStackFrame()  { return _indexInStackFrame; }
+
+    /**
+     * Sets the index of this local var in the current frame of the call stack.
+     */
+    public void setIndexInStackFrame(int anIndex)  { _indexInStackFrame = anIndex; }
 
     /**
      * Returns a string representation of suggestion.

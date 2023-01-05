@@ -7,7 +7,7 @@ import java.util.*;
 /**
  * A Java statement for TryStatement.
  */
-public class JStmtTry extends JStmt {
+public class JStmtTry extends JStmt implements WithBlockStmt {
 
     // The statement block
     protected JStmtBlock  _block;
@@ -26,7 +26,7 @@ public class JStmtTry extends JStmt {
     /**
      * Sets the try block.
      */
-    public void setTryBlock(JStmtBlock aBlock)
+    public void setBlock(JStmtBlock aBlock)
     {
         replaceChild(_block, _block = aBlock);
     }
@@ -63,12 +63,6 @@ public class JStmtTry extends JStmt {
      */
     public void addStatementBlock(JStmtBlock aBlock)
     {
-        // If TryBlock not set, set it
-        if (_block == null) {
-            setTryBlock(aBlock);
-            return;
-        }
-
         // If last CatchBlock doesn't have StatementBlock, set it
         int catchCount = _catchBlocks.size();
         if (catchCount > 0) {
@@ -82,5 +76,4 @@ public class JStmtTry extends JStmt {
         // Otherwise set Finally Block
         setFinallyBlock(aBlock);
     }
-
 }

@@ -4,11 +4,12 @@
 package javakit.parse;
 import java.util.*;
 import javakit.resolver.JavaDecl;
+import snap.util.ListUtils;
 
 /**
  * A JStatement for for() statements.
  */
-public class JStmtFor extends JStmtConditional {
+public class JStmtFor extends JStmtConditional implements WithVarDecls {
 
     // Whether this for statement is really ForEach
     protected boolean  _forEach = true;
@@ -77,21 +78,25 @@ public class JStmtFor extends JStmtConditional {
     }
 
     /**
+     * Returns the for statement InitDecl.VarDecls.
+     */
+    public List<JVarDecl> getVarDecls()
+    {
+        List<JVarDecl> varDecls = _initDecl != null ? _initDecl.getVarDecls() : Collections.EMPTY_LIST;
+        return varDecls;
+    }
+
+    /**
      * Override to check init declaration.
      */
     @Override
     protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
     {
-        // Get node info
+        // If any ForStmt.varDecls matches id expr name, return decl
         String name = anExprId.getName();
-
-        // Check init declaration
-        if (_initDecl != null) {
-            List<JVarDecl> varDecls = _initDecl.getVarDecls();
-            for (JVarDecl varDecl : varDecls)
-                if (Objects.equals(varDecl.getName(), name))
-                    return varDecl.getDecl();
-        }
+        JVarDecl varDecl = getVarDeclForName(name);
+        if (varDecl != null)
+            return varDecl.getDecl();
 
         // Do normal version
         return super.getDeclForChildExprIdNode(anExprId);

@@ -73,12 +73,20 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get assert statement
+            JStmtAssert assertStmt = getPart();
+
             // Handle condition
-            if (getPart().getConditional() == null)
-                getPart().setConditional(aNode.getCustomNode(JExpr.class));
+            if (assertStmt.getConditional() == null) {
+                JExpr condExpr = aNode.getCustomNode(JExpr.class);
+                assertStmt.setConditional(condExpr);
+            }
 
             // Handle expression
-            else getPart().setExpr(aNode.getCustomNode(JExpr.class));
+            else {
+                JExpr expr = aNode.getCustomNode(JExpr.class);
+                assertStmt.setExpr(expr);
+            }
         }
 
         protected Class<JStmtAssert> getPartClass()  { return JStmtAssert.class; }
@@ -563,12 +571,12 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get continue statement
+            JStmtContinue continueStmt = getPart();
+
             // Handle Identifier
             if (anId == "Identifier")
-                getPart().setLabel(aNode.getCustomNode(JExprId.class));
-
-            // Handle anything else
-            else getPart();
+                continueStmt.setLabel(aNode.getCustomNode(JExprId.class));
         }
 
         protected Class<JStmtContinue> getPartClass()  { return JStmtContinue.class; }
@@ -584,12 +592,12 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get return statement
+            JStmtReturn returnStmt = getPart();
+
             // Handle Expression
             if (anId == "Expression")
-                getPart().setExpr(aNode.getCustomNode(JExpr.class));
-
-            // Handle anything else
-            else getPart();
+                returnStmt.setExpr(aNode.getCustomNode(JExpr.class));
         }
 
         protected Class<JStmtReturn> getPartClass()  { return JStmtReturn.class; }
@@ -605,12 +613,12 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get throw statement
+            JStmtThrow throwStmt = getPart();
+
             // Handle Expression
             if (anId == "Expression")
-                getPart().setExpr(aNode.getCustomNode(JExpr.class));
-
-            // Handle anything else
-            else getPart();
+                throwStmt.setExpr(aNode.getCustomNode(JExpr.class));
         }
 
         protected Class<JStmtThrow> getPartClass()  { return JStmtThrow.class; }
@@ -626,16 +634,16 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get sync statement
+            JStmtSynchronized syncStmt = getPart();
+
             // Handle Expression
             if (anId == "Expression")
-                getPart().setExpression(aNode.getCustomNode(JExpr.class));
+                syncStmt.setExpression(aNode.getCustomNode(JExpr.class));
 
             // Handle Block
             else if (anId == "Block")
-                getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
-
-            // Handle anything else
-            else getPart();
+                syncStmt.setBlock(aNode.getCustomNode(JStmtBlock.class));
         }
 
         protected Class<JStmtSynchronized> getPartClass()  { return JStmtSynchronized.class; }
@@ -651,21 +659,23 @@ public class JavaParserStmt extends JavaParserExpr {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get try statement
+            JStmtTry tryStmt = getPart();
+
             // Handle Block
             if (anId == "Block") {
-                JStmtBlock sb = aNode.getCustomNode(JStmtBlock.class);
-                getPart().addStatementBlock(sb);
+                JStmtBlock blockStmt = aNode.getCustomNode(JStmtBlock.class);
+                if (tryStmt.getBlock() == null)
+                    tryStmt.setBlock(blockStmt);
+                else tryStmt.addStatementBlock(blockStmt);
             }
 
             // Handle FormalParam
             else if (anId == "FormalParam") {
-                JStmtTryCatch cblock = new JStmtTryCatch();
-                cblock.setParameter(aNode.getCustomNode(JVarDecl.class));
-                getPart().addCatchBlock(cblock);
+                JStmtTryCatch catchNode = new JStmtTryCatch();
+                catchNode.setParameter(aNode.getCustomNode(JVarDecl.class));
+                tryStmt.addCatchBlock(catchNode);
             }
-
-            // Handle anything else
-            else getPart();
         }
 
         protected Class<JStmtTry> getPartClass()  { return JStmtTry.class; }

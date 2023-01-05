@@ -7,16 +7,16 @@ import java.util.*;
 /**
  * A Java statement for local variable declarations.
  */
-public class JStmtVarDecl extends JStmt {
+public class JStmtVarDecl extends JStmt implements WithVarDecls {
 
     // The modifiers
-    JModifiers  _mods;
+    protected JModifiers  _mods;
 
     // The type/return-type
-    JType  _type;
+    protected JType  _type;
 
     // List of variable declarations
-    List<JVarDecl>  _varDecls = new ArrayList<>();
+    protected List<JVarDecl>  _varDecls = new ArrayList<>();
 
     /**
      * Constructor.
@@ -57,10 +57,7 @@ public class JStmtVarDecl extends JStmt {
     /**
      * Returns the variable declarations.
      */
-    public List<JVarDecl> getVarDecls()
-    {
-        return _varDecls;
-    }
+    public List<JVarDecl> getVarDecls()  { return _varDecls; }
 
     /**
      * Adds a variable declaration.

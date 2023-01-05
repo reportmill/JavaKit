@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * A Java member for MethodDeclaration.
  */
-public class JExecutableDecl extends JMemberDecl implements WithBlockStmt {
+public class JExecutableDecl extends JMemberDecl implements WithBlockStmt, WithVarDecls {
 
     // The type/return-type
     protected JType  _type;
@@ -71,16 +71,6 @@ public class JExecutableDecl extends JMemberDecl implements WithBlockStmt {
     }
 
     /**
-     * Returns the number of formal parameters.
-     */
-    public int getParamCount()  { return _params.size(); }
-
-    /**
-     * Returns the individual formal parameter at given index.
-     */
-    public JVarDecl getParam(int anIndex)  { return _params.get(anIndex); }
-
-    /**
      * Returns the list of formal parameters.
      */
     public List<JVarDecl> getParameters()  { return _params; }
@@ -96,19 +86,6 @@ public class JExecutableDecl extends JMemberDecl implements WithBlockStmt {
         }
         _params.add(aVarDecl);
         addChild(aVarDecl, -1);
-    }
-
-    /**
-     * Returns the parameter with given name.
-     */
-    public JVarDecl getParam(String aName)
-    {
-        for (JVarDecl varDecl : _params)
-            if (Objects.equals(varDecl.getName(), aName))
-                return varDecl;
-
-        // Return not found
-        return null;
     }
 
     /**
@@ -146,6 +123,15 @@ public class JExecutableDecl extends JMemberDecl implements WithBlockStmt {
     }
 
     /**
+     * WithVarDecls method: Just returns parameters list.
+     */
+    @Override
+    public List<JVarDecl> getVarDecls()
+    {
+        return getParameters();
+    }
+
+    /**
      * Override to check formal parameters.
      */
     @Override
@@ -157,7 +143,7 @@ public class JExecutableDecl extends JMemberDecl implements WithBlockStmt {
 
         // Handle parameter name id: return param decl
         String name = anExprId.getName();
-        JVarDecl param = getParam(name);
+        JVarDecl param = getVarDeclForName(name);
         if (param != null)
             return param.getDecl();
 
