@@ -23,6 +23,9 @@ public class JavaShell {
     // The client
     private ShellClient  _client;
 
+    // The compile errors
+    private NodeError[]  _compileErrors;
+
     // Current running statement
     private JStmt  _evalStmt;
 
@@ -77,7 +80,13 @@ public class JavaShell {
         Simpiler simpiler = new Simpiler();
         JFile jfile = javaTextDoc.getJFile();
         simpiler.compile(jfile);
+        _compileErrors = simpiler.getErrors();
     }
+
+    /**
+     * Returns the compile errors.
+     */
+    public NodeError[] getCompileErrors()  { return _compileErrors; }
 
     /**
      * Evaluate string.

@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import javakit.resolver.*;
+import snap.util.ArrayUtils;
 
 /**
  * A JExpr subclass for identifiers.
@@ -104,5 +105,25 @@ public class JExprId extends JExpr {
                 return "VariableId";
             default: return "UnknownId";
         }
+    }
+
+    /**
+     * Override to provide errors for JExprId.
+     */
+    @Override
+    protected NodeError[] getErrorsImpl()
+    {
+        NodeError[] errors = NodeError.NO_ERRORS;
+
+        // Handle can't resolve id
+        JavaDecl decl = getDecl();
+        if (decl == null) {
+            String name = getName();
+            NodeError error = new NodeError(this, "Can't resolve id: " + name);
+            errors = ArrayUtils.add(errors, error);
+        }
+
+        // Return
+        return errors;
     }
 }

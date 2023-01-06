@@ -1,12 +1,17 @@
 package javakit.runner;
 import javakit.parse.*;
 import javakit.resolver.JavaLocalVar;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * This class does some simple compiling of Node tree.
  */
 public class Simpiler {
+
+    // The errors
+    private NodeError[]  _errors;
 
     /**
      * Constructor.
@@ -23,7 +28,17 @@ public class Simpiler {
     {
         JClassDecl classDecl = aJFile.getClassDecl();
         compileClass(classDecl);
+
+        // Get errors
+        List<NodeError> errorsList = new ArrayList<>();
+        findNodeErrors(aJFile, errorsList);
+        _errors = errorsList.toArray(new NodeError[0]);
     }
+
+    /**
+     * Returns the errors.
+     */
+    public NodeError[] getErrors()  { return _errors; }
 
     /**
      * Compile class.
@@ -36,6 +51,23 @@ public class Simpiler {
         for (JMemberDecl memberDecl : memberDeclList)
             if (memberDecl instanceof WithBlockStmt)
                 setVarStackIndexForNode(memberDecl, 0);
+    }
+
+    /**
+     * Recurse into nodes
+     */
+    private static void findNodeErrors(JNode aNode, List<NodeError> theErrors)
+    {
+        NodeError[] errors = aNode.getErrors();
+        if (errors.length > 0)
+            Collections.addAll(theErrors, errors);
+
+        if (aNode instanceof JStmtExpr)
+            return;
+
+        List<JNode> children = aNode.getChildren();
+        for (JNode child : children)
+            findNodeErrors(child, theErrors);
     }
 
     /**
