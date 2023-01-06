@@ -2,6 +2,7 @@ package javakit.parse;
 import snap.util.ListUtils;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * This interface identifies nodes with VarDecls. Known uses:
@@ -24,6 +25,7 @@ public interface WithVarDecls {
     default JVarDecl getVarDeclForName(String aName)
     {
         List<JVarDecl> varDecls = getVarDecls();
-        return ListUtils.findMatch(varDecls, vd -> Objects.equals(aName, vd.getName()));
+        Predicate<JVarDecl> nameEquals = vd -> Objects.equals(aName, vd.getName());
+        return ListUtils.findMatch(varDecls, nameEquals);
     }
 }

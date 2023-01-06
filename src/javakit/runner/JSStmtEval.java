@@ -13,7 +13,7 @@ import snap.util.SnapUtils;
 public class JSStmtEval {
 
     // The Expression evaluator
-    private JSExprEval _exprEval;
+    protected JSExprEval _exprEval;
 
     // Whether we hit a break statement
     private boolean  _breakWasHit;

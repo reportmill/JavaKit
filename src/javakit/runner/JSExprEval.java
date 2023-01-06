@@ -27,7 +27,7 @@ public class JSExprEval {
     protected Object  _thisObj;
 
     // A map of local variables
-    private JSVarStack _varStack = new JSVarStack();
+    protected JSVarStack _varStack = new JSVarStack();
 
     // A Resolver
     protected Resolver _resolver;
@@ -143,6 +143,16 @@ public class JSExprEval {
         // Get identifier name
         String name = anId.getName();
 
+        // If LocalVar, get from stack
+        JavaDecl idDecl = anId.getDecl();
+        if (idDecl instanceof JavaLocalVar) {
+            int indexInStackFrame = ((JavaLocalVar) idDecl).getIndexInStackFrame();
+            if (indexInStackFrame >= 0) {
+                Object value = _varStack.getStackValue(indexInStackFrame);
+                return value;
+            }
+        }
+
         // Evaluate to see if it has value
         Object value = evalName(anOR, name);
 
@@ -173,10 +183,6 @@ public class JSExprEval {
         // Handle array length
         if (aName.equals("length") && isArray(anOR))
             return Array.getLength(anOR);
-
-        // Check for local variable
-        if (isLocalVar(aName))
-            return getLocalVarValue(aName);
 
         // Bogus for TeaVM
         if (anOR == System.class && SnapUtils.isTeaVM)
@@ -245,9 +251,8 @@ public class JSExprEval {
      */
     private Object evalMethodCallExprForMethodDecl(Object anOR, JMethodDecl aMethodDecl, Object[] argValues) throws Exception
     {
-        // Create stack frame and push
-        Map<String,Object> stackFrame = _varStack.newFrame();
-        _varStack.pushStackFrame(stackFrame);
+        // Create stack frame
+        _varStack.pushStackFrame();
 
         // Install params
         List<JVarDecl> params = aMethodDecl.getParameters();
@@ -260,6 +265,8 @@ public class JSExprEval {
         // Get method body and run
         JStmtBlock methodBody = aMethodDecl.getBlock();
         Object returnVal = _stmtEval.evalExecutable(anOR, methodBody);
+
+        // Pop stack frame
         _varStack.popStackFrame();
 
         // Return
@@ -676,8 +683,8 @@ public class JSExprEval {
         Class<?> realClass = assignClass.getRealClass();
         Object assignValue = castOrConvertValueToPrimitiveClass(aValue, realClass);
 
-        // Set value
-        _varStack.setLocalVarValue(name, assignValue);
+        if (!_varStack.setStackValueForNode(idExpr, assignValue))
+            System.err.println("JSExprEval: Unknown id: " + idExpr);
         return assignValue;
     }
 
@@ -687,8 +694,7 @@ public class JSExprEval {
     protected Object setExprArrayIndexValue(JExprArrayIndex arrayIndexExpr, Object aValue) throws Exception
     {
         // Get name
-        JExpr arrayNameExpr = arrayIndexExpr.getArrayExpr();
-        String arrayName = arrayNameExpr.getName();
+        JExpr arrayExpr = arrayIndexExpr.getArrayExpr();
 
         // Get Index
         Object thisObj = thisObject();
@@ -696,8 +702,18 @@ public class JSExprEval {
         Object indexObj = evalExpr(thisObj, indexExpr); //if (!isPrimitive(indexObj)) return null;
         int index = intValue(indexObj);
 
-        // Set value
-        setLocalVarArrayValueAtIndex(arrayName, aValue, index);
+        // Get array
+        Object array = _varStack.getStackValueForNode(arrayExpr);
+
+        // Make sure value is right type
+        if (SnapUtils.isTeaVM) {
+            Class<?> cls = array.getClass().getComponentType();
+            if (cls.isPrimitive())
+                aValue = castOrConvertValueToPrimitiveClass(aValue, cls);
+        }
+
+        // Set value and return
+        Array.set(array, index, aValue);
         return aValue;
     }
 
@@ -705,30 +721,6 @@ public class JSExprEval {
      * Return the current this object.
      */
     public Object thisObject()  { return _thisObj; }
-
-    /**
-     * Returns whether there is a local variable for name.
-     */
-    public boolean isLocalVar(String aName)
-    {
-        return _varStack.isLocalVar(aName);
-    }
-
-    /**
-     * Returns a local variable value by name.
-     */
-    public Object getLocalVarValue(String aName)
-    {
-        return _varStack.getLocalVarValue(aName);
-    }
-
-    /**
-     * Sets a local variable value by name.
-     */
-    public void setLocalVarArrayValueAtIndex(String aName, Object aValue, int anIndex)
-    {
-        _varStack.setLocalVarArrayValueAtIndex(aName, aValue, anIndex);
-    }
 
 //    /**
 //     * Returns whether name is a field of given object.
@@ -793,18 +785,17 @@ public class JSExprEval {
      */
     private Object getWrappedLambdaExpression(Object anOR, JExprLambda lambdaExpr, Class<?> aClass)
     {
-        // Get param names and content expression
-        String[] paramNames = lambdaExpr.getParamNames();
-        String paramName0 = paramNames.length > 0 ? paramNames[0] : null;
-        String paramName1 = paramNames.length > 1 ? paramNames[1] : null;
+        // Get params and content expression
+        List<JVarDecl> varDecls = lambdaExpr.getParams();
+        JVarDecl param0 = varDecls.size() > 0 ? varDecls.get(0) : null;
+        JVarDecl param1 = varDecls.size() > 1 ? varDecls.get(1) : null;
         JExpr contentExpr = lambdaExpr.getExpr();
-        Map<String,Object> stackFrame = _varStack.newFrame();
 
         // Handle DoubleUnaryOperator
         if (aClass == DoubleUnaryOperator.class) {
             return (DoubleUnaryOperator) d -> {
-                _varStack.pushStackFrame(stackFrame);
-                _varStack.setLocalVarValue(paramName0, d);
+                _varStack.pushStackFrame();
+                _varStack.setStackValueForNode(param0, d);
                 try {
                     Object value = evalExpr(anOR, contentExpr);
                     return SnapUtils.doubleValue(value);
@@ -821,9 +812,9 @@ public class JSExprEval {
         // Handle DoubleBinaryOperator
         if (aClass == DoubleBinaryOperator.class) {
             return (DoubleBinaryOperator) (x,y) -> {
-                _varStack.pushStackFrame(stackFrame);
-                _varStack.setLocalVarValue(paramName0, x);
-                _varStack.setLocalVarValue(paramName1, y);
+                _varStack.pushStackFrame();
+                _varStack.setStackValueForNode(param0, x);
+                _varStack.setStackValueForNode(param1, y);
                 try {
                     Object value = evalExpr(anOR, contentExpr);
                     return SnapUtils.doubleValue(value);
@@ -840,8 +831,8 @@ public class JSExprEval {
         // Handle EventListener
         if (aClass == EventListener.class) {
             return (EventListener) (e) -> {
-                _varStack.pushStackFrame(stackFrame);
-                _varStack.setLocalVarValue(paramName0, e);
+                _varStack.pushStackFrame();
+                _varStack.setStackValueForNode(param0, e);
                 try { evalExpr(anOR, contentExpr); }
                 catch (Exception e2) {
                     throw new RuntimeException(e2); }

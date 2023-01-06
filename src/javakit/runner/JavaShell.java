@@ -2,11 +2,11 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.runner;
+import javakit.parse.JFile;
 import javakit.parse.JStmt;
 import javakit.parse.JavaTextDoc;
 import javakit.parse.NodeError;
 import snap.util.CharSequenceUtils;
-
 import java.io.PrintStream;
 
 /**
@@ -70,10 +70,23 @@ public class JavaShell {
     }
 
     /**
+     * Compile JavaTextDoc.
+     */
+    public void compileJavaCode(JavaTextDoc javaTextDoc)
+    {
+        Simpiler simpiler = new Simpiler();
+        JFile jfile = javaTextDoc.getJFile();
+        simpiler.compile(jfile);
+    }
+
+    /**
      * Evaluate string.
      */
     public void runJavaCode(JavaTextDoc javaTextDoc)
     {
+        // Reset VarStack
+        _stmtEval._exprEval._varStack.reset();
+
         // Get parsed statements
         JStmt[] javaStmts = javaTextDoc.getJFileStatements();
 

@@ -22,6 +22,7 @@ public class Simpiler {
     public void compile(JFile aJFile)
     {
         JClassDecl classDecl = aJFile.getClassDecl();
+        compileClass(classDecl);
     }
 
     /**
@@ -46,7 +47,7 @@ public class Simpiler {
         if (aNode instanceof JStmtBlock)
             setVarStackIndexForBlockStmt((JStmtBlock) aNode, anIndex);
 
-        // Handle WithVarDecls: JExecutableDecl, JStmtFor, JStmtTryCatch
+        // Handle WithVarDecls: JExecutableDecl, JStmtFor, JStmtTryCatch, JExprLambda
         else if (aNode instanceof WithVarDecls)
             setVarStackIndexForNodeWithVarDecls(aNode, anIndex);
 
@@ -63,7 +64,7 @@ public class Simpiler {
     }
 
     /**
-     * Sets var stack index for node WithVarDecls: JExecutableDecl (method/constr), JStmtFor, JStmtTryCatch.
+     * Sets var stack index for node WithVarDecls: JExecutableDecl (method/constr), JStmtFor, JStmtTryCatch, JExprLambda.
      *
      * Returns the new index after adding var decls.
      */
@@ -77,6 +78,13 @@ public class Simpiler {
         // Iterate over VarDecls and set IndexInStackFrame for each
         for (int i = 0; i < varDeclCount; i++) {
             JVarDecl varDecl = varDecls.get(i);
+
+            // If varDecl.InitExpr is lambda, recurse in
+            JExpr initExpr = varDecl.getInitializer();
+            if (initExpr != null)
+                setVarStackIndexForNode(initExpr, 0);
+
+            // Set localVar.IndexInStackFrame
             JavaLocalVar localVar = (JavaLocalVar) varDecl.getDecl();
             if (localVar != null)
                 localVar.setIndexInStackFrame(anIndex + i);

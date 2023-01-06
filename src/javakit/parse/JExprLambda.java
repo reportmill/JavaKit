@@ -9,7 +9,7 @@ import snap.util.ListUtils;
 /**
  * A JExpr to represent lambda expressions.
  */
-public class JExprLambda extends JExpr implements WithBlockStmt {
+public class JExprLambda extends JExpr implements WithVarDecls, WithBlockStmt {
 
     // The parameters
     protected List<JVarDecl>  _params = new ArrayList<>();
@@ -34,30 +34,12 @@ public class JExprLambda extends JExpr implements WithBlockStmt {
     public int getParamCount()  { return _params.size(); }
 
     /**
-     * Returns the parameter at given index.
-     */
-    public JVarDecl getParam(int anIndex)  { return _params.get(anIndex); }
-
-    /**
      * Adds a formal parameter.
      */
     public void addParam(JVarDecl aVD)
     {
         _params.add(aVD);
         addChild(aVD, -1);
-    }
-
-    /**
-     * Returns the parameter with given name.
-     */
-    public JVarDecl getParamForName(String aName)
-    {
-        for (JVarDecl varDecl : _params)
-            if (Objects.equals(varDecl.getName(), aName))
-                return varDecl;
-
-        // Return not found
-        return null;
     }
 
     /**
@@ -126,6 +108,12 @@ public class JExprLambda extends JExpr implements WithBlockStmt {
         getDecl();
         return _meth;
     }
+
+    /**
+     * WithVarDecls method.
+     */
+    @Override
+    public List<JVarDecl> getVarDecls()  { return _params; }
 
     /**
      * Override to return as type.
@@ -207,7 +195,7 @@ public class JExprLambda extends JExpr implements WithBlockStmt {
     {
         // If node is parameter name, return param decl
         String name = anExprId.getName();
-        JVarDecl param = getParamForName(name);
+        JVarDecl param = getVarDeclForName(name);
         if (param != null)
             return param.getDecl();
 

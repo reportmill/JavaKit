@@ -2,91 +2,114 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.runner;
-import snap.util.SnapUtils;
-import java.lang.reflect.Array;
+import javakit.parse.JExpr;
+import javakit.parse.JNode;
+import javakit.resolver.JavaDecl;
+import javakit.resolver.JavaLocalVar;
 import java.util.*;
-import static javakit.runner.JSExprEvalUtils.castOrConvertValueToPrimitiveClass;
 
 /**
  * A class to manage variables in a running interpreter session.
  */
 public class JSVarStack {
 
-    // A map of local variables
-    private Map<String,Object> _locals = new HashMap<>();
+    // The stack
+    private Object[]  _stack = new Object[100];
 
-    // The stack of frames
-    private Map<String,Object>[]  _frames = new Map[100];
+    // The stack length
+    private int  _stackLength;
 
-    // The number of frames
-    private int  _frameCount;
+    // The frame pointers
+    private int[]  _frameIndexes = new int[100];
+
+    // The frame pointer length
+    private int  _frameIndexesLength;
+
+    // The current frame index
+    private int  _frameIndex;
 
     /**
      * Constructor.
      */
     public JSVarStack()
     {
-        _frames[_frameCount++] = _locals;
+        reset();
     }
 
     /**
-     * Returns whether there is a local variable for name.
+     * Resets stack.
      */
-    public boolean isLocalVar(String aName)
+    public void reset()
     {
-        return _locals.keySet().contains(aName);
+        _stackLength = 0;
+        _frameIndex = 0;
+        _frameIndexes[0] = _frameIndex;
+        _frameIndexesLength = 1;
     }
 
     /**
-     * Returns a local variable value by name.
+     * Returns a stack value at index.
      */
-    public Object getLocalVarValue(String aName)
+    public Object getStackValue(int anIndex)
     {
-        // Look at current stack frame
-        Object value = _locals.get(aName);
-        if (value != null)
-            return value;
+        int index = anIndex + _frameIndex;
+        Object value = _stack[index];
+        return value;
+    }
 
-        // Look at previous frames
-        for (int i = _frameCount - 2; i >= 0; i--) {
-            value = _frames[i].get(aName);
-            if (value != null)
+    /**
+     * Sets a stack value at index.
+     */
+    public void setStackValue(Object aValue, int anIndex)
+    {
+        int index = anIndex + _frameIndex;
+        _stackLength = Math.max(_stackLength, index + 1);
+        if (_stackLength > _stack.length)
+            _stack = Arrays.copyOf(_stack, _stackLength * 2);
+
+        _stack[index] = aValue;
+    }
+
+    /**
+     * Returns a stack value for given node (JExprId or JVarDecl).
+     */
+    public Object getStackValueForNode(JExpr varNode)
+    {
+        // Get node decl - should be LocalVar with IndexInStackFrame
+        JavaDecl varDecl = varNode.getDecl();
+        if (varDecl instanceof JavaLocalVar) {
+            JavaLocalVar localVar = (JavaLocalVar) varDecl;
+            int indexInStackFrame = localVar.getIndexInStackFrame();
+            if (indexInStackFrame >= 0) {
+                Object value = getStackValue(indexInStackFrame);
                 return value;
+            }
         }
 
-        // Return not found
+        // Should never happen
+        System.err.println("JSVarStack.getStackValueForExprId: No local var stack index for id expr: " + varNode);
         return null;
-
-        // StackFrame frame = anApp.getCurrentFrame();
-        // LocalVariable lvar = frame.visibleVariableByName(name);
-        // if (lvar != null) return frame.getValue(lvar);
     }
 
     /**
-     * Sets a local variable value by name.
+     * Sets a stack value for given node (JExprId or JVarDecl).
      */
-    public void setLocalVarValue(String aName, Object aValue)
+    public boolean setStackValueForNode(JNode varNode, Object aValue)
     {
-        _locals.put(aName, aValue);
-    }
-
-    /**
-     * Sets a local variable value by name.
-     */
-    public void setLocalVarArrayValueAtIndex(String aName, Object aValue, int anIndex)
-    {
-        // Get array
-        Object array = getLocalVarValue(aName);
-
-        // Make sure value is right type
-        if (SnapUtils.isTeaVM) {
-            Class<?> cls = array.getClass().getComponentType();
-            if (cls.isPrimitive())
-                aValue = castOrConvertValueToPrimitiveClass(aValue, cls);
+        // Get node decl - should be LocalVar with IndexInStackFrame
+        JavaDecl varDecl = varNode.getDecl();
+        if (varDecl instanceof JavaLocalVar) {
+            JavaLocalVar localVar = (JavaLocalVar) varDecl;
+            int indexInStackFrame = localVar.getIndexInStackFrame();
+            if (indexInStackFrame >= 0) {
+                setStackValue(aValue, indexInStackFrame);
+                return true;
+            }
         }
 
-        // Set value
-        Array.set(array, anIndex, aValue);
+        // Should never happen
+        System.err.println("JSVarStack.setStackValueForExprId: No local var stack index for id expr: " + varNode);
+        return false;
     }
 
     /**
@@ -94,16 +117,13 @@ public class JSVarStack {
      */
     public void pushStackFrame()
     {
-        pushStackFrame(new HashMap<>(_locals));
-    }
+        // Make sure FrameIndexes array has room
+        if (_frameIndexesLength + 1 > _frameIndexes.length)
+            _frameIndexes = Arrays.copyOf(_frameIndexes, _frameIndexes.length * 2);
 
-    /**
-     * Push a stack frame.
-     */
-    public void pushStackFrame(Map<String,Object> aFrame)
-    {
-        _locals = aFrame;
-        _frames[_frameCount++] = _locals;
+        // Push FrameIndex on FrameIndexes stack
+        _frameIndexes[_frameIndexesLength++] = _frameIndex;
+        _frameIndex = _stackLength;
     }
 
     /**
@@ -111,11 +131,7 @@ public class JSVarStack {
      */
     public void popStackFrame()
     {
-        _locals = _frames[--_frameCount - 1];
+        _stackLength = _frameIndex;
+        _frameIndex = _frameIndexes[--_frameIndexesLength];
     }
-
-    /**
-     * Creates a new frame.
-     */
-    public Map<String,Object> newFrame()  { return new HashMap<>(); }
 }

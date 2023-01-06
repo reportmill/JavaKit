@@ -9,7 +9,7 @@ package javakit.resolver;
 public class JavaLocalVar extends JavaDecl {
 
     // The index of this local var in the current frame of the call stack
-    private int  _indexInStackFrame;
+    private int  _indexInStackFrame = -1;
 
     /**
      * Constructor.
