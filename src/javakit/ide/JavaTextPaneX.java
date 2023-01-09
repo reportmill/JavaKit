@@ -71,12 +71,15 @@ public class JavaTextPaneX extends JavaTextPane {
         // Do normal version
         super.initUI();
 
-        // Get ScrollView and add RowHeader
-        ScrollView scrollView = (ScrollView) getUI(BorderView.class).getCenter();
+        // Get TextArea and start listening for events (KeyEvents, MouseReleased, DragOver/Exit/Drop)
+        enableEvents(_textArea, DragOver, DragExit, DragDrop);
+
+        // Get ScrollGroup
+        ScrollGroup scrollGroup = (ScrollGroup) getUI(BorderView.class).getCenter();
 
         // Get SplitView and add ScrollView and CodeBuilder
         _splitView = new SplitView();
-        _splitView.addItem(scrollView);
+        _splitView.addItem(scrollGroup);
         getUI(BorderView.class).setCenter(_splitView);
     }
 

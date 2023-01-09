@@ -71,10 +71,10 @@ public class JavaTextPane extends TextPane {
         // Do normal version
         super.initUI();
 
-        // Get TextArea and start listening for events (KeyEvents, MouseReleased, DragOver/Exit/Drop)
+        // Get TextArea and start listening for events (KeyEvents, MouseReleased)
         _textArea = getTextArea();
         _textArea.setGrowWidth(true);
-        enableEvents(_textArea, KeyPress, KeyRelease, KeyType, MousePress, MouseRelease, DragOver, DragExit, DragDrop);
+        enableEvents(_textArea, KeyPress, KeyRelease, KeyType, MousePress, MouseRelease);
         _textArea.addPropChangeListener(pc -> javaTextAreaDidPropChange(pc));
 
         // Start listening to TextArea doc
@@ -86,20 +86,22 @@ public class JavaTextPane extends TextPane {
         if (fontSize < 8) fontSize = 12;
         _textArea.setFont(new Font(_textArea.getDefaultFont().getName(), fontSize));
 
-        // Get TextArea.RowHeader and configure
+        // Create/configure LineNumView, LineFooterView
         _lineHeaderView = new LineHeaderView(this, getTextArea());
-
-        // Get ScrollView and add RowHeader
-        ScrollView scrollView = getView("ScrollView", ScrollView.class);
-        scrollView.setGrowWidth(true);
-        RowView scrollViewContent = new RowView();
-        scrollViewContent.setFillHeight(true);
-        scrollViewContent.setChildren(_lineHeaderView, _textArea);
-        scrollView.setContent(scrollViewContent);
-
-        // Get OverviewPane and set JavaTextArea
         _lineFooterView = new LineFooterView(this);
-        getUI(BorderView.class).setRight(_lineFooterView);
+
+        // Create ScrollGroup for JavaTextArea and LineNumView
+        ScrollGroup scrollGroup = new ScrollGroup();
+        scrollGroup.setBorder(Color.GRAY9, 1);
+        scrollGroup.setGrowWidth(true);
+        scrollGroup.setContent(_textArea);
+        scrollGroup.setLeftView(_lineHeaderView);
+        scrollGroup.setMinWidth(200);
+
+        // Replace TextPane center with scrollGroup
+        BorderView borderView = getUI(BorderView.class);
+        borderView.setCenter(scrollGroup);
+        borderView.setRight(_lineFooterView);
     }
 
     /**
@@ -135,8 +137,7 @@ public class JavaTextPane extends TextPane {
             nodePathBox.removeChild(1);
 
         // Get Path node labels
-        JavaTextArea javaTextArea = getTextArea();
-        Label[] pathNodeLabels = getLabelsForSelNodePath(javaTextArea, JFile.class);
+        Label[] pathNodeLabels = getLabelsForSelNodePath();
         for (Label pathNodeLabel : pathNodeLabels) {
             pathNodeLabel.setOwner(this);
             enableEvents(pathNodeLabel, MouseRelease);
@@ -147,7 +148,7 @@ public class JavaTextPane extends TextPane {
     /**
      * Respond to UI controls.
      */
-    public void respondUI(ViewEvent anEvent)
+    protected void respondUI(ViewEvent anEvent)
     {
         // Do normal version
         super.respondUI(anEvent);
@@ -355,9 +356,15 @@ public class JavaTextPane extends TextPane {
     {
         String propName = aPC.getPropName();
         if (propName == TextDoc.Chars_Prop) {
+
+            // Update TextModified
             boolean hasUndos = getTextArea().getUndoer().hasUndos();
             setTextModified(hasUndos);
-            _lineHeaderView.resetAll();
+
+            // If added/removed newline, reset
+            CharSequence chars = (CharSequence) (aPC.getNewValue() != null ? aPC.getNewValue() : aPC.getOldValue());
+            if (CharSequenceUtils.indexOfNewline(chars, 0) >= 0)
+                _lineHeaderView.resetAll();
             _lineFooterView.resetAll();
         }
     }
@@ -370,6 +377,14 @@ public class JavaTextPane extends TextPane {
         _lineHeaderView.resetAll();
         _lineFooterView.resetAll();
         _textArea.repaint();
+    }
+
+    /**
+     * Returns labels for
+     */
+    protected Label[] getLabelsForSelNodePath()
+    {
+        return getLabelsForSelNodePath(_textArea, JFile.class);
     }
 
     /**
