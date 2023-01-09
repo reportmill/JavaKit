@@ -22,19 +22,21 @@ import java.util.List;
 public class JavaTextPane extends TextPane {
 
     // The JavaTextArea
-    private JavaTextArea  _textArea;
-
-    // The SplitView
-    private SplitView  _splitView;
+    protected JavaTextArea  _textArea;
 
     // The RowHeader
-    private LineHeaderView _lineHeaderView;
+    private LineHeaderView  _lineHeaderView;
 
     // The OverView
-    private LineFooterView _lineFooterView;
+    private LineFooterView  _lineFooterView;
 
-    // The code builder
-    private CodeBuilder  _codeBuilder;
+    /**
+     * Constructor.
+     */
+    public JavaTextPane()
+    {
+        super();
+    }
 
     /**
      * Returns the JavaTextArea.
@@ -61,49 +63,9 @@ public class JavaTextPane extends TextPane {
     }
 
     /**
-     * Returns the CodeBuilder.
-     */
-    public CodeBuilder getCodeBuilder()
-    {
-        // If already set, just return
-        if (_codeBuilder != null) return _codeBuilder;
-
-        // Get, set, return
-        CodeBuilder codeBuilder = new CodeBuilder(this);
-        return _codeBuilder = codeBuilder;
-    }
-
-    /**
-     * Returns whether CodeBuilder is visible.
-     */
-    public boolean isCodeBuilderVisible()
-    {
-        return _splitView.getItemCount() > 1;
-    }
-
-    /**
-     * Sets whether CodeBuilder is visible.
-     */
-    public void setCodeBuilderVisible(boolean aFlag)
-    {
-        // If already set, just return
-        if (aFlag == isCodeBuilderVisible()) return;
-        View codeBuildrPane = getCodeBuilder().getUI();
-
-        // If showing CodeBuilder, add to SplitView (animated)
-        if (aFlag) {
-            _splitView.addItemWithAnim(codeBuildrPane, 260);
-            getCodeBuilder().setCodeBlocks();
-        }
-
-        // If hiding CodeBuilder, remove from SplitView (animated)
-        else if (_splitView.getItemCount() > 1)
-            _splitView.removeItemWithAnim(codeBuildrPane);
-    }
-
-    /**
      * Initialize UI panel.
      */
+    @Override
     protected void initUI()
     {
         // Do normal version
@@ -135,11 +97,6 @@ public class JavaTextPane extends TextPane {
         scrollViewContent.setChildren(_lineHeaderView, _textArea);
         scrollView.setContent(scrollViewContent);
 
-        // Get SplitView and add ScrollView and CodeBuilder
-        _splitView = new SplitView();
-        _splitView.addItem(scrollView);
-        getUI(BorderView.class).setCenter(_splitView);
-
         // Get OverviewPane and set JavaTextArea
         _lineFooterView = new LineFooterView(this);
         getUI(BorderView.class).setRight(_lineFooterView);
@@ -162,12 +119,6 @@ public class JavaTextPane extends TextPane {
         boolean hasUndos = undoer.hasUndos();
         setViewEnabled("UndoButton", hasUndos);
         setViewEnabled("RedoButton", hasUndos);
-
-        // Update JavaDocButton
-        JavaDoc javaDoc = getJavaDoc();
-        setViewVisible("JavaDocButton", javaDoc != null);
-        String javaDocButtonText = javaDoc != null ? (javaDoc.getSimpleName() + " Doc") : null;
-        setViewText("JavaDocButton", javaDocButtonText);
 
         // Reset NodePathBox
         resetNodePathBox();
@@ -248,11 +199,6 @@ public class JavaTextPane extends TextPane {
                 JNode node = _textArea.getJFile().getNodeAtCharIndex(index);
                 _textArea.setHoverNode(node instanceof JExprId || node instanceof JType ? node : null);
             }
-
-            // Handle DragOver, DragExit, DragDrop
-            else if (anEvent.isDragOver()) getCodeBuilder().dragOver(anEvent.getX(), anEvent.getY());
-            else if (anEvent.isDragExit()) getCodeBuilder().dragExit();
-            else if (anEvent.isDragDropEvent()) getCodeBuilder().drop(0, 0);
         }
 
         // Handle JavaDocButton
@@ -261,10 +207,6 @@ public class JavaTextPane extends TextPane {
             if (javaDoc != null)
                 javaDoc.openUrl();
         }
-
-        // Handle CodeBuilderButton
-        else if (anEvent.equals("CodeBuilderButton"))
-            setCodeBuilderVisible(!isCodeBuilderVisible());
 
         // Handle FontSizeText, IncreaseFontButton, DecreaseFontButton
         else if (anEvent.equals("FontSizeText") || anEvent.equals("IncreaseFontButton") || anEvent.equals("DecreaseFontButton"))
@@ -399,17 +341,11 @@ public class JavaTextPane extends TextPane {
     /**
      * Called when JavaTextArea changes.
      */
-    private void javaTextAreaDidPropChange(PropChange aPC)
+    protected void javaTextAreaDidPropChange(PropChange aPC)
     {
         String propName = aPC.getPropName();
-        if (propName == JavaTextArea.SelectedNode_Prop) {
-
+        if (propName == JavaTextArea.SelectedNode_Prop)
             resetLater();
-
-            // If CodeBuilder Visible, update CodeBlocks
-            if (_codeBuilder != null && _codeBuilder.isVisible())
-                _codeBuilder.setCodeBlocks();
-        }
     }
 
     /**
