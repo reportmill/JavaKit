@@ -3,8 +3,8 @@
  */
 package javakit.ide;
 import javakit.parse.*;
-import javakit.resolver.JavaDecl;
 import javakit.parse.JavaTextDoc;
+import javakit.resolver.JavaDecl;
 import snap.gfx.*;
 import snap.props.PropChange;
 import snap.props.Undoer;
@@ -172,8 +172,8 @@ public class JavaTextPane extends TextPane {
 
             // Handle PopupTrigger
             else if (anEvent.isPopupTrigger()) { //anEvent.consume();
-                Menu cmenu = createContextMenu();
-                cmenu.show(_textArea, anEvent.getX(), anEvent.getY());
+                Menu contextMenu = createContextMenu();
+                contextMenu.show(_textArea, anEvent.getX(), anEvent.getY());
             }
 
             // Handle MouseClick: If alt-down, open JavaDoc. If HoverNode, open declaration
@@ -283,21 +283,18 @@ public class JavaTextPane extends TextPane {
      */
     protected Menu createContextMenu()
     {
-        Menu cm = new Menu(); //cm.setAutoHide(true); cm.setConsumeAutoHidingEvents(true);
-        MenuItem mi1 = new MenuItem();
-        mi1.setText("Open Declaration");
-        mi1.setName("OpenDeclarationMenuItem");
-        MenuItem mi2 = new MenuItem();
-        mi2.setText("Show References");
-        mi2.setName("ShowReferencesMenuItem");
-        MenuItem mi3 = new MenuItem();
-        mi3.setText("Show Declarations");
-        mi3.setName("ShowDeclarationsMenuItem");
-        cm.addItem(mi1);
-        cm.addItem(mi2);
-        cm.addItem(mi3);
-        cm.setOwner(this);
-        return cm;
+        // Create MenuItems
+        ViewBuilder<MenuItem> viewBuilder = new ViewBuilder<>(MenuItem.class);
+        viewBuilder.name("OpenDeclarationMenuItem").text("Open Declaration").save();
+        viewBuilder.name("ShowReferencesMenuItem").text("Show References").save();
+        viewBuilder.name("ShowDeclarationsMenuItem").text("Show Declarations").save();
+
+        // Create context menu
+        Menu contextMenu = viewBuilder.buildMenu();
+        contextMenu.setOwner(this);
+
+        // Return
+        return contextMenu;
     }
 
     /**
@@ -398,14 +395,14 @@ public class JavaTextPane extends TextPane {
         Font font = Font.Arial11;
         List<Label> pathLabels = new ArrayList<>();
 
+        // Get label builder
+        ViewBuilder<Label> labelBuilder = new ViewBuilder<>(Label.class);
+
         // Iterate up from DeepPart and add parts
         for (JNode jnode = deepNode; jnode != null; jnode = jnode.getParent()) {
 
             // Create label for node
-            Label label = new Label();
-            label.setName("NodePathLabel");
-            label.setText(jnode.getNodeString());
-            label.setFont(font);
+            Label label = labelBuilder.name("NodePathLabel").text(jnode.getNodeString()).font(font).build();
             label.setProp("JNode", jnode);
             if (jnode == selNode)
                 label.setFill(Color.LIGHTGRAY);
@@ -417,9 +414,7 @@ public class JavaTextPane extends TextPane {
                 break;
 
             // Add separator
-            Label separator = new Label();
-            separator.setText(" \u2022 ");
-            separator.setFont(font);
+            Label separator = labelBuilder.text(" \u2022 ").font(font).build();
             pathLabels.add(0, separator);
         }
 
@@ -427,11 +422,8 @@ public class JavaTextPane extends TextPane {
         JavaDecl evalType = selNode != null ? selNode.getEvalType() : null;
         if (evalType != null) {
             String str = " (" + evalType.getSimpleName() + ')';
-            Label classLabel = new Label();
-            classLabel.setName("ClassLabel");
-            classLabel.setText(str);
-            classLabel.setFont(font);
-            classLabel.setToolTip(evalType.getName());
+            String toolTip = evalType.getName();
+            Label classLabel = labelBuilder.name("ClassLabel").text(str).font(font).toolTip(toolTip).build();
             pathLabels.add(classLabel);
         }
 
