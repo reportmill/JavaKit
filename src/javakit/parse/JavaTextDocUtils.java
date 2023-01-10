@@ -2,8 +2,11 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
+import snap.gfx.Color;
 import snap.parse.*;
 import snap.text.TextDocUtils;
+import snap.text.TextLine;
+import snap.text.TextToken;
 import snap.util.CharSequenceUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +15,75 @@ import java.util.List;
  * Utility methods and support for JavaTextDoc.
  */
 public class JavaTextDocUtils {
+
+    // Constants for Syntax Coloring
+    private static Color COMMENT_COLOR = new Color("#3F7F5F"); //336633
+    private static Color RESERVED_WORD_COLOR = new Color("#660033");
+    private static Color STRING_LITERAL_COLOR = new Color("#C80000"); // CC0000
+
+    /**
+     * Returns the next token for tokenizer and text line.
+     */
+    public static ParseToken getNextToken(CodeTokenizer aTokenizer, TextLine aTextLine)
+    {
+        // If TextLine provided, do set up
+        if (aTextLine != null) {
+
+            // If this line is InMultilineComment (do this first, since it may require use of Text.Tokenizer)
+            TextLine prevTextLine = aTextLine.getPrevious();
+            TextToken prevTextLineLastToken = prevTextLine != null ? prevTextLine.getLastToken() : null;
+            boolean inUnterminatedComment = isTextTokenUnterminatedMultilineComment(prevTextLineLastToken);
+
+            // Reset input for Tokenizer
+            aTokenizer.setInput(aTextLine);
+
+            // Get first line token: Handle if already in Multi-line
+            if (inUnterminatedComment)
+                return aTokenizer.getMultiLineCommentTokenMore();
+        }
+
+        // Return next token
+        return aTokenizer.getNextSpecialTokenOrToken();
+    }
+
+    /**
+     * Returns whether given TextToken is an unterminated comment.
+     */
+    private static boolean isTextTokenUnterminatedMultilineComment(TextToken aTextToken)
+    {
+        if (aTextToken == null)
+            return false;
+        String name = aTextToken.getName();
+        if (name != Tokenizer.MULTI_LINE_COMMENT)
+            return false;
+        String tokenStr = aTextToken.getString();
+        if (tokenStr.endsWith("*/"))
+            return false;
+        return true;
+    }
+
+    /**
+     * Checks the given token for syntax coloring.
+     */
+    public static Color getColorForParseToken(ParseToken aToken)
+    {
+        // Handle comments
+        String tokenName = aToken.getName();
+        if (tokenName == CodeTokenizer.SINGLE_LINE_COMMENT || tokenName == CodeTokenizer.MULTI_LINE_COMMENT)
+            return COMMENT_COLOR;
+
+        // Handle reserved words
+        char firstPatternChar = aToken.getPattern().charAt(0);
+        if (Character.isLetter(firstPatternChar))
+            return RESERVED_WORD_COLOR;
+
+        // Handle string literals
+        if (tokenName == "StringLiteral" || tokenName == "CharacterLiteral")
+            return STRING_LITERAL_COLOR;
+
+        // Return none
+        return null;
+    }
 
     /**
      * Returns an array of statements in given node.

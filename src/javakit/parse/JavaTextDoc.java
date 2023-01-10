@@ -29,11 +29,6 @@ public class JavaTextDoc extends TextDoc {
     // The Resolver
     private Resolver  _resolver;
 
-    // Constants for Syntax Coloring
-    private static Color COMMENT_COLOR = new Color("#3F7F5F"); //336633
-    private static Color RESERVED_WORD_COLOR = new Color("#660033");
-    private static Color STRING_LITERAL_COLOR = new Color("#C80000"); // CC0000
-
     /**
      * Constructor.
      */
@@ -165,7 +160,7 @@ public class JavaTextDoc extends TextDoc {
         // Get first token in line
         Exception exception = null;
         ParseToken parseToken = null;
-        try { parseToken = getNextToken(tokenizer, aTextLine); }
+        try { parseToken = JavaTextDocUtils.getNextToken(tokenizer, aTextLine); }
         catch (Exception e) {
             exception = e;
             System.out.println("JavaTextDoc.createTokensForTextLine: Parse error: " + e);
@@ -184,12 +179,12 @@ public class JavaTextDoc extends TextDoc {
             tokens.add(textToken);
 
             // Get/set token color
-            Color color = getColorForParseToken(parseToken);
+            Color color = JavaTextDocUtils.getColorForParseToken(parseToken);
             if (color != null)
                 textToken.setTextColor(color);
 
             // Get next token
-            try { parseToken = getNextToken(tokenizer, null); }
+            try { parseToken = JavaTextDocUtils.getNextToken(tokenizer, null); }
             catch (Exception e) {
                 exception = e;
                 parseToken = null;
@@ -207,70 +202,6 @@ public class JavaTextDoc extends TextDoc {
 
         // Return
         return tokens.toArray(new TextToken[0]);
-    }
-
-    /**
-     * Returns the next token.
-     */
-    private ParseToken getNextToken(CodeTokenizer aTokenizer, TextLine aTextLine)
-    {
-        // If TextLine provided, do set up
-        if (aTextLine != null) {
-
-            // If this line is InMultilineComment (do this first, since it may require use of Text.Tokenizer)
-            TextLine prevTextLine = aTextLine.getPrevious();
-            TextToken prevTextLineLastToken = prevTextLine != null ? prevTextLine.getLastToken() : null;
-            boolean inUnterminatedComment = isTextTokenUnterminatedMultilineComment(prevTextLineLastToken);
-
-            // Reset input for Tokenizer
-            aTokenizer.setInput(aTextLine);
-
-            // Get first line token: Handle if already in Multi-line
-            if (inUnterminatedComment)
-                return aTokenizer.getMultiLineCommentTokenMore();
-        }
-
-        // Return next token
-        return aTokenizer.getNextSpecialTokenOrToken();
-    }
-
-    /**
-     * Returns whether given TextToken is an unterminated comment.
-     */
-    private boolean isTextTokenUnterminatedMultilineComment(TextToken aTextToken)
-    {
-        if (aTextToken == null)
-            return false;
-        String name = aTextToken.getName();
-        if (name != Tokenizer.MULTI_LINE_COMMENT)
-            return false;
-        String tokenStr = aTextToken.getString();
-        if (tokenStr.endsWith("*/"))
-            return false;
-        return true;
-    }
-
-    /**
-     * Checks the given token for syntax coloring.
-     */
-    public static Color getColorForParseToken(ParseToken aToken)
-    {
-        // Handle comments
-        String tokenName = aToken.getName();
-        if (tokenName == CodeTokenizer.SINGLE_LINE_COMMENT || tokenName == CodeTokenizer.MULTI_LINE_COMMENT)
-            return COMMENT_COLOR;
-
-        // Handle reserved words
-        char firstPatternChar = aToken.getPattern().charAt(0);
-        if (Character.isLetter(firstPatternChar))
-            return RESERVED_WORD_COLOR;
-
-        // Handle string literals
-        if (tokenName == "StringLiteral" || tokenName == "CharacterLiteral")
-            return STRING_LITERAL_COLOR;
-
-        // Return none
-        return null;
     }
 
     /**
