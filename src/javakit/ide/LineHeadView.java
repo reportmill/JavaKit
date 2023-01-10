@@ -3,10 +3,8 @@
  */
 package javakit.ide;
 import java.util.*;
-
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
-import javakit.resolver.JavaExecutable;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
@@ -14,18 +12,15 @@ import snap.util.ArrayUtils;
 import snap.view.*;
 
 /**
- * A component to paint row markers.
+ * A component to paint line numbers and markers for JavaTextPane/JavaTextArea.
  */
-public class LineHeaderView extends View {
+public class LineHeadView extends View {
 
-    // The JavaTextPane that contains this RowHeader
+    // The JavaTextPane that contains this view
     private JavaTextPane  _textPane;
 
-    // The TextArea
-    private TextArea  _textArea;
-
-    // The Java TextArea
-    private JavaTextArea  _javaTextArea;
+    // The JavaTextArea
+    private JavaTextArea  _textArea;
 
     // Whether to show line numbers
     private boolean  _showLineNumbers = true;
@@ -34,42 +29,39 @@ public class LineHeaderView extends View {
     private boolean  _showLineMarkers = true;
 
     // The list of markers
-    private Marker<?>[]  _markers;
+    private LineMarker<?>[]  _markers;
 
     // The last mouse moved position
     private double  _mx, _my;
 
     // Constants
     private static Color BACKGROUND_FILL = new Color(.98);
-    private static Color LINE_NUMBERS_COLOR = Color.GRAY5;
+    private static Color LINE_NUMBERS_COLOR = Color.GRAY6;
 
     // Constants for Markers width
     public static final int LINE_MARKERS_WIDTH = 12;
 
-    // The marker images for Error, Warning, Breakpoint, Implements, Override
-    static Image _errorImage = Image.get(JavaTextUtils.class, "ErrorMarker.png");
-    static Image _warningImage = Image.get(JavaTextUtils.class, "WarningMarker.png");
-    static Image _breakpointImage = Image.get(JavaTextUtils.class, "Breakpoint.png");
-    static Image _implImage = Image.get(JavaTextUtils.class, "ImplementsMarker.png");
-    static Image _overImage = Image.get(JavaTextUtils.class, "OverrideMarker.png");
-
     /**
      * Creates a new RowHeader.
      */
-    public LineHeaderView(JavaTextPane aJTP, TextArea aTextArea)
+    public LineHeadView(JavaTextPane aJTP)
     {
         // Set ivars
         _textPane = aJTP;
-        _textArea = aTextArea;
-        _javaTextArea = aTextArea instanceof JavaTextArea ? (JavaTextArea) aTextArea : null;
+        _textArea = aJTP.getTextArea();
 
         // Config
         enableEvents(MouseMove, MouseRelease);
         setToolTipEnabled(true);
         setFill(BACKGROUND_FILL);
 
-        // Set PrefWidth
-        setPrefWidth(getSuggestedPrefWidth());
+        // Set PrefSize
+        setPrefSizeForText();
+
+        // Set Padding
+        Insets padding = _textArea.getPadding().clone();
+        padding.left = padding.right = 6;
+        setPadding(padding);
     }
 
     /**
@@ -107,70 +99,62 @@ public class LineHeaderView extends View {
     }
 
     /**
-     * Sets the JavaTextArea selection.
-     */
-    public void setTextSelection(int aStart, int anEnd)
-    {
-        _textArea.setSel(aStart, anEnd);
-    }
-
-    /**
      * Returns the markers.
      */
-    public Marker<?>[] getMarkers()
+    public LineMarker<?>[] getMarkers()
     {
         // If already set, just return
         if (_markers != null) return _markers;
 
         // Get, set, return
-        Marker<?>[] markers = createMarkers();
+        LineMarker<?>[] markers = createMarkers();
         return _markers = markers;
     }
 
     /**
      * Returns the list of markers.
      */
-    protected Marker<?>[] createMarkers()
+    protected LineMarker<?>[] createMarkers()
     {
         // If no JavaTextArea, just return
-        if (_javaTextArea == null) return new Marker[0];
+        if (_textArea == null) return new LineMarker[0];
 
         // Create list
-        List<Marker<?>> markers = new ArrayList<>();
+        List<LineMarker<?>> markers = new ArrayList<>();
 
         // Add markers for member Overrides/Implements
-        JClassDecl cd = _javaTextArea.getJFile().getClassDecl();
+        JClassDecl cd = _textArea.getJFile().getClassDecl();
         if (cd != null)
             getSuperMemberMarkers(cd, markers);
 
         // Add markers for BuildIssues
-        BuildIssue[] buildIssues = _javaTextArea.getBuildIssues();
+        BuildIssue[] buildIssues = _textArea.getBuildIssues();
         for (BuildIssue issue : buildIssues)
             if (issue.getEnd() < _textArea.length())
-                markers.add(new BuildIssueMarker(issue));
+                markers.add(new LineMarker.BuildIssueMarker(_textPane, issue));
 
         // Add markers for breakpoints
-        List<Breakpoint> breakpointsList = _javaTextArea.getBreakpoints();
+        List<Breakpoint> breakpointsList = _textArea.getBreakpoints();
         if (breakpointsList != null) {
             for (Breakpoint bp : breakpointsList) {
                 if (bp.getLine() < _textArea.getLineCount())
-                    markers.add(new BreakpointMarker(bp));
-                else _javaTextArea.removeBreakpoint(bp);
+                    markers.add(new LineMarker.BreakpointMarker(_textPane, bp));
+                else _textArea.removeBreakpoint(bp);
             }
         }
 
         // Return markers
-        return markers.toArray(new Marker[0]);
+        return markers.toArray(new LineMarker[0]);
     }
 
     /**
      * Loads a list of SuperMemberMarkers for a class declaration (recursing for inner classes).
      */
-    private void getSuperMemberMarkers(JClassDecl aCD, List<Marker<?>> theMarkers)
+    private void getSuperMemberMarkers(JClassDecl aCD, List<LineMarker<?>> theMarkers)
     {
         for (JMemberDecl md : aCD.getMemberDecls()) {
             if (md.getSuperDecl() != null && md.getEndCharIndex() < _textArea.length())
-                theMarkers.add(new SuperMemberMarker(md));
+                theMarkers.add(new LineMarker.SuperMemberMarker(_textPane, md));
             if (md instanceof JClassDecl)
                 getSuperMemberMarkers((JClassDecl) md, theMarkers);
         }
@@ -182,9 +166,7 @@ public class LineHeaderView extends View {
     public void resetAll()
     {
         _markers = null;
-        double prefW = getSuggestedPrefWidth();
-        double prefH = _textArea.getPrefHeight();
-        setPrefSize(prefW, prefH);
+        setPrefSizeForText();
         repaint();
     }
 
@@ -193,7 +175,8 @@ public class LineHeaderView extends View {
      */
     private double getSuggestedPrefWidth()
     {
-        double prefW = 0;
+        Insets ins = getPadding();
+        double prefW = ins.getWidth();
 
         // Add width for line numbers
         if (_showLineNumbers) {
@@ -202,8 +185,7 @@ public class LineHeaderView extends View {
             double colCount = Math.ceil(Math.log10(lineCount) + .0001);
             double charWidth = Math.ceil(font.charAdvance('0'));
             double colsWidth = colCount * charWidth;
-            double PADDING = 10;
-            prefW += colsWidth + PADDING;
+            prefW += colsWidth;
         }
 
         // Add Width for line markers
@@ -216,37 +198,47 @@ public class LineHeaderView extends View {
     }
 
     /**
+     * Sets the PrefSize for current text.
+     */
+    private void setPrefSizeForText()
+    {
+        double prefW = getSuggestedPrefWidth();
+        double prefH = _textArea.getPrefHeight();
+        setPrefSize(prefW, prefH);
+    }
+
+    /**
      * Handle events.
      */
     protected void processEvent(ViewEvent anEvent)
     {
-        if (_javaTextArea == null) return;
+        if (_textArea == null) return;
 
         // Handle MouseClick
         if (anEvent.isMouseClick()) {
 
             // Get reversed markers (so click effects top marker)
-            Marker<?>[] markers = getMarkers().clone();
+            LineMarker<?>[] markers = getMarkers().clone();
             ArrayUtils.reverse(markers);
             double x = anEvent.getX(), y = anEvent.getY();
 
             // Handle double click
             if (anEvent.getClickCount() == 2) {
-                for (Marker<?> marker : markers) {
-                    if (marker.contains(x, y) && marker instanceof BreakpointMarker) {
+                for (LineMarker<?> marker : markers) {
+                    if (marker.contains(x, y) && marker instanceof LineMarker.BreakpointMarker) {
                         marker.mouseClicked(anEvent);
                         return;
                     }
                 }
                 TextBoxLine line = _textArea.getTextBox().getLineForY(anEvent.getY());
                 int lineIndex = line.getIndex();
-                _javaTextArea.addBreakpoint(lineIndex);
+                _textArea.addBreakpoint(lineIndex);
                 resetAll();
                 return;
             }
 
             // Handle normal click
-            for (Marker<?> marker : markers) {
+            for (LineMarker<?> marker : markers) {
                 if (marker.contains(x, y)) {
                     marker.mouseClicked(anEvent);
                     return;
@@ -258,7 +250,7 @@ public class LineHeaderView extends View {
         else if (anEvent.isMouseMove()) {
             _mx = anEvent.getX();
             _my = anEvent.getY();
-            for (Marker<?> marker : getMarkers()) {
+            for (LineMarker<?> marker : getMarkers()) {
                 if (marker.contains(_mx, _my)) {
                     setCursor(Cursor.HAND);
                     return;
@@ -274,7 +266,7 @@ public class LineHeaderView extends View {
     protected void paintFront(Painter aPntr)
     {
         aPntr.setStroke(Stroke.Stroke1);
-        for (Marker<?> m : getMarkers())
+        for (LineMarker<?> m : getMarkers())
             aPntr.drawImage(m._image, m.x, m.y);
 
         if (isShowLineNumbers())
@@ -300,8 +292,7 @@ public class LineHeaderView extends View {
         TextBoxLine startLine = _textArea.getTextBox().getLineForY(clipY);
         int startLineIndex = startLine.getIndex();
         int lineCount = _textArea.getLineCount();
-        int PADDING = 6;
-        double maxX = getWidth() - PADDING;
+        double maxX = getWidth() - getPadding().right;
 
         // Iterate over lines and paint line number for each
         for (int i = startLineIndex; i < lineCount; i++) {
@@ -327,161 +318,8 @@ public class LineHeaderView extends View {
      */
     public String getToolTip(ViewEvent anEvent)
     {
-        for (Marker<?> marker : getMarkers())
-            if (marker.contains(_mx, _my))
-                return marker.getToolTip();
-        return null;
-    }
-
-    /**
-     * The class that describes a overview marker.
-     */
-    public abstract static class Marker<T> extends Rect {
-
-        // The object that is being marked.
-        protected T  _target;
-
-        // The image
-        protected Image  _image;
-
-        /**
-         * Creates a new marker for target.
-         */
-        public Marker(T aTarget)
-        {
-            _target = aTarget;
-            setRect(-2, 0, LINE_MARKERS_WIDTH, LINE_MARKERS_WIDTH);
-        }
-
-        /**
-         * Returns a tooltip.
-         */
-        public abstract String getToolTip();
-
-        /**
-         * Handles MouseClick.
-         */
-        public abstract void mouseClicked(ViewEvent anEvent);
-    }
-
-    /**
-     * A Marker for super members.
-     */
-    public class SuperMemberMarker extends Marker<JMemberDecl> {
-
-        // Ivars
-        private JavaExecutable  _superDecl;
-        private boolean  _interface;
-
-        /**
-         * Creates a new marker for target.
-         */
-        public SuperMemberMarker(JMemberDecl aTarget)
-        {
-            super(aTarget);
-            _superDecl = aTarget.getSuperDecl();
-            _interface = aTarget.isSuperDeclInterface();
-
-            // Get/set Y from line
-            int lineIndex = aTarget.getLineIndex();
-            TextBoxLine textLine = _textArea.getLine(lineIndex);
-            setY(Math.round(textLine.getY()));
-
-            // Set image
-            _image = isInterface() ? _implImage : _overImage;
-        }
-
-        /**
-         * Returns whether is interface.
-         */
-        public boolean isInterface()  { return _interface;  }
-
-        /**
-         * Returns a tooltip.
-         */
-        public String getToolTip()
-        {
-            String className = _superDecl.getDeclaringClassName();
-            return (isInterface() ? "Implements " : "Overrides ") + className + '.' + _target.getName();
-        }
-
-        /**
-         * Handles MouseClick.
-         */
-        public void mouseClicked(ViewEvent anEvent)
-        {
-            _textPane.openSuperDeclaration(_target);
-        }
-    }
-
-    /**
-     * A Marker subclass for BuildIssues.
-     */
-    public class BuildIssueMarker extends Marker<BuildIssue> {
-
-        // Whether issue is error
-        private boolean  _isError;
-
-        /**
-         * Creates a new marker for target.
-         */
-        public BuildIssueMarker(BuildIssue aTarget)
-        {
-            super(aTarget);
-            _isError = aTarget.isError();
-
-            // Get/set Y from line
-            int charIndex = aTarget.getEnd();
-            TextBoxLine textLine = _textArea.getLineForCharIndex(charIndex);
-            setY(Math.round(textLine.getY()));
-
-            // Set image
-            _image = _isError ? _errorImage : _warningImage;
-        }
-
-        /**
-         * Returns a tooltip.
-         */
-        public String getToolTip()  { return _target.getText(); }
-
-        /**
-         * Handles MouseClick.
-         */
-        public void mouseClicked(ViewEvent anEvent)
-        {
-            setTextSelection(_target.getStart(), _target.getEnd());
-        }
-    }
-
-    /**
-     * A Marker subclass for Breakpoints.
-     */
-    public class BreakpointMarker extends Marker<Breakpoint> {
-
-        /**
-         * Creates a BreakpointMarker.
-         */
-        public BreakpointMarker(Breakpoint aBP)
-        {
-            super(aBP);
-            TextBoxLine line = _textArea.getLine(aBP.getLine());
-            setY(Math.round(line.getY()));
-            _image = _breakpointImage;
-        }
-
-        /**
-         * Returns a tooltip.
-         */
-        public String getToolTip()  { return _target.toString(); }
-
-        /**
-         * Handles MouseClick.
-         */
-        public void mouseClicked(ViewEvent anEvent)
-        {
-            if (anEvent.getClickCount() == 2)
-                _javaTextArea.removeBreakpoint(_target);
-            resetAll();
-        }
+        LineMarker<?>[] markers = getMarkers();
+        LineMarker<?> marker = ArrayUtils.findMatch(markers, m -> m.contains(_mx, _my));
+        return marker != null ? marker.getToolTip() : null;
     }
 }

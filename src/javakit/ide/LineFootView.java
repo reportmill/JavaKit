@@ -11,7 +11,7 @@ import snap.view.*;
 /**
  * A component to show locations of Errors, warnings, selected symbols, etc.
  */
-public class LineFooterView extends View {
+public class LineFootView extends View {
 
     // The JavaTextPane holding this Overview
     private JavaTextPane _textPane;
@@ -32,7 +32,7 @@ public class LineFooterView extends View {
     /**
      * Creates a new OverviewPane.
      */
-    public LineFooterView(JavaTextPane aJTP)
+    public LineFootView(JavaTextPane aJTP)
     {
         // Set vars
         _textPane = aJTP;

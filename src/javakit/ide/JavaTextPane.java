@@ -24,10 +24,10 @@ public class JavaTextPane extends TextPane {
     protected JavaTextArea  _textArea;
 
     // The RowHeader
-    private LineHeaderView  _lineNumView;
+    protected LineHeadView _lineNumView;
 
     // The OverView
-    private LineFooterView  _lineFooterView;
+    protected LineFootView _lineFootView;
 
     /**
      * Constructor.
@@ -80,9 +80,9 @@ public class JavaTextPane extends TextPane {
         if (fontSize < 8) fontSize = 12;
         _textArea.setFont(new Font(_textArea.getDefaultFont().getName(), fontSize));
 
-        // Create/configure LineNumView, LineFooterView
-        _lineNumView = new LineHeaderView(this, getTextArea());
-        _lineFooterView = new LineFooterView(this);
+        // Create/configure LineNumView, LineFootView
+        _lineNumView = new LineHeadView(this);
+        _lineFootView = new LineFootView(this);
 
         // Create ScrollGroup for JavaTextArea and LineNumView
         ScrollGroup scrollGroup = new ScrollGroup();
@@ -95,7 +95,7 @@ public class JavaTextPane extends TextPane {
         // Replace TextPane center with scrollGroup
         BorderView borderView = getUI(BorderView.class);
         borderView.setCenter(scrollGroup);
-        borderView.setRight(_lineFooterView);
+        borderView.setRight(_lineFootView);
     }
 
     /**
@@ -343,6 +343,12 @@ public class JavaTextPane extends TextPane {
         String propName = aPC.getPropName();
         if (propName == JavaTextArea.SelectedNode_Prop)
             resetLater();
+
+        // Handle TextDoc
+        if (propName == TextArea.TextDoc_Prop) {
+            _lineNumView.resetAll();
+            _lineFootView.resetAll();
+        }
     }
 
     /**
@@ -362,7 +368,7 @@ public class JavaTextPane extends TextPane {
             CharSequence chars = (CharSequence) (aPC.getNewValue() != null ? aPC.getNewValue() : aPC.getOldValue());
             if (CharSequenceUtils.indexOfNewline(chars, 0) >= 0)
                 _lineNumView.resetAll();
-            _lineFooterView.resetAll();
+            _lineFootView.resetAll();
         }
     }
 
@@ -372,7 +378,7 @@ public class JavaTextPane extends TextPane {
     public void buildIssueOrBreakPointMarkerChanged()
     {
         _lineNumView.resetAll();
-        _lineFooterView.resetAll();
+        _lineFootView.resetAll();
         _textArea.repaint();
     }
 
