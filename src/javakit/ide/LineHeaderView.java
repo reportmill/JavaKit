@@ -43,9 +43,8 @@ public class LineHeaderView extends View {
     private static Color BACKGROUND_FILL = new Color(.98);
     private static Color LINE_NUMBERS_COLOR = Color.GRAY5;
 
-    // Constants for Numbers/Markers width
+    // Constants for Markers width
     public static final int LINE_MARKERS_WIDTH = 12;
-    public static final int LINE_NUMBERS_WIDTH = 25;
 
     // The marker images for Error, Warning, Breakpoint, Implements, Override
     static Image _errorImage = Image.get(JavaTextUtils.class, "ErrorMarker.png");
@@ -183,7 +182,9 @@ public class LineHeaderView extends View {
     public void resetAll()
     {
         _markers = null;
-        setPrefWidth(getSuggestedPrefWidth());
+        double prefW = getSuggestedPrefWidth();
+        double prefH = _textArea.getPrefHeight();
+        setPrefSize(prefW, prefH);
         repaint();
     }
 
@@ -192,11 +193,26 @@ public class LineHeaderView extends View {
      */
     private double getSuggestedPrefWidth()
     {
-        Font font = _textArea.getFont();
-        double ratio = font.getSize() / 11;
-        double lineNumbersWidth = _showLineNumbers ? Math.ceil(LINE_NUMBERS_WIDTH * ratio) : 0;
-        double lineMarkersWidth = _showLineMarkers ? Math.ceil(LINE_MARKERS_WIDTH * ratio) : 0;
-        return lineNumbersWidth + lineMarkersWidth;
+        double prefW = 0;
+
+        // Add width for line numbers
+        if (_showLineNumbers) {
+            Font font = _textArea.getFont();
+            int lineCount = _textArea.getLineCount();
+            double colCount = Math.ceil(Math.log10(lineCount) + .0001);
+            double charWidth = Math.ceil(font.charAdvance('0'));
+            double colsWidth = colCount * charWidth;
+            double PADDING = 10;
+            prefW += colsWidth + PADDING;
+        }
+
+        // Add Width for line markers
+        if (_showLineMarkers) {
+            prefW += LINE_MARKERS_WIDTH;
+        }
+
+        // Return
+        return prefW;
     }
 
     /**
@@ -284,7 +300,8 @@ public class LineHeaderView extends View {
         TextBoxLine startLine = _textArea.getTextBox().getLineForY(clipY);
         int startLineIndex = startLine.getIndex();
         int lineCount = _textArea.getLineCount();
-        double maxX = 20;
+        int PADDING = 6;
+        double maxX = getWidth() - PADDING;
 
         // Iterate over lines and paint line number for each
         for (int i = startLineIndex; i < lineCount; i++) {

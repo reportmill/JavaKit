@@ -12,7 +12,6 @@ import snap.text.TextDoc;
 import snap.util.*;
 import snap.view.*;
 import snap.viewx.TextPane;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,7 @@ public class JavaTextPane extends TextPane {
     protected JavaTextArea  _textArea;
 
     // The RowHeader
-    private LineHeaderView  _lineHeaderView;
+    private LineHeaderView  _lineNumView;
 
     // The OverView
     private LineFooterView  _lineFooterView;
@@ -75,11 +74,6 @@ public class JavaTextPane extends TextPane {
         _textArea = getTextArea();
         _textArea.setGrowWidth(true);
         enableEvents(_textArea, KeyPress, KeyRelease, KeyType, MousePress, MouseRelease);
-        _textArea.addPropChangeListener(pc -> javaTextAreaDidPropChange(pc));
-
-        // Start listening to TextArea doc
-        TextDoc textDoc = _textArea.getTextDoc();
-        textDoc.addPropChangeListener(pc -> textDocDidPropChange(pc));
 
         // Reset TextArea font
         double fontSize = Prefs.getDefaultPrefs().getDouble("JavaFontSize", 12);
@@ -87,7 +81,7 @@ public class JavaTextPane extends TextPane {
         _textArea.setFont(new Font(_textArea.getDefaultFont().getName(), fontSize));
 
         // Create/configure LineNumView, LineFooterView
-        _lineHeaderView = new LineHeaderView(this, getTextArea());
+        _lineNumView = new LineHeaderView(this, getTextArea());
         _lineFooterView = new LineFooterView(this);
 
         // Create ScrollGroup for JavaTextArea and LineNumView
@@ -95,7 +89,7 @@ public class JavaTextPane extends TextPane {
         scrollGroup.setBorder(Color.GRAY9, 1);
         scrollGroup.setGrowWidth(true);
         scrollGroup.setContent(_textArea);
-        scrollGroup.setLeftView(_lineHeaderView);
+        scrollGroup.setLeftView(_lineNumView);
         scrollGroup.setMinWidth(200);
 
         // Replace TextPane center with scrollGroup
@@ -339,8 +333,13 @@ public class JavaTextPane extends TextPane {
     /**
      * Called when JavaTextArea changes.
      */
-    protected void javaTextAreaDidPropChange(PropChange aPC)
+    @Override
+    protected void textAreaDidPropChange(PropChange aPC)
     {
+        // Do normal version
+        super.textAreaDidPropChange(aPC);
+
+        // Handle SelectedNode change: Reset UI
         String propName = aPC.getPropName();
         if (propName == JavaTextArea.SelectedNode_Prop)
             resetLater();
@@ -349,7 +348,8 @@ public class JavaTextPane extends TextPane {
     /**
      * Called when TextDoc changes.
      */
-    private void textDocDidPropChange(PropChange aPC)
+    @Override
+    protected void textDocDidPropChange(PropChange aPC)
     {
         String propName = aPC.getPropName();
         if (propName == TextDoc.Chars_Prop) {
@@ -361,7 +361,7 @@ public class JavaTextPane extends TextPane {
             // If added/removed newline, reset
             CharSequence chars = (CharSequence) (aPC.getNewValue() != null ? aPC.getNewValue() : aPC.getOldValue());
             if (CharSequenceUtils.indexOfNewline(chars, 0) >= 0)
-                _lineHeaderView.resetAll();
+                _lineNumView.resetAll();
             _lineFooterView.resetAll();
         }
     }
@@ -371,7 +371,7 @@ public class JavaTextPane extends TextPane {
      */
     public void buildIssueOrBreakPointMarkerChanged()
     {
-        _lineHeaderView.resetAll();
+        _lineNumView.resetAll();
         _lineFooterView.resetAll();
         _textArea.repaint();
     }

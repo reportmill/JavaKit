@@ -136,14 +136,14 @@ public class JavaTextPaneX extends JavaTextPane {
      * Called when JavaTextArea changes.
      */
     @Override
-    protected void javaTextAreaDidPropChange(PropChange aPC)
+    protected void textAreaDidPropChange(PropChange aPC)
     {
-        super.javaTextAreaDidPropChange(aPC);
+        // Do normal version
+        super.textAreaDidPropChange(aPC);
 
+        // Handle SelectedNode change: Update CodeBuilder
         String propName = aPC.getPropName();
         if (propName == JavaTextArea.SelectedNode_Prop) {
-
-            // If CodeBuilder Visible, update CodeBlocks
             if (_codeBuilder != null && _codeBuilder.isVisible())
                 _codeBuilder.setCodeBlocks();
         }
