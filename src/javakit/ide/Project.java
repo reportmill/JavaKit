@@ -27,6 +27,9 @@ public class Project {
     // The ClassLoader for compiled class info
     protected ClassLoader  _classLoader;
 
+    // A list of build issues
+    private BuildIssues  _buildIssues;
+
     /**
      * Creates a new Project for WebSite.
      */
@@ -212,6 +215,16 @@ public class Project {
     public String getClassNameForFile(WebFile aFile)
     {
         return _projFiles.getClassNameForFile(aFile);
+    }
+
+    /**
+     * The breakpoint list property.
+     */
+    public BuildIssues getBuildIssues()
+    {
+        if (_buildIssues != null) return _buildIssues;
+        BuildIssues buildIssues = new BuildIssues(this);
+        return _buildIssues = buildIssues;
     }
 
     /**

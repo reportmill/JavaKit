@@ -4,7 +4,6 @@
 package javakit.ide;
 import java.util.*;
 import javakit.parse.*;
-import javakit.resolver.JavaClass;
 import javakit.resolver.JavaDecl;
 import javakit.parse.JavaTextDoc;
 import snap.geom.Rect;
@@ -663,12 +662,21 @@ public class JavaTextArea extends TextArea {
     /**
      * Returns Breakpoints from ProjectFile.
      */
-    public List<Breakpoint> getBreakpoints()
+    public Breakpoint[] getBreakpoints()
     {
-        Breakpoints breakpoints = getProjBreakpoints(); if (breakpoints == null) return null;
+        // Get project breakpoints
+        Breakpoints projBreakpoints = getProjBreakpoints();
+        if (projBreakpoints == null)
+            return null;
+
+        // Get java file
         TextDoc textDoc = getTextDoc();
-        WebFile file = textDoc.getSourceFile(); if (file == null) return null;
-        return breakpoints.get(file);
+        WebFile file = textDoc.getSourceFile();
+        if (file == null)
+            return null;
+
+        // Return breakpoints for file
+        return projBreakpoints.getBreakpointsForFile(file);
     }
 
     /**
@@ -676,10 +684,17 @@ public class JavaTextArea extends TextArea {
      */
     public void addBreakpoint(int aLine)
     {
-        Breakpoints breakpoints = getProjBreakpoints(); if (breakpoints == null) return;
+        // Get project breakpoints
+        Breakpoints projBreakpoints = getProjBreakpoints();
+        if (projBreakpoints == null)
+            return;
+
+        // Get java file
         TextDoc textDoc = getTextDoc();
         WebFile file = textDoc.getSourceFile();
-        breakpoints.addBreakpoint(file, aLine);
+
+        // Add breakpoint for file
+        projBreakpoints.addBreakpointForFile(file, aLine);
     }
 
     /**
@@ -687,7 +702,12 @@ public class JavaTextArea extends TextArea {
      */
     public void removeBreakpoint(Breakpoint aBP)
     {
-        Breakpoints breakpoints = getProjBreakpoints(); if (breakpoints == null) return;
+        // Get project breakpoints
+        Breakpoints breakpoints = getProjBreakpoints();
+        if (breakpoints == null)
+            return;
+
+        // Remove breakpoint
         breakpoints.remove(aBP);
     }
 

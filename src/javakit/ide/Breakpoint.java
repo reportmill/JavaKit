@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.ide;
 import snap.web.WebFile;
 import java.util.List;
@@ -9,49 +12,48 @@ import java.util.Objects;
 public class Breakpoint implements Comparable<Breakpoint> {
 
     // The type of breakpoint
-    Type _type;
+    private Type  _type;
 
     // The file path
-    WebFile _file;
+    private WebFile  _file;
 
     // The class name
-    String _className;
+    private String  _className;
 
     // Whether class name is wild carded (if Class breakpoint)
-    boolean _isWild;
+    private boolean  _isWild;
 
     // The line number
-    int _line;
+    private int  _line;
 
     // The field name (for Watchpoints)
-    String _fieldId;
+    private String  _fieldId;
 
     // The method name (for MethodBreakpoint)
-    String _methodName;
+    private String  _methodName;
 
     // The method args (for MethodBreakpoint)
-    List<String> _methodArgs;
+    private List<String> _methodArgs;
 
     // Whether to notify caught, uncaught (for Exception)
-    boolean _notifyCaught, _notifyUncaught;
+    private boolean  _notifyCaught, _notifyUncaught;
 
     // Whether breakpoint is enabled
-    boolean _enabled = true;
+    private boolean  _enabled = true;
 
     // Constants for type
-    public enum Type {LineBreakpoint, MethodBreakpoint, Exception, AccessWatchpoint, ModificationWatchpoint}
-
-    ;
+    public enum Type { LineBreakpoint, MethodBreakpoint, Exception, AccessWatchpoint, ModificationWatchpoint }
 
     /**
-     * Creates a Breakpoint for project, FilePath and Line.
+     * Constructor.
      */
     protected Breakpoint()
     {
+        super();
     }
 
     /**
-     * Creates a Breakpoint for File and Line.
+     * Constructor for File and Line.
      */
     public Breakpoint(WebFile aFile, int aLine)
     {
@@ -63,7 +65,7 @@ public class Breakpoint implements Comparable<Breakpoint> {
     }
 
     /**
-     * Creates a Breakpoint for class name and Line.
+     * Constructor for class name and Line.
      */
     public Breakpoint(String aClsName, int line)
     {
@@ -77,10 +79,10 @@ public class Breakpoint implements Comparable<Breakpoint> {
     }
 
     /**
-     * Creates a Breakpoint for class name, method name and args.
+     * Constructor for class name, method name and args.
      * For example: initMethod("snap.app.App", "main", Collections.singletonList("java.lang.String[]"));
      */
-    public Breakpoint(String aClsName, String aMethod, List theArgs)
+    public Breakpoint(String aClsName, String aMethod, List<String> theArgs)
     {
         _type = Type.MethodBreakpoint;
         _className = aClsName;
@@ -118,25 +120,20 @@ public class Breakpoint implements Comparable<Breakpoint> {
      */
     public String getName()
     {
-        if (_file != null) return _file.getPath(); // + '@' + _lineNumber;
+        if (_file != null)
+            return _file.getPath(); // + '@' + _lineNumber;
         return _isWild ? "*" + _className : _className;
     }
 
     /**
      * Returns the type.
      */
-    public Type getType()
-    {
-        return _type;
-    }
+    public Type getType()  { return _type; }
 
     /**
      * Returns the file.
      */
-    public WebFile getFile()
-    {
-        return _file;
-    }
+    public WebFile getFile()  { return _file; }
 
     /**
      * Sets the file.
@@ -173,66 +170,42 @@ public class Breakpoint implements Comparable<Breakpoint> {
     /**
      * Returns the line number.
      */
-    public int getLineNum()
-    {
-        return _line + 1;
-    }
+    public int getLineNum()  { return _line + 1; }
 
     /**
      * Returns the class name.
      */
-    public String getClassName()
-    {
-        return _className;
-    }
+    public String getClassName()  { return _className; }
 
     /**
      * Returns the field name (if field break point).
      */
-    public String getFieldName()
-    {
-        return _fieldId;
-    }
+    public String getFieldName()  { return _fieldId; }
 
     /**
      * Returns the method name (if method break point).
      */
-    public String getMethodName()
-    {
-        return _methodName;
-    }
+    public String getMethodName()  { return _methodName; }
 
     /**
      * Returns the method args (if method break point).
      */
-    public List<String> getMethodArgs()
-    {
-        return _methodArgs;
-    }
+    public List<String> getMethodArgs()  { return _methodArgs; }
 
     /**
      * Returns whether to notify caught.
      */
-    public boolean isNotifyCaught()
-    {
-        return _notifyCaught;
-    }
+    public boolean isNotifyCaught()  { return _notifyCaught; }
 
     /**
      * Returns whether to notify caught.
      */
-    public boolean isNotifyUncaught()
-    {
-        return _notifyUncaught;
-    }
+    public boolean isNotifyUncaught()  { return _notifyUncaught; }
 
     /**
      * Returns whether breakpoint is enabled.
      */
-    public boolean isEnabled()
-    {
-        return _enabled;
-    }
+    public boolean isEnabled()  { return _enabled; }
 
     /**
      * Sets whether breakpoint is enabled.
@@ -247,7 +220,8 @@ public class Breakpoint implements Comparable<Breakpoint> {
      */
     public String getDescriptor()
     {
-        return getFile().getPath() + " [Line: " + getLineNum() + "]";
+        String filePath = getFilePath();
+        return filePath + " [Line: " + getLineNum() + "]";
     }
 
     /**
@@ -255,7 +229,8 @@ public class Breakpoint implements Comparable<Breakpoint> {
      */
     public int compareTo(Breakpoint aBP)
     {
-        if (_file != aBP._file) return _file.compareTo(aBP._file);
+        if (_file != aBP._file)
+            return _file.compareTo(aBP._file);
         return _line < aBP._line ? -1 : _line == aBP._line ? 0 : 1;
     }
 
@@ -326,7 +301,7 @@ public class Breakpoint implements Comparable<Breakpoint> {
 
         // Handle Type Method
         if (getType() == Type.MethodBreakpoint) {
-            StringBuffer sb = new StringBuffer("breakpoint ");
+            StringBuilder sb = new StringBuilder("breakpoint ");
             sb.append(getName()).append('.').append(_methodName);
             if (_methodArgs != null) {
                 boolean first = true;
@@ -352,5 +327,4 @@ public class Breakpoint implements Comparable<Breakpoint> {
         // Unknown
         return "Unknown Event request type " + getType();
     }
-
 }

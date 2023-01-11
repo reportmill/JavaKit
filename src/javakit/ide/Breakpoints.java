@@ -1,8 +1,10 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.ide;
-
 import snap.util.SnapList;
 import snap.web.WebFile;
-
+import snap.web.WebSite;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,7 +16,7 @@ import java.util.Scanner;
 public class Breakpoints extends SnapList<Breakpoint> {
 
     // The project
-    Project _proj;
+    private Project  _proj;
 
     /**
      * Creates new Breakpoints for Project.
@@ -22,8 +24,9 @@ public class Breakpoints extends SnapList<Breakpoint> {
     public Breakpoints(Project aProj)
     {
         _proj = aProj;
-        List<Breakpoint> bpoints = readFile();
-        for (Breakpoint bp : bpoints) super.add(size(), bp);
+        List<Breakpoint> breakpoints = readFile();
+        for (Breakpoint bp : breakpoints)
+            super.add(size(), bp);
     }
 
     /**
@@ -40,36 +43,31 @@ public class Breakpoints extends SnapList<Breakpoint> {
      */
     public Breakpoint remove(int anIndex)
     {
-        Breakpoint bp = super.remove(anIndex);
+        Breakpoint breakpoint = super.remove(anIndex);
         writeFile();
-        return bp;
+        return breakpoint;
     }
 
     /**
      * Adds a Breakpoint to file at line.
      */
-    public void addBreakpoint(WebFile aFile, int aLine)
+    public void addBreakpointForFile(WebFile aFile, int aLine)
     {
-        Breakpoint bp = new Breakpoint(aFile, aLine);
-        int index = Collections.binarySearch(this, bp);
-        if (index < 0) index = -index - 1;
-        else return;
-        add(index, bp);
+        Breakpoint breakpoint = new Breakpoint(aFile, aLine);
+        int index = Collections.binarySearch(this, breakpoint);
+        if (index < 0) {
+            index = -index - 1;
+            add(index, breakpoint);
+        }
     }
 
     /**
      * Returns the breakpoints for a given file.
      */
-    public List<Breakpoint> get(WebFile aFile)
+    public Breakpoint[] getBreakpointsForFile(WebFile aFile)
     {
-        List bps = Collections.EMPTY_LIST;
-        for (Breakpoint bp : this) {
-            if (bp.getFile() == aFile) {
-                if (bps == Collections.EMPTY_LIST) bps = new ArrayList();
-                bps.add(bp);
-            }
-        }
-        return bps;
+        Breakpoint[] breakpoints = stream().filter(bp -> bp.getFile() == aFile).toArray(size -> new Breakpoint[size]);
+        return breakpoints;
     }
 
     /**
@@ -79,26 +77,27 @@ public class Breakpoints extends SnapList<Breakpoint> {
     {
         // Get breakpoint file and text
         WebFile file = getFile();
-        if (!file.getExists()) return Collections.EMPTY_LIST;
-        String text = file.getText();
+        if (!file.getExists())
+            return Collections.EMPTY_LIST;
 
-        // Scan over text
-        List<Breakpoint> list = new ArrayList();
+        // Get vars
+        String text = file.getText();
         Scanner scanner = new Scanner(text);
+        List<Breakpoint> breakpointsList = new ArrayList<>();
+
+        // Iterate over text
         while (scanner.hasNext()) {
             String type = scanner.next();
             String path = scanner.next();
-            int line = scanner.nextInt();
-            WebFile f = _proj.getFile(path); // Was ProjectSet JK
-            if (f != null) {
-                System.err.println("BreakPoints: Ignoring breakpoints");
-                //list.add(new Breakpoint(f, line));
-            }
+            int lineNum = scanner.nextInt();
+            WebFile breakpointFile = _proj.getFile(path); // Was ProjectSet JK
+            if (breakpointFile != null)
+                breakpointsList.add(new Breakpoint(breakpointFile, lineNum));
         }
         scanner.close();
 
-        // Return list
-        return list;
+        // Return
+        return breakpointsList;
     }
 
     /**
@@ -106,11 +105,12 @@ public class Breakpoints extends SnapList<Breakpoint> {
      */
     public void writeFile()
     {
-        StringBuffer sb = new StringBuffer();
-        for (Breakpoint bp : this) {
-            sb.append(bp.getType()).append(' ');
-            sb.append(bp.getFilePath()).append(' ');
-            sb.append(bp.getLine()).append('\n');
+        // Create file text
+        StringBuilder sb = new StringBuilder();
+        for (Breakpoint breakpoint : this) {
+            sb.append(breakpoint.getType()).append(' ');
+            sb.append(breakpoint.getFilePath()).append(' ');
+            sb.append(breakpoint.getLine()).append('\n');
         }
 
         // Get file, set text and save
@@ -128,9 +128,11 @@ public class Breakpoints extends SnapList<Breakpoint> {
      */
     protected WebFile getFile()
     {
-        WebFile file = _proj.getSite().getSandbox().getFileForPath("/settings/breakpoints");
-        if (file == null) file = _proj.getSite().getSandbox().createFile("/settings/breakpoints", false);
+        WebSite projSite = _proj.getSite();
+        WebSite sandboxSite = projSite.getSandbox();
+        WebFile file = sandboxSite.getFileForPath("/settings/breakpoints");
+        if (file == null)
+            file = sandboxSite.createFile("/settings/breakpoints", false);
         return file;
     }
-
 }

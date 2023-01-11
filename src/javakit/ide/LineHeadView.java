@@ -134,9 +134,9 @@ public class LineHeadView extends View {
                 markers.add(new LineMarker.BuildIssueMarker(_textPane, issue));
 
         // Add markers for breakpoints
-        List<Breakpoint> breakpointsList = _textArea.getBreakpoints();
-        if (breakpointsList != null) {
-            for (Breakpoint bp : breakpointsList) {
+        Breakpoint[] breakpoints = _textArea.getBreakpoints();
+        if (breakpoints != null) {
+            for (Breakpoint bp : breakpoints) {
                 if (bp.getLine() < _textArea.getLineCount())
                     markers.add(new LineMarker.BreakpointMarker(_textPane, bp));
                 else _textArea.removeBreakpoint(bp);
