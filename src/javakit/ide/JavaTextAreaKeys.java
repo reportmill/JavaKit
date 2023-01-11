@@ -132,8 +132,8 @@ public class JavaTextAreaKeys extends TextAreaKeys {
                 // Get indent for this line and next
                 TextBoxLine thisLine = getSel().getStartLine();
                 TextBoxLine prevLine = thisLine.getPrevious();
-                int thisIndent = _javaTextArea.getIndent(thisLine);
-                int prevIndent = prevLine != null ? _javaTextArea.getIndent(prevLine) : 0;
+                int thisIndent = thisLine.getIndentLength();
+                int prevIndent = prevLine != null ? prevLine.getIndentLength() : 0;
 
                 // If this line starts with close bracket and indent is too much, remove indent level
                 if (thisLine.getString().trim().startsWith("}") && thisIndent > prevIndent && thisIndent > 4) {

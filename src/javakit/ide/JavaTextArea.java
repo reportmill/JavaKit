@@ -272,7 +272,7 @@ public class JavaTextArea extends TextArea {
             return new TextBoxToken[0];
 
         // Handle null
-        JavaDecl nodeDecl = aNode != null ? aNode.getDecl() : null;
+        JavaDecl nodeDecl = aNode.getDecl();
         if (nodeDecl == null)
             return new TextBoxToken[0];
 
@@ -308,7 +308,7 @@ public class JavaTextArea extends TextArea {
             // Get line index (skip if negative - assume Repl import statement or something)
             int lineIndex = jnode.getLineIndex() - textBoxLineStart;
             if (lineIndex < 0)
-                continue;;
+                continue;
 
             // Get line and token
             TextBoxLine textBoxLine = textBox.getLine(lineIndex);
@@ -464,16 +464,6 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the indent of a given line.
-     */
-    public int getIndent(TextBoxLine aLine)
-    {
-        int i = 0;
-        while (i < aLine.length() && aLine.charAt(i) == ' ') i++;
-        return i;
-    }
-
-    /**
      * Indents the text.
      */
     public void indentLines()
@@ -594,10 +584,12 @@ public class JavaTextArea extends TextArea {
         }
 
         // Iterate over Breakpoints and shift start/end for removed chars
-//        int sline = getLineAt(aStart).getIndex(), eline = getLineAt(aStart+len).getIndex(), dline = eline - sline;
-//        if(sline!=eline) for(Breakpoint bp : getBreakpoints().toArray(new Breakpoint[0])) {
+//        int sline = getLineAt(aStart).getIndex();
+//        int eline = getLineAt(aStart + charsLength).getIndex();
+//        int dline = eline - sline;
+//        if(sline != eline) for(Breakpoint bp : getBreakpoints()) {
 //            int bline = bp.getLine();
-//            if(sline<bline && eline<=bline) { bp.setLine(bline + dline);
+//            if(sline < bline && eline <= bline) { bp.setLine(bline + dline);
 //                getProjBreakpoints().writeFile(); }
 //        }
     }
@@ -622,23 +614,16 @@ public class JavaTextArea extends TextArea {
             buildIssue.setEnd(end);
         }
 
-        // Get number of newlines removed (in chars)
-        int nlc = 0;
-        for (int i = 0, iMax = theChars.length(); i < iMax; i++) {
-            char c = theChars.charAt(i);
-            if (c == '\r') {
-                nlc++;
-                if (i + 1 < iMax && theChars.charAt(i + 1) == '\n') i++;
-            } else if (c == '\n') nlc++;
-        }
-
         // See if we need to remove Breakpoints
-//        int sline = getLineAt(aStart).getIndex(), eline = sline + nlc, dline = eline - sline;
-//        if(sline!=eline) for(Breakpoint bp : getBreakpoints().toArray(new Breakpoint[0])) {
+//        int newlineCount = getNewlineCount(theChars);
+//        int sline = getLineAt(aStart).getIndex();
+//        int eline = sline + newlineCount;
+//        int dline = eline - sline;
+//        if(sline != eline) for(Breakpoint bp : getBreakpoints()) {
 //            int bline = bp.getLine();
-//            if(sline<bline && eline<=bline) { bp.setLine(bline - dline);
+//            if(sline < bline && eline <= bline) { bp.setLine(bline - dline);
 //                getProjBreakpoints().writeFile(); }
-//            else if(sline<bline && eline>bline)
+//            else if(sline < bline && eline > bline)
 //                getProjBreakpoints().remove(bp);
 //        }
     }
@@ -749,5 +734,26 @@ public class JavaTextArea extends TextArea {
 
         // Do normal version
         super.replaceCharsWithContent(theContent);
+    }
+
+    /**
+     * Utility method: Returns number of newlines in given chars.
+     */
+    private static int getNewlineCount(CharSequence theChars)
+    {
+        int newlineCount = 0;
+        for (int i = 0, iMax = theChars.length(); i < iMax; i++) {
+            char c = theChars.charAt(i);
+            if (c == '\r') {
+                newlineCount++;
+                if (i + 1 < iMax && theChars.charAt(i + 1) == '\n')
+                    i++;
+            }
+            else if (c == '\n')
+                newlineCount++;
+        }
+
+        // Return
+        return newlineCount;
     }
 }
