@@ -18,16 +18,16 @@ import java.util.List;
 /**
  * A panel for editing Java files.
  */
-public class JavaTextPane extends TextPane {
+public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
 
     // The JavaTextArea
     protected JavaTextArea  _textArea;
 
     // The RowHeader
-    protected LineHeadView _lineNumView;
+    protected LineHeadView  _lineNumView;
 
     // The OverView
-    protected LineFootView _lineFootView;
+    protected LineFootView  _lineFootView;
 
     /**
      * Constructor.
@@ -40,6 +40,7 @@ public class JavaTextPane extends TextPane {
     /**
      * Returns the JavaTextArea.
      */
+    @Override
     public JavaTextArea getTextArea()
     {
         return (JavaTextArea) super.getTextArea();
@@ -48,6 +49,7 @@ public class JavaTextPane extends TextPane {
     /**
      * Creates the JavaTextArea.
      */
+    @Override
     protected JavaTextArea createTextArea()
     {
         return new JavaTextArea();
