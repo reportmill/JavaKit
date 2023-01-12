@@ -286,7 +286,7 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
         viewBuilder.name("ShowDeclarationsMenuItem").text("Show Declarations").save();
 
         // Create context menu
-        Menu contextMenu = viewBuilder.buildMenu();
+        Menu contextMenu = viewBuilder.buildMenu("ContextMenu", null);
         contextMenu.setOwner(this);
 
         // Return
