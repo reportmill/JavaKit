@@ -552,19 +552,26 @@ public class JavaTextArea extends TextArea {
      */
     protected void textDocDidPropChange(PropChange anEvent)
     {
-        // Do normal version and update TextPane.TextModified (just return if not chars change)
+        // Do normal version and update TextPane.TextModified
         super.textDocDidPropChange(anEvent);
-        if (anEvent.getPropertyName() != TextDoc.Chars_Prop)
-            return;
 
-        // Call didAddChars/didRemoveChars
-        TextDocUtils.CharsChange charsChange = (TextDocUtils.CharsChange) anEvent;
-        int charIndex = anEvent.getIndex();
-        CharSequence addChars = charsChange.getNewValue();
-        CharSequence removeChars = charsChange.getOldValue();
-        if (addChars != null)
-            didAddChars(addChars, charIndex);
-        else didRemoveChars(removeChars, charIndex);
+        // Get PropName
+        String propName = anEvent.getPropName();
+
+        // Handle Chars_Prop: Call didAddChars/didRemoveChars
+        if (propName == TextDoc.Chars_Prop) {
+
+            // Get CharsChange info
+            TextDocUtils.CharsChange charsChange = (TextDocUtils.CharsChange) anEvent;
+            int charIndex = anEvent.getIndex();
+            CharSequence addChars = charsChange.getNewValue();
+            CharSequence removeChars = charsChange.getOldValue();
+
+            // Forward to did add/remove chars
+            if (addChars != null)
+                didAddChars(addChars, charIndex);
+            else didRemoveChars(removeChars, charIndex);
+        }
     }
 
     /**
@@ -574,7 +581,8 @@ public class JavaTextArea extends TextArea {
     {
         // Iterate over BuildIssues and shift start/end for removed chars
         int charsLength = theChars.length();
-        for (BuildIssue buildIssue : getBuildIssues()) {
+        BuildIssue[] buildIssues = getBuildIssues();
+        for (BuildIssue buildIssue : buildIssues) {
             int buildIssueStart = buildIssue.getStart();
             if (charIndex <= buildIssueStart)
                 buildIssue.setStart(buildIssueStart + charsLength);
@@ -583,15 +591,29 @@ public class JavaTextArea extends TextArea {
                 buildIssue.setEnd(buildIssueEnd + charsLength);
         }
 
-        // Iterate over Breakpoints and shift start/end for removed chars
-//        int sline = getLineAt(aStart).getIndex();
-//        int eline = getLineAt(aStart + charsLength).getIndex();
-//        int dline = eline - sline;
-//        if(sline != eline) for(Breakpoint bp : getBreakpoints()) {
-//            int bline = bp.getLine();
-//            if(sline < bline && eline <= bline) { bp.setLine(bline + dline);
-//                getProjBreakpoints().writeFile(); }
-//        }
+        // If line was added or removed, iterate over Breakpoints and shift start/end for removed chars
+        int newlineCount = getNewlineCount(theChars);
+        if (newlineCount > 0) {
+
+            // Get start/end line index
+            TextBoxLine startLine = getLineForCharIndex(charIndex);
+            TextBoxLine endLine = getLineForCharIndex(charIndex + charsLength);
+            int startLineIndex = startLine.getIndex();
+            int endLineIndex = endLine.getIndex();
+            int lineIndexDelta = endLineIndex - startLineIndex;
+
+            // Iterate over breakpoints and update
+            Breakpoint[] breakpoints = getBreakpoints();
+            for (Breakpoint breakpoint : breakpoints) {
+                int lineIndex = breakpoint.getLine();
+                if (startLineIndex < lineIndex && endLineIndex <= lineIndex) {
+                    breakpoint.setLine(lineIndex + lineIndexDelta);
+                    Breakpoints projBreakpoints = getProjBreakpoints();
+                    if (projBreakpoints != null)
+                        projBreakpoints.writeFile();
+                }
+            }
+        }
     }
 
     /**
@@ -601,31 +623,44 @@ public class JavaTextArea extends TextArea {
     {
         // See if we need to shift BuildIssues
         int endOld = charIndex + theChars.length();
-        for (BuildIssue buildIssue : getBuildIssues()) {
+        BuildIssue[] buildIssues = getBuildIssues();
+        for (BuildIssue buildIssue : buildIssues) {
             int buildIssueStart = buildIssue.getStart();
             int buildIssueEnd = buildIssue.getEnd();
-            int start = buildIssueStart;
-            int end = buildIssueEnd;
-            if (charIndex < buildIssueStart)
-                start = buildIssueStart - (Math.min(buildIssueStart, endOld) - charIndex);
-            if (charIndex < buildIssueEnd)
-                end = buildIssueEnd - (Math.min(buildIssueEnd, endOld) - charIndex);
-            buildIssue.setStart(start);
-            buildIssue.setEnd(end);
+            if (charIndex < buildIssueStart) {
+                int newStart = buildIssueStart - (Math.min(buildIssueStart, endOld) - charIndex);
+                buildIssue.setStart(newStart);
+            }
+            if (charIndex < buildIssueEnd) {
+                int newEnd = buildIssueEnd - (Math.min(buildIssueEnd, endOld) - charIndex);
+                buildIssue.setEnd(newEnd);
+            }
         }
 
         // See if we need to remove Breakpoints
-//        int newlineCount = getNewlineCount(theChars);
-//        int sline = getLineAt(aStart).getIndex();
-//        int eline = sline + newlineCount;
-//        int dline = eline - sline;
-//        if(sline != eline) for(Breakpoint bp : getBreakpoints()) {
-//            int bline = bp.getLine();
-//            if(sline < bline && eline <= bline) { bp.setLine(bline - dline);
-//                getProjBreakpoints().writeFile(); }
-//            else if(sline < bline && eline > bline)
-//                getProjBreakpoints().remove(bp);
-//        }
+        int newlineCount = getNewlineCount(theChars);
+        if (newlineCount > 0) {
+
+            // Get start/end lines
+            TextBoxLine startLine = getLineForCharIndex(charIndex);
+            int startLineIndex = startLine.getIndex();
+            int endLineIndex = startLineIndex + newlineCount;
+            int lineIndexDelta = endLineIndex - startLineIndex;
+
+            // Iterate over breakpoints and see if they need to update line (or be removed)
+            Breakpoint[] breakpoints = getBreakpoints();
+            for (Breakpoint breakpoint : breakpoints) {
+                int lineIndex = breakpoint.getLine();
+                if (startLineIndex < lineIndex) {
+                    Breakpoints projBreakpoints = getProjBreakpoints();
+                    if (endLineIndex <= lineIndex) {
+                        breakpoint.setLine(lineIndex - lineIndexDelta);
+                        projBreakpoints.writeFile();
+                    }
+                    else projBreakpoints.remove(breakpoint);
+                }
+            }
+        }
     }
 
     /**
@@ -739,7 +774,7 @@ public class JavaTextArea extends TextArea {
      */
     public int getProgramCounterLine()
     {
-        JavaTextPane javaTextPane = getOwner(JavaTextPane.class);
+        JavaTextPane<?> javaTextPane = getOwner(JavaTextPane.class);
         if (javaTextPane == null)
             return -1;
         return javaTextPane.getProgramCounterLine();
