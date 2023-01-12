@@ -30,6 +30,9 @@ public class Project {
     // A list of build issues
     private BuildIssues  _buildIssues;
 
+    // The list of Breakpoints
+    private Breakpoints  _breakpoints;
+
     /**
      * Creates a new Project for WebSite.
      */
@@ -223,8 +226,16 @@ public class Project {
     public BuildIssues getBuildIssues()
     {
         if (_buildIssues != null) return _buildIssues;
-        BuildIssues buildIssues = new BuildIssues(this);
-        return _buildIssues = buildIssues;
+        return _buildIssues = new BuildIssues(this);
+    }
+
+    /**
+     * Returns the breakpoints.
+     */
+    public Breakpoints getBreakpoints()
+    {
+        if (_breakpoints != null) return _breakpoints;
+        return _breakpoints = new Breakpoints(this);
     }
 
     /**
@@ -232,7 +243,8 @@ public class Project {
      */
     private void projConfigDidPropChange(PropChange anEvent)
     {
-        if (anEvent.getPropertyName() == ProjectConfig.JarPaths_Prop) {
+        String propName = anEvent.getPropName();
+        if (propName == ProjectConfig.JarPaths_Prop) {
             _resolver = null;
             _classLoader = null;
         }

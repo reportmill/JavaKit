@@ -629,11 +629,50 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
+     * Returns the source file.
+     */
+    public WebFile getSourceFile()
+    {
+        TextDoc textDoc = getTextDoc();
+        return textDoc.getSourceFile();
+    }
+
+    /**
+     * Returns the project.
+     */
+    public Project getProject()
+    {
+        WebFile file = getSourceFile();
+        return file != null ? Project.getProjectForFile(file) : null;
+    }
+
+    /**
+     * Returns the project.
+     */
+    public Project getRootProject()
+    {
+        Project proj = getProject();
+        return proj != null ? proj.getRootProject() : null;
+    }
+
+    /**
      * Returns BuildIssues from ProjectFile.
      */
     public BuildIssue[] getBuildIssues()
     {
-        return new BuildIssue[0]; // Was getRootProject().getBuildIssues().getIssues(getSourceFile()) JK
+        // Get Project.BuildIssues
+        Project rootProj = getRootProject();
+        BuildIssues projBuildIssues = rootProj != null ? rootProj.getBuildIssues() : null;
+        if (projBuildIssues == null)
+            return BuildIssues.NO_ISSUES;
+
+        // Get java file
+        WebFile file = getSourceFile();
+        if (file == null)
+            return null;
+
+        // Return build issues for file
+        return projBuildIssues.getIssuesForFile(file);
     }
 
     /**
@@ -641,7 +680,8 @@ public class JavaTextArea extends TextArea {
      */
     private Breakpoints getProjBreakpoints()
     {
-        return null; // Was getRootProject().getBreakPoints() JK
+        Project proj = getRootProject();
+        return proj != null ? proj.getBreakpoints() : null;
     }
 
     /**
@@ -655,8 +695,7 @@ public class JavaTextArea extends TextArea {
             return null;
 
         // Get java file
-        TextDoc textDoc = getTextDoc();
-        WebFile file = textDoc.getSourceFile();
+        WebFile file = getSourceFile();
         if (file == null)
             return null;
 
@@ -675,8 +714,7 @@ public class JavaTextArea extends TextArea {
             return;
 
         // Get java file
-        TextDoc textDoc = getTextDoc();
-        WebFile file = textDoc.getSourceFile();
+        WebFile file = getSourceFile();
 
         // Add breakpoint for file
         projBreakpoints.addBreakpointForFile(file, aLine);
@@ -701,7 +739,9 @@ public class JavaTextArea extends TextArea {
      */
     public int getProgramCounterLine()
     {
-        JavaTextPane javaTextPane = getOwner(JavaTextPane.class); if (javaTextPane == null) return -1;
+        JavaTextPane javaTextPane = getOwner(JavaTextPane.class);
+        if (javaTextPane == null)
+            return -1;
         return javaTextPane.getProgramCounterLine();
     }
 
