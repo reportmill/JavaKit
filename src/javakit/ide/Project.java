@@ -4,6 +4,8 @@ import snap.props.PropChange;
 import snap.util.FilePathUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
+import snap.web.WebURL;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -265,6 +267,21 @@ public class Project {
     public static synchronized Project getProjectForSite(WebSite aSite)
     {
         Project proj = (Project) aSite.getProp(Project.class.getSimpleName());
+        return proj;
+    }
+
+    /**
+     * Returns a temp project.
+     */
+    public static Project getTempProject()
+    {
+        WebURL url = WebURL.getURL("/tmp/TempProj");
+        WebSite site = url.getAsSite();
+        Project proj = Project.getProjectForSite(site);
+        if (proj == null)
+            proj = new Project(site);
+
+        // Return
         return proj;
     }
 }

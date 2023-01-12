@@ -66,8 +66,8 @@ public class BuildIssues extends SnapList<BuildIssue> {
 
         // Add to file list
         WebFile buildIssueFile = aBI.getFile();
-        List<BuildIssue> buildIssues = _fileIssues.computeIfAbsent(buildIssueFile, k -> new ArrayList<>());
-        buildIssues.add(aBI);
+        List<BuildIssue> buildIssuesForFile = _fileIssues.computeIfAbsent(buildIssueFile, k -> new ArrayList<>());
+        buildIssuesForFile.add(aBI);
 
         // Update ErrorCount/WarningCount
         if (aBI.isError())
