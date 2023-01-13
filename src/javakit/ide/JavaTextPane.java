@@ -447,11 +447,10 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
         // Get test file
         JavaTextDoc javaTextDoc = JavaTextDoc.newFromSource("/tmp/Test.java");
 
-        // Create JavaPane and show
-        JavaTextPane javaPane = new JavaTextPane();
-        JavaTextArea javaTextArea = javaPane.getTextArea();
-        javaTextArea.setTextDoc(javaTextDoc);
-        javaPane.getUI().setPrefHeight(800);
-        javaPane.setWindowVisible(true);
+        // Create JavaTextPane and show
+        JavaTextPane<JavaTextDoc> javaTextPane = new JavaTextPane<>();
+        javaTextPane.setTextDoc(javaTextDoc);
+        javaTextPane.getUI().setPrefHeight(800);
+        javaTextPane.setWindowVisible(true);
     }
 }
