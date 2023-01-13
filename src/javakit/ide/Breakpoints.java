@@ -18,6 +18,9 @@ public class Breakpoints extends SnapList<Breakpoint> {
     // The project
     private Project  _proj;
 
+    // An Empty array of BuildIssues
+    public static final Breakpoint[] NO_BREAKPOINTS = new Breakpoint[0];
+
     /**
      * Creates new Breakpoints for Project.
      */
@@ -66,6 +69,10 @@ public class Breakpoints extends SnapList<Breakpoint> {
      */
     public Breakpoint[] getBreakpointsForFile(WebFile aFile)
     {
+        // If no BreakPoints, just return
+        if (size() == 0) return NO_BREAKPOINTS;
+
+        // Filter to get breakpoints for given file
         Breakpoint[] breakpoints = stream().filter(bp -> bp.getFile() == aFile).toArray(size -> new Breakpoint[size]);
         return breakpoints;
     }

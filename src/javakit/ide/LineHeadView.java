@@ -17,7 +17,7 @@ import snap.view.*;
 public class LineHeadView extends View {
 
     // The JavaTextPane that contains this view
-    private JavaTextPane  _textPane;
+    private JavaTextPane<?>  _textPane;
 
     // The JavaTextArea
     private JavaTextArea  _textArea;
@@ -44,7 +44,7 @@ public class LineHeadView extends View {
     /**
      * Creates a new RowHeader.
      */
-    public LineHeadView(JavaTextPane aJTP)
+    public LineHeadView(JavaTextPane<?> aJTP)
     {
         // Set ivars
         _textPane = aJTP;
@@ -116,9 +116,6 @@ public class LineHeadView extends View {
      */
     protected LineMarker<?>[] createMarkers()
     {
-        // If no JavaTextArea, just return
-        if (_textArea == null) return new LineMarker[0];
-
         // Create list
         List<LineMarker<?>> markers = new ArrayList<>();
 
@@ -212,8 +209,6 @@ public class LineHeadView extends View {
      */
     protected void processEvent(ViewEvent anEvent)
     {
-        if (_textArea == null) return;
-
         // Handle MouseClick
         if (anEvent.isMouseClick()) {
 
@@ -266,8 +261,8 @@ public class LineHeadView extends View {
     protected void paintFront(Painter aPntr)
     {
         aPntr.setStroke(Stroke.Stroke1);
-        for (LineMarker<?> m : getMarkers())
-            aPntr.drawImage(m._image, m.x, m.y);
+        for (LineMarker<?> marker : getMarkers())
+            aPntr.drawImage(marker._image, marker.x, marker.y);
 
         if (isShowLineNumbers())
             paintLineNumbers(aPntr);

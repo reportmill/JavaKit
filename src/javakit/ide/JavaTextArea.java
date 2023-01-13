@@ -12,6 +12,7 @@ import snap.text.*;
 import snap.props.PropChange;
 import snap.view.*;
 import snap.web.WebFile;
+import snap.web.WebSite;
 
 /**
  * A TextArea subclass for Java source editing.
@@ -35,6 +36,9 @@ public class JavaTextArea extends TextArea {
 
     // A PopupList to show code completion stuff
     protected JavaPopupList  _popup;
+
+    // A temp file to be used if file hasn't been saved
+    private WebFile  _tempFile;
 
     // Constants for properties
     public static final String SelectedNode_Prop = "SelectedNode";
@@ -668,8 +672,31 @@ public class JavaTextArea extends TextArea {
      */
     public WebFile getSourceFile()
     {
+        // Get TextDoc.SourceFile
         TextDoc textDoc = getTextDoc();
-        return textDoc.getSourceFile();
+        WebFile file = textDoc.getSourceFile();
+
+        // If no SourceFile, use TempFile
+        if (file == null)
+            file = getTempFile();
+
+        // Return
+        return file;
+    }
+
+    /**
+     * Returns a temp file.
+     */
+    private WebFile getTempFile()
+    {
+        if (_tempFile != null) return _tempFile;
+
+        // Get temp project and create temp file
+        Project tempProj = Project.getTempProject();
+        WebFile tempFile = tempProj.getSourceFile("Untitled.java", true, false);
+
+        // Set, return
+        return _tempFile = tempFile;
     }
 
     /**
@@ -677,8 +704,18 @@ public class JavaTextArea extends TextArea {
      */
     public Project getProject()
     {
+        // Get Project - file should never be null
         WebFile file = getSourceFile();
-        return file != null ? Project.getProjectForFile(file) : null;
+        Project proj = Project.getProjectForFile(file);
+
+        // If project not loaded, create bogus one from file
+        if (proj == null) {
+            WebSite site = file.getSite();
+            proj = new Project(site);
+        }
+
+        // Return
+        return proj;
     }
 
     /**
@@ -727,12 +764,12 @@ public class JavaTextArea extends TextArea {
         // Get project breakpoints
         Breakpoints projBreakpoints = getProjBreakpoints();
         if (projBreakpoints == null)
-            return null;
+            return Breakpoints.NO_BREAKPOINTS;
 
         // Get java file
         WebFile file = getSourceFile();
         if (file == null)
-            return null;
+            return Breakpoints.NO_BREAKPOINTS;
 
         // Return breakpoints for file
         return projBreakpoints.getBreakpointsForFile(file);

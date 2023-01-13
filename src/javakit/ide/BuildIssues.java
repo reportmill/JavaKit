@@ -105,6 +105,16 @@ public class BuildIssues extends SnapList<BuildIssue> {
     }
 
     /**
+     * Override to clear FileIssues cache.
+     */
+    @Override
+    public void clear()
+    {
+        super.clear();
+        _fileIssues.clear();
+    }
+
+    /**
      * Returns the BuildIssues for a given file.
      */
     public BuildIssue[] getIssuesForFile(WebFile aFile)

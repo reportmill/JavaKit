@@ -2,6 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.ide;
+import javakit.parse.JNode;
+import javakit.parse.JStmt;
+import javakit.parse.NodeError;
 import snap.web.WebFile;
 
 /**
@@ -145,5 +148,28 @@ public class BuildIssue implements Comparable<BuildIssue> {
     {
         String filePath = getFile().getPath();
         return String.format("%s:%d: %s", filePath, getLine() + 1, getText());
+    }
+
+    /**
+     * Creates a BuildIssue for given NodeError.
+     */
+    public static BuildIssue createIssueForNodeError(NodeError aNodeError, WebFile aSourceFile)
+    {
+        JNode node = aNodeError.getNode();
+        String errorStr = aNodeError.getString();
+
+        JStmt stmt = node instanceof JStmt ? (JStmt) node : node.getParent(JStmt.class);
+        if (stmt == null) {
+            System.out.println("BuildIssue.createIssueForNodeError: Can't find statement");
+            return null;
+        }
+
+        int lineIndex = stmt.getLineIndex();
+        int startCharIndex = stmt.getStartCharIndex();
+        int endCharIndex = stmt.getEndCharIndex();
+
+        BuildIssue buildIssue = new BuildIssue();
+        buildIssue.init(aSourceFile, BuildIssue.Kind.Error, errorStr, lineIndex,0, startCharIndex, endCharIndex);
+        return buildIssue;
     }
 }
