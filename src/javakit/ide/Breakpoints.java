@@ -101,7 +101,7 @@ public class Breakpoints extends SnapList<Breakpoint> {
             if (breakpointFile != null)
                 breakpointsList.add(new Breakpoint(breakpointFile, lineNum));
         }
-        scanner.close();
+        //scanner.close();
 
         // Return
         return breakpointsList;

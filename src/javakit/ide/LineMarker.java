@@ -38,7 +38,7 @@ public abstract class LineMarker<T> extends Rect {
         _textPane = aJavaTextPane;
         _textArea = aJavaTextPane.getTextArea();
         _target = aTarget;
-        setRect(4, 0, LineHeadView.LINE_MARKERS_WIDTH, LineHeadView.LINE_MARKERS_WIDTH);
+        setRect(2, 0, LineHeadView.LINE_MARKERS_WIDTH, LineHeadView.LINE_MARKERS_WIDTH);
     }
 
     /**
