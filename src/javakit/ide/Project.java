@@ -1,11 +1,14 @@
+/*
+ * Copyright (c) 2010, ReportMill Software. All rights reserved.
+ */
 package javakit.ide;
 import javakit.resolver.Resolver;
 import snap.props.PropChange;
 import snap.util.FilePathUtils;
+import snap.util.TaskMonitor;
 import snap.web.WebFile;
 import snap.web.WebSite;
 import snap.web.WebURL;
-
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -22,6 +25,9 @@ public class Project {
 
     // ProjectFiles
     protected ProjectFiles  _projFiles;
+
+    // The ProjectBuilder
+    protected ProjectBuilder  _projBuilder;
 
     // The resolver
     protected Resolver _resolver;
@@ -50,8 +56,9 @@ public class Project {
             aSite.createFile("/bin", true).save();
         }
 
-        // Create/set ProjectFiles
+        // Create/set ProjectFiles, ProjectBuilder
         _projFiles = new ProjectFiles(this);
+        _projBuilder = new ProjectBuilder(this);
     }
 
     /**
@@ -105,6 +112,43 @@ public class Project {
     protected ProjectConfig createProjectConfig()
     {
         return new ProjectConfig(this);
+    }
+
+    /**
+     * Returns the ProjectBuilder.
+     */
+    public ProjectBuilder getProjectBuilder()  { return _projBuilder; }
+
+    /**
+     * Builds the project.
+     */
+    public boolean buildProject(TaskMonitor aTM)
+    {
+        return _projBuilder.buildProject(aTM);
+    }
+
+    /**
+     * Interrupts build.
+     */
+    public void interruptBuild()
+    {
+        _projBuilder.interruptBuild();
+    }
+
+    /**
+     * Removes all build files from project.
+     */
+    public void cleanProject()
+    {
+        _projBuilder.cleanProject();
+    }
+
+    /**
+     * Adds a build file.
+     */
+    public void addBuildFilesAll()
+    {
+        _projBuilder.addBuildFilesAll();
     }
 
     /**
