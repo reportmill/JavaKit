@@ -9,6 +9,9 @@ import snap.parse.*;
  */
 public class JeplParser extends JavaParser {
 
+    // A special zero length ParseToken for programmatically created nodes at file start
+    private static ParseToken PHANTOM_TOKEN = new ParseToken.Builder().name("InputStart").pattern("").text("").build();
+
     /**
      * Constructor.
      */
@@ -110,7 +113,7 @@ public class JeplParser extends JavaParser {
             // Create/add JImportDecls
             String[] importNames = _jeplTextDoc.getImports();
             for (String importName : importNames)
-                addImport(jfile, importName);
+                addImportToJFile(jfile, importName);
 
             // Create/add ClassDecl
             JClassDecl classDecl = new JClassDecl();
@@ -129,24 +132,6 @@ public class JeplParser extends JavaParser {
             return jfile;
         }
 
-        /**
-         * Creates and adds JImportDecl to JFile for given import path.
-         */
-        private void addImport(JFile aFile, String anImportPathName)
-        {
-            // Get inclusive and path info
-            boolean isInclusive = anImportPathName.endsWith(".*");
-            String importPathName = isInclusive ? anImportPathName.substring(0, anImportPathName.length() - 2) : anImportPathName;
-
-            // Create/configure/add ImportDecl
-            JImportDecl importDecl = new JImportDecl();
-            importDecl.setName(importPathName);
-            importDecl.setInclusive(isInclusive);
-            importDecl.setStartToken(PHANTOM_TOKEN);
-            importDecl.setEndToken(PHANTOM_TOKEN);
-            aFile.addImportDecl(importDecl);
-        }
-
         protected Class<JFile> getPartClass()  { return JFile.class; }
 
         /**
@@ -160,20 +145,21 @@ public class JeplParser extends JavaParser {
         }
     }
 
-    // A special zero length token for programmatically created nodes at file start
-    private static ParseToken PHANTOM_TOKEN = new PhantomToken();
-
     /**
-     * A bogus zero length token for phantom programmatically created nodes at file start.
+     * Creates and adds JImportDecl to JFile for given import path.
      */
-    private static class PhantomToken implements ParseToken {
-        public PhantomToken()  { super(); }
-        public String getName()  { return "InputStart"; }
-        public String getPattern()  { return""; }
-        public int getStartCharIndex() { return 0; }
-        public int getEndCharIndex()  { return 0; }
-        public int getLineIndex()  { return 0; }
-        public int getStartCharIndexInLine()  { return 0; }
-        public String getString()  { return ""; }
+    private static void addImportToJFile(JFile aFile, String anImportPathName)
+    {
+        // Get inclusive and path info
+        boolean isInclusive = anImportPathName.endsWith(".*");
+        String importPathName = isInclusive ? anImportPathName.substring(0, anImportPathName.length() - 2) : anImportPathName;
+
+        // Create/configure/add ImportDecl
+        JImportDecl importDecl = new JImportDecl();
+        importDecl.setName(importPathName);
+        importDecl.setInclusive(isInclusive);
+        importDecl.setStartToken(PHANTOM_TOKEN);
+        importDecl.setEndToken(PHANTOM_TOKEN);
+        aFile.addImportDecl(importDecl);
     }
 }
