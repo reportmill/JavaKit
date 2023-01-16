@@ -4,6 +4,7 @@
 package javakit.ide;
 import java.util.*;
 import javakit.parse.*;
+import javakit.project.*;
 import javakit.resolver.JavaDecl;
 import javakit.parse.JavaTextDoc;
 import snap.geom.Rect;

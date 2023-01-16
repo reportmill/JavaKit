@@ -1,4 +1,4 @@
-package javakit.ide;
+package javakit.project;
 import snap.util.ArrayUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;

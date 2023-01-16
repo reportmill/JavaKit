@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.ide;
+package javakit.project;
 import javakit.resolver.Resolver;
 import snap.props.PropChange;
 import snap.util.FilePathUtils;

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.ide;
+package javakit.project;
 import snap.util.SnapList;
 import snap.web.WebFile;
 import snap.web.WebSite;

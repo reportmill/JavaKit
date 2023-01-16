@@ -1,4 +1,4 @@
-package javakit.ide;
+package javakit.project;
 import snap.props.PropObject;
 import snap.util.ArrayUtils;
 import snap.util.StringUtils;

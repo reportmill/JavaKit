@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
-package javakit.ide;
+package javakit.project;
 import javakit.parse.*;
 import snap.util.TaskMonitor;
 import java.util.ArrayList;

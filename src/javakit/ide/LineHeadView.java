@@ -5,6 +5,8 @@ package javakit.ide;
 import java.util.*;
 import javakit.parse.JClassDecl;
 import javakit.parse.JMemberDecl;
+import javakit.project.Breakpoint;
+import javakit.project.BuildIssue;
 import snap.geom.*;
 import snap.gfx.*;
 import snap.text.*;
