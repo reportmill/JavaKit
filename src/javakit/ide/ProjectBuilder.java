@@ -197,7 +197,8 @@ public class ProjectBuilder {
     public void addBuildFileForce(WebFile aFile)
     {
         ProjectFileBuilder fileBuilder = getFileBuilder(aFile);
-        if (fileBuilder == null) return;
+        if (fileBuilder == null)
+            return;
         fileBuilder.addBuildFile(aFile);
     }
 
@@ -207,7 +208,8 @@ public class ProjectBuilder {
     public void removeBuildFile(WebFile aFile)
     {
         ProjectFileBuilder fileBuilder = getFileBuilder(aFile);
-        if (fileBuilder != null) fileBuilder.removeBuildFile(aFile);
+        if (fileBuilder != null)
+            fileBuilder.removeBuildFile(aFile);
     }
 
     /**

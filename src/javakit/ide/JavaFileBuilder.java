@@ -24,7 +24,7 @@ public class JavaFileBuilder implements ProjectFileBuilder {
     protected boolean  _interrupt;
 
     /**
-     * Creates a new JavaFileBuilder for given Project.
+     * Constructor for given Project.
      */
     public JavaFileBuilder(Project aProject)
     {
