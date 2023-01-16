@@ -72,7 +72,7 @@ public class JeplTextDoc extends JavaTextDoc {
     protected JFile createJFile()
     {
         JFile jfile = super.createJFile();
-        JeplTextDocUtils.findAndFixIncompleteVarDecls(jfile);
+        JeplParser.findAndFixIncompleteVarDecls(jfile);
         return jfile;
     }
 
