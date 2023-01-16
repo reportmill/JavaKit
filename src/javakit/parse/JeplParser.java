@@ -108,8 +108,7 @@ public class JeplParser extends JavaParser {
             jfile.setStartToken(startToken);
 
             // Create/add JImportDecls
-            JavaTextDocBuilder javaTextDocBuilder = _jeplTextDoc.getJavaTextDocBuilder();
-            String[] importNames = javaTextDocBuilder.getImports();
+            String[] importNames = _jeplTextDoc.getImports();
             for (String importName : importNames)
                 addImport(jfile, importName);
 
@@ -120,7 +119,8 @@ public class JeplParser extends JavaParser {
             jfile.addClassDecl(classDecl);
 
             // Add Superclass
-            JType extendsType = new JType.Builder().name("snapcode.app.ChartsREPL").token(startToken).build();
+            String superClassName = _jeplTextDoc.getSuperClassName();
+            JType extendsType = new JType.Builder().name(superClassName).token(startToken).build();
             classDecl.addExtendsType(extendsType);
 
             _initDecl = null;

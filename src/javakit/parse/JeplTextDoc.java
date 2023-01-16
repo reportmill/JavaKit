@@ -6,13 +6,24 @@ import snap.text.TextDocUtils;
 import snap.util.ArrayUtils;
 import snap.web.WebURL;
 
+import java.util.Arrays;
+
 /**
  * This JavaTextDoc subclass supports Java Repl.
  */
 public class JeplTextDoc extends JavaTextDoc {
 
-    // A JavaTextDocBuilder to build Java class boiler plate
-    private JavaTextDocBuilder  _javaTextDocBuilder;
+    // The array of imports
+    private String[]  _imports = DEFAULT_IMPORTS;
+
+    // The super class name
+    private String  _superClassName = "Object";
+
+    // Constants for imports
+    private static final String IMPORT1 = "java.util.*";
+    private static final String IMPORT2 = "java.util.stream.*";
+    private static final String IMPORT3 = "snap.view.*";
+    private static final String[] DEFAULT_IMPORTS = { IMPORT1, IMPORT2, IMPORT3 };
 
     /**
      * Constructor.
@@ -20,13 +31,34 @@ public class JeplTextDoc extends JavaTextDoc {
     public JeplTextDoc()
     {
         super();
-        _javaTextDocBuilder = new JavaTextDocBuilder();
     }
 
     /**
-     * Returns the JavaTextDocBuilder.
+     * Returns the imports.
      */
-    public JavaTextDocBuilder getJavaTextDocBuilder()  { return _javaTextDocBuilder; }
+    public String[] getImports()  { return _imports; }
+
+    /**
+     * Adds an import.
+     */
+    public void addImport(String anImportStr)
+    {
+        _imports = ArrayUtils.add(_imports, anImportStr);
+        Arrays.sort(_imports);
+    }
+
+    /**
+     * Returns the base class name.
+     */
+    public String getSuperClassName()  { return _superClassName; }
+
+    /**
+     * Sets the base class name.
+     */
+    public void setSuperClassName(String aName)
+    {
+        _superClassName = aName;
+    }
 
     /**
      * Returns the parser to parse java file.

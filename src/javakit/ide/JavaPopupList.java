@@ -195,8 +195,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         // If JeplTextDoc, just add import to JavaTextDocBuilder
         if (textDoc instanceof JeplTextDoc) {
             JeplTextDoc jeplTextDoc = (JeplTextDoc) textDoc;
-            JavaTextDocBuilder javaTextDocBuilder = jeplTextDoc.getJavaTextDocBuilder();
-            javaTextDocBuilder.addImport(classPath);
+            jeplTextDoc.addImport(classPath);
             return;
         }
 
