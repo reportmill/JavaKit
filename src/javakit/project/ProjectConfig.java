@@ -57,6 +57,19 @@ public class ProjectConfig extends PropObject {
     public String getSourcePath()  { return _srcPath; }
 
     /**
+     * Sets the source path.
+     */
+    public void setSourcePath(String aPath)
+    {
+        // Update ivar
+        if (Objects.equals(aPath, _srcPath)) return;
+
+        // Set, firePropChange
+        String newPath = aPath != null ? getRelativePath(aPath) : null;
+        firePropChange(SrcPaths_Prop, _srcPath, _srcPath = newPath);
+    }
+
+    /**
      * Returns the build path.
      */
     public String getBuildPath()  { return _buildPath; }
@@ -69,6 +82,7 @@ public class ProjectConfig extends PropObject {
         // Update ivar
         if (Objects.equals(aPath, getBuildPath())) return;
 
+        // Set, firePropChange
         String newPath = aPath != null ? getRelativePath(aPath) : null;
         firePropChange(BuildPath_Prop, _buildPath, _buildPath = newPath);
     }
