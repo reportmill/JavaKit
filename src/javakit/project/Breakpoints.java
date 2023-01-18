@@ -139,7 +139,7 @@ public class Breakpoints extends SnapList<Breakpoint> {
         WebSite sandboxSite = projSite.getSandbox();
         WebFile file = sandboxSite.getFileForPath("/settings/breakpoints");
         if (file == null)
-            file = sandboxSite.createFile("/settings/breakpoints", false);
+            file = sandboxSite.createFileForPath("/settings/breakpoints", false);
         return file;
     }
 }

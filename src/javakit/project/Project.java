@@ -52,8 +52,8 @@ public class Project {
         // If site doesn't exist, create root directory, src, bin and default .classpath file
         if (!aSite.getExists()) {
             aSite.getRootDir().save();
-            aSite.createFile("/src", true).save();
-            aSite.createFile("/bin", true).save();
+            aSite.createFileForPath("/src", true).save();
+            aSite.createFileForPath("/bin", true).save();
         }
 
         // Create/set ProjectFiles, ProjectBuilder

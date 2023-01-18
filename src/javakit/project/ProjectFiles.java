@@ -48,7 +48,7 @@ public class ProjectFiles {
         WebSite projSite = _proj.getSite();
         WebFile srcDir = path != null ? projSite.getFileForPath(path) : projSite.getRootDir();
         if (srcDir == null)
-            srcDir = projSite.createFile(path, true);
+            srcDir = projSite.createFileForPath(path, true);
 
         // Set/return
         return _srcDir = srcDir;
@@ -71,7 +71,7 @@ public class ProjectFiles {
         WebSite projSite = _proj.getSite();
         WebFile bldDir = path != null ? projSite.getFileForPath(path) : projSite.getRootDir();
         if (bldDir == null)
-            bldDir = projSite.createFile(path, true);
+            bldDir = projSite.createFileForPath(path, true);
 
         // Set/return
         return _buildDir = bldDir;
@@ -120,7 +120,7 @@ public class ProjectFiles {
 
         // If file still not found, maybe create
         if (file == null && doCreate)
-            file = projSite.createFile(path, isDir);
+            file = projSite.createFileForPath(path, isDir);
 
         // Return
         return file;
@@ -151,7 +151,7 @@ public class ProjectFiles {
 
         // If file still not found, maybe create and return
         if (file == null && doCreate)
-            file = projSite.createFile(path, isDir);
+            file = projSite.createFileForPath(path, isDir);
 
         // Return
         return file;
