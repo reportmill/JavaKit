@@ -13,7 +13,6 @@ import snap.text.*;
 import snap.props.PropChange;
 import snap.view.*;
 import snap.web.WebFile;
-import snap.web.WebSite;
 
 /**
  * A TextArea subclass for Java source editing.
@@ -38,9 +37,6 @@ public class JavaTextArea extends TextArea {
     // A PopupList to show code completion stuff
     protected JavaPopupList  _popup;
 
-    // A temp file to be used if file hasn't been saved
-    private WebFile  _tempFile;
-
     // Constants for properties
     public static final String SelectedNode_Prop = "SelectedNode";
 
@@ -57,7 +53,7 @@ public class JavaTextArea extends TextArea {
         setEditable(true);
 
         // Set default TextDoc to JavaTextDoc
-        JavaTextDoc javaTextDoc = new JavaTextDoc();
+        JavaTextDoc javaTextDoc = JavaTextDoc.getJavaTextDocForSource(null);
         setTextDoc(javaTextDoc);
     }
 
@@ -673,58 +669,17 @@ public class JavaTextArea extends TextArea {
      */
     public WebFile getSourceFile()
     {
-        // Get TextDoc.SourceFile
         TextDoc textDoc = getTextDoc();
-        WebFile file = textDoc.getSourceFile();
-
-        // If no SourceFile, use TempFile
-        if (file == null)
-            file = getTempFile();
-
-        // Return
-        return file;
-    }
-
-    /**
-     * Returns a temp file.
-     */
-    private WebFile getTempFile()
-    {
-        if (_tempFile != null) return _tempFile;
-
-        // Get temp project and create temp file
-        Project tempProj = Project.getTempProject();
-        WebFile tempFile = tempProj.getSourceFile("Untitled.java", true, false);
-
-        // Set, return
-        return _tempFile = tempFile;
+        return textDoc.getSourceFile();
     }
 
     /**
      * Returns the project.
      */
-    public Project getProject()
+    private Project getRootProject()
     {
-        // Get Project - file should never be null
         WebFile file = getSourceFile();
         Project proj = Project.getProjectForFile(file);
-
-        // If project not loaded, create bogus one from file
-        if (proj == null) {
-            WebSite site = file.getSite();
-            proj = new Project(site);
-        }
-
-        // Return
-        return proj;
-    }
-
-    /**
-     * Returns the project.
-     */
-    public Project getRootProject()
-    {
-        Project proj = getProject();
         return proj != null ? proj.getRootProject() : null;
     }
 

@@ -243,7 +243,8 @@ public class ProjectConfig extends PropObject {
         // Get project root dir path
         WebSite projSite = _proj.getSite();
         WebFile rootDir = projSite.getRootDir();
-        String rootDirPath = rootDir.getJavaFile().getAbsolutePath();
+        File rootDirFile = rootDir.getJavaFile();
+        String rootDirPath = rootDirFile.getAbsolutePath();
 
         // Make sure separator is standard '/'
         if (File.separatorChar != '/')

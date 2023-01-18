@@ -2,7 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.project;
+import javakit.resolver.Resolver;
 import snap.util.FileUtils;
+import snap.util.SnapUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
 import snap.web.WebURL;
@@ -17,9 +19,16 @@ public class ProjectUtils {
      */
     public static Project getTempProject()
     {
+        // Get path to temp dir named TempProj
         String tempProjPath = FileUtils.getTempFile("TempProj").getAbsolutePath();
+        if (SnapUtils.isMac)
+            tempProjPath = "/tmp/TempProj";
+
+        // Get URL and Site for TempProjPath
         WebURL url = WebURL.getURL(tempProjPath);
         WebSite site = url.getAsSite();
+
+        // Get project for site - create if missing
         Project proj = Project.getProjectForSite(site);
         if (proj == null)
             proj = new Project(site);
@@ -37,14 +46,14 @@ public class ProjectUtils {
         Project proj = aProj != null ? aProj : getTempProject();
 
         // Return project source file for "Untitled.ext", if not present
-        String fileName = "Untitled." + anExt;
+        String fileName = "/Untitled." + anExt;
         WebFile tempFile = proj.getSourceFile(fileName, false, false);
         if (tempFile == null)
             return proj.getSourceFile(fileName, true, false);
 
         // Report project source file for "Untitled-X.ext" where X is first unused file name
         for (int i = 1; i < 1000; i++) {
-            String fileName2 = "Untitled-" + i + '.' + anExt;
+            String fileName2 = "/Untitled-" + i + '.' + anExt;
             tempFile = proj.getSourceFile(fileName2, false, false);
             if (tempFile == null)
                 return proj.getSourceFile(fileName2, true, false);
@@ -59,13 +68,15 @@ public class ProjectUtils {
      * If URL is null, gets temp project and creates temp source file.
      * If URL site doesn't have project, creates project for URL parent and returns source file URL.
      */
-    public static WebURL getProjectSourceURLForURL(WebURL aSourceURL)
+    public static WebFile getProjectSourceFileForURL(WebURL aSourceURL)
     {
         // Check for existing project for SourceURL - if found, just return URL
         WebSite sourceSite = aSourceURL.getSite();
         Project proj = Project.getProjectForSite(sourceSite);
-        if (proj != null)
-            return aSourceURL;
+        if (proj != null) {
+            String path = aSourceURL.getPath();
+            return proj.getSourceFile(path, true, false);
+        }
 
         // Get parent URL and create new project
         WebURL parentDirURL = aSourceURL.getParent();
@@ -77,10 +88,19 @@ public class ProjectUtils {
         projectConfig.setSourcePath("");
 
         // Create source file for SourceURL file name
-        String fileName = aSourceURL.getPathName();
+        String fileName = '/' + aSourceURL.getPathName();
         WebFile sourceFile = newProj.getSourceFile(fileName, true, false);
 
         // Return source file URL
-        return sourceFile.getURL();
+        return sourceFile;
+    }
+
+    /**
+     * This needs to go!!!
+     */
+    public static void setProjectResolver(Project aProject, Resolver aResolver)
+    {
+        aProject._resolver = aResolver;
+        aProject._classLoader = aResolver.getClassLoader();
     }
 }

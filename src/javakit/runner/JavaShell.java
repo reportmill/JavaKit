@@ -2,11 +2,13 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.runner;
-import javakit.parse.JFile;
-import javakit.parse.JStmt;
-import javakit.parse.JavaTextDoc;
-import javakit.parse.NodeError;
+import javakit.parse.*;
+import javakit.project.BuildIssue;
+import javakit.project.BuildIssues;
+import javakit.project.JavaAgent;
+import javakit.project.Project;
 import snap.util.CharSequenceUtils;
+import snap.web.WebFile;
 import java.io.PrintStream;
 
 /**
@@ -81,6 +83,21 @@ public class JavaShell {
         JFile jfile = javaTextDoc.getJFile();
         simpiler.compile(jfile);
         _compileErrors = simpiler.getErrors();
+
+        // Get Project.BuildIssues and clear
+        WebFile sourceFile = javaTextDoc.getSourceFile();
+        Project proj = Project.getProjectForFile(sourceFile);
+        BuildIssues projBuildIssues = proj.getBuildIssues();
+        projBuildIssues.clear();
+
+        // Handle errors: Convert to BuildIssue and add to Project.BuildIssues
+        if (_compileErrors.length > 0) {
+            for (NodeError error : _compileErrors) {
+                BuildIssue buildIssue = BuildIssue.createIssueForNodeError(error, sourceFile);
+                if (buildIssue != null)
+                    projBuildIssues.add(buildIssue);
+            }
+        }
     }
 
     /**
@@ -97,7 +114,8 @@ public class JavaShell {
         _stmtEval._exprEval._varStack.reset();
 
         // Get parsed statements
-        JStmt[] javaStmts = javaTextDoc.getJFileStatements();
+        JavaAgent javaAgent = javaTextDoc.getJavaAgent();
+        JStmt[] javaStmts = javaAgent.getJFileStatements();
 
         // Set System out/err to catch console output
         System.setOut(_shellOut);
@@ -107,10 +125,9 @@ public class JavaShell {
         _stmtEval._stopRun = _errorWasHit = false;
 
         // Iterate over lines and eval each
-        for (int i = 0, iMax = javaStmts.length; i < iMax; i++) {
+        for (JStmt stmt : javaStmts) {
 
             // Get Statement (if null, just set empty string value and continue)
-            JStmt stmt = javaStmts[i];
             if (stmt == null)
                 continue;
 

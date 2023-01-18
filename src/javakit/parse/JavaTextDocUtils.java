@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
+import javakit.project.JavaAgent;
 import snap.gfx.Color;
 import snap.parse.*;
 import snap.text.TextDocUtils;
@@ -141,9 +142,13 @@ public class JavaTextDocUtils {
         if (oldStmt == null)
             return false;
 
+        // If StmtParser not yet set, create
+        if (_stmtParser == null) {
+            JavaAgent javaAgent = javaTextDoc.getJavaAgent();
+            _stmtParser = new StmtParser(javaAgent.getJavaParser());
+        }
+
         // Parse new JStmtBlock (create empty one if there wasn't enough in block to create it)
-        if (_stmtParser == null)
-            _stmtParser = new StmtParser(javaTextDoc.getJavaParser());
         _stmtParser.setInput(javaTextDoc);
         _stmtParser.setCharIndex(oldStmt.getStartCharIndex());
         _stmtParser.getTokenizer().setLineIndex(oldStmt.getLineIndex());

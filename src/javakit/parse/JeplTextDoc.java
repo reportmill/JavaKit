@@ -2,11 +2,13 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import snap.text.TextDocUtils;
+import javakit.project.JeplAgent;
+import javakit.project.ProjectUtils;
 import snap.util.ArrayUtils;
+import snap.web.WebFile;
 import snap.web.WebURL;
-
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * This JavaTextDoc subclass supports Java Repl.
@@ -18,6 +20,9 @@ public class JeplTextDoc extends JavaTextDoc {
 
     // The super class name
     private String  _superClassName = "Object";
+
+    // A configure
+    private static Consumer<JeplTextDoc>  _jeplDocConfig;
 
     // Constants for imports
     private static final String IMPORT1 = "java.util.*";
@@ -31,6 +36,10 @@ public class JeplTextDoc extends JavaTextDoc {
     public JeplTextDoc()
     {
         super();
+
+        // If config set, do configure
+        if (_jeplDocConfig != null)
+            _jeplDocConfig.accept(this);
     }
 
     /**
@@ -61,64 +70,32 @@ public class JeplTextDoc extends JavaTextDoc {
     }
 
     /**
-     * Returns the parser to parse java file.
+     * Sets a configure function.
      */
-    protected JavaParser getJavaParserImpl()  { return new JeplParser(this); }
-
-    /**
-     * Override to fix incomplete var decls.
-     */
-    @Override
-    protected JFile createJFile()
+    public static void setJeplDocConfig(Consumer<JeplTextDoc> aConfig)
     {
-        JFile jfile = super.createJFile();
-        JeplParser.findAndFixIncompleteVarDecls(jfile);
-        return jfile;
+        _jeplDocConfig = aConfig;
     }
 
     /**
-     * Override to get statements from initializers.
+     * Returns the JeplTextDoc for given source.
      */
-    @Override
-    public JStmt[] getJFileStatements()
+    public static JeplTextDoc getJeplTextDocForSourceURL(Object aSource)
     {
-        // Get JFile, ClassDecl (just return if not found)
-        JFile jfile = getJFile();
-        JClassDecl classDecl = jfile.getClassDecl();
-        if (classDecl == null)
-            return new JStmt[0];
-
-        // Get initializers
-        JInitializerDecl[] initDecls = classDecl.getInitDecls();
-        JStmt[] stmtsAll = new JStmt[0];
-
-        // Iterate over initializers and add statements
-        for (JInitializerDecl initDecl : initDecls) {
-            JStmt[] stmts = JavaTextDocUtils.getStatementsForJavaNode(initDecl);
-            stmtsAll = ArrayUtils.addAll(stmtsAll, stmts);
+        // If Source is null, create temp file
+        Object source = aSource;
+        if (source == null) {
+            WebFile tempFile = ProjectUtils.getTempSourceFile(null, "jepl");
+            source = tempFile.getURL();
         }
 
-        // Return
-        return stmtsAll;
-    }
+        // Get Source URL and file
+        WebURL url = WebURL.getURL(source);
+        WebFile sourceFile = ProjectUtils.getProjectSourceFileForURL(url);
 
-    /**
-     * Override to just do full re-parse.
-     */
-    @Override
-    protected void updateJFileForChange(TextDocUtils.CharsChange charsChange)
-    {
-        _jfile = null;
-    }
-
-    /**
-     * Returns a new JeplTextDoc from given source.
-     */
-    public static JeplTextDoc newFromSourceURL(WebURL aURL)
-    {
-        // Create TextDoc and read from URL
-        JeplTextDoc jeplTextDoc = new JeplTextDoc();
-        jeplTextDoc.readFromSourceURL(aURL);
+        // Get java agent and TextDoc
+        JeplAgent javaAgent = JeplAgent.getAgentForFile(sourceFile);
+        JeplTextDoc jeplTextDoc = javaAgent.getJavaTextDoc();
 
         // Return
         return jeplTextDoc;

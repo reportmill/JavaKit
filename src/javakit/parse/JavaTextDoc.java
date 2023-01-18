@@ -2,16 +2,15 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
-import javakit.resolver.Resolver;
+import javakit.project.JavaAgent;
 import javakit.ide.JavaTextUtils;
+import javakit.project.ProjectUtils;
 import snap.gfx.Color;
 import snap.gfx.Font;
 import snap.parse.*;
-import snap.props.PropChange;
 import snap.text.*;
 import snap.web.WebFile;
 import snap.web.WebURL;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +19,8 @@ import java.util.List;
  */
 public class JavaTextDoc extends TextDoc {
 
-    // The parsed Java file
-    protected JFile  _jfile;
-
-    // The parser to parse Java
-    private JavaParser  _javaParser;
-
-    // The Resolver
-    private Resolver  _resolver;
+    // The JavaAgent
+    private JavaAgent  _javaAgent;
 
     /**
      * Constructor.
@@ -51,96 +44,23 @@ public class JavaTextDoc extends TextDoc {
     }
 
     /**
-     * Returns the parser to parse java file.
+     * Returns the JavaAgent.
      */
-    public JavaParser getJavaParser()
+    public JavaAgent getJavaAgent()
     {
-        // If already set, just return
-        if (_javaParser != null) return _javaParser;
-
-        // Create, set, return
-        JavaParser javaParser = getJavaParserImpl();
-        return _javaParser = javaParser;
+        if (_javaAgent != null) return _javaAgent;
+        WebFile sourceFile = getSourceFile();
+        JavaAgent javaAgent = JavaAgent.getAgentForFile(sourceFile);
+        return _javaAgent = javaAgent;
     }
-
-    /**
-     * Returns the parser to parse java file.
-     */
-    protected JavaParser getJavaParserImpl()  { return JavaParser.getShared(); }
-
-    /**
-     * Returns the Resolver that is attached to parsed Java file.
-     */
-    public Resolver getResolver()  { return _resolver; }
-
-    /**
-     * Sets the Resolver that is attached to parsed Java file.
-     */
-    public void setResolver(Resolver aResolver)  { _resolver = aResolver; }
 
     /**
      * Returns the JFile (parsed Java file).
      */
     public JFile getJFile()
     {
-        // If already set, just return
-        if (_jfile != null) return _jfile;
-
-        // Create, Set, return
-        JFile jfile = createJFile();
-        return _jfile = jfile;
-    }
-
-    /**
-     * Parses and returns JFile.
-     */
-    protected JFile createJFile()
-    {
-        // Get parsed java file
-        JavaParser javaParser = getJavaParser();
-        String javaStr = getString();
-        JFile jfile = javaParser.getJavaFile(javaStr);
-        if (jfile == null)
-            jfile = new JFile();
-
-        // Set SourceFile
-        WebFile sourceFile = getSourceFile();
-        if (sourceFile != null)
-            jfile.setSourceFile(sourceFile);
-
-        // Set Resolver
-        Resolver resolver = getResolver();
-        if (resolver != null)
-            jfile.setResolver(resolver);
-        jfile.setJavaFileString(javaStr);
-
-        // Return
-        return jfile;
-    }
-
-    /**
-     * Returns the parsed statements.
-     */
-    public JStmt[] getJFileStatements()
-    {
-        // Get main method
-        JFile jfile = getJFile();
-        JClassDecl classDecl = jfile.getClassDecl();
-        JMethodDecl bodyMethod = classDecl.getMethodDeclForNameAndTypes("body", null);
-
-        // Get statements from main method
-        return JavaTextDocUtils.getStatementsForJavaNode(bodyMethod);
-    }
-
-    /**
-     * Override to clear JFile.
-     */
-    @Override
-    public void setString(String aString)
-    {
-        // Do normal version
-        super.setString(aString);
-        _jfile = null;
+        JavaAgent javaAgent = getJavaAgent();
+        return javaAgent.getJFile();
     }
 
     /**
@@ -149,12 +69,17 @@ public class JavaTextDoc extends TextDoc {
     @Override
     protected TextToken[] createTokensForTextLine(TextLine aTextLine)
     {
+        // Simple case
+        if (aTextLine.isWhiteSpace())
+            return new TextToken[0];
+
         // Get iteration vars
         List<TextToken> tokens = new ArrayList<>();
         TextRun textRun = aTextLine.getRun(0);
 
         // Get tokenizer
-        JavaParser javaParser = getJavaParser();
+        JavaAgent javaAgent = getJavaAgent();
+        JavaParser javaParser = javaAgent.getJavaParser();
         CodeTokenizer tokenizer = javaParser.getTokenizer();
 
         // Get first token in line
@@ -205,46 +130,38 @@ public class JavaTextDoc extends TextDoc {
     }
 
     /**
-     * Override to detect char changes.
+     * Returns the source file.
      */
     @Override
-    protected void firePropChange(PropChange aPC)
+    public WebFile getSourceFile()
     {
-        // Do normal version
-        super.firePropChange(aPC);
+        WebFile sourceFile = super.getSourceFile();
+        if (sourceFile != null)
+            return sourceFile;
 
-        // Get PropName
-        String propName = aPC.getPropName();
-
-        // Handle CharsChange: Try to update JFile with partial parse
-        if (propName == Chars_Prop && _jfile != null) {
-            TextDocUtils.CharsChange charsChange = (TextDocUtils.CharsChange) aPC;
-            updateJFileForChange(charsChange);
-        }
-    }
-
-    /**
-     * Updates JFile incrementally if possible.
-     */
-    protected void updateJFileForChange(TextDocUtils.CharsChange charsChange)
-    {
-        // If partial parse fails, clear JFile for full reparse
-        boolean jfileUpdated = JavaTextDocUtils.updateJFileForChange(this, _jfile, charsChange);
-        if (!jfileUpdated)
-            _jfile = null;
+        WebURL sourceURL = getSourceURL();
+        return ProjectUtils.getProjectSourceFileForURL(sourceURL);
     }
 
     /**
      * Returns a new JavaTextDoc from given source.
      */
-    public static JavaTextDoc newFromSource(Object aSource)
+    public static JavaTextDoc getJavaTextDocForSource(Object aSource)
     {
-        // Get Source URL
-        WebURL url = WebURL.getURL(aSource);
+        // If Source is null, create temp file
+        Object source = aSource;
+        if (source == null) {
+            WebFile tempFile = ProjectUtils.getTempSourceFile(null, "java");
+            source = tempFile.getURL();
+        }
 
-        // Create TextDoc and read from URL
-        JavaTextDoc javaTextDoc = new JavaTextDoc();
-        javaTextDoc.readFromSourceURL(url);
+        // Get Source file
+        WebURL url = WebURL.getURL(source);
+        WebFile sourceFile = ProjectUtils.getProjectSourceFileForURL(url);
+
+        // Get java agent and TextDoc
+        JavaAgent javaAgent = JavaAgent.getAgentForFile(sourceFile);
+        JavaTextDoc javaTextDoc = javaAgent.getJavaTextDoc();
 
         // Return
         return javaTextDoc;

@@ -445,7 +445,7 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
     public static void main(String[] args)
     {
         // Get test file
-        JavaTextDoc javaTextDoc = JavaTextDoc.newFromSource("/tmp/Test.java");
+        JavaTextDoc javaTextDoc = JavaTextDoc.getJavaTextDocForSource("/tmp/Test.java");
 
         // Create JavaTextPane and show
         JavaTextPane<JavaTextDoc> javaTextPane = new JavaTextPane<>();
