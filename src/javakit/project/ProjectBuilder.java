@@ -30,7 +30,7 @@ public class ProjectBuilder {
     {
         super();
         _proj = aProject;
-        _javaFileBuilder = new JavaFileBuilder(aProject);
+        _javaFileBuilder = new JavaFileBuilderSimple(aProject);
         _defaultFileBuilder = new ProjectFileBuilder.DefaultBuilder(aProject);
     }
 
@@ -46,7 +46,7 @@ public class ProjectBuilder {
     {
         // Build files
         boolean buildSuccess = _javaFileBuilder.buildFiles(aTM);
-        buildSuccess |= _defaultFileBuilder.buildFiles(aTM);
+        buildSuccess &= _defaultFileBuilder.buildFiles(aTM);
         _buildDate = new Date();
 
         // Find unused imports
@@ -166,7 +166,7 @@ public class ProjectBuilder {
     public void addBuildFile(WebFile aFile, boolean doForce)
     {
         // If file doesn't exist, just return
-        if (!aFile.getExists()) return;
+        //if (!aFile.getExists()) return;
         if (aFile.getName().startsWith(".")) return;
 
         // Handle directory
@@ -182,10 +182,12 @@ public class ProjectBuilder {
             return;
         }
 
-        // Get FileBuilder for file and add
+        // Get FileBuilder
         ProjectFileBuilder fileBuilder = getFileBuilder(aFile);
         if (fileBuilder == null)
             return;
+
+        // If file needs build, add to fileBuilder
         boolean needsBuild = fileBuilder.getNeedsBuild(aFile);
         if (doForce || needsBuild)
             fileBuilder.addBuildFile(aFile);

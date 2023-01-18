@@ -688,19 +688,9 @@ public class JavaTextArea extends TextArea {
      */
     public BuildIssue[] getBuildIssues()
     {
-        // Get Project.BuildIssues
-        Project rootProj = getRootProject();
-        BuildIssues projBuildIssues = rootProj != null ? rootProj.getBuildIssues() : null;
-        if (projBuildIssues == null)
-            return BuildIssues.NO_ISSUES;
-
-        // Get java file
-        WebFile file = getSourceFile();
-        if (file == null)
-            return null;
-
-        // Return build issues for file
-        return projBuildIssues.getIssuesForFile(file);
+        WebFile javaFile = getSourceFile();
+        JavaAgent javaAgent = JavaAgent.getAgentForFile(javaFile);
+        return javaAgent.getBuildIssues();
     }
 
     /**

@@ -7,6 +7,7 @@ import javakit.resolver.Resolver;
 import snap.props.PropChange;
 import snap.text.TextDoc;
 import snap.text.TextDocUtils;
+import snap.util.TaskMonitor;
 import snap.web.WebFile;
 
 /**
@@ -36,6 +37,11 @@ public class JavaAgent {
     {
         _file = aFile;
     }
+
+    /**
+     * Returns the WebFile.
+     */
+    public WebFile getFile()  { return _file; }
 
     /**
      * Returns the project for this JavaFile.
@@ -142,6 +148,32 @@ public class JavaAgent {
 
         // Get statements from main method
         return JavaTextDocUtils.getStatementsForJavaNode(bodyMethod);
+    }
+
+    /**
+     * Builds this file.
+     */
+    public boolean buildFile()
+    {
+        // Get ProjectBuilder and add build file
+        Project proj = getProject();
+        ProjectBuilder projectBuilder = proj.getProjectBuilder();
+        projectBuilder.addBuildFile(_file, true);
+
+        // Build project
+        TaskMonitor taskMonitor = new TaskMonitor.Text(System.out);
+        boolean success = projectBuilder.buildProject(taskMonitor);
+        return success;
+    }
+
+    /**
+     * Returns the build issues.
+     */
+    public BuildIssue[] getBuildIssues()
+    {
+        Project proj = getProject();
+        BuildIssues projBuildIssues = proj.getBuildIssues();
+        return projBuildIssues.getIssuesForFile(_file);
     }
 
     /**

@@ -1,8 +1,6 @@
 package javakit.runner;
 import javakit.parse.*;
 import javakit.resolver.JavaLocalVar;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -10,40 +8,20 @@ import java.util.List;
  */
 public class Simpiler {
 
-    // The errors
-    private NodeError[]  _errors;
-
-    /**
-     * Constructor.
-     */
-    public Simpiler()
-    {
-        super();
-    }
-
     /**
      * Compile.
      */
-    public void compile(JFile aJFile)
+    public static void setVarStackIndexForJFile(JFile aJFile)
     {
         JClassDecl classDecl = aJFile.getClassDecl();
-        compileClass(classDecl);
-
-        // Get errors
-        List<NodeError> errorsList = new ArrayList<>();
-        findNodeErrors(aJFile, errorsList);
-        _errors = errorsList.toArray(NodeError.NO_ERRORS);
+        if (classDecl != null)
+            setVarStackIndexForClass(classDecl);
     }
-
-    /**
-     * Returns the errors.
-     */
-    public NodeError[] getErrors()  { return _errors; }
 
     /**
      * Compile class.
      */
-    protected void compileClass(JClassDecl aClassDecl)
+    protected static void setVarStackIndexForClass(JClassDecl aClassDecl)
     {
         List<JMemberDecl> memberDeclList = aClassDecl.getMemberDecls();
 
@@ -51,23 +29,6 @@ public class Simpiler {
         for (JMemberDecl memberDecl : memberDeclList)
             if (memberDecl instanceof WithBlockStmt)
                 setVarStackIndexForNode(memberDecl, 0);
-    }
-
-    /**
-     * Recurse into nodes
-     */
-    private static void findNodeErrors(JNode aNode, List<NodeError> theErrors)
-    {
-        NodeError[] errors = aNode.getErrors();
-        if (errors.length > 0)
-            Collections.addAll(theErrors, errors);
-
-        if (aNode instanceof JStmtExpr)
-            return;
-
-        List<JNode> children = aNode.getChildren();
-        for (JNode child : children)
-            findNodeErrors(child, theErrors);
     }
 
     /**

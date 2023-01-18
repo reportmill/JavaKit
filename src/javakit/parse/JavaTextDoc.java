@@ -46,7 +46,7 @@ public class JavaTextDoc extends TextDoc {
     /**
      * Returns the JavaAgent.
      */
-    public JavaAgent getJavaAgent()
+    public JavaAgent getAgent()
     {
         if (_javaAgent != null) return _javaAgent;
         WebFile sourceFile = getSourceFile();
@@ -59,7 +59,7 @@ public class JavaTextDoc extends TextDoc {
      */
     public JFile getJFile()
     {
-        JavaAgent javaAgent = getJavaAgent();
+        JavaAgent javaAgent = getAgent();
         return javaAgent.getJFile();
     }
 
@@ -78,7 +78,7 @@ public class JavaTextDoc extends TextDoc {
         TextRun textRun = aTextLine.getRun(0);
 
         // Get tokenizer
-        JavaAgent javaAgent = getJavaAgent();
+        JavaAgent javaAgent = getAgent();
         JavaParser javaParser = javaAgent.getJavaParser();
         CodeTokenizer tokenizer = javaParser.getTokenizer();
 

@@ -144,7 +144,7 @@ public class JavaTextDocUtils {
 
         // If StmtParser not yet set, create
         if (_stmtParser == null) {
-            JavaAgent javaAgent = javaTextDoc.getJavaAgent();
+            JavaAgent javaAgent = javaTextDoc.getAgent();
             _stmtParser = new StmtParser(javaAgent.getJavaParser());
         }
 

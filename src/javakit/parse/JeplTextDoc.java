@@ -70,6 +70,12 @@ public class JeplTextDoc extends JavaTextDoc {
     }
 
     /**
+     * Override to return as JeplAgent.
+     */
+    @Override
+    public JeplAgent getAgent()  { return (JeplAgent) super.getAgent(); }
+
+    /**
      * Sets a configure function.
      */
     public static void setJeplDocConfig(Consumer<JeplTextDoc> aConfig)

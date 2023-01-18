@@ -3,12 +3,8 @@
  */
 package javakit.runner;
 import javakit.parse.*;
-import javakit.project.BuildIssue;
-import javakit.project.BuildIssues;
 import javakit.project.JavaAgent;
-import javakit.project.Project;
 import snap.util.CharSequenceUtils;
-import snap.web.WebFile;
 import java.io.PrintStream;
 
 /**
@@ -24,12 +20,6 @@ public class JavaShell {
 
     // The client
     private ShellClient  _client;
-
-    // The compile errors
-    private NodeError[]  _compileErrors;
-
-    // Current running statement
-    private JStmt  _evalStmt;
 
     // Whether error was hit
     private boolean  _errorWasHit;
@@ -75,37 +65,6 @@ public class JavaShell {
     }
 
     /**
-     * Compile JavaTextDoc.
-     */
-    public void compileJavaCode(JavaTextDoc javaTextDoc)
-    {
-        Simpiler simpiler = new Simpiler();
-        JFile jfile = javaTextDoc.getJFile();
-        simpiler.compile(jfile);
-        _compileErrors = simpiler.getErrors();
-
-        // Get Project.BuildIssues and clear
-        WebFile sourceFile = javaTextDoc.getSourceFile();
-        Project proj = Project.getProjectForFile(sourceFile);
-        BuildIssues projBuildIssues = proj.getBuildIssues();
-        projBuildIssues.clear();
-
-        // Handle errors: Convert to BuildIssue and add to Project.BuildIssues
-        if (_compileErrors.length > 0) {
-            for (NodeError error : _compileErrors) {
-                BuildIssue buildIssue = BuildIssue.createIssueForNodeError(error, sourceFile);
-                if (buildIssue != null)
-                    projBuildIssues.add(buildIssue);
-            }
-        }
-    }
-
-    /**
-     * Returns the compile errors.
-     */
-    public NodeError[] getCompileErrors()  { return _compileErrors; }
-
-    /**
      * Evaluate string.
      */
     public void runJavaCode(JavaTextDoc javaTextDoc)
@@ -113,8 +72,12 @@ public class JavaShell {
         // Reset VarStack
         _stmtEval._exprEval._varStack.reset();
 
+        // Set var stack indexes in AST
+        JavaAgent javaAgent = javaTextDoc.getAgent();
+        JFile jfile = javaAgent.getJFile();
+        Simpiler.setVarStackIndexForJFile(jfile);
+
         // Get parsed statements
-        JavaAgent javaAgent = javaTextDoc.getJavaAgent();
         JStmt[] javaStmts = javaAgent.getJFileStatements();
 
         // Set System out/err to catch console output
@@ -136,7 +99,7 @@ public class JavaShell {
 
             // Process output
             if (_client != null && lineVal != null)
-                _client.processOutput(stmt, lineVal);
+                _client.processOutput(lineVal);
 
             // If StopRun hit, break
             if (_stmtEval._stopRun || _errorWasHit)
@@ -178,7 +141,6 @@ public class JavaShell {
         // Eval statement
         Object val;
         try {
-            _evalStmt = aStmt;
             val = _stmtEval.evalExecutable(_thisObject, aStmt);
         }
 
@@ -187,11 +149,6 @@ public class JavaShell {
             e.printStackTrace(_stdErr);
             val = e;
             _errorWasHit = true;
-        }
-
-        // Handle finally
-        finally {
-            _evalStmt = null;
         }
 
         // Return
@@ -210,7 +167,7 @@ public class JavaShell {
 
         // If newline, process and clear
         if (CharSequenceUtils.isLastCharNewline(_consoleOut.getString())) {
-            _client.processOutput(_evalStmt, _consoleOut);
+            _client.processOutput(_consoleOut);
             _consoleOut = null;
         }
     }
@@ -227,7 +184,7 @@ public class JavaShell {
 
         // If newline, process and clear
         if (CharSequenceUtils.isLastCharNewline(_consoleErr.getString())) {
-            _client.processOutput(_evalStmt, _consoleErr);
+            _client.processOutput(_consoleErr);
             _consoleErr = null;
         }
     }
@@ -240,7 +197,7 @@ public class JavaShell {
         /**
          * Called when a statement is evaluated with console and result output.
          */
-        void processOutput(JStmt aStmt, Object anOutput);
+        void processOutput(Object anOutput);
     }
 
     /**
