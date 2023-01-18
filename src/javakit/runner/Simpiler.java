@@ -32,7 +32,7 @@ public class Simpiler {
         // Get errors
         List<NodeError> errorsList = new ArrayList<>();
         findNodeErrors(aJFile, errorsList);
-        _errors = errorsList.toArray(new NodeError[0]);
+        _errors = errorsList.toArray(NodeError.NO_ERRORS);
     }
 
     /**

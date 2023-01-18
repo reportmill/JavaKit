@@ -4,13 +4,9 @@
 package javakit.project;
 import javakit.resolver.Resolver;
 import snap.props.PropChange;
-import snap.util.FilePathUtils;
 import snap.util.TaskMonitor;
 import snap.web.WebFile;
 import snap.web.WebSite;
-import snap.web.WebURL;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 /**
  * This is a Resolver subclass.
@@ -194,15 +190,13 @@ public class Project {
         if (rproj != this)
             return rproj.createClassLoader();
 
-        // Get all project ClassPath URLs
-        String[] classPaths = getClassPaths();
-        URL[] urls = FilePathUtils.getURLs(classPaths);
-
         // Get System ClassLoader
         ClassLoader sysClassLoader = ClassLoader.getSystemClassLoader().getParent();
 
-        // Create special URLClassLoader subclass so when debugging SnapCode, we can ignore classes loaded by Project
-        ClassLoader urlClassLoader = new URLClassLoader(urls, sysClassLoader);
+        // Get all project ClassPath URLs and add to class loader
+        //String[] classPaths = getClassPaths();
+        //URL[] urls = FilePathUtils.getURLs(classPaths);
+        ClassLoader urlClassLoader = sysClassLoader; //new URLClassLoader(urls, sysClassLoader);
 
         // Return
         return urlClassLoader;
@@ -311,21 +305,6 @@ public class Project {
     public static synchronized Project getProjectForSite(WebSite aSite)
     {
         Project proj = (Project) aSite.getProp(Project.class.getSimpleName());
-        return proj;
-    }
-
-    /**
-     * Returns a temp project.
-     */
-    public static Project getTempProject()
-    {
-        WebURL url = WebURL.getURL("/tmp/TempProj");
-        WebSite site = url.getAsSite();
-        Project proj = Project.getProjectForSite(site);
-        if (proj == null)
-            proj = new Project(site);
-
-        // Return
         return proj;
     }
 }
