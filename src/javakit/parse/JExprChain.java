@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import javakit.resolver.*;
+import snap.util.ListUtils;
 import java.util.*;
 
 /**
@@ -54,6 +55,16 @@ public class JExprChain extends JExpr {
     public void addExpr(JExpr anExpr)
     {
         addChild(anExpr, getChildCount());
+    }
+
+    /**
+     * Override to construct chain.
+     */
+    @Override
+    protected String getNameImpl()
+    {
+        List<JExpr> children = getExpressions();
+        return ListUtils.joinString(children, ".", expr -> expr.getName());
     }
 
     /**

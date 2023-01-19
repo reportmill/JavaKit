@@ -4,6 +4,7 @@
 package javakit.parse;
 import java.util.*;
 import javakit.resolver.*;
+import snap.util.ListUtils;
 import snap.web.WebFile;
 
 /**
@@ -32,8 +33,8 @@ public class JFile extends JNode {
     // The parse exception, if one was hit
     protected Exception  _exception;
 
-    // A set to hold unused imports
-    protected Set<JImportDecl>  _unusedImports;
+    // An array to hold unused imports
+    protected JImportDecl[]  _unusedImports;
 
     /**
      * Constructor.
@@ -219,47 +220,18 @@ public class JFile extends JNode {
     }
 
     /**
-     * Returns an import that can be used to resolve the given name.
+     * Returns an import that can be used to resolve the given class name.
      */
-    public JImportDecl getImport(String aName)
+    public JImportDecl getImportForClassName(String aName)
     {
         // Handle fully specified name
-        if (isKnownClassName(aName)) return null;
+        if (isKnownClassName(aName))
+            return null;
 
-        // Iterate over imports to see if any can resolve name
-        JImportDecl match = null;
-        for (int i = _importDecls.size() - 1; i >= 0; i--) {
-            JImportDecl importDecl = _importDecls.get(i);
-
-            // Get import name (just continue if null)
-            String importName = importDecl.getName();
-            if (importName == null) continue;
-
-            // If import is static, see if it matches given name
-            if (importDecl.isStatic() && importName.endsWith(aName)) {
-                if (importName.length() == aName.length() || importName.charAt(importName.length() - aName.length() - 1) == '.') {
-                    match = importDecl;
-                    break;
-                }
-            }
-
-            // If import is inclusive ("import xxx.*") and ImportName.aName is known class, return class name
-            else if (importDecl.isInclusive() && match == null) {
-                String className = importName + '.' + aName;
-                if (isKnownClassName(className))
-                    match = importDecl;
-                if (importDecl.isClassName() && isKnownClassName(importName + '$' + aName))
-                    match = importDecl;
-            }
-
-            // Otherwise, see if import refers explicitly to class name
-            else if (importName.endsWith(aName)) {
-                if (importName.length() == aName.length() || importName.charAt(importName.length() - aName.length() - 1) == '.') {
-                    match = importDecl;
-                    break;
-                }
-            }
-        }
+        // Find matching or containing import for name
+        JImportDecl match = ListUtils.findMatch(_importDecls, id -> id.matchesName(aName));
+        if (match == null)
+            match = ListUtils.findMatch(_importDecls, id -> id.containsName(aName));
 
         // Remove match from UnusedImports and return
         if (match != null) {
@@ -314,7 +286,7 @@ public class JFile extends JNode {
         }
 
         // Get import for name
-        JImportDecl imp = getImport(aName);
+        JImportDecl imp = getImportForClassName(aName);
         if (imp != null)
             return imp.getImportClassName(aName);
 
@@ -364,34 +336,52 @@ public class JFile extends JNode {
     /**
      * Returns unused imports for file.
      */
-    public Set<JImportDecl> getUnusedImports()
+    public JImportDecl[] getUnusedImports()
     {
         // If already set, just return
         if (_unusedImports != null) return _unusedImports;
 
         // Resolve class names
-        resolveClassNames(this);
-        Set<JImportDecl> unusedImportDecls = new HashSet<>();
-        for (JImportDecl importDecl : getImportDecls())
-            if (!importDecl._used)
-                unusedImportDecls.add(importDecl);
+        Set<JImportDecl> importDecls = new HashSet<>(getImportDecls());
+        resolveClassNames(this, importDecls);
 
-        // Set/return
-        return _unusedImports = unusedImportDecls;
+        // Set, return
+        return _unusedImports = importDecls.toArray(new JImportDecl[0]);
     }
 
     /**
      * Forces all nodes to resolve class names.
      */
-    private void resolveClassNames(JNode aNode)
+    private void resolveClassNames(JNode aNode, Set<JImportDecl> theImports)
     {
+        if (aNode instanceof JImportDecl || aNode instanceof JPackageDecl)
+            return;
+
         // Handle JType
-        if (aNode instanceof JType || aNode instanceof JExprId)
-            aNode.getDecl();
+        if (aNode instanceof JType || aNode instanceof JExprId) {
+
+            // Get JavaClass - just return if not found or primitive
+            JavaClass javaClass = aNode.getEvalClass();
+            if (javaClass == null || javaClass.isPrimitive())
+                return;
+
+            // Get JavaClass.ClassName - just return if java.lang
+            String className = javaClass.getClassName();
+            if (className.startsWith("java.lang."))
+                return;
+
+            // Find import for class name
+            JImportDecl classImport = ListUtils.findMatch(theImports, id -> className.startsWith(id.getName()));
+            if (classImport != null)
+                theImports.remove(classImport);
+        }
 
         // Recurse for children
-        for (JNode child : aNode.getChildren())
-            resolveClassNames(child);
+        for (JNode child : aNode.getChildren()) {
+            resolveClassNames(child, theImports);
+            if (theImports.size() == 0)
+                break;
+        }
     }
 
     /**

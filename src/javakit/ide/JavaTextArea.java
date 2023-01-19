@@ -455,7 +455,8 @@ public class JavaTextArea extends TextArea {
 
         // If HoverNode, underline
         if (_hoverNode != null) {
-            TextBoxToken hoverToken = (TextBoxToken) _hoverNode.getStartToken();
+            //TextBoxToken hoverToken = (TextBoxToken) _hoverNode.getStartToken();
+            TextBoxToken hoverToken = getTokenForCharIndex(_hoverNode.getStartCharIndex());
             double tokenX = hoverToken.getTextBoxX();
             double tokenY = hoverToken.getTextBoxStringY() + 1;
             double tokenMaxX = tokenX + hoverToken.getWidth();

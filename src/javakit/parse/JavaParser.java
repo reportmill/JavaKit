@@ -223,15 +223,17 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get packageDecl
+            JPackageDecl packageDecl = getPart();
+
             // Handle Modifiers
             //if(anId=="Modifiers") getPart().setMods(aNode.getCustomNode(JModifiers.class));
 
             // Handle Name
-            if (anId == "Name")
-                getPart().setNameExpr(aNode.getCustomNode(JExpr.class));
-
-                // Otherwise ensure part is available
-            else getPart();
+            if (anId == "Name") {
+                JExpr nameExpr = aNode.getCustomNode(JExpr.class);
+                packageDecl.setNameExpr(nameExpr);
+            }
         }
 
         protected Class<JPackageDecl> getPartClass()  { return JPackageDecl.class; }
@@ -247,20 +249,22 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get importDecl
+            JImportDecl importDecl = getPart();
+
             // Handle static
             if (anId == "static")
-                getPart().setStatic(true);
+                importDecl.setStatic(true);
 
-                // Handle Name
-            else if (anId == "Name")
-                getPart().setNameExpr(aNode.getCustomNode(JExpr.class));
+            // Handle Name
+            else if (anId == "Name") {
+                JExpr nameExpr = aNode.getCustomNode(JExpr.class);
+                importDecl.setNameExpr(nameExpr);
+            }
 
-                // Handle '*'
+            // Handle '*'
             else if (anId == "*")
-                getPart().setInclusive(true);
-
-                // Otherwise ensure part is available
-            else getPart();
+                importDecl.setInclusive(true);
         }
 
         protected Class<JImportDecl> getPartClass()  { return JImportDecl.class; }

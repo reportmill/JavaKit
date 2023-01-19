@@ -2,6 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.project;
+import javakit.parse.JFile;
+import javakit.parse.JImportDecl;
+import snap.util.ArrayUtils;
 import snap.util.TaskMonitor;
 import snap.web.WebFile;
 
@@ -78,4 +81,32 @@ public class JavaFileBuilder implements ProjectFileBuilder {
      * Checks last set of compiled files for unused imports.
      */
     public void findUnusedImports()  { }
+
+    /**
+     * Returns an array of unused imports for Java file.
+     */
+    protected BuildIssue[] getUnusedImportBuildIssuesForFile(WebFile javaFile)
+    {
+        // Get unused import decls
+        JavaAgent javaAgent = JavaAgent.getAgentForFile(javaFile);
+        JFile jfile = javaAgent.getJFile();
+        JImportDecl[] unusedImports = jfile.getUnusedImports();
+        if (unusedImports.length == 0)
+            return BuildIssues.NO_ISSUES;
+
+        // Create BuildIssues for each and return
+        return ArrayUtils.map(unusedImports, id -> createUnusedImportBuildIssue(javaFile, id), BuildIssue.class);
+    }
+
+    /**
+     * Returns an "Unused Import" BuildIssue for given import decl.
+     */
+    private BuildIssue createUnusedImportBuildIssue(WebFile javaFile, JImportDecl importDecl)
+    {
+        String msg = "The import " + importDecl.getName() + " is never used";
+        int lineIndex = importDecl.getLineIndex();
+        int startCharIndex = importDecl.getStartCharIndex();
+        int endCharIndex = importDecl.getEndCharIndex();
+        return new BuildIssue().init(javaFile, BuildIssue.Kind.Warning, msg, lineIndex, 0, startCharIndex, endCharIndex);
+    }
 }

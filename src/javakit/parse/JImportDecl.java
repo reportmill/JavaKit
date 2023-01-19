@@ -12,27 +12,32 @@ import java.util.*;
 public class JImportDecl extends JNode {
 
     // The import name expression
-    JExpr _nameExpr;
+    protected JExpr  _nameExpr;
 
     // Whether import is static
-    boolean _static;
+    protected boolean  _static;
 
     // Whether import is inclusive (ends with '.*')
-    boolean _inclusive;
+    protected boolean  _inclusive;
 
     // Whether import is used
-    boolean _used;
+    protected boolean  _used;
 
     // The list of child class names found by this import, if inclusive
-    Set<String> _found = Collections.EMPTY_SET;
+    protected Set<String> _found = Collections.EMPTY_SET;
+
+    /**
+     * Constructor.
+     */
+    public JImportDecl()
+    {
+        super();
+    }
 
     /**
      * Returns the name expression.
      */
-    public JExpr getNameExpr()
-    {
-        return _nameExpr;
-    }
+    public JExpr getNameExpr()  { return _nameExpr; }
 
     /**
      * Sets the name expression.
@@ -40,16 +45,12 @@ public class JImportDecl extends JNode {
     public void setNameExpr(JExpr anExpr)
     {
         replaceChild(_nameExpr, _nameExpr = anExpr);
-        if (_nameExpr != null) setName(_nameExpr.getString());
     }
 
     /**
      * Returns whether import is static.
      */
-    public boolean isStatic()
-    {
-        return _static;
-    }
+    public boolean isStatic()  { return _static; }
 
     /**
      * Sets whether import is static.
@@ -62,10 +63,7 @@ public class JImportDecl extends JNode {
     /**
      * Returns whether import is inclusive.
      */
-    public boolean isInclusive()
-    {
-        return _inclusive;
-    }
+    public boolean isInclusive()  { return _inclusive; }
 
     /**
      * Sets whether import is inclusive.
@@ -82,6 +80,73 @@ public class JImportDecl extends JNode {
     {
         JavaDecl decl = getDecl();
         return decl instanceof JavaClass;
+    }
+
+    /**
+     * Returns whether import matches given name.
+     * For example: import java.util.List matches "List" and "java.util.List".
+     */
+    public boolean matchesName(String aName)
+    {
+        // If inclusive, just return
+        if (isInclusive())
+            return false;
+
+        // Get import name (just continue if null)
+        String importName = getName();
+        if (importName == null)
+            return false;
+
+        // If import matches given name
+        if (importName.endsWith(aName)) {
+            if (importName.length() == aName.length())
+                return true;
+            if (importName.charAt(importName.length() - aName.length() - 1) == '.')
+                return true;
+        }
+
+        // Return no match
+        return false;
+    }
+
+    /**
+     * Returns whether import contains given name, either as package class (inclusive) or inner member (static class).
+     * For example:
+     *      import java.util.* contains "List"
+     *      import static java.lang.Math.* contains "PI"
+     */
+    public boolean containsName(String aName)
+    {
+        // Get import name (just continue if null)
+        String importName = getName();
+        if (importName == null)
+            return false;
+
+        // If import is inclusive ("import xxx.*") and ImportName.aName is known class, return class name
+        if (isInclusive()) {
+            String className = importName + '.' + aName;
+            if (isKnownClassName(className))
+                return true;
+        }
+
+        // If import is class, see if name is inner class - should also check for inner member
+        if (isClassName()) {
+            String innerClassName = importName + '$' + aName;
+            if (isKnownClassName(innerClassName))
+                return true;
+        }
+
+        // Return no match
+        return false;
+    }
+
+    /**
+     * Override to get name.
+     */
+    @Override
+    protected String getNameImpl()
+    {
+        return _nameExpr != null ? _nameExpr.getName() : null;
     }
 
     /**
@@ -160,18 +225,15 @@ public class JImportDecl extends JNode {
     /**
      * Returns the list of child class names found by this import (if inclusive).
      */
-    public Set<String> getFoundClassNames()
-    {
-        return _found;
-    }
+    public Set<String> getFoundClassNames()  { return _found; }
 
     /**
      * Adds a child class name to list of those
      */
     protected void addFoundClassName(String aName)
     {
-        if (_found == Collections.EMPTY_SET) _found = new HashSet();
+        if (_found == Collections.EMPTY_SET)
+            _found = new HashSet<>();
         _found.add(aName);
     }
-
 }

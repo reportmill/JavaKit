@@ -9,15 +9,20 @@ package javakit.parse;
 public class JPackageDecl extends JNode {
 
     // The package name identifier
-    JExpr _nameExpr;
+    protected JExpr  _nameExpr;
+
+    /**
+     * Constructor.
+     */
+    public JPackageDecl()
+    {
+        super();
+    }
 
     /**
      * Returns the name expression.
      */
-    public JExpr getNameExpr()
-    {
-        return _nameExpr;
-    }
+    public JExpr getNameExpr()  { return _nameExpr; }
 
     /**
      * Sets the name expression.
@@ -25,7 +30,14 @@ public class JPackageDecl extends JNode {
     public void setNameExpr(JExpr anExpr)
     {
         replaceChild(_nameExpr, _nameExpr = anExpr);
-        if (_nameExpr != null) setName(_nameExpr.getString());
     }
 
+    /**
+     * Override to get name.
+     */
+    @Override
+    protected String getNameImpl()
+    {
+        return _nameExpr != null ? _nameExpr.getName() : null;
+    }
 }
