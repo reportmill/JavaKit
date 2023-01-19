@@ -86,7 +86,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
         // Get location for popup and show
         double textX = selLine.getXForCharIndex(selNodeStart);
         double textY = selLine.getMaxY() + 4;
-        show(this, textX, textY);
+        show(_textArea, textX, textY);
     }
 
     /**
