@@ -64,6 +64,52 @@ public class JavaPopupList extends PopupList<JavaDecl> {
     }
 
     /**
+     * Activates the popup list (shows popup if multiple suggestions, does replace for one, does nothing for none).
+     */
+    public void activatePopupList()
+    {
+        // Get suggestions (just return if none)
+        JavaDecl[] completions = _textArea.getCompletionsAtCursor();
+        if (completions == null || completions.length == 0)
+            return;
+
+        // Set completions
+        setItems(completions);
+
+        // Get location for text start
+        TextSel textSel = _textArea.getSel();
+        TextBoxLine selLine = textSel.getStartLine();
+        int selLineStart = selLine.getStartCharIndex();
+        JNode selNode = _textArea.getSelNode();
+        int selNodeStart = selNode.getStartCharIndex() - _textArea.getTextDoc().getStartCharIndex() - selLineStart;
+
+        // Get location for popup and show
+        double textX = selLine.getXForCharIndex(selNodeStart);
+        double textY = selLine.getMaxY() + 4;
+        show(this, textX, textY);
+    }
+
+    /**
+     * Handle TextEditor PropertyChange to update Popup Suggestions when SelectedNode changes.
+     */
+    public void updatePopupList()
+    {
+        // If not showing, just return
+        if (!isShowing())
+            return;
+
+        // Get completions (just return if empty)
+        JavaDecl[] completions = _textArea.getCompletionsAtCursor();
+        if (completions == null || completions.length == 0) {
+            hide();
+            return;
+        }
+
+        // Set completions
+        setItems(completions);
+    }
+
+    /**
      * Applies the current suggestion.
      */
     public void applySuggestion()

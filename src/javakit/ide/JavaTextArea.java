@@ -11,6 +11,7 @@ import snap.geom.Rect;
 import snap.gfx.*;
 import snap.text.*;
 import snap.props.PropChange;
+import snap.util.CharSequenceUtils;
 import snap.view.*;
 import snap.web.WebFile;
 
@@ -74,54 +75,6 @@ public class JavaTextArea extends TextArea {
         // Create, set, return
         JavaPopupList popupList = new JavaPopupList(this);
         return _popup = popupList;
-    }
-
-    /**
-     * Activates the popup list (shows popup if multiple suggestions, does replace for one, does nothing for none).
-     */
-    public void activatePopupList()
-    {
-        // Get suggestions (just return if none)
-        JavaDecl[] completions = getCompletionsAtCursor();
-        if (completions == null || completions.length == 0)
-            return;
-
-        // Set completions
-        JavaPopupList popup = getPopup();
-        popup.setItems(completions);
-
-        // Get location for text start
-        TextSel textSel = getSel();
-        TextBoxLine selLine = textSel.getStartLine();
-        int selLineStart = selLine.getStartCharIndex();
-        JNode selNode = getSelNode();
-        int selNodeStart = selNode.getStartCharIndex() - getTextDoc().getStartCharIndex() - selLineStart;
-
-        // Get location for popup and show
-        double textX = selLine.getXForCharIndex(selNodeStart);
-        double textY = selLine.getMaxY() + 4;
-        popup.show(this, textX, textY);
-    }
-
-    /**
-     * Handle TextEditor PropertyChange to update Popup Suggestions when SelectedNode changes.
-     */
-    public void updatePopupList()
-    {
-        // Get popup (just return if not showing)
-        JavaPopupList javaPopup = getPopup();
-        if (!javaPopup.isShowing())
-            return;
-
-        // Get completions (just return if empty)
-        JavaDecl[] completions = getCompletionsAtCursor();
-        if (completions == null || completions.length == 0) {
-            javaPopup.hide();
-            return;
-        }
-
-        // Set completions
-        javaPopup.setItems(completions);
     }
 
     /**
@@ -238,7 +191,8 @@ public class JavaTextArea extends TextArea {
         setSelTokens(selTokens);
 
         // Reset PopupList
-        updatePopupList();
+        JavaPopupList javaPopup = getPopup();
+        javaPopup.updatePopupList();
 
         // Fire prop change
         firePropChange(SelectedNode_Prop, oldSelNode, _selNode);
@@ -594,7 +548,7 @@ public class JavaTextArea extends TextArea {
         }
 
         // If line was added or removed, iterate over Breakpoints and shift start/end for removed chars
-        int newlineCount = getNewlineCount(theChars);
+        int newlineCount = CharSequenceUtils.getNewlineCount(theChars);
         if (newlineCount > 0) {
 
             // Get start/end line index
@@ -640,7 +594,7 @@ public class JavaTextArea extends TextArea {
         }
 
         // See if we need to remove Breakpoints
-        int newlineCount = getNewlineCount(theChars);
+        int newlineCount = CharSequenceUtils.getNewlineCount(theChars);
         if (newlineCount > 0) {
 
             // Get start/end lines
@@ -793,26 +747,5 @@ public class JavaTextArea extends TextArea {
 
         // Do normal version
         super.replaceCharsWithContent(theContent);
-    }
-
-    /**
-     * Utility method: Returns number of newlines in given chars.
-     */
-    private static int getNewlineCount(CharSequence theChars)
-    {
-        int newlineCount = 0;
-        for (int i = 0, iMax = theChars.length(); i < iMax; i++) {
-            char c = theChars.charAt(i);
-            if (c == '\r') {
-                newlineCount++;
-                if (i + 1 < iMax && theChars.charAt(i + 1) == '\n')
-                    i++;
-            }
-            else if (c == '\n')
-                newlineCount++;
-        }
-
-        // Return
-        return newlineCount;
     }
 }

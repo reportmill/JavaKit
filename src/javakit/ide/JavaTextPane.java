@@ -75,7 +75,7 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
         // Get TextArea and start listening for events (KeyEvents, MouseReleased)
         _textArea = getTextArea();
         _textArea.setGrowWidth(true);
-        enableEvents(_textArea, KeyPress, KeyRelease, KeyType, MousePress, MouseRelease);
+        enableEvents(_textArea, KeyPress, KeyRelease, MousePress, MouseRelease);
 
         // Reset TextArea font
         double fontSize = Prefs.getDefaultPrefs().getDouble("JavaFontSize", 12);
@@ -157,13 +157,6 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
                 int kc = anEvent.getKeyCode();
                 if (kc == KeyCode.COMMAND || kc == KeyCode.CONTROL)
                     setTextAreaHoverEnabled(anEvent.isKeyPress());
-            }
-
-            // Handle KeyTyped: If PopupList not visible, ActivatePopupList
-            else if (anEvent.isKeyType()) {
-                if (getPopup().isShowing() || anEvent.isShortcutDown()) return;
-                if (anEvent.isControlChar() || anEvent.isSpaceKey()) return;
-                runLater(() -> getTextArea().activatePopupList());
             }
 
             // Handle PopupTrigger

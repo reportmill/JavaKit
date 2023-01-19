@@ -145,8 +145,9 @@ public class JavaTextAreaKeys extends TextAreaKeys {
             }
 
             // Activate PopupList
-            if (!_javaTextArea.getPopup().isShowing() && !anEvent.isSpaceKey())
-                ViewUtils.runLater(() -> _javaTextArea.activatePopupList());
+            JavaPopupList javaPopup = _javaTextArea.getPopup();
+            if (!javaPopup.isShowing() && !anEvent.isSpaceKey())
+                ViewUtils.runLater(() -> javaPopup.activatePopupList());
         }
     }
 
