@@ -4,7 +4,6 @@
 package javakit.resolver;
 import java.lang.reflect.*;
 import java.util.*;
-import snap.util.ArrayUtils;
 import snap.util.ClassUtils;
 import snap.util.SnapUtils;
 
@@ -59,25 +58,6 @@ public class Resolver {
     public void setClassPaths(String[] theClassPaths)
     {
         _classPaths = theClassPaths;
-    }
-
-    /**
-     * Adds a class path (Jar file path, classes dir path, etc.).
-     */
-    public void addClassPath(String aClassPath)
-    {
-        _classPaths = ArrayUtils.add(_classPaths, aClassPath);
-    }
-
-    /**
-     * Adds a class path for jar containing given class.
-     */
-    public void addClassPathForClass(Class<?> aClass)
-    {
-        String snapKitPath = ResolverUtils.getClassPathForClass(aClass);
-        if (snapKitPath != null)
-            addClassPath(snapKitPath);
-        else System.out.println("Resolver.addClassPathForClass: Couldn't find path for class: " + aClass.getName());
     }
 
     /**

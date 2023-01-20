@@ -2,7 +2,6 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.project;
-import javakit.resolver.Resolver;
 import snap.util.FileUtils;
 import snap.util.SnapUtils;
 import snap.web.WebFile;
@@ -96,11 +95,28 @@ public class ProjectUtils {
     }
 
     /**
-     * This needs to go!!!
+     * Returns a class path for given class.
      */
-    public static void setProjectResolver(Project aProject, Resolver aResolver)
+    public static String getClassPathForClass(Class<?> aClass)
     {
-        aProject._resolver = aResolver;
-        aProject._classLoader = aResolver.getClassLoader();
+        // Get URL and Site
+        WebURL url = WebURL.getURL(aClass);
+
+        // If URL string has separator, use site
+        String urlString = url.getString();
+        if (urlString.contains("!/")) {
+            WebSite site = url.getSite();
+            return site.getPath();
+        }
+
+        // Otherwise, trim className from path
+        String path = url.getPath();
+        int classNameLen = aClass.getName().length() + ".class".length() + 1;
+        if (path.length() > classNameLen)
+            return path.substring(0, path.length() - classNameLen);
+
+        // Express concern and return null
+        System.out.println("ResolverUtils.getClassPathForClass: Unexpected class url: " + url);
+        return null;
     }
 }

@@ -1,5 +1,4 @@
 package javakit.project;
-import snap.util.ArrayUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
 import java.util.ArrayList;
@@ -75,25 +74,6 @@ public class ProjectFiles {
 
         // Set/return
         return _buildDir = bldDir;
-    }
-
-    /**
-     * Returns the paths needed to compile/run project.
-     */
-    public String[] getClassPaths()
-    {
-        // Get build path
-        ProjectConfig projConfig = _proj.getProjectConfig();
-        String buildPath = projConfig.getBuildPathAbsolute();
-        String[] classPaths = { buildPath };
-
-        // Get library paths
-        String[] libPaths = projConfig.getLibPathsAbsolute();
-        if (libPaths.length > 0)
-            classPaths = ArrayUtils.add(libPaths, buildPath, 0);
-
-        // Return
-        return classPaths;
     }
 
     /**

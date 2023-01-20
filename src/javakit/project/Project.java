@@ -4,6 +4,7 @@
 package javakit.project;
 import javakit.resolver.Resolver;
 import snap.props.PropChange;
+import snap.util.SnapUtils;
 import snap.util.TaskMonitor;
 import snap.web.WebFile;
 import snap.web.WebSite;
@@ -111,6 +112,11 @@ public class Project {
     }
 
     /**
+     * Returns the paths needed to compile/run project.
+     */
+    public String[] getClassPaths()  { return _projConfig.getClassPaths(); }
+
+    /**
      * Returns the ProjectBuilder.
      */
     public ProjectBuilder getProjectBuilder()  { return _projBuilder; }
@@ -126,25 +132,51 @@ public class Project {
     /**
      * Interrupts build.
      */
-    public void interruptBuild()
-    {
-        _projBuilder.interruptBuild();
-    }
+    public void interruptBuild()  { _projBuilder.interruptBuild(); }
 
     /**
      * Removes all build files from project.
      */
-    public void cleanProject()
-    {
-        _projBuilder.cleanProject();
-    }
+    public void cleanProject()  { _projBuilder.cleanProject(); }
 
     /**
      * Adds a build file.
      */
-    public void addBuildFilesAll()
+    public void addBuildFilesAll()  { _projBuilder.addBuildFilesAll(); }
+
+    /**
+     * Returns the ClassLoader.
+     */
+    public ClassLoader getClassLoader()
     {
-        _projBuilder.addBuildFilesAll();
+        // If already set, just return
+        if (_classLoader != null) return _classLoader;
+
+        // Create, set, return ClassLoader
+        ClassLoader classLoader = createClassLoader();
+        return _classLoader = classLoader;
+    }
+
+    /**
+     * Creates the ClassLoader.
+     */
+    protected ClassLoader createClassLoader()
+    {
+        // If RootProject, return RootProject.ClassLoader
+        Project rootProj = getRootProject();
+        if (rootProj != this)
+            return rootProj.createClassLoader();
+
+        // Get System ClassLoader
+        ClassLoader sysClassLoader = ClassLoader.getSystemClassLoader(); //.getParent();
+
+        // Get all project ClassPath URLs and add to class loader
+        //String[] classPaths = getClassPaths();
+        //URL[] urls = FilePathUtils.getURLs(classPaths);
+        ClassLoader urlClassLoader = sysClassLoader; //new URLClassLoader(urls, sysClassLoader);
+
+        // Return
+        return urlClassLoader;
     }
 
     /**
@@ -155,6 +187,11 @@ public class Project {
         // If already set, just return
         if (_resolver != null) return _resolver;
 
+        // Handle TeaVM special
+        if (SnapUtils.isTeaVM) {
+            return Resolver.newResolverForClassLoader(getClass().getClassLoader());
+        }
+
         // Create Resolver
         ClassLoader classLoader = getClassLoader();
         Resolver resolver = Resolver.newResolverForClassLoader(classLoader);
@@ -163,43 +200,6 @@ public class Project {
 
         // Set, return
         return _resolver = resolver;
-    }
-
-    /**
-     * Returns the ClassLoader.
-     */
-    public ClassLoader getClassLoader()
-    {
-        // If already set, just return
-        if (_classLoader != null) return _classLoader;
-
-        // Create ClassLoader
-        ClassLoader classLoader = createClassLoader();
-
-        // Set, return
-        return _classLoader = classLoader;
-    }
-
-    /**
-     * Creates the ClassLoader.
-     */
-    protected ClassLoader createClassLoader()
-    {
-        // If RootProject, return RootProject.ClassLoader
-        Project rproj = getRootProject();
-        if (rproj != this)
-            return rproj.createClassLoader();
-
-        // Get System ClassLoader
-        ClassLoader sysClassLoader = ClassLoader.getSystemClassLoader().getParent();
-
-        // Get all project ClassPath URLs and add to class loader
-        //String[] classPaths = getClassPaths();
-        //URL[] urls = FilePathUtils.getURLs(classPaths);
-        ClassLoader urlClassLoader = sysClassLoader; //new URLClassLoader(urls, sysClassLoader);
-
-        // Return
-        return urlClassLoader;
     }
 
     /**
@@ -215,26 +215,12 @@ public class Project {
     /**
      * Returns the source directory.
      */
-    public WebFile getSourceDir()
-    {
-        return _projFiles.getSourceDir();
-    }
+    public WebFile getSourceDir()  { return _projFiles.getSourceDir(); }
 
     /**
      * Returns the build directory.
      */
-    public WebFile getBuildDir()
-    {
-        return _projFiles.getBuildDir();
-    }
-
-    /**
-     * Returns the paths needed to compile/run project.
-     */
-    public String[] getClassPaths()
-    {
-        return _projFiles.getClassPaths();
-    }
+    public WebFile getBuildDir()  { return _projFiles.getBuildDir(); }
 
     /**
      * Returns a file for given path.

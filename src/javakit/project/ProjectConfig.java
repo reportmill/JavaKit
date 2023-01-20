@@ -4,6 +4,7 @@ import snap.util.ArrayUtils;
 import snap.util.StringUtils;
 import snap.web.WebFile;
 import snap.web.WebSite;
+import snap.web.WebURL;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
@@ -130,12 +131,18 @@ public class ProjectConfig extends PropObject {
      */
     public void addLibPath(String aPath)
     {
-        // Update paths
-        String path = getRelativePath(aPath);
+        // Get relative path if inside project
+        String libPath = getRelativePath(aPath);
 
-        _libPaths = ArrayUtils.add(_libPaths, path);
+        // If already set, just return
+        if (ArrayUtils.contains(_libPaths, libPath))
+            return;
 
-        firePropChange(JarPaths_Prop, null, path);
+        // Add path
+        _libPaths = ArrayUtils.add(_libPaths, libPath);
+
+        // Fire prop change
+        firePropChange(JarPaths_Prop, null, libPath);
     }
 
     /**
@@ -150,6 +157,17 @@ public class ProjectConfig extends PropObject {
         _libPaths = ArrayUtils.remove(_libPaths, index);
 
         firePropChange(JarPaths_Prop, aPath, null);
+    }
+
+    /**
+     * Adds a class path for jar containing given class.
+     */
+    public void addLibPathForClass(Class<?> aClass)
+    {
+        String classPath = ProjectUtils.getClassPathForClass(aClass);
+        if (classPath != null)
+            addLibPath(classPath);
+        else System.out.println("ProjectConfig.addLibPathForClass: Couldn't find path for class: " + aClass.getName());
     }
 
     /**
@@ -184,6 +202,24 @@ public class ProjectConfig extends PropObject {
 
         // Return
         return absPaths;
+    }
+
+    /**
+     * Returns the paths needed to compile/run project.
+     */
+    public String[] getClassPaths()
+    {
+        // Get build path
+        String buildPath = getBuildPathAbsolute();
+        String[] classPaths = { buildPath };
+
+        // Get library paths
+        String[] libPaths = getLibPathsAbsolute();
+        if (libPaths.length > 0)
+            classPaths = ArrayUtils.add(libPaths, buildPath, 0);
+
+        // Return
+        return classPaths;
     }
 
     /**
@@ -228,7 +264,7 @@ public class ProjectConfig extends PropObject {
 
         // If filePath starts with root dir path, strip it
         String rootDirPath = getProjRootDirPath();
-        if (filePath.startsWith(rootDirPath))
+        if (rootDirPath != null && filePath.startsWith(rootDirPath))
             filePath = filePath.substring(rootDirPath.length());
 
         // Return
@@ -240,8 +276,14 @@ public class ProjectConfig extends PropObject {
      */
     private String getProjRootDirPath()
     {
-        // Get project root dir path
+        // If Project not local file, return null
         WebSite projSite = _proj.getSite();
+        WebURL projURL = projSite.getURL();
+        String scheme = projURL.getScheme();
+        if (!scheme.equals("file"))
+            return null;
+
+        // Get project root dir path
         WebFile rootDir = projSite.getRootDir();
         File rootDirFile = rootDir.getJavaFile();
         String rootDirPath = rootDirFile.getAbsolutePath();
