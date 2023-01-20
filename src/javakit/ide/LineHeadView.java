@@ -129,7 +129,7 @@ public class LineHeadView extends View {
         // Add markers for BuildIssues
         BuildIssue[] buildIssues = _textArea.getBuildIssues();
         for (BuildIssue issue : buildIssues)
-            if (issue.getEnd() < _textArea.length())
+            if (issue.getEnd() <= _textArea.length())
                 markers.add(new LineMarker.BuildIssueMarker(_textPane, issue));
 
         // Add markers for breakpoints
@@ -262,8 +262,9 @@ public class LineHeadView extends View {
      */
     protected void paintFront(Painter aPntr)
     {
-        aPntr.setStroke(Stroke.Stroke1);
-        for (LineMarker<?> marker : getMarkers())
+        // Get markers and paint each
+        LineMarker<?>[] markers = getMarkers();
+        for (LineMarker<?> marker : markers)
             aPntr.drawImage(marker._image, marker.x, marker.y);
 
         if (isShowLineNumbers())
