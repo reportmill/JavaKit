@@ -324,8 +324,15 @@ public class JavaParser extends JavaParserStmt {
             // Get class decl
             JClassDecl classDecl = getPart();
 
+            // Handle ClassBodyDecl (JavaMembers): ClassDecl, EnumDecl,
+            // ConstrDecl, FieldDecl, MethodDecl, AnnotationDecl
+            if (aNode.getCustomNode() instanceof JMemberDecl) {
+                JMemberDecl memberDecl = aNode.getCustomNode(JMemberDecl.class);
+                classDecl.addMemberDecl(memberDecl);
+            }
+
             // Handle "class" or "interface"
-            if (anId == "interface")
+            else if (anId == "interface")
                 classDecl.setClassType(JClassDecl.ClassType.Interface);
 
             // Handle Identifier
@@ -337,43 +344,15 @@ public class JavaParser extends JavaParserStmt {
                 classDecl.setTypeVars(aNode.getCustomNode(List.class));
 
             // Handle ExtendsList or ImplementsList mode and extendsList/implementsList
-            else if (anId == "extends") _extending = true;
-            else if (anId == "implements") _extending = false;
+            else if (anId == "extends")
+                _extending = true;
+            else if (anId == "implements")
+                _extending = false;
             else if (anId == "ClassType") {
                 JType type = aNode.getCustomNode(JType.class);
                 if (_extending)
                     classDecl.addExtendsType(type);
                 else classDecl.addImplementsType(type);
-            }
-
-            // Handle ClassBody
-            else if (anId == "ClassBody") {
-                JClassDecl body = aNode.getCustomNode(JClassDecl.class);
-                classDecl.setMemberDecls(body.getMemberDecls());
-            }
-        }
-
-        protected Class<JClassDecl> getPartClass()  { return JClassDecl.class; }
-    }
-
-    /**
-     * ClassBody Handler.
-     */
-    public static class ClassBodyHandler extends JNodeParseHandler<JClassDecl> {
-
-        /**
-         * ParseHandler method.
-         */
-        protected void parsedOne(ParseNode aNode, String anId)
-        {
-            // Get class decl
-            JClassDecl classDecl = getPart();
-
-            // Handle ClassBodyDecl (JavaMembers): ClassDecl, EnumDecl,
-            // ConstrDecl, FieldDecl, MethodDecl, AnnotationDecl
-            if (aNode.getCustomNode() instanceof JMemberDecl) {
-                JMemberDecl memberDecl = aNode.getCustomNode(JMemberDecl.class);
-                classDecl.addMemberDecl(memberDecl);
             }
         }
 
@@ -752,9 +731,8 @@ public class JavaParser extends JavaParserStmt {
         ConstrDeclHandler.class, MethodDeclHandler.class, FieldDeclHandler.class,
         TypeParamsHandler.class, TypeParamHandler.class, EnumConstantHandler.class,
         EnumDeclHandler.class, InitializerHandler.class, ClassBodyDeclHandler.class,
-        ClassBodyHandler.class, ClassDeclHandler.class, TypeDeclHandler.class,
-        ImportDeclHandler.class, PackageDeclHandler.class, JavaFileImportsHandler.class,
-        JavaFileHandler.class
+        ClassDeclHandler.class, TypeDeclHandler.class, ImportDeclHandler.class,
+        PackageDeclHandler.class, JavaFileImportsHandler.class, JavaFileHandler.class
     };
 
     // TeaVM needs this to exist, otherwise RuleNames.intern() != RuleName (and id == RuleName doesn't work)

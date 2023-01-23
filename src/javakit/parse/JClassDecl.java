@@ -211,17 +211,6 @@ public class JClassDecl extends JMemberDecl {
     }
 
     /**
-     * Sets the list of member declarations.
-     */
-    public void setMemberDecls(List<JMemberDecl> theMDs)
-    {
-        for (JMemberDecl md : _members) removeChild(md);
-        _members = theMDs;
-        for (JMemberDecl md : _members)
-            addChild(md, -1);
-    }
-
-    /**
      * Returns the class field declarations.
      */
     public JFieldDecl[] getFieldDecls()
@@ -258,7 +247,7 @@ public class JClassDecl extends JMemberDecl {
     /**
      * Returns the JConstructorDecl for given name.
      */
-    public JConstrDecl getConstructorDecl(String aName, Class theClasses[])
+    public JConstrDecl getConstructorDecl(String aName, Class<?>[] theClasses)
     {
         for (JConstrDecl cd : getConstructorDecls())
             if (cd.getName().equals(aName))
@@ -454,7 +443,6 @@ public class JClassDecl extends JMemberDecl {
 
     /**
      * Override to check field declarations for id.
-     * @param anExprId
      */
     @Override
     protected JavaDecl getDeclForChildExprIdNode(JExprId anExprId)
