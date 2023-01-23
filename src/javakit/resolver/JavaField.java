@@ -110,6 +110,7 @@ public class JavaField extends JavaMember {
         // Properties.
         public FieldBuilder mods(int mods)  { _mods = mods; return this; }
         public FieldBuilder name(String name)  { _name = name; return this; }
+        public FieldBuilder type(JavaType type)  { _type = type; return this; }
         public FieldBuilder type(Type type)  { _type = _resolver.getJavaTypeForType(type); return this; }
 
         /**

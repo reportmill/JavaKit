@@ -2,10 +2,8 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.resolver;
-import javakit.parse.JClassDecl;
-import javakit.parse.JMethodDecl;
-import javakit.parse.JType;
-import javakit.parse.JVarDecl;
+import javakit.parse.*;
+
 import java.util.*;
 
 /**
@@ -42,7 +40,7 @@ public class JavaClassUpdaterDecl extends JavaClassUpdater {
     {
         // If first time, set decls
         if (_javaClass._fieldDecls == null)
-            _javaClass._fieldDecls = new ArrayList<>();
+            _javaClass._fieldDecls = Collections.EMPTY_LIST;
 
         // Update interfaces
         //updateInterfaces();
@@ -57,7 +55,7 @@ public class JavaClassUpdaterDecl extends JavaClassUpdater {
         _javaClass._innerClasses = Collections.EMPTY_LIST;
 
         // Update fields
-        //updateFields();
+        updateFields();
 
         // Update methods
         updateMethods();
@@ -68,6 +66,45 @@ public class JavaClassUpdaterDecl extends JavaClassUpdater {
 
         // Return
         return true;
+    }
+
+    /**
+     * Updates methods.
+     */
+    private void updateFields() throws SecurityException
+    {
+        // Get Methods
+        JFieldDecl[] fieldDecls = _classDecl.getFieldDecls();
+        JavaField.FieldBuilder fb = new JavaField.FieldBuilder();
+        fb.init(_resolver, _javaClass.getClassName());
+
+        // Add JavaDecl for each declared field
+        for (JFieldDecl fieldDecl : fieldDecls) {
+
+            // Get VarDecls
+            List<JVarDecl> varDecls = fieldDecl.getVarDecls();
+
+            // Iterate over varDecls
+            for (JVarDecl varDecl : varDecls) {
+
+                // Get/set name
+                String fieldName = varDecl.getName();
+                fb.name(fieldName);
+
+                // Get/set type
+                JType varTypeDecl = varDecl.getType();
+                JavaType varType = varTypeDecl != null ? varTypeDecl.getDecl() : null;
+                if (varType != null)
+                    fb.type(varType);
+
+                // Add to builder list
+                fb.save();
+            }
+        }
+
+        // Set fields
+        JavaField[] fields = fb.buildAll();
+        _javaClass._fieldDecls = Arrays.asList(fields);
     }
 
     /**

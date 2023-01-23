@@ -321,31 +321,35 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get class decl
+            JClassDecl classDecl = getPart();
+
             // Handle "class" or "interface"
             if (anId == "interface")
-                getPart().setClassType(JClassDecl.ClassType.Interface);
+                classDecl.setClassType(JClassDecl.ClassType.Interface);
 
-                // Handle Identifier
+            // Handle Identifier
             else if (anId == "Identifier")
-                getPart().setId(aNode.getCustomNode(JExprId.class));
+                classDecl.setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle TypeParams
+            // Handle TypeParams
             else if (anId == "TypeParams")
-                getPart().setTypeVars(aNode.getCustomNode(List.class));
+                classDecl.setTypeVars(aNode.getCustomNode(List.class));
 
-                // Handle ExtendsList or ImplementsList mode and extendsList/implementsList
+            // Handle ExtendsList or ImplementsList mode and extendsList/implementsList
             else if (anId == "extends") _extending = true;
             else if (anId == "implements") _extending = false;
             else if (anId == "ClassType") {
                 JType type = aNode.getCustomNode(JType.class);
-                if (_extending) getPart().addExtendsType(type);
-                else getPart().addImplementsType(type);
+                if (_extending)
+                    classDecl.addExtendsType(type);
+                else classDecl.addImplementsType(type);
             }
 
             // Handle ClassBody
             else if (anId == "ClassBody") {
                 JClassDecl body = aNode.getCustomNode(JClassDecl.class);
-                _part.setMemberDecls(body.getMemberDecls());
+                classDecl.setMemberDecls(body.getMemberDecls());
             }
         }
 
@@ -362,13 +366,15 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
-            // Make sure part is created at first node (aNode.getPattern()=="{")
-            getPart();
+            // Get class decl
+            JClassDecl classDecl = getPart();
 
             // Handle ClassBodyDecl (JavaMembers): ClassDecl, EnumDecl,
             // ConstrDecl, FieldDecl, MethodDecl, AnnotationDecl
-            if (aNode.getCustomNode() instanceof JMemberDecl)
-                getPart().addMemberDecl(aNode.getCustomNode(JMemberDecl.class));
+            if (aNode.getCustomNode() instanceof JMemberDecl) {
+                JMemberDecl memberDecl = aNode.getCustomNode(JMemberDecl.class);
+                classDecl.addMemberDecl(memberDecl);
+            }
         }
 
         protected Class<JClassDecl> getPartClass()  { return JClassDecl.class; }
@@ -391,7 +397,7 @@ public class JavaParser extends JavaParserStmt {
             if (anId == "Modifiers")
                 _mods = aNode.getCustomNode(JModifiers.class);
 
-                // Handle Member
+            // Handle Member
             else if (aNode.getCustomNode() instanceof JMemberDecl) {
                 _part = aNode.getCustomNode(JMemberDecl.class);
                 _part.setMods(_mods);
@@ -412,13 +418,16 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get initializer decl
+            JInitializerDecl initDecl = getPart();
+
             // Handle "static"
             if (anId == "static")
-                getPart().setStatic(true);
+                initDecl.setStatic(true);
 
-                // Handle Block
+            // Handle Block
             else if (anId == "Block")
-                getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
+                initDecl.setBlock(aNode.getCustomNode(JStmtBlock.class));
         }
 
         protected Class<JInitializerDecl> getPartClass()  { return JInitializerDecl.class; }
@@ -434,21 +443,24 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get enum decl
+            JClassDecl enumDecl = getPart();
+
             // Handle MethodDeclarator Identifier
             if (anId == "Identifier")
-                getPart().setId(aNode.getCustomNode(JExprId.class));
+                enumDecl.setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle ImplementsList ClassType
+            // Handle ImplementsList ClassType
             else if (anId == "ClassType")
-                getPart().getImplementsTypes().add(aNode.getCustomNode(JType.class));
+                enumDecl.getImplementsTypes().add(aNode.getCustomNode(JType.class));
 
-                // Handle EnumConstant
+            // Handle EnumConstant
             else if (anId == "EnumConstant")
-                getPart().addEnumConstant(aNode.getCustomNode(JEnumConst.class));
+                enumDecl.addEnumConstant(aNode.getCustomNode(JEnumConst.class));
 
-                // Handle ClassBodyDecl (JMemberDecl): ClassDecl, EnumDecl, ConstrDecl, FieldDecl, MethodDecl, AnnotationDecl
+            // Handle ClassBodyDecl (JMemberDecl): ClassDecl, EnumDecl, ConstrDecl, FieldDecl, MethodDecl, AnnotationDecl
             else if (aNode.getCustomNode() instanceof JMemberDecl)
-                getPart().addMemberDecl(aNode.getCustomNode(JMemberDecl.class));
+                enumDecl.addMemberDecl(aNode.getCustomNode(JMemberDecl.class));
         }
 
         /**
@@ -472,21 +484,24 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get enum constant
+            JEnumConst enumConst = getPart();
+
             // Handle Modifiers
             if (anId == "Modifiers")
-                getPart().setMods(aNode.getCustomNode(JModifiers.class));
+                enumConst.setMods(aNode.getCustomNode(JModifiers.class));
 
-                // Handle name Identifier
+            // Handle name Identifier
             else if (anId == "Identifier")
-                getPart().setId(aNode.getCustomNode(JExprId.class));
+                enumConst.setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle Arguments
+            // Handle Arguments
             else if (anId == "Arguments")
-                getPart().setArgs(aNode.getCustomNode(List.class));
+                enumConst.setArgs(aNode.getCustomNode(List.class));
 
-                // Handle ClassBody
+            // Handle ClassBody
             else if (anId == "ClassBody")
-                getPart().setClassBody(aNode.getString());
+                enumConst.setClassBody(aNode.getString());
         }
 
         protected Class<JEnumConst> getPartClass()  { return JEnumConst.class; }
@@ -502,13 +517,16 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get type var
+            JTypeVar typeVar = getPart();
+
             // Handle Identifier
             if (anId == "Identifier")
-                getPart().setId(aNode.getCustomNode(JExprId.class));
+                typeVar.setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle ClassType
+            // Handle ClassType
             else if (anId == "ClassType")
-                getPart().addType(aNode.getCustomNode(JType.class));
+                typeVar.addType(aNode.getCustomNode(JType.class));
         }
 
         protected Class<JTypeVar> getPartClass()  { return JTypeVar.class; }
@@ -546,14 +564,17 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get field decl
+            JFieldDecl fieldDecl = getPart();
+
             // Handle Type
             if (anId == "Type")
-                getPart().setType(aNode.getCustomNode(JType.class));
+                fieldDecl.setType(aNode.getCustomNode(JType.class));
 
-                // Handle VarDecl(s)
+            // Handle VarDecl(s)
             else if (anId == "VarDecl") {
                 JVarDecl vd = aNode.getCustomNode(JVarDecl.class);
-                getPart().addVarDecl(vd);
+                fieldDecl.addVarDecl(vd);
             }
         }
 
@@ -570,29 +591,32 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get method decl
+            JMethodDecl methodDecl = getPart();
+
             // Handle TypeParams
             if (anId == "TypeParams")
-                getPart().setTypeVars(aNode.getCustomNode(List.class));
+                methodDecl.setTypeVars(aNode.getCustomNode(List.class));
 
-                // Handle ResultType
+            // Handle ResultType
             else if (anId == "ResultType")
-                getPart().setType(aNode.getCustomNode(JType.class));
+                methodDecl.setType(aNode.getCustomNode(JType.class));
 
-                // Handle MethodDeclarator Identifier
+            // Handle MethodDeclarator Identifier
             else if (anId == "Identifier")
-                getPart().setId(aNode.getCustomNode(JExprId.class));
+                methodDecl.setId(aNode.getCustomNode(JExprId.class));
 
-                // Handle MethodDeclarator FormalParam
+            // Handle MethodDeclarator FormalParam
             else if (anId == "FormalParam")
-                getPart().addParam(aNode.getCustomNode(JVarDecl.class));
+                methodDecl.addParam(aNode.getCustomNode(JVarDecl.class));
 
-                // Handle ThrowsList
+            // Handle ThrowsList
             else if (anId == "ThrowsList")
-                getPart().setThrowsList(aNode.getCustomNode(List.class));
+                methodDecl.setThrowsList(aNode.getCustomNode(List.class));
 
-                // Handle Block
+            // Handle Block
             else if (anId == "Block")
-                getPart().setBlock(aNode.getCustomNode(JStmtBlock.class));
+                methodDecl.setBlock(aNode.getCustomNode(JStmtBlock.class));
         }
 
         protected Class<JMethodDecl> getPartClass()  { return JMethodDecl.class; }
@@ -679,21 +703,24 @@ public class JavaParser extends JavaParserStmt {
          */
         protected void parsedOne(ParseNode aNode, String anId)
         {
+            // Get constructor call statement
+            JStmtConstrCall constrCallStmt = getPart();
+
             // Handle Identifier
             if (anId == "Identifier")
-                getPart().addId(aNode.getCustomNode(JExprId.class));
+                constrCallStmt.addId(aNode.getCustomNode(JExprId.class));
 
             // Handle "this"/"super"
             else if (anId == "this" || anId == "super") {
                 JExprId id = new JExprId(aNode.getString());
                 id.setStartToken(aNode.getStartToken());
                 id.setEndToken(aNode.getEndToken());
-                getPart().addId(id);
+                constrCallStmt.addId(id);
             }
 
             // Handle Arguments
             else if (anId == "Arguments")
-                getPart().setArgs(aNode.getCustomNode(List.class));
+                constrCallStmt.setArgs(aNode.getCustomNode(List.class));
         }
 
         protected Class<JStmtConstrCall> getPartClass()  { return JStmtConstrCall.class; }
@@ -752,6 +779,6 @@ public class JavaParser extends JavaParserStmt {
             "this", "super", "extends", "implements", "interface", "...",
             "+", "-", "*", "/", "++", "--", "==", "+=", "-=", "{", "[", "->",
     };
-    public static String[] _allRuleNamesIntern = Stream.of(_allRuleNames).map(s -> s.intern()).toArray(size -> new String[size]);
 
+    public static String[] _allRuleNamesIntern = Stream.of(_allRuleNames).map(s -> s.intern()).toArray(size -> new String[size]);
 }
