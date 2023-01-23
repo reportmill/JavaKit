@@ -3,6 +3,7 @@
  */
 package javakit.parse;
 import java.util.*;
+import javakit.project.Project;
 import javakit.resolver.*;
 import snap.util.ListUtils;
 import snap.web.WebFile;
@@ -60,7 +61,20 @@ public class JFile extends JNode {
     /**
      * Returns the Resolver.
      */
-    public Resolver getResolver()  { return _resolver; }
+    public Resolver getResolver()
+    {
+        // If already set, just return
+        if (_resolver != null) return _resolver;
+
+        // Get Resolver
+        Project proj = _sourceFile != null ? Project.getProjectForFile(_sourceFile) : null;
+        Resolver resolver = proj != null ? proj.getResolver() : null;
+        if (resolver == null)
+            System.err.println("JFile.getResolver: No source file or project");
+
+        // Set, return
+        return _resolver = resolver;
+    }
 
     /**
      * Sets the resolver.

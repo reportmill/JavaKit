@@ -101,22 +101,29 @@ public class JavaParser extends JavaParserStmt {
         _exception = null;
 
         // If no input, just return
-        if (anInput == null || anInput.length() == 0) return null;
+        if (anInput.length() == 0)
+            return new JFile();
 
         // Get parse node
         ParseNode node = null;
-        try { node = parse(anInput); }
+        try {
+            node = parse(anInput);
+        }
 
+        // Catch ParseException
         catch (ParseException e) {
             if (_exception == null)
                 _exception = e;
         }
 
+        // Catch other exception (probably Tokenizer)
         catch (Exception e) {
             _exception = e;
-            ParseToken t = getToken();
-            if (t != null)
-                System.err.println("Exception at line " + (t.getLineIndex() + 1));
+            ParseToken token = getToken();
+            if (token != null) {
+                int lineNum = token.getLineIndex() + 1;
+                System.err.println("JavaParser.getJavaFile: Exception at line " + lineNum);
+            }
             e.printStackTrace();
         }
 
@@ -124,6 +131,9 @@ public class JavaParser extends JavaParserStmt {
         JFile jfile = node != null ? node.getCustomNode(JFile.class) : null;
         if (jfile == null)
             jfile = new JFile();
+
+        // Set string
+        jfile.setJavaFileString(anInput.toString());
 
         // Set Exception
         jfile.setException(_exception);

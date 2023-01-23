@@ -3,7 +3,6 @@
  */
 package javakit.project;
 import javakit.parse.*;
-import javakit.resolver.Resolver;
 import snap.props.PropChange;
 import snap.text.TextDoc;
 import snap.text.TextDocUtils;
@@ -119,18 +118,9 @@ public class JavaAgent {
         JavaParser javaParser = getJavaParser();
         String javaStr = getJavaText();
         JFile jfile = javaParser.getJavaFile(javaStr);
-        if (jfile == null)
-            jfile = new JFile();
 
         // Set SourceFile
         jfile.setSourceFile(_file);
-
-        // Set Resolver
-        Project proj = getProject();
-        Resolver resolver = proj.getResolver();
-        if (resolver != null)
-            jfile.setResolver(resolver);
-        jfile.setJavaFileString(javaStr);
 
         // Return
         return jfile;
