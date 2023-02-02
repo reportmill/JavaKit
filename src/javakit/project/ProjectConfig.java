@@ -229,8 +229,12 @@ public class ProjectConfig extends PropObject {
     {
         // If path missing root dir path, add it
         String filePath = aPath;
-        if (!filePath.startsWith("/"))
-            filePath = getProjRootDirPath() + filePath;
+        if (!filePath.startsWith("/")) {
+            String rootPath = getProjRootDirPath();
+            if (rootPath != null)
+                filePath = getProjRootDirPath() + filePath;
+            else System.err.println("ProjectConfig.getAbsolutePath: Can't find project root path");
+        }
 
         // Return
         return filePath;
@@ -280,7 +284,7 @@ public class ProjectConfig extends PropObject {
         WebSite projSite = _proj.getSite();
         WebURL projURL = projSite.getURL();
         String scheme = projURL.getScheme();
-        if (!scheme.equals("file"))
+        if (!(scheme.equals("file") || scheme.equals("local")))
             return null;
 
         // Get project root dir path
