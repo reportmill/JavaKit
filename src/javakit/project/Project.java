@@ -14,6 +14,9 @@ import snap.web.WebSite;
  */
 public class Project {
 
+    // The Pod that owns this project
+    private Pod  _pod;
+
     // The encapsulated data site
     protected WebSite  _site;
 
@@ -25,6 +28,9 @@ public class Project {
 
     // The ProjectBuilder
     protected ProjectBuilder  _projBuilder;
+
+    // The set of projects this project depends on
+    private ProjectSet  _projSet;
 
     // The resolver
     protected Resolver _resolver;
@@ -56,7 +62,16 @@ public class Project {
         // Create/set ProjectFiles, ProjectBuilder
         _projFiles = new ProjectFiles(this);
         _projBuilder = new ProjectBuilder(this);
+
+        // Create ProjectSet
+        _projSet = new ProjectSet(this);
+        _projSet.getProjects();
     }
+
+    /**
+     * Returns the Pod that manages this project.
+     */
+    public Pod getPod()  { return _pod; }
 
     /**
      * Returns root project if part of hierarchy.
@@ -115,6 +130,16 @@ public class Project {
      * Returns the paths needed to compile/run project.
      */
     public String[] getClassPaths()  { return _projConfig.getClassPaths(); }
+
+    /**
+     * Returns the set of projects this project depends on.
+     */
+    public ProjectSet getProjectSet()  { return _projSet; }
+
+    /**
+     * Returns an array of projects that this project depends on.
+     */
+    public Project[] getProjects()  { return _projSet.getProjects(); }
 
     /**
      * Returns the ProjectBuilder.
