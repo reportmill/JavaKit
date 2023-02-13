@@ -43,7 +43,6 @@ public class Project {
     public Project(WorkSpace aWorkSpace, WebSite aSite)
     {
         _workSpace = aWorkSpace;
-        aWorkSpace.addProject(this);
 
         // Set site
         setSite(aSite);

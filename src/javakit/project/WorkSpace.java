@@ -16,6 +16,9 @@ public class WorkSpace {
     // The projects in the workspace
     private Project[]  _projects = new Project[0];
 
+    // The project sites
+    private WebSite[]  _sites;
+
     // The ClassLoader for compiled class info
     protected ClassLoader  _classLoader;
 
@@ -44,6 +47,14 @@ public class WorkSpace {
     }
 
     /**
+     * Removes a project.
+     */
+    public void removeProject(Project aProj)
+    {
+        _projects = ArrayUtils.removeId(_projects, aProj);
+    }
+
+    /**
      * Returns the root project.
      */
     public Project getRootProject()  { return _projects[0]; }
@@ -55,6 +66,15 @@ public class WorkSpace {
     {
         Project rootProj = getRootProject();
         return rootProj.getProjectSet();
+    }
+
+    /**
+     * Returns the sites.
+     */
+    public WebSite[] getSites()
+    {
+        if (_sites != null) return _sites;
+        return _sites = ArrayUtils.map(_projects, proj -> proj.getSite(), WebSite.class);
     }
 
     /**
