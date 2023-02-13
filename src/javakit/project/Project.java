@@ -4,7 +4,6 @@
 package javakit.project;
 import javakit.resolver.Resolver;
 import snap.props.PropChange;
-import snap.util.SnapUtils;
 import snap.util.TaskMonitor;
 import snap.web.WebFile;
 import snap.web.WebSite;
@@ -32,12 +31,6 @@ public class Project {
     // The set of projects this project depends on
     private ProjectSet  _projSet;
 
-    // The resolver
-    protected Resolver _resolver;
-
-    // The ClassLoader for compiled class info
-    protected ClassLoader  _classLoader;
-
     // A list of build issues
     private BuildIssues  _buildIssues;
 
@@ -47,8 +40,11 @@ public class Project {
     /**
      * Creates a new Project for WebSite.
      */
-    public Project(WebSite aSite)
+    public Project(Pod aPod, WebSite aSite)
     {
+        _pod = aPod;
+        aPod.addProject(this);
+
         // Set site
         setSite(aSite);
 
@@ -170,61 +166,12 @@ public class Project {
     public void addBuildFilesAll()  { _projBuilder.addBuildFilesAll(); }
 
     /**
-     * Returns the ClassLoader.
-     */
-    public ClassLoader getClassLoader()
-    {
-        // If already set, just return
-        if (_classLoader != null) return _classLoader;
-
-        // Create, set, return ClassLoader
-        ClassLoader classLoader = createClassLoader();
-        return _classLoader = classLoader;
-    }
-
-    /**
-     * Creates the ClassLoader.
-     */
-    protected ClassLoader createClassLoader()
-    {
-        // If RootProject, return RootProject.ClassLoader
-        Project rootProj = getRootProject();
-        if (rootProj != this)
-            return rootProj.createClassLoader();
-
-        // Get System ClassLoader
-        ClassLoader sysClassLoader = ClassLoader.getSystemClassLoader(); //.getParent();
-
-        // Get all project ClassPath URLs and add to class loader
-        //String[] classPaths = getClassPaths();
-        //URL[] urls = FilePathUtils.getURLs(classPaths);
-        ClassLoader urlClassLoader = sysClassLoader; //new URLClassLoader(urls, sysClassLoader);
-
-        // Return
-        return urlClassLoader;
-    }
-
-    /**
      * Returns the resolver.
      */
     public Resolver getResolver()
     {
-        // If already set, just return
-        if (_resolver != null) return _resolver;
-
-        // Handle TeaVM special
-        if (SnapUtils.isTeaVM) {
-            return Resolver.newResolverForClassLoader(getClass().getClassLoader());
-        }
-
-        // Create Resolver
-        ClassLoader classLoader = getClassLoader();
-        Resolver resolver = Resolver.newResolverForClassLoader(classLoader);
-        String[] classPaths = getClassPaths();
-        resolver.setClassPaths(classPaths);
-
-        // Set, return
-        return _resolver = resolver;
+        Pod pod = getPod();
+        return pod.getResolver();
     }
 
     /**
@@ -296,9 +243,17 @@ public class Project {
     {
         String propName = anEvent.getPropName();
         if (propName == ProjectConfig.JarPaths_Prop) {
-            _resolver = null;
-            _classLoader = null;
+            Pod pod = getPod();
+            pod.clearClassLoader();
         }
+    }
+
+    /**
+     * Standard toString implementation.
+     */
+    public String toString()
+    {
+        return "Project: " + getSite();
     }
 
     /**
