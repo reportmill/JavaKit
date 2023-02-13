@@ -9,12 +9,12 @@ import snap.web.WebFile;
 import snap.web.WebSite;
 
 /**
- * This is a Resolver subclass.
+ * This class manages all aspects of a project.
  */
 public class Project {
 
-    // The Pod that owns this project
-    private Pod  _pod;
+    // The WorkSpace that owns this project
+    private WorkSpace  _workSpace;
 
     // The encapsulated data site
     protected WebSite  _site;
@@ -40,10 +40,10 @@ public class Project {
     /**
      * Creates a new Project for WebSite.
      */
-    public Project(Pod aPod, WebSite aSite)
+    public Project(WorkSpace aWorkSpace, WebSite aSite)
     {
-        _pod = aPod;
-        aPod.addProject(this);
+        _workSpace = aWorkSpace;
+        aWorkSpace.addProject(this);
 
         // Set site
         setSite(aSite);
@@ -65,9 +65,9 @@ public class Project {
     }
 
     /**
-     * Returns the Pod that manages this project.
+     * Returns the WorkSpace that manages this project.
      */
-    public Pod getPod()  { return _pod; }
+    public WorkSpace getWorkSpace()  { return _workSpace; }
 
     /**
      * Returns root project if part of hierarchy.
@@ -170,14 +170,19 @@ public class Project {
      */
     public Resolver getResolver()
     {
-        Pod pod = getPod();
-        return pod.getResolver();
+        WorkSpace workSpace = getWorkSpace();
+        return workSpace.getResolver();
     }
 
     /**
      * Returns whether file is config file.
      */
     protected boolean isConfigFile(WebFile aFile)  { return false; }
+
+    /**
+     * Reads the settings from project settings file(s).
+     */
+    public void readSettings()  { }
 
     /**
      * Returns the ProjectFiles that manages project files.
@@ -208,6 +213,16 @@ public class Project {
     public WebFile getSourceFile(String aPath, boolean doCreate, boolean isDir)
     {
         return _projFiles.getSourceFile(aPath, doCreate, isDir);
+    }
+
+    /**
+     * Returns the class for given file.
+     */
+    public Class<?> getClassForFile(WebFile aFile)
+    {
+        String className = getClassNameForFile(aFile);
+        Resolver resolver = getResolver();
+        return resolver.getClassForName(className);
     }
 
     /**
@@ -243,9 +258,73 @@ public class Project {
     {
         String propName = anEvent.getPropName();
         if (propName == ProjectConfig.JarPaths_Prop) {
-            Pod pod = getPod();
-            pod.clearClassLoader();
+            WorkSpace workSpace = getWorkSpace();
+            workSpace.clearClassLoader();
         }
+    }
+
+
+    /**
+     * Called when file added.
+     */
+    public void fileAdded(WebFile aFile)
+    {
+        if (isConfigFile(aFile))
+            readSettings();
+
+        // Add build file
+        _projBuilder.addBuildFile(aFile, false);
+    }
+
+    /**
+     * Called when file removed.
+     */
+    public void fileRemoved(WebFile aFile)
+    {
+        // Remove build files
+        _projBuilder.removeBuildFile(aFile);
+
+        // Remove BuildIssues for file
+        Project rootProj = getRootProject();
+        BuildIssues buildIssues = rootProj.getBuildIssues();
+        buildIssues.removeIssuesForFile(aFile);
+    }
+
+    /**
+     * Called when file saved.
+     */
+    public void fileSaved(WebFile aFile)
+    {
+        // If File is config file, read file
+        if (isConfigFile(aFile))
+            readSettings();
+
+        // If plain file, add as BuildFile
+        if (!aFile.isDir())
+            _projBuilder.addBuildFile(aFile, false);
+    }
+
+    /**
+     * Deletes the project.
+     */
+    public void deleteProject(TaskMonitor aTM) throws Exception
+    {
+        // Start TaskMonitor
+        aTM.startTasks(1);
+        aTM.beginTask("Deleting files", -1);
+
+        // Clear ClassLoader
+        WorkSpace workSpace = getWorkSpace();
+        workSpace.clearClassLoader();
+
+        // Delete SandBox, Site
+        WebSite projSite = getSite();
+        WebSite projSiteSandbox = projSite.getSandbox();
+        projSiteSandbox.deleteSite();
+        projSite.deleteSite();
+
+        // Finish TaskMonitor
+        aTM.endTask();
     }
 
     /**

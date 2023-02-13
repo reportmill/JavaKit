@@ -30,7 +30,7 @@ public class ProjectUtils {
         // Get project for site - create if missing
         Project proj = Project.getProjectForSite(site);
         if (proj == null)
-            proj = new Project(new Pod(), site);
+            proj = new Project(new WorkSpace(), site);
 
         // Return
         return proj;
@@ -80,7 +80,7 @@ public class ProjectUtils {
         // Get parent URL and create new project
         WebURL parentDirURL = aSourceURL.getParent();
         WebSite parentDirSite = parentDirURL.getAsSite();
-        Project newProj = new Project(new Pod(), parentDirSite);
+        Project newProj = new Project(new WorkSpace(), parentDirSite);
 
         // Clear source dir
         ProjectConfig projectConfig = newProj.getProjectConfig();

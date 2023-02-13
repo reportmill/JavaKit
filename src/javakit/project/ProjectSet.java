@@ -44,7 +44,7 @@ public class ProjectSet {
         if (_projects != null) return _projects;
 
         // Get Pod
-        Pod pod = _proj.getPod();
+        WorkSpace workSpace = _proj.getWorkSpace();
 
         // Create list of projects from ClassPath.ProjectPaths
         ProjectConfig projConfig = _proj.getProjectConfig();
@@ -64,7 +64,7 @@ public class ProjectSet {
             WebSite projSite = projURL.getAsSite();
 
             // Get Project
-            Project proj = pod.getProjectForSite(projSite);
+            Project proj = workSpace.getProjectForSite(projSite);
 
             // Add to list
             Project[] childProjects = proj.getProjects();

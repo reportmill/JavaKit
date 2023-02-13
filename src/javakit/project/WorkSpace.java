@@ -11,9 +11,9 @@ import java.io.Closeable;
 /**
  * This class manages working with a set of one or more projects.
  */
-public class Pod {
+public class WorkSpace {
 
-    // The projects that this pod manages
+    // The projects in the workspace
     private Project[]  _projects = new Project[0];
 
     // The ClassLoader for compiled class info
@@ -25,13 +25,13 @@ public class Pod {
     /**
      * Constructor.
      */
-    public Pod()
+    public WorkSpace()
     {
         super();
     }
 
     /**
-     * Returns the projects that this pod manages.
+     * Returns the projects that this workspace manages.
      */
     public Project[] getProjects()  { return _projects; }
 
