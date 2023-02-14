@@ -22,6 +22,9 @@ public class Workspace {
     // The list of Breakpoints
     private Breakpoints  _breakpoints;
 
+    // A list of build issues
+    private BuildIssues  _buildIssues;
+
     // The ClassLoader for compiled class info
     protected ClassLoader  _classLoader;
 
@@ -89,6 +92,15 @@ public class Workspace {
     {
         if (_breakpoints != null) return _breakpoints;
         return _breakpoints = new Breakpoints(this);
+    }
+
+    /**
+     * The breakpoint list property.
+     */
+    public BuildIssues getBuildIssues()
+    {
+        if (_buildIssues != null) return _buildIssues;
+        return _buildIssues = new BuildIssues();
     }
 
     /**

@@ -31,9 +31,6 @@ public class Project {
     // The set of projects this project depends on
     private ProjectSet  _projSet;
 
-    // A list of build issues
-    private BuildIssues  _buildIssues;
-
     /**
      * Creates a new Project for WebSite.
      */
@@ -230,15 +227,6 @@ public class Project {
     }
 
     /**
-     * The breakpoint list property.
-     */
-    public BuildIssues getBuildIssues()
-    {
-        if (_buildIssues != null) return _buildIssues;
-        return _buildIssues = new BuildIssues(this);
-    }
-
-    /**
      * Watches Project.ProjectConfig for JarPaths change to reset ClassPathInfo.
      */
     private void projConfigDidPropChange(PropChange anEvent)
@@ -272,8 +260,8 @@ public class Project {
         _projBuilder.removeBuildFile(aFile);
 
         // Remove BuildIssues for file
-        Project rootProj = getRootProject();
-        BuildIssues buildIssues = rootProj.getBuildIssues();
+        Workspace workspace = getWorkspace();
+        BuildIssues buildIssues = workspace.getBuildIssues();
         buildIssues.removeIssuesForFile(aFile);
     }
 

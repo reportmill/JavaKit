@@ -8,12 +8,9 @@ import java.util.*;
 import java.util.stream.Stream;
 
 /**
- * A class to manage a list of BuildIssue for a project.
+ * A class to manage a list of BuildIssue.
  */
 public class BuildIssues extends SnapList<BuildIssue> {
-
-    // The project
-    private Project  _proj;
 
     // The total count of errors and warnings
     private int  _errorCount;
@@ -22,7 +19,7 @@ public class BuildIssues extends SnapList<BuildIssue> {
     private int  _warningCount;
 
     // A map to track BuildIssues by WebFile
-    Map<WebFile,List<BuildIssue>>  _fileIssues = new Hashtable<>();
+    private Map<WebFile,List<BuildIssue>>  _fileIssues = new Hashtable<>();
 
     // An Empty array of BuildIssues
     public static final BuildIssue[] NO_ISSUES = new BuildIssue[0];
@@ -30,9 +27,9 @@ public class BuildIssues extends SnapList<BuildIssue> {
     /**
      * Constructor.
      */
-    public BuildIssues(Project aProj)
+    public BuildIssues()
     {
-        _proj = aProj;
+        super();
     }
 
     /**
@@ -166,26 +163,46 @@ public class BuildIssues extends SnapList<BuildIssue> {
             return BuildIssue.Kind.Warning;
         }
 
-        // If directory, return worst status of children (if package, don't recurse)
-        BuildIssue.Kind status = null;
-        boolean isPkg = aFile.getType().length() == 0 && _proj.getSourceDir().contains(aFile);
-
-        // Iterate over directory files
+        // Handle directory
         WebFile[] dirFiles = aFile.getFiles();
+        boolean isPackage = isPackage(aFile);
+        BuildIssue.Kind buildStatus = null;
+
+        // Iterate over directory files: get worst status of children (if package, don't recurse)
         for (WebFile childFile : dirFiles) {
 
             // Skip packages
-            if (childFile.isDir() && isPkg) continue;
+            if (childFile.isDir() && isPackage)
+                continue;
 
             // Get status for child file
             BuildIssue.Kind childStatus = getBuildStatusForFile(childFile);
             if (childStatus != null)
-                status = childStatus;
+                buildStatus = childStatus;
             if (childStatus == BuildIssue.Kind.Error)
-                return status;
+                return buildStatus;
         }
 
         // Return
-        return status;
+        return buildStatus;
+    }
+
+    /**
+     * Returns whether given file is a package.
+     */
+    private static boolean isPackage(WebFile aFile)
+    {
+        // If file name has extension, return false
+        if (aFile.getType().length() > 0)
+            return false;
+
+        // If file in Project.SourceDir
+        Project proj = Project.getProjectForFile(aFile);
+        WebFile sourceDir = proj.getSourceDir();
+        if (sourceDir.contains(aFile))
+            return true;
+
+        // Return not package
+        return false;
     }
 }

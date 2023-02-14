@@ -30,9 +30,9 @@ public class Breakpoints extends SnapList<Breakpoint> {
         _workspace = workspace;
 
         // Read from file and add to this list
-        List<Breakpoint> breakpoints = readFile();
-        for (Breakpoint bp : breakpoints)
-            super.add(size(), bp);
+        //List<Breakpoint> breakpoints = readFile();
+        //for (Breakpoint bp : breakpoints)
+        //    super.add(size(), bp);
     }
 
     /**
@@ -134,11 +134,8 @@ public class Breakpoints extends SnapList<Breakpoint> {
         // Get file, set text and save
         WebFile file = getFile();
         file.setText(sb.toString());
-        try {
-            file.save();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        try { file.save(); }
+        catch (Exception e) { throw new RuntimeException(e); }
     }
 
     /**

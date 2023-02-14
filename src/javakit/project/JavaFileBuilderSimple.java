@@ -87,21 +87,21 @@ public class JavaFileBuilderSimple extends JavaFileBuilder {
      */
     private void setErrorsForJavaAgent(JavaAgent javaAgent, List<NodeError> theNodeErrors)
     {
-        // Get Project.BuildIssues and clear
-        Project proj = javaAgent.getProject();
-        BuildIssues projBuildIssues = proj.getBuildIssues();
+        // Get Workspace.BuildIssues and clear
+        Workspace workspace = javaAgent.getWorkspace();
+        BuildIssues buildIssues = workspace.getBuildIssues();
 
         // Remove old issues
         WebFile javaFile = javaAgent.getFile();
-        BuildIssue[] oldIssues = projBuildIssues.getIssuesForFile(javaFile);
+        BuildIssue[] oldIssues = buildIssues.getIssuesForFile(javaFile);
         for (BuildIssue buildIssue : oldIssues)
-            projBuildIssues.remove(buildIssue);
+            buildIssues.remove(buildIssue);
 
         // Add new issues
         for (NodeError nodeError : theNodeErrors) {
             BuildIssue buildIssue = BuildIssue.createIssueForNodeError(nodeError, javaFile);
             if (buildIssue != null)
-                projBuildIssues.add(buildIssue);
+                buildIssues.add(buildIssue);
         }
     }
 }

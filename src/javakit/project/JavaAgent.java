@@ -56,6 +56,15 @@ public class JavaAgent {
     }
 
     /**
+     * Returns the workspace for this JavaFile.
+     */
+    public Workspace getWorkspace()
+    {
+        Project proj = getProject();
+        return proj.getWorkspace();
+    }
+
+    /**
      * Returns the JavaTextDoc for this JavaFile.
      */
     public JavaTextDoc getJavaTextDoc()
@@ -161,8 +170,8 @@ public class JavaAgent {
      */
     public BuildIssue[] getBuildIssues()
     {
-        Project proj = getProject();
-        BuildIssues projBuildIssues = proj.getBuildIssues();
+        Workspace workspace = getWorkspace();
+        BuildIssues projBuildIssues = workspace.getBuildIssues();
         return projBuildIssues.getIssuesForFile(_file);
     }
 
