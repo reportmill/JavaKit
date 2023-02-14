@@ -15,18 +15,21 @@ import java.util.Scanner;
  */
 public class Breakpoints extends SnapList<Breakpoint> {
 
-    // The project
-    private Project  _proj;
+    // The Workspace
+    private Workspace  _workspace;
 
     // An Empty array of BuildIssues
     public static final Breakpoint[] NO_BREAKPOINTS = new Breakpoint[0];
 
     /**
-     * Creates new Breakpoints for Project.
+     * Constructor.
      */
-    public Breakpoints(Project aProj)
+    public Breakpoints(Workspace workspace)
     {
-        _proj = aProj;
+        super();
+        _workspace = workspace;
+
+        // Read from file and add to this list
         List<Breakpoint> breakpoints = readFile();
         for (Breakpoint bp : breakpoints)
             super.add(size(), bp);
@@ -83,25 +86,33 @@ public class Breakpoints extends SnapList<Breakpoint> {
     protected List<Breakpoint> readFile()
     {
         // Get breakpoint file and text
-        WebFile file = getFile();
-        if (!file.getExists())
+        WebFile breakpointFile = getFile();
+        if (!breakpointFile.getExists())
             return Collections.EMPTY_LIST;
 
         // Get vars
-        String text = file.getText();
+        String text = breakpointFile.getText();
         Scanner scanner = new Scanner(text);
         List<Breakpoint> breakpointsList = new ArrayList<>();
 
         // Iterate over text
         while (scanner.hasNext()) {
+
+            // Get Breakpoint Type, Path, LineNum
             String type = scanner.next();
             String path = scanner.next();
             int lineNum = scanner.nextInt();
-            WebFile breakpointFile = _proj.getFile(path); // Was ProjectSet JK
-            if (breakpointFile != null)
-                breakpointsList.add(new Breakpoint(breakpointFile, lineNum));
+
+            // Get Breakpoint source file (just continue if file no longer found in Workspace)
+            Project rootProj = _workspace.getRootProject();
+            WebFile sourceFile = rootProj.getFile(path); // Should be checking whole Workspace
+            if (sourceFile == null)
+                continue;
+
+            // Create/add new breakpoint
+            Breakpoint breakpoint = new Breakpoint(sourceFile, lineNum);
+            breakpointsList.add(breakpoint);
         }
-        //scanner.close();
 
         // Return
         return breakpointsList;
@@ -135,11 +146,16 @@ public class Breakpoints extends SnapList<Breakpoint> {
      */
     protected WebFile getFile()
     {
-        WebSite projSite = _proj.getSite();
+        Project rootProj = _workspace.getRootProject();
+        WebSite projSite = rootProj.getSite();
         WebSite sandboxSite = projSite.getSandbox();
-        WebFile file = sandboxSite.getFileForPath("/settings/breakpoints");
-        if (file == null)
-            file = sandboxSite.createFileForPath("/settings/breakpoints", false);
-        return file;
+
+        // Get Sandbox breakpoints file
+        WebFile breakpointsFile = sandboxSite.getFileForPath("/settings/breakpoints");
+        if (breakpointsFile == null)
+            breakpointsFile = sandboxSite.createFileForPath("/settings/breakpoints", false);
+
+        // Return
+        return breakpointsFile;
     }
 }

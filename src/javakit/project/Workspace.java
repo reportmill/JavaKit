@@ -19,6 +19,9 @@ public class Workspace {
     // The project sites
     private WebSite[]  _sites;
 
+    // The list of Breakpoints
+    private Breakpoints  _breakpoints;
+
     // The ClassLoader for compiled class info
     protected ClassLoader  _classLoader;
 
@@ -77,6 +80,15 @@ public class Workspace {
     {
         if (_sites != null) return _sites;
         return _sites = ArrayUtils.map(_projects, proj -> proj.getSite(), WebSite.class);
+    }
+
+    /**
+     * Returns the breakpoints.
+     */
+    public Breakpoints getBreakpoints()
+    {
+        if (_breakpoints != null) return _breakpoints;
+        return _breakpoints = new Breakpoints(this);
     }
 
     /**

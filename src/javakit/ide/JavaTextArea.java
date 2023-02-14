@@ -564,9 +564,9 @@ public class JavaTextArea extends TextArea {
                 int lineIndex = breakpoint.getLine();
                 if (startLineIndex < lineIndex && endLineIndex <= lineIndex) {
                     breakpoint.setLine(lineIndex + lineIndexDelta);
-                    Breakpoints projBreakpoints = getProjBreakpoints();
-                    if (projBreakpoints != null)
-                        projBreakpoints.writeFile();
+                    Breakpoints breakpointsHpr = getWorkspaceBreakpoints();
+                    if (breakpointsHpr != null)
+                        breakpointsHpr.writeFile();
                 }
             }
         }
@@ -608,12 +608,12 @@ public class JavaTextArea extends TextArea {
             for (Breakpoint breakpoint : breakpoints) {
                 int lineIndex = breakpoint.getLine();
                 if (startLineIndex < lineIndex) {
-                    Breakpoints projBreakpoints = getProjBreakpoints();
+                    Breakpoints breakpointsHpr = getWorkspaceBreakpoints();
                     if (endLineIndex <= lineIndex) {
                         breakpoint.setLine(lineIndex - lineIndexDelta);
-                        projBreakpoints.writeFile();
+                        breakpointsHpr.writeFile();
                     }
-                    else projBreakpoints.remove(breakpoint);
+                    else breakpointsHpr.remove(breakpoint);
                 }
             }
         }
@@ -629,16 +629,6 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the project.
-     */
-    private Project getRootProject()
-    {
-        WebFile file = getSourceFile();
-        Project proj = Project.getProjectForFile(file);
-        return proj != null ? proj.getRootProject() : null;
-    }
-
-    /**
      * Returns BuildIssues from ProjectFile.
      */
     public BuildIssue[] getBuildIssues()
@@ -649,12 +639,14 @@ public class JavaTextArea extends TextArea {
     }
 
     /**
-     * Returns the project breakpoints.
+     * Returns the workspace breakpoints.
      */
-    private Breakpoints getProjBreakpoints()
+    private Breakpoints getWorkspaceBreakpoints()
     {
-        Project proj = getRootProject();
-        return proj != null ? proj.getBreakpoints() : null;
+        WebFile file = getSourceFile();
+        Project proj = Project.getProjectForFile(file);
+        Workspace workspace = proj != null ? proj.getWorkspace() : null;
+        return workspace != null ? workspace.getBreakpoints() : null;
     }
 
     /**
@@ -663,9 +655,9 @@ public class JavaTextArea extends TextArea {
     public Breakpoint[] getBreakpoints()
     {
         // Get project breakpoints
-        Breakpoints projBreakpoints = getProjBreakpoints();
-        if (projBreakpoints == null)
-            return Breakpoints.NO_BREAKPOINTS;
+        Breakpoints breakpointsHpr = getWorkspaceBreakpoints();
+        if (breakpointsHpr == null)
+            return breakpointsHpr.NO_BREAKPOINTS;
 
         // Get java file
         WebFile file = getSourceFile();
@@ -673,7 +665,7 @@ public class JavaTextArea extends TextArea {
             return Breakpoints.NO_BREAKPOINTS;
 
         // Return breakpoints for file
-        return projBreakpoints.getBreakpointsForFile(file);
+        return breakpointsHpr.getBreakpointsForFile(file);
     }
 
     /**
@@ -681,16 +673,16 @@ public class JavaTextArea extends TextArea {
      */
     public void addBreakpoint(int aLine)
     {
-        // Get project breakpoints
-        Breakpoints projBreakpoints = getProjBreakpoints();
-        if (projBreakpoints == null)
+        // Get breakpoints helper
+        Breakpoints breakpointsHpr = getWorkspaceBreakpoints();
+        if (breakpointsHpr == null)
             return;
 
         // Get java file
         WebFile file = getSourceFile();
 
         // Add breakpoint for file
-        projBreakpoints.addBreakpointForFile(file, aLine);
+        breakpointsHpr.addBreakpointForFile(file, aLine);
     }
 
     /**
@@ -699,12 +691,12 @@ public class JavaTextArea extends TextArea {
     public void removeBreakpoint(Breakpoint aBP)
     {
         // Get project breakpoints
-        Breakpoints breakpoints = getProjBreakpoints();
-        if (breakpoints == null)
+        Breakpoints breakpointsHpr = getWorkspaceBreakpoints();
+        if (breakpointsHpr == null)
             return;
 
         // Remove breakpoint
-        breakpoints.remove(aBP);
+        breakpointsHpr.remove(aBP);
     }
 
     /**

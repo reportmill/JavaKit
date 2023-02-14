@@ -34,9 +34,6 @@ public class Project {
     // A list of build issues
     private BuildIssues  _buildIssues;
 
-    // The list of Breakpoints
-    private Breakpoints  _breakpoints;
-
     /**
      * Creates a new Project for WebSite.
      */
@@ -239,15 +236,6 @@ public class Project {
     {
         if (_buildIssues != null) return _buildIssues;
         return _buildIssues = new BuildIssues(this);
-    }
-
-    /**
-     * Returns the breakpoints.
-     */
-    public Breakpoints getBreakpoints()
-    {
-        if (_breakpoints != null) return _breakpoints;
-        return _breakpoints = new Breakpoints(this);
     }
 
     /**
