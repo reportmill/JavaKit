@@ -11,7 +11,7 @@ import java.io.Closeable;
 /**
  * This class manages working with a set of one or more projects.
  */
-public class WorkSpace {
+public class Workspace {
 
     // The projects in the workspace
     private Project[]  _projects = new Project[0];
@@ -28,7 +28,7 @@ public class WorkSpace {
     /**
      * Constructor.
      */
-    public WorkSpace()
+    public Workspace()
     {
         super();
     }

@@ -13,8 +13,8 @@ import snap.web.WebSite;
  */
 public class Project {
 
-    // The WorkSpace that owns this project
-    private WorkSpace  _workSpace;
+    // The Workspace that owns this project
+    private Workspace  _workspace;
 
     // The encapsulated data site
     protected WebSite  _site;
@@ -40,9 +40,9 @@ public class Project {
     /**
      * Creates a new Project for WebSite.
      */
-    public Project(WorkSpace aWorkSpace, WebSite aSite)
+    public Project(Workspace aWorkspace, WebSite aSite)
     {
-        _workSpace = aWorkSpace;
+        _workspace = aWorkspace;
 
         // Set site
         setSite(aSite);
@@ -64,9 +64,9 @@ public class Project {
     }
 
     /**
-     * Returns the WorkSpace that manages this project.
+     * Returns the Workspace that manages this project.
      */
-    public WorkSpace getWorkSpace()  { return _workSpace; }
+    public Workspace getWorkspace()  { return _workspace; }
 
     /**
      * Returns root project if part of hierarchy.
@@ -169,8 +169,8 @@ public class Project {
      */
     public Resolver getResolver()
     {
-        WorkSpace workSpace = getWorkSpace();
-        return workSpace.getResolver();
+        Workspace workspace = getWorkspace();
+        return workspace.getResolver();
     }
 
     /**
@@ -257,8 +257,8 @@ public class Project {
     {
         String propName = anEvent.getPropName();
         if (propName == ProjectConfig.JarPaths_Prop) {
-            WorkSpace workSpace = getWorkSpace();
-            workSpace.clearClassLoader();
+            Workspace workspace = getWorkspace();
+            workspace.clearClassLoader();
         }
     }
 
@@ -313,8 +313,8 @@ public class Project {
         aTM.beginTask("Deleting files", -1);
 
         // Clear ClassLoader
-        WorkSpace workSpace = getWorkSpace();
-        workSpace.clearClassLoader();
+        Workspace workspace = getWorkspace();
+        workspace.clearClassLoader();
 
         // Delete SandBox, Site
         WebSite projSite = getSite();
