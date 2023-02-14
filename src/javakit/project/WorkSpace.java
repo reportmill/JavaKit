@@ -44,6 +44,7 @@ public class WorkSpace {
     public void addProject(Project aProj)
     {
         _projects = ArrayUtils.addId(_projects, aProj);
+        _sites = null;
     }
 
     /**
@@ -52,6 +53,7 @@ public class WorkSpace {
     public void removeProject(Project aProj)
     {
         _projects = ArrayUtils.removeId(_projects, aProj);
+        _sites = null;
     }
 
     /**
