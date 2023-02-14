@@ -3,6 +3,7 @@
  */
 package javakit.project;
 import javakit.resolver.Resolver;
+import snap.props.PropObject;
 import snap.util.ArrayUtils;
 import snap.util.SnapUtils;
 import snap.web.WebSite;
@@ -11,13 +12,28 @@ import java.io.Closeable;
 /**
  * This class manages working with a set of one or more projects.
  */
-public class Workspace {
+public class Workspace extends PropObject {
 
     // The projects in the workspace
     private Project[]  _projects = new Project[0];
 
     // The project sites
     private WebSite[]  _sites;
+
+    // The status of the Workspace
+    private String  _status;
+
+    // The activity of the Workspace
+    private String  _activity;
+
+    // Whether Workspace is building
+    private boolean  _building;
+
+    // Whether Workspace is loading
+    private boolean  _loading;
+
+    // A helper class to do workspace builds
+    private WorkspaceBuilder  _builder;
 
     // The list of Breakpoints
     private Breakpoints  _breakpoints;
@@ -31,12 +47,20 @@ public class Workspace {
     // The resolver
     protected Resolver  _resolver;
 
+    // Constants for properties
+    public static final String Status_Prop = "Status";
+    public static final String Activity_Prop = "Activity";
+    public static final String Building_Prop = "Building";
+    public static final String Loading_Prop = "Loading";
+
     /**
      * Constructor.
      */
     public Workspace()
     {
         super();
+
+        _builder = new WorkspaceBuilder(this);
     }
 
     /**
@@ -84,6 +108,67 @@ public class Workspace {
         if (_sites != null) return _sites;
         return _sites = ArrayUtils.map(_projects, proj -> proj.getSite(), WebSite.class);
     }
+
+    /**
+     * Returns the status text.
+     */
+    public String getStatus()  { return _status; }
+
+    /**
+     * Sets the status text.
+     */
+    public void setStatus(String aString)
+    {
+        if (aString.equals(_status)) return;
+        firePropChange(Status_Prop, _status, _status = aString);
+    }
+
+    /**
+     * Returns the activity text.
+     */
+    public String getActivity()  { return _activity; }
+
+    /**
+     * Sets the activity text.
+     */
+    public void setActivity(String aString)
+    {
+        if (aString.equals(_activity)) return;
+        firePropChange(Activity_Prop, _activity, _activity = aString);
+    }
+
+    /**
+     * Returns whether workspace is currently building anything.
+     */
+    public boolean isBuilding()  { return _building; }
+
+    /**
+     * Sets whether workspace is currently building anything.
+     */
+    public void setBuilding(boolean aValue)
+    {
+        if (aValue == _building) return;
+        firePropChange(Building_Prop, _building, _building = aValue);
+    }
+
+    /**
+     * Returns whether workspace is currently loading anything.
+     */
+    public boolean isLoading()  { return _loading; }
+
+    /**
+     * Sets whether workspace is currently loading anything.
+     */
+    public void setLoading(boolean aValue)
+    {
+        if (aValue == _loading) return;
+        firePropChange(Loading_Prop, _loading, _loading = aValue);
+    }
+
+    /**
+     * Returns the builder.
+     */
+    public WorkspaceBuilder getBuilder()  { return _builder; }
 
     /**
      * Returns the breakpoints.
