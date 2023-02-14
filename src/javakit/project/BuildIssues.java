@@ -2,7 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.project;
-import snap.util.SnapList;
+import snap.props.PropObject;
 import snap.web.WebFile;
 import java.util.*;
 import java.util.stream.Stream;
@@ -10,7 +10,10 @@ import java.util.stream.Stream;
 /**
  * A class to manage a list of BuildIssue.
  */
-public class BuildIssues extends SnapList<BuildIssue> {
+public class BuildIssues extends PropObject {
+
+    // The actual list of BuildIssuess
+    private List<BuildIssue>  _issues = new ArrayList<>();
 
     // The total count of errors and warnings
     private int  _errorCount;
@@ -24,6 +27,9 @@ public class BuildIssues extends SnapList<BuildIssue> {
     // An Empty array of BuildIssues
     public static final BuildIssue[] NO_ISSUES = new BuildIssue[0];
 
+    // Constant for Items
+    public static final String ITEMS_PROP = "Items";
+
     /**
      * Constructor.
      */
@@ -31,6 +37,11 @@ public class BuildIssues extends SnapList<BuildIssue> {
     {
         super();
     }
+
+    /**
+     * Returns the number of breakpoints.
+     */
+    public int size()  { return _issues.size(); }
 
     /**
      * Returns the number of errors currently tracked.
@@ -47,7 +58,7 @@ public class BuildIssues extends SnapList<BuildIssue> {
      */
     public BuildIssue[] getIssues()
     {
-        return super.getArray(BuildIssue.class);
+        return _issues.toArray(new BuildIssue[0]);
     }
 
     /**
@@ -56,7 +67,7 @@ public class BuildIssues extends SnapList<BuildIssue> {
     public boolean add(BuildIssue aBI)
     {
         // Get insertion index (just return if already in list)
-        int index = -Collections.binarySearch(this, aBI) - 1;
+        int index = -Collections.binarySearch(_issues, aBI) - 1;
         if (index < 0)
             return false;
 
@@ -71,7 +82,10 @@ public class BuildIssues extends SnapList<BuildIssue> {
         else _warningCount++;
 
         // Add issue
-        add(index, aBI);
+        _issues.add(index, aBI);
+
+        // Fire prop change
+        firePropChange(ITEMS_PROP, null, aBI, index);
 
         // Return
         return true;
@@ -97,17 +111,31 @@ public class BuildIssues extends SnapList<BuildIssue> {
         else _warningCount--;
 
         // Remove from master list
-        super.remove(aBI);
+        int index = _issues.indexOf(aBI);
+        _issues.remove(aBI);
+
+        // Fire prop change
+        firePropChange(ITEMS_PROP, aBI, null, index);
+    }
+
+    /**
+     * Returns an array of build issues.
+     */
+    public BuildIssue[] getArray()
+    {
+        return _issues.toArray(new BuildIssue[0]);
     }
 
     /**
      * Override to clear FileIssues cache.
      */
-    @Override
     public void clear()
     {
-        super.clear();
         _fileIssues.clear();
+
+        BuildIssue[] issues = getIssues();
+        for (BuildIssue issue : issues)
+            remove(issue);
     }
 
     /**
