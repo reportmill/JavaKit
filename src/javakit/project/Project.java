@@ -181,6 +181,15 @@ public class Project extends PropObject {
     }
 
     /**
+     * Returns a child project for given name.
+     */
+    public Project getProjectForName(String aName)
+    {
+        String name = aName.startsWith("/") ? aName.substring(1) : aName;
+        return ArrayUtils.findMatch(_projects, proj -> proj.getName().equals(name));
+    }
+
+    /**
      * Returns a project for given path.
      */
     public Project getProjectForPath(String projectPath)

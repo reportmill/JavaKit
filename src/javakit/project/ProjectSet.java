@@ -1,5 +1,4 @@
 package javakit.project;
-import snap.util.ArrayUtils;
 import snap.util.ListUtils;
 import snap.web.WebFile;
 import java.util.ArrayList;
@@ -38,18 +37,6 @@ public class ProjectSet {
     public Project[] getProjects()  { return _projects; }
 
     /**
-     * Returns the child project with given name.
-     */
-    public Project getProject(String aName)
-    {
-        String name = aName.startsWith("/") ? aName.substring(1) : aName;
-
-        // Return project with matching name
-        Project[] projects = getProjects();
-        return ArrayUtils.findMatch(projects, proj -> proj.getName().equals(name));
-    }
-
-    /**
      * Returns a file for given path.
      */
     public WebFile getFile(String aPath)
@@ -59,8 +46,10 @@ public class ProjectSet {
         if (file != null)
             return file;
 
-        // Check dependent projects
+        // Get projects
         Project[] projects = getProjects();
+
+        // Check projects
         for (Project proj : projects) {
             file = proj.getFile(aPath);
             if (file != null)
@@ -81,7 +70,10 @@ public class ProjectSet {
         if (file != null)
             return file;
 
+        // Get projects
         Project[] projects = getProjects();
+
+        // Check projects
         for (Project proj : projects) {
             file = proj.getSourceFile(aPath, false, false);
             if (file != null)
@@ -103,10 +95,8 @@ public class ProjectSet {
         // Get Project ClassPaths
         String[] classPaths = _proj.getClassPaths();
 
-        // Get dependent projects
+        // Get projects
         Project[] projects = getProjects();
-        if (projects.length == 0)
-            return _classPaths = classPaths;
 
         // Get list for LibPaths with base paths
         List<String> classPathsList = new ArrayList<>();
@@ -134,10 +124,8 @@ public class ProjectSet {
         ProjectConfig projConfig = _proj.getProjectConfig();
         String[] libPaths = projConfig.getLibPathsAbsolute();
 
-        // Get dependent projects (if none, just return LibPaths)
+        // Get projects
         Project[] projects = getProjects();
-        if (projects.length == 0)
-            return _libPaths = libPaths;
 
         // Get list for LibPaths with base paths
         List<String> libPathsList = new ArrayList<>();
@@ -156,7 +144,7 @@ public class ProjectSet {
     /**
      * Returns a Java file for class name.
      */
-    public WebFile getJavaFile(String aClassName)
+    public WebFile getJavaFileForClassName(String aClassName)
     {
         // Check main project
         ProjectFiles projFiles = _proj.getProjectFiles();
