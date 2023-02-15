@@ -2,8 +2,6 @@ package javakit.project;
 import snap.util.ArrayUtils;
 import snap.util.ListUtils;
 import snap.web.WebFile;
-import snap.web.WebSite;
-import snap.web.WebURL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,80 +29,13 @@ public class ProjectSet {
     public ProjectSet(Project aProj)
     {
         _proj = aProj;
+        _projects = aProj.getProjects();
     }
 
     /**
      * Returns the list of projects this project depends on.
      */
-    public Project[] getProjects()
-    {
-        // If already set, just return
-        if (_projects != null) return _projects;
-
-        // Get Pod
-        Workspace workspace = _proj.getWorkspace();
-
-        // Create list of projects from ClassPath.ProjectPaths
-        ProjectConfig projConfig = _proj.getProjectConfig();
-        String[] projPaths = projConfig.getProjectPaths();
-        List<Project> projs = new ArrayList<>();
-
-        // Get parent site
-        WebSite projectSite = _proj.getSite();
-        WebURL parentSiteURL = projectSite.getURL();
-        WebSite parentSite = parentSiteURL.getSite();
-
-        // Iterate over project paths
-        for (String projPath : projPaths) {
-
-            // Get URL and site for project path
-            WebURL projURL = parentSite.getURL(projPath);
-            WebSite projSite = projURL.getAsSite();
-
-            // Get Project
-            Project proj = workspace.getProjectForSite(projSite);
-
-            // Add to list
-            Project[] childProjects = proj.getProjects();
-            ListUtils.addAllUnique(projs, childProjects);
-            ListUtils.addUnique(projs, proj);
-        }
-
-        // Return list
-        return _projects = projs.toArray(new Project[0]);
-    }
-
-    /**
-     * Adds a dependent project.
-     */
-    public void addProject(String aPath)
-    {
-        // Get project path
-        String projPath = aPath;
-        if (!projPath.startsWith("/"))
-            projPath = '/' + projPath;
-
-        // Add to ProjectConfig
-        ProjectConfig projConfig = _proj.getProjectConfig();
-        projConfig.addSrcPath(projPath);
-
-        // Clear caches
-        _projects = null;
-        _classPaths = _libPaths = null;
-    }
-
-    /**
-     * Removes a dependent project.
-     */
-    public void removeProject(String aPath)
-    {
-        ProjectConfig projConfig = _proj.getProjectConfig();
-        projConfig.removeSrcPath(aPath);
-
-        // Clear caches
-        _projects = null;
-        _classPaths = _libPaths = null;
-    }
+    public Project[] getProjects()  { return _projects; }
 
     /**
      * Returns the child project with given name.

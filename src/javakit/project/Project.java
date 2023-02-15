@@ -4,20 +4,29 @@
 package javakit.project;
 import javakit.resolver.Resolver;
 import snap.props.PropChange;
+import snap.props.PropObject;
+import snap.util.ArrayUtils;
+import snap.util.ListUtils;
 import snap.util.TaskMonitor;
 import snap.web.WebFile;
 import snap.web.WebSite;
+import snap.web.WebURL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class manages all aspects of a project.
  */
-public class Project {
+public class Project extends PropObject {
 
     // The Workspace that owns this project
     private Workspace  _workspace;
 
     // The encapsulated data site
     protected WebSite  _site;
+
+    // The child projects this project depends on
+    private Project[]  _projects;
 
     // ProjectConfig
     protected ProjectConfig  _projConfig;
@@ -30,6 +39,9 @@ public class Project {
 
     // The set of projects this project depends on
     private ProjectSet  _projSet;
+
+    // Constants for properties
+    private static final String Projects_Prop = "Projects";
 
     /**
      * Creates a new Project for WebSite.
@@ -52,9 +64,8 @@ public class Project {
         _projFiles = new ProjectFiles(this);
         _projBuilder = new ProjectBuilder(this);
 
-        // Create ProjectSet
-        _projSet = new ProjectSet(this);
-        _projSet.getProjects();
+        // Get child projects
+        _projects = getProjectsFromConfig();
     }
 
     /**
@@ -123,12 +134,131 @@ public class Project {
     /**
      * Returns the set of projects this project depends on.
      */
-    public ProjectSet getProjectSet()  { return _projSet; }
+    public ProjectSet getProjectSet()
+    {
+        if (_projSet != null) return _projSet;
+        return _projSet = new ProjectSet(this);
+    }
 
     /**
      * Returns an array of projects that this project depends on.
      */
-    public Project[] getProjects()  { return _projSet.getProjects(); }
+    public Project[] getProjects()  { return _projects; }
+
+    /**
+     * Adds a project.
+     */
+    public void addProject(Project aProj)
+    {
+        // If already set, just return
+        if (ArrayUtils.containsId(_projects, aProj)) return;
+
+        // Add project
+        _projects = ArrayUtils.add(_projects, aProj);
+        _projSet = null;
+
+        // Fire prop change
+        int index = _projects.length - 1;
+        firePropChange(Projects_Prop, null, aProj, index);
+    }
+
+    /**
+     * Removes a project.
+     */
+    public void removeProject(Project aProj)
+    {
+        // If not present, just return
+        int index = ArrayUtils.indexOfId(_projects, aProj);
+        if (index < 0)
+            return;
+
+        // Remove project
+        _projects = ArrayUtils.remove(_projects, index);
+        _projSet = null;
+
+        // Fire prop change
+        firePropChange(Projects_Prop, aProj, null, index);
+    }
+
+    /**
+     * Returns a project for given path.
+     */
+    public Project getProjectForPath(String projectPath)
+    {
+        // Get parent site
+        WebSite projectSite = getSite();
+        WebURL parentSiteURL = projectSite.getURL();
+        WebSite parentSite = parentSiteURL.getSite();
+
+        // Get URL and site for project path
+        WebURL projURL = parentSite.getURL(projectPath);
+        WebSite projSite = projURL.getAsSite();
+
+        // Get Project
+        Workspace workspace = getWorkspace();
+        return workspace.getProjectForSite(projSite);
+    }
+
+    /**
+     * Adds a dependent project.
+     */
+    public void addProjectForPath(String aPath)
+    {
+        // Get project path
+        String projPath = aPath;
+        if (!projPath.startsWith("/"))
+            projPath = '/' + projPath;
+
+        // Get project
+        Project proj = getProjectForPath(aPath);
+        if (proj == null)
+            return;
+        addProject(proj);
+
+        // Add to ProjectConfig
+        ProjectConfig projConfig = getProjectConfig();
+        projConfig.addSrcPath(projPath);
+    }
+
+    /**
+     * Removes a dependent project.
+     */
+    public void removeProjectForPath(String projectPath)
+    {
+        // Get project and remove
+        Project proj = getProjectForPath(projectPath);
+        removeProject(proj);
+
+        // Remove from config
+        ProjectConfig projConfig = getProjectConfig();
+        projConfig.removeSrcPath(projectPath);
+    }
+
+    /**
+     * Returns the projects this project depends on.
+     */
+    private Project[] getProjectsFromConfig()
+    {
+        // Create list of projects from ClassPath.ProjectPaths
+        ProjectConfig projConfig = getProjectConfig();
+        String[] projPaths = projConfig.getProjectPaths();
+        List<Project> projs = new ArrayList<>();
+
+        // Iterate over project paths
+        for (String projPath : projPaths) {
+
+            // Get Project
+            Project proj = getProjectForPath(projPath);
+
+            // Add to list
+            Project[] childProjects = proj.getProjects();
+            ListUtils.addAllUnique(projs, childProjects);
+            ListUtils.addUnique(projs, proj);
+        }
+
+        // Return array
+        return projs.toArray(new Project[0]);
+    }
 
     /**
      * Returns the ProjectBuilder.

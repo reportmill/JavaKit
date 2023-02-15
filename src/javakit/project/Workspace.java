@@ -52,6 +52,7 @@ public class Workspace extends PropObject {
     public static final String Activity_Prop = "Activity";
     public static final String Building_Prop = "Building";
     public static final String Loading_Prop = "Loading";
+    public static final String Projects_Prop = "Projects";
 
     /**
      * Constructor.
@@ -73,8 +74,21 @@ public class Workspace extends PropObject {
      */
     public void addProject(Project aProj)
     {
+        // If already present, just return
+        if (ArrayUtils.containsId(_projects, aProj)) return;
+
+        // Add project
         _projects = ArrayUtils.addId(_projects, aProj);
         _sites = null;
+
+        // Fire prop change
+        int index = ArrayUtils.indexOfId(_projects, aProj);
+        firePropChange(Projects_Prop, null, aProj, index);
+
+        // Add dependent projects
+        Project[] childProjects = aProj.getProjects();
+        for (Project proj : childProjects)
+            addProject(proj);
     }
 
     /**
@@ -82,8 +96,16 @@ public class Workspace extends PropObject {
      */
     public void removeProject(Project aProj)
     {
-        _projects = ArrayUtils.removeId(_projects, aProj);
+        int index = ArrayUtils.indexOfId(_projects, aProj);
+        if (index < 0)
+            return;
+
+        // Remove project
+        _projects = ArrayUtils.remove(_projects, index);
         _sites = null;
+
+        // Fire prop change
+        firePropChange(Projects_Prop, aProj, null, index);
     }
 
     /**
@@ -265,6 +287,16 @@ public class Workspace extends PropObject {
         Project proj = Project.getProjectForSite(aSite);
         if (proj == null)
             proj = createProjectForSite(aSite);
+        return proj;
+    }
+
+    /**
+     * Adds a project for given site.
+     */
+    public Project addProjectForSite(WebSite aSite)
+    {
+        Project proj = getProjectForSite(aSite);
+        addProject(proj);
         return proj;
     }
 
