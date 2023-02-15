@@ -114,15 +114,6 @@ public class Workspace extends PropObject {
     public Project getRootProject()  { return _projects[0]; }
 
     /**
-     * Returns the project set.
-     */
-    public ProjectSet getProjectSet()
-    {
-        Project rootProj = getRootProject();
-        return rootProj.getProjectSet();
-    }
-
-    /**
      * Returns the sites.
      */
     public WebSite[] getSites()
@@ -208,6 +199,16 @@ public class Workspace extends PropObject {
     {
         if (_buildIssues != null) return _buildIssues;
         return _buildIssues = new BuildIssues();
+    }
+
+    /**
+     * Returns the paths needed to run workspace.
+     */
+    public String[] getClassPaths()
+    {
+        Project[] projects = getProjects();
+        ProjectSet projectSet = new ProjectSet(projects);
+        return projectSet.getClassPaths();
     }
 
     /**

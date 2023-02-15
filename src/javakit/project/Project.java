@@ -12,6 +12,7 @@ import snap.web.WebFile;
 import snap.web.WebSite;
 import snap.web.WebURL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -127,14 +128,47 @@ public class Project extends PropObject {
     }
 
     /**
-     * Returns the paths needed to compile/run project.
+     * Returns the paths needed to run project.
      */
-    public String[] getClassPaths()  { return _projConfig.getClassPaths(); }
+    public String[] getClassPaths()
+    {
+        // Get build path
+        String buildPath = _projConfig.getBuildPathAbsolute();
+        String[] classPaths = { buildPath };
+
+        // Get library paths
+        String[] libPaths = _projConfig.getLibPathsAbsolute();
+        if (libPaths.length > 0)
+            classPaths = ArrayUtils.add(libPaths, buildPath, 0);
+
+        // Return
+        return classPaths;
+    }
 
     /**
-     * Returns the paths needed to compile/run project.
+     * Returns the paths needed to compile project (does not include project build dir).
      */
-    public String[] getLibPaths()  { return _projConfig.getLibPathsAbsolute(); }
+    public String[] getCompilerClassPaths()
+    {
+        // Get LibPaths for this proj
+        String[] libPaths = _projConfig.getLibPathsAbsolute();
+
+        // Get projects
+        Project[] projects = getProjects();
+
+        // Get list for CompilerClassPaths with base paths
+        List<String> compilerClassPaths = new ArrayList<>();
+        Collections.addAll(compilerClassPaths, libPaths);
+
+        // Iterate over projects and add Project.ClassPaths for each
+        for (Project proj : projects) {
+            String[] projClassPaths = proj.getClassPaths();
+            ListUtils.addAllUnique(compilerClassPaths, projClassPaths);
+        }
+
+        // Return array
+        return compilerClassPaths.toArray(new String[0]);
+    }
 
     /**
      * Returns the set of projects this project depends on.
@@ -142,7 +176,9 @@ public class Project extends PropObject {
     public ProjectSet getProjectSet()
     {
         if (_projSet != null) return _projSet;
-        return _projSet = new ProjectSet(this);
+
+        Project[] projects = ArrayUtils.add(getProjects(), this, 0);
+        return _projSet = new ProjectSet(projects);
     }
 
     /**
@@ -353,12 +389,13 @@ public class Project extends PropObject {
     private void projConfigDidPropChange(PropChange anEvent)
     {
         String propName = anEvent.getPropName();
+
+        // Handle JarPaths: Clear Workspace.ClassLoader
         if (propName == ProjectConfig.JarPaths_Prop) {
             Workspace workspace = getWorkspace();
             workspace.clearClassLoader();
         }
     }
-
 
     /**
      * Called when file added.
@@ -421,6 +458,15 @@ public class Project extends PropObject {
 
         // Finish TaskMonitor
         aTM.endTask();
+    }
+
+    /**
+     * Returns a class loader to be used with compiler.
+     */
+    public ClassLoader createCompilerClassLoader()
+    {
+        // Should be new URLClassLoader(getClassPathURLs())
+        return ClassLoader.getSystemClassLoader();
     }
 
     /**

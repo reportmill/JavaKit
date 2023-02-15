@@ -2,10 +2,6 @@ package javakit.project;
 import snap.props.PropObject;
 import snap.util.ArrayUtils;
 import snap.util.StringUtils;
-import snap.web.WebFile;
-import snap.web.WebSite;
-import snap.web.WebURL;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -66,7 +62,7 @@ public class ProjectConfig extends PropObject {
         if (Objects.equals(aPath, _srcPath)) return;
 
         // Set, firePropChange
-        String newPath = aPath != null ? getRelativePath(aPath) : null;
+        String newPath = aPath != null ? ProjectUtils.getRelativePath(_proj, aPath) : null;
         firePropChange(SrcPaths_Prop, _srcPath, _srcPath = newPath);
     }
 
@@ -84,7 +80,7 @@ public class ProjectConfig extends PropObject {
         if (Objects.equals(aPath, getBuildPath())) return;
 
         // Set, firePropChange
-        String newPath = aPath != null ? getRelativePath(aPath) : null;
+        String newPath = aPath != null ? ProjectUtils.getRelativePath(_proj, aPath) : null;
         firePropChange(BuildPath_Prop, _buildPath, _buildPath = newPath);
     }
 
@@ -99,7 +95,7 @@ public class ProjectConfig extends PropObject {
     public void addSrcPath(String aPath)
     {
         // Add XML for path
-        String path = getRelativePath(aPath);
+        String path = ProjectUtils.getRelativePath(_proj, aPath);
 
         _srcPaths = ArrayUtils.add(_srcPaths, path);
 
@@ -132,7 +128,7 @@ public class ProjectConfig extends PropObject {
     public void addLibPath(String aPath)
     {
         // Get relative path if inside project
-        String libPath = getRelativePath(aPath);
+        String libPath = ProjectUtils.getRelativePath(_proj, aPath);
 
         // If already set, just return
         if (ArrayUtils.contains(_libPaths, libPath))
@@ -181,8 +177,7 @@ public class ProjectConfig extends PropObject {
     public String getBuildPathAbsolute()
     {
         String buildPath = getBuildPath();
-        String buildPathAbs = getAbsolutePath(buildPath);
-        return addDirChar(buildPathAbs);
+        return ProjectUtils.getAbsolutePath(_proj, buildPath, true);
     }
 
     /**
@@ -190,122 +185,9 @@ public class ProjectConfig extends PropObject {
      */
     public String[] getLibPathsAbsolute()
     {
-        // Get LibPaths
         String[] libPaths = getLibPaths();
-
-        // Convert to absolute paths
-        String[] absPaths = new String[libPaths.length];
-        for (int i = 0; i < libPaths.length; i++) {
-            String absPath = getAbsolutePath(libPaths[i]);
-            absPaths[i] = addDirChar(absPath);
-        }
-
-        // Return
+        String[] absPaths = ArrayUtils.map(libPaths, path -> ProjectUtils.getAbsolutePath(_proj, path, true), String.class);
         return absPaths;
-    }
-
-    /**
-     * Returns the paths needed to compile/run project.
-     */
-    public String[] getClassPaths()
-    {
-        // Get build path
-        String buildPath = getBuildPathAbsolute();
-        String[] classPaths = { buildPath };
-
-        // Get library paths
-        String[] libPaths = getLibPathsAbsolute();
-        if (libPaths.length > 0)
-            classPaths = ArrayUtils.add(libPaths, buildPath, 0);
-
-        // Return
-        return classPaths;
-    }
-
-    /**
-     * Returns an absolute path for given relative path with option to add .
-     */
-    private String getAbsolutePath(String aPath)
-    {
-        // If path missing root dir path, add it
-        String filePath = aPath;
-        if (!filePath.startsWith("/")) {
-            String rootPath = getProjRootDirPath();
-            if (rootPath != null)
-                filePath = getProjRootDirPath() + filePath;
-            else System.err.println("ProjectConfig.getAbsolutePath: Can't find project root path");
-        }
-
-        // Return
-        return filePath;
-    }
-
-    /**
-     * Adds a directory char to end of path if needed.
-     */
-    private String addDirChar(String aPath)
-    {
-        if (!StringUtils.endsWithIC(aPath, ".jar") && !StringUtils.endsWithIC(aPath, ".zip") && !aPath.endsWith("/"))
-            aPath = aPath + '/';
-        return aPath;
-    }
-
-    /**
-     * Returns a relative path for given path.
-     */
-    private String getRelativePath(String aPath)
-    {
-        // Get filePath
-        String filePath = aPath;
-
-        // Make sure separator is standard '/'
-        if (File.separatorChar != '/')
-            filePath = filePath.replace(File.separatorChar, '/');
-
-        // If missing root (already relative), just return
-        if (!aPath.startsWith("/"))
-            return filePath;
-
-        // If filePath starts with root dir path, strip it
-        String rootDirPath = getProjRootDirPath();
-        if (rootDirPath != null && filePath.startsWith(rootDirPath))
-            filePath = filePath.substring(rootDirPath.length());
-
-        // Return
-        return filePath;
-    }
-
-    /**
-     * Returns the project root path.
-     */
-    private String getProjRootDirPath()
-    {
-        // If Project not local file, return null
-        WebSite projSite = _proj.getSite();
-        WebURL projURL = projSite.getURL();
-        String scheme = projURL.getScheme();
-        if (!(scheme.equals("file") || scheme.equals("local")))
-            return null;
-
-        // Get project root dir path
-        WebFile rootDir = projSite.getRootDir();
-        File rootDirFile = rootDir.getJavaFile();
-        String rootDirPath = rootDirFile.getAbsolutePath();
-
-        // Make sure separator is standard '/'
-        if (File.separatorChar != '/')
-            rootDirPath = rootDirPath.replace(File.separatorChar, '/');
-
-        // Make sure path ends with dir char
-        if (!rootDirPath.endsWith("/"))
-            rootDirPath = rootDirPath + '/';
-
-        // Make sure path start with dir char
-        if (!rootDirPath.startsWith("/"))
-            rootDirPath = '/' + rootDirPath;
-
-        // Return
-        return rootDirPath;
     }
 
     /**
