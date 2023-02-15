@@ -1,11 +1,9 @@
 package javakit.project;
 import snap.util.ArrayUtils;
 import snap.util.ListUtils;
-import snap.util.TaskMonitor;
 import snap.web.WebFile;
 import snap.web.WebSite;
 import snap.web.WebURL;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -222,38 +220,6 @@ public class ProjectSet {
 
         // Set/return
         return _libPaths = libPathsList.toArray(new String[0]);
-    }
-
-    /**
-     * Adds a build file.
-     */
-    public void addBuildFilesAll()
-    {
-        _proj.addBuildFilesAll();
-        Project[] projects = getProjects();
-        for (Project proj : projects)
-            proj.addBuildFilesAll();
-    }
-
-    /**
-     * Builds the project.
-     */
-    public void buildProjects(TaskMonitor aTM)
-    {
-        boolean success = true;
-
-        // Build child projects
-        Project[] projects = getProjects();
-        for (Project proj : projects) {
-            if (!proj.buildProject(aTM)) {
-                success = false;
-                break;
-            }
-        }
-
-        // Build main project
-        if (success)
-            _proj.buildProject(aTM);
     }
 
     /**

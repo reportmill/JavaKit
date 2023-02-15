@@ -1,4 +1,5 @@
 package javakit.project;
+import snap.util.TaskMonitor;
 import snap.util.TaskRunner;
 import snap.view.ViewUtils;
 import snap.viewx.DialogBox;
@@ -58,22 +59,85 @@ public class WorkspaceBuilder {
     }
 
     /**
-     * Build project.
+     * Build workspace after delay (with option to add build files).
      */
-    public void buildProjectLater(boolean doAddFiles)
+    public void buildWorkspaceLater(boolean doAddFiles)
     {
         // If not already set, register for buildLater run
         if (_buildLaterRun == null)
-            ViewUtils.runLater(_buildLaterRun = () -> buildProject(doAddFiles));
+            ViewUtils.runLater(_buildLaterRun = () -> buildWorkspace(doAddFiles));
     }
 
     /**
-     * Build project.
+     * Removes build files from workspace.
      */
-    public void buildProject(boolean doAddFiles)
+    public void cleanWorkspace()
+    {
+        boolean old = setAutoBuildEnabled(false);
+        Project rootProj = _workspace.getRootProject();
+        ProjectBuilder rootProjBuilder = rootProj.getBuilder();
+        rootProjBuilder.cleanProject();
+        setAutoBuildEnabled(old);
+    }
+
+    /**
+     * Build workspace.
+     */
+    private void buildWorkspace(boolean doAddFiles)
     {
         getBuildFilesRunner(doAddFiles);
         _buildLaterRun = null;
+    }
+
+    /**
+     * Build workspace real.
+     */
+    private void buildWorkspaceImpl(boolean addFiles, TaskMonitor aTM)
+    {
+        // Handle AddFiles
+        if (addFiles)
+            addBuildFilesAll();
+
+        // Get RootProj and child projects
+        Project rootProj = _workspace.getRootProject();
+        Project[] projects = rootProj.getProjects();
+        boolean success = true;
+
+        // Build child projects
+        for (Project proj : projects) {
+
+            // Build project
+            ProjectBuilder projectBuilder = proj.getBuilder();
+            boolean projBuildSuccess = projectBuilder.buildProject(aTM);
+            if (!projBuildSuccess) {
+                success = false;
+                break;
+            }
+        }
+
+        // Build project
+        if (success) {
+            ProjectBuilder rootBuilder = rootProj.getBuilder();
+            rootBuilder.buildProject(aTM);
+        }
+    }
+
+    /**
+     * Adds a build file.
+     */
+    private void addBuildFilesAll()
+    {
+        // Make RootProject addBuildFiles
+        Project rootProj = _workspace.getRootProject();
+        ProjectBuilder rootProjBuilder = rootProj.getBuilder();
+        rootProjBuilder.addBuildFilesAll();
+
+        // Make RootProject.Projects addBuildFiles
+        Project[] projects = rootProj.getProjects();
+        for (Project proj : projects) {
+            ProjectBuilder projBuilder = proj.getBuilder();
+            projBuilder.addBuildFilesAll();
+        }
     }
 
     /**
@@ -81,26 +145,31 @@ public class WorkspaceBuilder {
      */
     private synchronized void getBuildFilesRunner(boolean addBuildFiles)
     {
+        // If already building: Configure new build and interrupt
         if (_buildFilesRunner != null) {
+
+            // Update BuildFilesRunner.[ AddFiles, RunAgain ]
             if (addBuildFiles)
                 _buildFilesRunner._addFiles = addBuildFiles;
             _buildFilesRunner._runAgain = true;
 
+            // Stop active build
             Project rootProj = _workspace.getRootProject();
-            rootProj.interruptBuild();
+            ProjectBuilder rootProjBuilder = rootProj.getBuilder();
+            rootProjBuilder.interruptBuild();
         }
 
+        // If not building: Create BuildFilesRunner and start
         else {
-            _buildFilesRunner = new BuildFilesRunner();
-            _buildFilesRunner._addFiles = addBuildFiles;
+            _buildFilesRunner = new BuildFilesRunner(addBuildFiles);
             _buildFilesRunner.start();
         }
     }
 
     /**
-     * An Runner subclass to build project files in the background.
+     * This TaskRunner subclass builds workspace in background thread.
      */
-    public class BuildFilesRunner extends TaskRunner<Object> {
+    private class BuildFilesRunner extends TaskRunner<Object> {
 
         // Whether to add files
         boolean  _addFiles;
@@ -109,17 +178,20 @@ public class WorkspaceBuilder {
         boolean  _runAgain;
 
         /**
+         * Constructor.
+         */
+        public BuildFilesRunner(boolean doAddFiles)
+        {
+            super();
+            _addFiles = doAddFiles;
+        }
+
+        /**
          * Called to start runner.
          */
         public Object run()
         {
-            Project rootProj = _workspace.getRootProject();
-            ProjectSet projectSet = rootProj.getProjectSet();
-            if (_addFiles) {
-                _addFiles = false;
-                projectSet.addBuildFilesAll();
-            }
-            projectSet.buildProjects(this);
+            buildWorkspaceImpl(_addFiles, this);
             return true;
         }
 
@@ -137,10 +209,15 @@ public class WorkspaceBuilder {
          */
         public void finished()
         {
-            boolean runAgain = _runAgain;
-            _runAgain = false;
-            if (runAgain) start();
+            // Handle RunAgain request
+            if (_runAgain) {
+                _runAgain = false;
+                start();
+            }
+
             else _buildFilesRunner = null;
+
+            // Update Workspace Activity/Building
             _workspace.setActivity("Build Completed");
             _workspace.setBuilding(false);
         }
@@ -154,16 +231,5 @@ public class WorkspaceBuilder {
             ViewUtils.runLater(() -> DialogBox.showExceptionDialog(null, "Build Failed", e));
             _runAgain = false;
         }
-    }
-
-    /**
-     * Removes build files from the project.
-     */
-    public void cleanProject()
-    {
-        boolean old = setAutoBuildEnabled(false);
-        Project rootProj = _workspace.getRootProject();
-        rootProj.cleanProject();
-        setAutoBuildEnabled(old);
     }
 }

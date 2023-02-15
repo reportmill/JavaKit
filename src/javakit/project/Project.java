@@ -133,30 +133,7 @@ public class Project {
     /**
      * Returns the ProjectBuilder.
      */
-    public ProjectBuilder getProjectBuilder()  { return _projBuilder; }
-
-    /**
-     * Builds the project.
-     */
-    public boolean buildProject(TaskMonitor aTM)
-    {
-        return _projBuilder.buildProject(aTM);
-    }
-
-    /**
-     * Interrupts build.
-     */
-    public void interruptBuild()  { _projBuilder.interruptBuild(); }
-
-    /**
-     * Removes all build files from project.
-     */
-    public void cleanProject()  { _projBuilder.cleanProject(); }
-
-    /**
-     * Adds a build file.
-     */
-    public void addBuildFilesAll()  { _projBuilder.addBuildFilesAll(); }
+    public ProjectBuilder getBuilder()  { return _projBuilder; }
 
     /**
      * Returns the resolver.

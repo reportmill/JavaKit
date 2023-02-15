@@ -156,7 +156,7 @@ public class JavaAgent {
     {
         // Get ProjectBuilder and add build file
         Project proj = getProject();
-        ProjectBuilder projectBuilder = proj.getProjectBuilder();
+        ProjectBuilder projectBuilder = proj.getBuilder();
         projectBuilder.addBuildFile(_file, true);
 
         // Build project
