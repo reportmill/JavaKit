@@ -121,8 +121,7 @@ public class ProjectSet {
         if (_libPaths != null) return _libPaths;
 
         // Get LibPaths for this proj
-        ProjectConfig projConfig = _proj.getProjectConfig();
-        String[] libPaths = projConfig.getLibPathsAbsolute();
+        String[] libPaths = _proj.getLibPaths();
 
         // Get projects
         Project[] projects = getProjects();

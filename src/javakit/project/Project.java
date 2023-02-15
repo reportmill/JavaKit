@@ -132,6 +132,11 @@ public class Project extends PropObject {
     public String[] getClassPaths()  { return _projConfig.getClassPaths(); }
 
     /**
+     * Returns the paths needed to compile/run project.
+     */
+    public String[] getLibPaths()  { return _projConfig.getLibPathsAbsolute(); }
+
+    /**
      * Returns the set of projects this project depends on.
      */
     public ProjectSet getProjectSet()
