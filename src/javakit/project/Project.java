@@ -267,7 +267,7 @@ public class Project extends PropObject {
 
         // Add to ProjectConfig
         ProjectConfig projConfig = getProjectConfig();
-        projConfig.addSrcPath(projPath);
+        projConfig.addProjectPath(projPath);
     }
 
     /**
@@ -281,7 +281,7 @@ public class Project extends PropObject {
 
         // Remove from config
         ProjectConfig projConfig = getProjectConfig();
-        projConfig.removeSrcPath(projectPath);
+        projConfig.removeProjectPath(projectPath);
     }
 
     /**
@@ -388,13 +388,8 @@ public class Project extends PropObject {
      */
     private void projConfigDidPropChange(PropChange anEvent)
     {
-        String propName = anEvent.getPropName();
-
-        // Handle JarPaths: Clear Workspace.ClassLoader
-        if (propName == ProjectConfig.JarPaths_Prop) {
-            Workspace workspace = getWorkspace();
-            workspace.clearClassLoader();
-        }
+        Workspace workspace = getWorkspace();
+        workspace.clearClassLoader();
     }
 
     /**
