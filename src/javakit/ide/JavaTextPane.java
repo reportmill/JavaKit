@@ -14,6 +14,7 @@ import snap.view.*;
 import snap.viewx.TextPane;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A panel for editing Java files.
@@ -382,7 +383,37 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
      */
     protected Label[] getLabelsForSelNodePath()
     {
+        // If Jepl, labels root should be JClassDecl
+        JavaTextDoc textDoc = getTextDoc();
+        if (textDoc instanceof JeplTextDoc)
+            return getLabelsForSelNodePathForJepl();
+
+        // Do normal version
         return getLabelsForSelNodePath(_textArea, JFile.class);
+    }
+
+    /**
+     * Returns labels for
+     */
+    protected Label[] getLabelsForSelNodePathForJepl()
+    {
+        // Get JavaTextPane version
+        Label[] pathNodeLabels = JavaTextPane.getLabelsForSelNodePath(_textArea, JClassDecl.class);
+
+        // If last label is ClassLabel, reconfigure
+        Label lastLabel = pathNodeLabels[pathNodeLabels.length - 1];
+        if (Objects.equals(lastLabel.getName(), "ClassLabel")) {
+
+            // If JavaDoc found, modify label
+            JavaDoc javaDoc = getJavaDoc();
+            if (javaDoc != null) {
+                lastLabel.setName("JavaDocLabel");
+                lastLabel.setToolTip("Open JavaDoc");
+            }
+        }
+
+        // Return
+        return pathNodeLabels;
     }
 
     /**
