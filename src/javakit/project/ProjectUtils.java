@@ -163,10 +163,13 @@ public class ProjectUtils {
             return proj.getSourceFile(path, true, false);
         }
 
+        // Create new workspace
+        Workspace newWorkspace = new Workspace();
+
         // Get parent URL and create new project
         WebURL parentDirURL = aSourceURL.getParent();
         WebSite parentDirSite = parentDirURL.getAsSite();
-        Project newProj = new Project(new Workspace(), parentDirSite);
+        Project newProj = newWorkspace.addProjectForSite(parentDirSite);
 
         // Clear source dir
         ProjectConfig projectConfig = newProj.getProjectConfig();
