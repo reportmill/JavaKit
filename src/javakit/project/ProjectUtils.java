@@ -67,7 +67,7 @@ public class ProjectUtils {
         if (isDir) {
             boolean exclude = StringUtils.endsWithIC(aPath, ".jar") || StringUtils.endsWithIC(aPath, ".zip") || aPath.endsWith("/");
             if (!exclude)
-                absPath = aPath + '/';
+                absPath += '/';
         }
 
         // Return
