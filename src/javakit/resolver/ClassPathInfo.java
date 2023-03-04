@@ -41,7 +41,15 @@ public class ClassPathInfo {
 
         // Add project class path sites (build dirs, jar files)
         for (String classPath : classPaths) {
+
+            // Get URL for class path
             WebURL classPathURL = WebURL.getURL(classPath);
+            if (classPathURL == null) {
+                System.err.println("ClassPathInfo.init: Can't resolve class path entry: " + classPath);
+                continue;
+            }
+
+            // Get site for class path entry and add to sites
             WebSite classPathSite = classPathURL.getAsSite();
             sites.add(classPathSite);
         }
