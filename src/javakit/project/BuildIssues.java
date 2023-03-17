@@ -227,7 +227,7 @@ public class BuildIssues extends PropObject {
         // If file in Project.SourceDir
         Project proj = Project.getProjectForFile(aFile);
         WebFile sourceDir = proj.getSourceDir();
-        if (sourceDir.contains(aFile))
+        if (sourceDir.containsFile(aFile))
             return true;
 
         // Return not package
