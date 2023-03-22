@@ -75,6 +75,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
 
         // Set completions
         setItems(completions);
+        setSelIndex(0);
 
         // Get location for text start
         TextSel textSel = _textArea.getSel();
@@ -107,6 +108,7 @@ public class JavaPopupList extends PopupList<JavaDecl> {
 
         // Set completions
         setItems(completions);
+        setSelIndex(0);
     }
 
     /**
@@ -295,16 +297,6 @@ public class JavaPopupList extends PopupList<JavaDecl> {
                 hide();
             _selStart = start;
         }
-    }
-
-    /**
-     * Override to select first item and resize.
-     */
-    public void setItems(List<JavaDecl> theItems)
-    {
-        super.setItems(theItems);
-        if (theItems != null && theItems.size() > 0)
-            setSelIndex(0);
     }
 
     /**
