@@ -69,13 +69,16 @@ public class NodeCompleter {
         if (prefixMatcher == null)
             return NO_MATCHES;
 
+        // Add reserved word completions (public, private, for, white, etc.)
+        addWordCompletionsForMatcher(prefixMatcher);
+
         // Add completions for node
-        if (aNode instanceof JType)
-            getCompletionsForType((JType) aNode, prefixMatcher);
+        if (aNode.getStartToken() == aNode.getEndToken())
+            getCompletionsForNodeString(aNode, prefixMatcher);
         else if (aNode instanceof JExprId)
             getCompletionsForExprId((JExprId) aNode, prefixMatcher);
-        else if (aNode.getStartToken() == aNode.getEndToken())
-            getCompletionsForNodeString(aNode, prefixMatcher);
+        else if (aNode instanceof JType)
+            getCompletionsForType((JType) aNode, prefixMatcher);
 
         // If no matches, just return
         if (_list.size() == 0)
@@ -93,65 +96,63 @@ public class NodeCompleter {
     }
 
     /**
-     * Find completions for JType.
+     * Find completions for any node (name/string)
+     *   - Local variable names in scope
+     *   - Enclosing class methods
+     *   - Class names
+     *   - Package names
      */
-    private void getCompletionsForType(JType aJType, DeclMatcher prefixMatcher)
+    private void getCompletionsForNodeString(JNode aNode, DeclMatcher prefixMatcher)
     {
-        // Add word completions
-        addWordCompletionsForMatcher(prefixMatcher);
+        // Get variables with prefix of name and add to completions
+        List<JVarDecl> varDecls = prefixMatcher.getVarDeclsForJNode(aNode, new ArrayList<>());
+        for (JVarDecl varDecl : varDecls)
+            addCompletionDecl(varDecl.getDecl());
 
-        // Get all matching classes
+        // Get enclosing class
+        JClassDecl enclosingClassDecl = aNode.getEnclosingClassDecl();
+        JavaClass enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
+
+        // Add methods of enclosing class
+        while (enclosingClassDecl != null && enclosingClass != null) {
+            JavaMethod[] matchingMethods = prefixMatcher.getMethodsForClass(enclosingClass);
+            for (JavaMethod matchingMethod : matchingMethods)
+                addCompletionDecl(matchingMethod);
+            enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
+            enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
+        }
+
+        // Get matching classes
         ClassTree classTree = getClassTree();
         ClassTree.ClassNode[] matchingClasses = prefixMatcher.getClassesForClassTree(classTree);
 
-        // Handle JType as AllocExpr
-        JNode typeParent = aJType.getParent();
-        if (typeParent instanceof JExprAlloc) {
-
-            // Iterate over classes and add constructors
-            for (ClassTree.ClassNode matchingClass : matchingClasses) {
-
-                // Get class (skip if not found or not public)
-                JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
-                if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers()))
-                    continue;
-
-                // Get Constructors
-                List<JavaConstructor> constructors = javaClass.getConstructors();
-
-                // Add constructors
-                for (JavaConstructor constructor : constructors)
-                    addCompletionDecl(constructor);
-
-                // Handle primitive
-                if (javaClass.isPrimitive())
-                    addCompletionDecl(javaClass);
-            }
+        // Iterate over classes and add if public
+        for (ClassTree.ClassNode matchingClass : matchingClasses) {
+            JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
+            if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers()))
+                continue;
+            addCompletionDecl(javaClass);
         }
 
-        // Handle normal JType
-        else {
-            for (ClassTree.ClassNode matchingClass : matchingClasses) {
-                JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
-                addCompletionDecl(javaClass);
-            }
-        }
+        // Get matching packages and add
+        ClassTree.PackageNode[] matchingPackages = prefixMatcher.getPackagesForClassTree(classTree);
+        for (ClassTree.PackageNode matchingPkg : matchingPackages)
+            addJavaPackageForName(matchingPkg.fullName);
     }
 
     /**
      * Find completions for JExprId.
+     *   - Class or package names (if parent is package)
+     *   - Fields or methods names (if parent evaluates to type)
      */
     private void getCompletionsForExprId(JExprId anId, DeclMatcher prefixMatcher)
     {
         // Get parent expression - if none, forward to basic getCompletionsForNodeString()
         JExpr parExpr = anId.getParentExpr();
-        if (parExpr == null) {
+        if (parExpr == null) { System.err.println("NodeCompleter.getCompletionsForExprId: Shouldn't happen");
             getCompletionsForNodeString(anId, prefixMatcher);
             return;
         }
-
-        // Add word completions
-        addWordCompletionsForMatcher(prefixMatcher);
 
         // Handle parent is Package: Add packages and classes with prefix
         if (parExpr instanceof JExprId && ((JExprId) parExpr).isPackageName()) {
@@ -198,46 +199,48 @@ public class NodeCompleter {
     }
 
     /**
-     * Find completions for any node (name/string)
+     * Find completions for JType:
+     *   - Constructors (if parent is alloc expr)
+     *   - Class names (all other cases)
      */
-    private void getCompletionsForNodeString(JNode aNode, DeclMatcher prefixMatcher)
+    private void getCompletionsForType(JType aJType, DeclMatcher prefixMatcher)
     {
-        // Add word completions
-        addWordCompletionsForMatcher(prefixMatcher);
-
-        // Get variables with prefix of name and add to completions
-        List<JVarDecl> varDecls = prefixMatcher.getVarDeclsForJNode(aNode, new ArrayList<>());
-        for (JVarDecl varDecl : varDecls)
-            addCompletionDecl(varDecl.getDecl());
-
-        // Get enclosing class
-        JClassDecl enclosingClassDecl = aNode.getEnclosingClassDecl();
-        JavaClass enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
-
-        // Add methods of enclosing class
-        while (enclosingClassDecl != null && enclosingClass != null) {
-            JavaMethod[] matchingMethods = prefixMatcher.getMethodsForClass(enclosingClass);
-            for (JavaMethod matchingMethod : matchingMethods)
-                addCompletionDecl(matchingMethod);
-            enclosingClassDecl = enclosingClassDecl.getEnclosingClassDecl();
-            enclosingClass = enclosingClassDecl != null ? enclosingClassDecl.getEvalClass() : null;
-        }
-
-        // Get matching classes
+        // Get all matching classes
         ClassTree classTree = getClassTree();
         ClassTree.ClassNode[] matchingClasses = prefixMatcher.getClassesForClassTree(classTree);
 
-        // Iterate over classes and add if public
-        for (ClassTree.ClassNode matchingClass : matchingClasses) {
-            JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
-            if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers())) continue;
-            addCompletionDecl(javaClass);
+        // Handle JType as AllocExpr
+        JNode typeParent = aJType.getParent();
+        if (typeParent instanceof JExprAlloc) {
+
+            // Iterate over classes and add constructors
+            for (ClassTree.ClassNode matchingClass : matchingClasses) {
+
+                // Get class (skip if not found or not public)
+                JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
+                if (javaClass == null || !Modifier.isPublic(javaClass.getModifiers()))
+                    continue;
+
+                // Get Constructors
+                List<JavaConstructor> constructors = javaClass.getConstructors();
+
+                // Add constructors
+                for (JavaConstructor constructor : constructors)
+                    addCompletionDecl(constructor);
+
+                // Handle primitive
+                if (javaClass.isPrimitive())
+                    addCompletionDecl(javaClass);
+            }
         }
 
-        // Get matching packages and add
-        ClassTree.PackageNode[] matchingPackages = prefixMatcher.getPackagesForClassTree(classTree);
-        for (ClassTree.PackageNode matchingPkg : matchingPackages)
-            addJavaPackageForName(matchingPkg.fullName);
+        // Handle normal JType
+        else {
+            for (ClassTree.ClassNode matchingClass : matchingClasses) {
+                JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
+                addCompletionDecl(javaClass);
+            }
+        }
     }
 
     /**
