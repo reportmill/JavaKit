@@ -19,7 +19,7 @@ public class JavaShell {
     private Object  _thisObject = new Object();
 
     // The client
-    private ShellClient  _client;
+    private static ShellClient  _client;
 
     // Whether error was hit
     private boolean  _errorWasHit;
@@ -54,7 +54,7 @@ public class JavaShell {
     /**
      * Returns the client.
      */
-    public ShellClient getClient()  { return _client; }
+    public static ShellClient getClient()  { return _client; }
 
     /**
      * Sets the client.
@@ -98,8 +98,8 @@ public class JavaShell {
             Object lineVal = evalStatement(stmt);
 
             // Process output
-            if (_client != null && lineVal != null)
-                _client.processOutput(lineVal);
+            //if (_client != null && lineVal != null)
+            //    _client.processOutput(lineVal);
 
             // If StopRun hit, break
             if (_stmtEval._stopRun || _errorWasHit)
