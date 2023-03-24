@@ -5,7 +5,7 @@ JavaFileImports { PackageDecl? ImportDecl* }
 
 JeplFile
 {
-    (LookAhead(Modifiers ResultType Identifier "(") Modifiers MethodDecl | BlockStatement)*
+    (LookAhead(Modifiers ResultType Identifier FormalParams) Modifiers MethodDecl | BlockStatement)*
 }
 
 PackageDecl { LookAhead(Annotation* "package") Modifiers "package" Name ";" }
