@@ -155,8 +155,8 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
 
             // Handle KeyPressed/KeyReleased to watch for CONTROL/COMMAND press/release
             if (anEvent.isKeyPress() || anEvent.isKeyRelease()) {
-                int kc = anEvent.getKeyCode();
-                if (kc == KeyCode.COMMAND || kc == KeyCode.CONTROL)
+                int keyCode = anEvent.getKeyCode();
+                if (keyCode == KeyCode.COMMAND || keyCode == KeyCode.CONTROL)
                     setTextAreaHoverEnabled(anEvent.isKeyPress());
             }
 
@@ -170,12 +170,19 @@ public class JavaTextPane<T extends JavaTextDoc> extends TextPane<T> {
             else if (anEvent.isMouseClick()) {
 
                 // If alt is down and there is JavaDoc, open it
-                if (anEvent.isAltDown() && getJavaDoc() != null)
-                    getJavaDoc().openUrl();
+                if (anEvent.isAltDown()) {
+                    JavaDoc javaDoc = getJavaDoc();
+                    if (javaDoc != null) {
+                        javaDoc.openUrl();
+                        return;
+                    }
+                }
 
                 // If there is a hover node, open it (and clear Hover)
-                else if (getTextArea().getHoverNode() != null) {
-                    openDeclaration(getTextArea().getHoverNode());
+                JavaTextArea textArea = getTextArea();
+                JNode hoverNode = textArea.getHoverNode();
+                if (hoverNode != null) {
+                    openDeclaration(hoverNode);
                     setTextAreaHoverEnabled(false);
                 }
             }
