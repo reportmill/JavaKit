@@ -34,6 +34,14 @@ public class JNode {
     private NodeError[]  _errors;
 
     /**
+     * Constructor.
+     */
+    public JNode()
+    {
+        super();
+    }
+
+    /**
      * Returns the parent file node (root).
      */
     public JFile getFile()

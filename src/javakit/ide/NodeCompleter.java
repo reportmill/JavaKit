@@ -73,12 +73,12 @@ public class NodeCompleter {
         addWordCompletionsForMatcher(prefixMatcher);
 
         // Add completions for node
-        if (aNode.getStartToken() == aNode.getEndToken())
-            getCompletionsForNodeString(aNode, prefixMatcher);
-        else if (aNode instanceof JExprId)
+        if (aNode instanceof JExprId)
             getCompletionsForExprId((JExprId) aNode, prefixMatcher);
         else if (aNode instanceof JType)
             getCompletionsForType((JType) aNode, prefixMatcher);
+        else if (aNode.getStartToken() == aNode.getEndToken())
+            getCompletionsForNodeString(aNode, prefixMatcher);
 
         // If no matches, just return
         if (_list.size() == 0)
@@ -149,7 +149,7 @@ public class NodeCompleter {
     {
         // Get parent expression - if none, forward to basic getCompletionsForNodeString()
         JExpr parExpr = anId.getParentExpr();
-        if (parExpr == null) { System.err.println("NodeCompleter.getCompletionsForExprId: Shouldn't happen");
+        if (parExpr == null) {
             getCompletionsForNodeString(anId, prefixMatcher);
             return;
         }
@@ -234,8 +234,13 @@ public class NodeCompleter {
             }
         }
 
+        // Handle single token nodes
+        else if (aJType.getStartToken() == aJType.getEndToken())
+            getCompletionsForNodeString(aJType, prefixMatcher);
+
         // Handle normal JType
         else {
+            System.err.println("NodeCompleter.getCompletionsForType: Not sure types can have multiple tokens here: " + aJType);
             for (ClassTree.ClassNode matchingClass : matchingClasses) {
                 JavaClass javaClass = _resolver.getJavaClassForName(matchingClass.fullName);
                 addCompletionDecl(javaClass);

@@ -52,7 +52,10 @@ ConstrCall
     (Identifier ".")* (LookAhead(2) "this" ".")? TypeArgs? ("this" | "super") Arguments ";"
 }
 
-MethodDecl { TypeParams? ResultType Identifier FormalParams ("[" "]")* ThrowsList? (Block | ";") }
+MethodDecl
+{
+    TypeParams? ResultType Identifier FormalParams ("[" "]")* ThrowsList? (Block | ";")
+}
 
 ExtendsList { "extends" ClassType ("," ClassType)* }
 

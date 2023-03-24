@@ -234,6 +234,15 @@ public class JVarDecl extends JNode {
     }
 
     /**
+     * Override to avoid NPE when parsing incomplete method def.
+     */
+    @Override
+    protected String getNameImpl()
+    {
+        return "";
+    }
+
+    /**
      * Returns an identifier string describing where this variable declaration is defined.
      */
     protected static String getUniqueId(JNode aNode, String aName, JavaType aType)
