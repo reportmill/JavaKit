@@ -195,7 +195,7 @@ public class ProjectUtils {
         projectConfig.setSourcePath("");
 
         // Create source file for SourceURL file name
-        String fileName = '/' + aSourceURL.getPathName();
+        String fileName = '/' + aSourceURL.getFilename();
         WebFile sourceFile = newProj.getSourceFile(fileName, true, false);
 
         // Return source file URL
