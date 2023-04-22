@@ -119,7 +119,7 @@ public class JType extends JNode {
         if (_baseDecl != null) return _baseDecl;
 
         // Handle primitive type
-        Class<?> primitiveClass = ClassUtils.getPrimitiveClass(_name);
+        Class<?> primitiveClass = ClassUtils.getPrimitiveClassForName(_name);
         if (primitiveClass != null)
             return _baseDecl = getJavaClassForClass(primitiveClass);
 
