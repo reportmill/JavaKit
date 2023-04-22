@@ -2,7 +2,7 @@ package javakit.resolver;
 import javakit.resolver.JavaField.FieldBuilder;
 import javakit.resolver.JavaMethod.MethodBuilder;
 import javakit.resolver.JavaConstructor.ConstructorBuilder;
-import snap.util.SnapUtils;
+import snap.util.Convert;
 import java.io.PrintStream;
 
 /**
@@ -1357,8 +1357,8 @@ public class StaticResolver {
     }
 
     // Conveniences
-    protected static boolean boolVal(Object anObj)  { return SnapUtils.boolValue(anObj); }
-    protected static int intVal(Object anObj)  { return SnapUtils.intValue(anObj); }
-    protected static double doubleVal(Object anObj)  { return SnapUtils.doubleValue(anObj); }
-    protected static float floatVal(Object anObj)  { return SnapUtils.floatValue(anObj); }
+    protected static boolean boolVal(Object anObj)  { return Convert.boolValue(anObj); }
+    protected static int intVal(Object anObj)  { return Convert.intValue(anObj); }
+    protected static double doubleVal(Object anObj)  { return Convert.doubleValue(anObj); }
+    protected static float floatVal(Object anObj)  { return Convert.floatValue(anObj); }
 }

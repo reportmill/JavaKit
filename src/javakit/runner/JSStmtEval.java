@@ -4,6 +4,7 @@
 package javakit.runner;
 import java.util.*;
 import javakit.parse.*;
+import snap.util.Convert;
 import snap.util.ListUtils;
 import snap.util.SnapUtils;
 
@@ -220,7 +221,7 @@ public class JSStmtEval {
         Object condValue = evalExpr(condExpr);
 
         // Handle true: Get true statement and return eval
-        if (SnapUtils.booleanValue(condValue)) {
+        if (Convert.booleanValue(condValue)) {
             JStmt trueStmt = anIfStmt.getStatement();
             return evalStmt(anOR, trueStmt);
         }
@@ -261,7 +262,7 @@ public class JSStmtEval {
 
             // Evaluate conditional and break if false
             Object condValue = evalExpr(condExpr);
-            if (!SnapUtils.booleanValue(condValue))
+            if (!Convert.booleanValue(condValue))
                 break;
 
             // Evaluate block statements
@@ -344,7 +345,7 @@ public class JSStmtEval {
 
             // Evaluate conditional and break if false
             Object condValue = evalExpr(condExpr);
-            if (!SnapUtils.booleanValue(condValue))
+            if (!Convert.booleanValue(condValue))
                 break;
 
             // Evaluate block statements
@@ -380,7 +381,7 @@ public class JSStmtEval {
 
             // Evaluate conditional and break if false
             Object condValue = evalExpr(condExpr);
-            if (!SnapUtils.booleanValue(condValue))
+            if (!Convert.booleanValue(condValue))
                 break;
         }
 

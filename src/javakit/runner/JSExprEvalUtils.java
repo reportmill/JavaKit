@@ -1,6 +1,6 @@
 package javakit.runner;
 import javakit.parse.JExprMath;
-import snap.util.SnapUtils;
+import snap.util.Convert;
 
 /**
  * Utility methods for JSExprEval.
@@ -236,7 +236,7 @@ public class JSExprEvalUtils {
      */
     protected static boolean boolValue(Object anObj)
     {
-        return SnapUtils.boolValue(anObj);
+        return Convert.boolValue(anObj);
     }
 
     /**
@@ -244,7 +244,7 @@ public class JSExprEvalUtils {
      */
     protected static int intValue(Object anObj)
     {
-        return SnapUtils.intValue(anObj);
+        return Convert.intValue(anObj);
     }
 
     /**
@@ -252,7 +252,7 @@ public class JSExprEvalUtils {
      */
     protected static long longValue(Object anObj)
     {
-        return SnapUtils.longValue(anObj);
+        return Convert.longValue(anObj);
     }
 
     /**
@@ -278,21 +278,21 @@ public class JSExprEvalUtils {
     protected static Object castOrConvertValueToPrimitiveClass(Object aValue, Class<?> aClass)
     {
         if (aClass == double.class)
-            return SnapUtils.doubleValue(aValue);
+            return Convert.doubleValue(aValue);
         if (aClass == float.class)
-            return SnapUtils.floatValue(aValue);
+            return Convert.floatValue(aValue);
         if (aClass == int.class)
-            return SnapUtils.intValue(aValue);
+            return Convert.intValue(aValue);
         if (aClass == long.class)
-            return SnapUtils.longValue(aValue);
+            return Convert.longValue(aValue);
         if (aClass == short.class)
-            return (short) SnapUtils.intValue(aValue);
+            return (short) Convert.intValue(aValue);
         if (aClass == byte.class)
-            return (byte) SnapUtils.intValue(aValue);
+            return (byte) Convert.intValue(aValue);
         if (aClass == boolean.class)
-            return SnapUtils.boolValue(aValue);
+            return Convert.boolValue(aValue);
         if (aClass == char.class)
-            return (char) SnapUtils.intValue(aValue);
+            return (char) Convert.intValue(aValue);
         return aValue;
     }
 

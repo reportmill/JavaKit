@@ -798,7 +798,7 @@ public class JSExprEval {
                 _varStack.setStackValueForNode(param0, d);
                 try {
                     Object value = evalExpr(anOR, contentExpr);
-                    return SnapUtils.doubleValue(value);
+                    return Convert.doubleValue(value);
                 }
                 catch (Exception e) {
                     throw new RuntimeException(e);
@@ -817,7 +817,7 @@ public class JSExprEval {
                 _varStack.setStackValueForNode(param1, y);
                 try {
                     Object value = evalExpr(anOR, contentExpr);
-                    return SnapUtils.doubleValue(value);
+                    return Convert.doubleValue(value);
                 }
                 catch (Exception e) {
                     throw new RuntimeException(e);

@@ -44,7 +44,7 @@ public class StaticResolverGen {
             appendln("import javakit.resolver.JavaField.FieldBuilder;");
             appendln("import javakit.resolver.JavaMethod.MethodBuilder;");
             appendln("import javakit.resolver.JavaConstructor.ConstructorBuilder;");
-            appendln("import snap.util.SnapUtils;");
+            appendln("import snap.util.Convert;");
         }
         appendln("import java.io.PrintStream;");
 
@@ -570,10 +570,10 @@ public class StaticResolverGen {
         if (_isRoot) {
             appendln("");
             appendln("    // Conveniences");
-            appendln("    protected static boolean boolVal(Object anObj)  { return SnapUtils.boolValue(anObj); }");
-            appendln("    protected static int intVal(Object anObj)  { return SnapUtils.intValue(anObj); }");
-            appendln("    protected static double doubleVal(Object anObj)  { return SnapUtils.doubleValue(anObj); }");
-            appendln("    protected static float floatVal(Object anObj)  { return SnapUtils.floatValue(anObj); }");
+            appendln("    protected static boolean boolVal(Object anObj)  { return Convert.boolValue(anObj); }");
+            appendln("    protected static int intVal(Object anObj)  { return Convert.intValue(anObj); }");
+            appendln("    protected static double doubleVal(Object anObj)  { return Convert.doubleValue(anObj); }");
+            appendln("    protected static float floatVal(Object anObj)  { return Convert.floatValue(anObj); }");
         }
         appendln("}");
     }
