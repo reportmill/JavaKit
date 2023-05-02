@@ -79,6 +79,10 @@ public class JavaShell {
 
         // Get parsed statements
         JStmt[] javaStmts = javaAgent.getJFileStatements();
+        if (javaStmts == null) {
+            System.err.println("JavaShell.runJavaCode: No main method");
+            return;
+        }
 
         // Set System out/err to catch console output
         System.setOut(_shellOut);

@@ -143,10 +143,12 @@ public class JavaAgent {
         // Get main method
         JFile jfile = getJFile();
         JClassDecl classDecl = jfile.getClassDecl();
-        JMethodDecl bodyMethod = classDecl.getMethodDeclForNameAndTypes("body", null);
+        JMethodDecl mainMethod = classDecl.getMethodDeclForNameAndTypes("main", null);
+        if (mainMethod == null)
+            return null;
 
         // Get statements from main method
-        return JavaTextDocUtils.getStatementsForJavaNode(bodyMethod);
+        return JavaTextDocUtils.getStatementsForJavaNode(mainMethod);
     }
 
     /**

@@ -2,6 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.parse;
+import javakit.project.JavaAgent;
 import javakit.project.JeplAgent;
 import javakit.project.ProjectUtils;
 import snap.util.ArrayUtils;
@@ -86,7 +87,7 @@ public class JeplTextDoc extends JavaTextDoc {
     /**
      * Returns the JeplTextDoc for given source.
      */
-    public static JeplTextDoc getJeplTextDocForSourceURL(Object aSource)
+    public static JavaTextDoc getJeplTextDocForSourceURL(Object aSource)
     {
         // If Source is null, create temp file
         Object source = aSource;
@@ -100,10 +101,10 @@ public class JeplTextDoc extends JavaTextDoc {
         WebFile sourceFile = ProjectUtils.getProjectSourceFileForURL(url);
 
         // Get java agent and TextDoc
-        JeplAgent javaAgent = JeplAgent.getAgentForFile(sourceFile);
-        JeplTextDoc jeplTextDoc = javaAgent.getJavaTextDoc();
+        JavaAgent javaAgent = JavaAgent.getAgentForFile(sourceFile);
+        JavaTextDoc javaTextDoc = javaAgent.getJavaTextDoc();
 
         // Return
-        return jeplTextDoc;
+        return javaTextDoc;
     }
 }
