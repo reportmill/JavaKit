@@ -47,7 +47,7 @@ public class JExprChain extends JExpr {
     /**
      * Returns the expressions list.
      */
-    public List<JExpr> getExpressions()  { return (List) _children; }
+    public List<JExpr> getExpressions()  { return (List<JExpr>) (List<?>) _children; }
 
     /**
      * Adds a expression to this JExprChain.
