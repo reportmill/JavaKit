@@ -2,12 +2,11 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package javakit.project;
+import snap.util.ArrayUtils;
 import snap.util.FileUtils;
 import snap.util.SnapUtils;
 import snap.util.StringUtils;
-import snap.web.WebFile;
-import snap.web.WebSite;
-import snap.web.WebURL;
+import snap.web.*;
 
 import java.io.File;
 
@@ -187,7 +186,7 @@ public class ProjectUtils {
 
         // Get parent URL and create new project
         WebURL parentDirURL = aSourceURL.getParent();
-        WebSite parentDirSite = parentDirURL.getAsSite();
+        WebSite parentDirSite = new SimpleProjectFileSite(parentDirURL); //parentDirURL.getAsSite();
         Project newProj = newWorkspace.addProjectForSite(parentDirSite);
 
         // Clear source dir
@@ -226,5 +225,45 @@ public class ProjectUtils {
         // Express concern and return null
         System.out.println("ProjectUtils.getClassPathForClass: Unexpected class url: " + url);
         return null;
+    }
+
+    /**
+     * This FileSite subclass is for simple projects used when opening a source file outside of a real project.
+     */
+    private static class SimpleProjectFileSite extends FileSite {
+
+        // File types
+        private static String[] SIMPLE_PROJ_FILE_TYPES = { "java", "jepl", "snp", "jpg", "jpeg", "png", "gif" };
+
+        /**
+         * Constructor.
+         */
+        public SimpleProjectFileSite(WebURL aURL)
+        {
+            super();
+            setURL(aURL);
+        }
+
+        /**
+         * Override to filter out anything that isn't a simple project file.
+         */
+        @Override
+        protected FileHeader[] getFileHeaders(String aPath, File aFile)
+        {
+            FileHeader[] fileHeaders = super.getFileHeaders(aPath, aFile);
+            FileHeader[] simpleFileHeaders = ArrayUtils.filter(fileHeaders, fileHeader -> isSimpleProjectFile(fileHeader));
+            return simpleFileHeaders;
+        }
+
+        /**
+         * Returns whether given FileHeader is for a simple project file.
+         */
+        private boolean isSimpleProjectFile(FileHeader fileHeader)
+        {
+            if (fileHeader.isDir())
+                return false;
+            String fileType = fileHeader.getType();
+            return ArrayUtils.contains(SIMPLE_PROJ_FILE_TYPES, fileType);
+        }
     }
 }
