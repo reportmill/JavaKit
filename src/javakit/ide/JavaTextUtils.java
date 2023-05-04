@@ -33,12 +33,12 @@ public class JavaTextUtils {
     }
 
     // Images
-    public static Image LVarImage = Image.get(JavaTextUtils.class, "LocalVariable.png");
-    public static Image FieldImage = Image.get(JavaTextUtils.class, "PublicField.png");
-    public static Image MethodImage = Image.get(JavaTextUtils.class, "PublicMethod.png");
-    public static Image ClassImage = Image.get(JavaTextUtils.class, "PublicClass.png");
-    public static Image PackageImage = Image.get(JavaTextUtils.class, "Package.png");
-    public static Image CodeImage = Image.get(JavaTextUtils.class, "Code.png");
+    public static Image LVarImage = Image.getImageForClassResource(JavaTextUtils.class, "LocalVariable.png");
+    public static Image FieldImage = Image.getImageForClassResource(JavaTextUtils.class, "PublicField.png");
+    public static Image MethodImage = Image.getImageForClassResource(JavaTextUtils.class, "PublicMethod.png");
+    public static Image ClassImage = Image.getImageForClassResource(JavaTextUtils.class, "PublicClass.png");
+    public static Image PackageImage = Image.getImageForClassResource(JavaTextUtils.class, "Package.png");
+    public static Image CodeImage = Image.getImageForClassResource(JavaTextUtils.class, "Code.png");
     public static Image DefaultImage;
 
     /**

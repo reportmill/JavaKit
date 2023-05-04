@@ -26,11 +26,11 @@ public abstract class LineMarker<T> extends Rect {
     protected Image  _image;
 
     // The marker images for Error, Warning, Breakpoint, Implements, Override
-    private static Image ERROR_IMAGE = Image.get(LineMarker.class, "ErrorMarker.png");
-    private static Image WARNING_IMAGE = Image.get(LineMarker.class, "WarningMarker.png");
-    private static Image BREAKPOINT_IMAGE = Image.get(LineMarker.class, "Breakpoint.png");
-    private static Image IMPLEMENTS_IMAGE = Image.get(LineMarker.class, "ImplementsMarker.png");
-    private static Image OVERRIDE_IMAGE = Image.get(LineMarker.class, "OverrideMarker.png");
+    private static Image ERROR_IMAGE = Image.getImageForClassResource(LineMarker.class, "ErrorMarker.png");
+    private static Image WARNING_IMAGE = Image.getImageForClassResource(LineMarker.class, "WarningMarker.png");
+    private static Image BREAKPOINT_IMAGE = Image.getImageForClassResource(LineMarker.class, "Breakpoint.png");
+    private static Image IMPLEMENTS_IMAGE = Image.getImageForClassResource(LineMarker.class, "ImplementsMarker.png");
+    private static Image OVERRIDE_IMAGE = Image.getImageForClassResource(LineMarker.class, "OverrideMarker.png");
 
     /**
      * Creates a new marker for target.
