@@ -181,12 +181,16 @@ public class ProjectUtils {
             return proj.getSourceFile(path, true, false);
         }
 
-        // Create new workspace
-        Workspace newWorkspace = new Workspace();
-
-        // Get parent URL and create new project
+        // Get parent dir URL as site to act as project root site
         WebURL parentDirURL = aSourceURL.getParent();
-        WebSite parentDirSite = new SimpleProjectFileSite(parentDirURL); //parentDirURL.getAsSite();
+        WebSite parentDirSite = parentDirURL.getAsSite();
+
+        // If FileSite, replace with SimpleProjectFileSite so we only see typical project file types
+        if (parentDirSite instanceof FileSite)
+            parentDirSite = new SimpleProjectFileSite(parentDirURL);
+
+        // Create new project for parent dir site
+        Workspace newWorkspace = new Workspace();
         Project newProj = newWorkspace.addProjectForSite(parentDirSite);
 
         // Clear source dir
@@ -195,10 +199,10 @@ public class ProjectUtils {
 
         // Create source file for SourceURL file name
         String fileName = '/' + aSourceURL.getFilename();
-        WebFile sourceFile = newProj.getSourceFile(fileName, true, false);
+        WebFile projectSourceFile = newProj.getSourceFile(fileName, true, false);
 
-        // Return source file URL
-        return sourceFile;
+        // Return
+        return projectSourceFile;
     }
 
     /**
@@ -228,7 +232,7 @@ public class ProjectUtils {
     }
 
     /**
-     * This FileSite subclass is for simple projects used when opening a source file outside of a real project.
+     * This FileSite subclass is for simple projects used when opening a source file from outside a real project.
      */
     private static class SimpleProjectFileSite extends FileSite {
 
