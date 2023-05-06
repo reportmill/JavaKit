@@ -150,13 +150,13 @@ public class JavaTextDoc extends TextDoc {
     {
         // If Source is null, create temp file
         Object source = aSource;
-        if (source == null) {
-            WebFile tempFile = ProjectUtils.getTempSourceFile(null, "java");
-            source = tempFile.getURL();
-        }
+        if (source == null)
+            source = ProjectUtils.getTempSourceFile(null, "Untitled", "java");
 
         // Get Source file
         WebURL url = WebURL.getURL(source);
+        if (url == null)
+            throw new RuntimeException("JavaTextDoc.getJavaTextDocForSource: Invalid source: " + source);
         WebFile sourceFile = ProjectUtils.getProjectSourceFileForURL(url);
 
         // Get java agent and TextDoc

@@ -90,21 +90,8 @@ public class JeplTextDoc extends JavaTextDoc {
     public static JavaTextDoc getJeplTextDocForSourceURL(Object aSource)
     {
         // If Source is null, create temp file
-        Object source = aSource;
-        if (source == null) {
-            WebFile tempFile = ProjectUtils.getTempSourceFile(null, "jepl");
-            source = tempFile.getURL();
-        }
-
-        // Get Source URL and file
-        WebURL url = WebURL.getURL(source);
-        WebFile sourceFile = ProjectUtils.getProjectSourceFileForURL(url);
-
-        // Get java agent and TextDoc
-        JavaAgent javaAgent = JavaAgent.getAgentForFile(sourceFile);
-        JavaTextDoc javaTextDoc = javaAgent.getJavaTextDoc();
-
-        // Return
-        return javaTextDoc;
+        if (aSource == null)
+            aSource = ProjectUtils.getTempSourceFile(null, "Untitled", "jepl");
+        return JavaTextDoc.getJavaTextDocForSource(aSource);
     }
 }

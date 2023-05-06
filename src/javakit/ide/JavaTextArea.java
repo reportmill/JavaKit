@@ -43,6 +43,7 @@ public class JavaTextArea extends TextArea {
 
     // Constants
     protected static String INDENT_STRING = "    ";
+    private static JavaTextDoc DUMMY_TEXT_DOC;
 
     /**
      * Creates a new JavaTextArea.
@@ -53,9 +54,14 @@ public class JavaTextArea extends TextArea {
         setPadding(5, 5, 5,5);
         setEditable(true);
 
+        // Create DUMMY_TEXT_DOC (first time only)
+        if (DUMMY_TEXT_DOC == null) {
+            WebFile tempFile = ProjectUtils.getTempSourceFile(null, "Dummy", "java");
+            DUMMY_TEXT_DOC = JavaTextDoc.getJavaTextDocForSource(tempFile);
+        }
+
         // Set default TextDoc to JavaTextDoc
-        JavaTextDoc javaTextDoc = JavaTextDoc.getJavaTextDocForSource(null);
-        setTextDoc(javaTextDoc);
+        setTextDoc(DUMMY_TEXT_DOC);
     }
 
     /**

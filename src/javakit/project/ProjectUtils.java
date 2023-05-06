@@ -143,20 +143,20 @@ public class ProjectUtils {
     /**
      * Returns a temp source file for given project and extension. If null project, uses TempProject.
      */
-    public static WebFile getTempSourceFile(Project aProj, String anExt)
+    public static WebFile getTempSourceFile(Project aProj, String aName, String anExt)
     {
         // Get project - if given null project, use TempProject
         Project proj = aProj != null ? aProj : getTempProject();
 
         // Return project source file for "Untitled.ext", if not present
-        String fileName = "/Untitled." + anExt;
+        String fileName = '/' + aName + '.' + anExt;
         WebFile tempFile = proj.getSourceFile(fileName, false, false);
         if (tempFile == null)
             return proj.getSourceFile(fileName, true, false);
 
         // Report project source file for "Untitled-X.ext" where X is first unused file name
         for (int i = 1; i < 1000; i++) {
-            String fileName2 = "/Untitled-" + i + '.' + anExt;
+            String fileName2 = '/' + aName + '-' + i + '.' + anExt;
             tempFile = proj.getSourceFile(fileName2, false, false);
             if (tempFile == null)
                 return proj.getSourceFile(fileName2, true, false);
