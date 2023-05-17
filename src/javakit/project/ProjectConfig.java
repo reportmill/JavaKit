@@ -1,7 +1,8 @@
 package javakit.project;
 import snap.props.PropObject;
+import snap.props.PropSet;
 import snap.util.ArrayUtils;
-import snap.util.StringUtils;
+import snap.util.Convert;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -31,6 +32,12 @@ public class ProjectConfig extends PropObject {
     public static final String LibPaths_Prop = "LibPaths";
     public static final String ProjectPaths_Prop = "ProjectPaths";
 
+    // Constants for defaults
+    private static final String DEFAULT_SOURCE_PATH = "src";
+    private static final String DEFAULT_BUILD_PATH = "bin";
+    private static final String[] DEFAULT_LIB_PATHS = new String[0];
+    private static final String[] DEFAULT_PROJECT_PATHS = new String[0];
+
     /**
      * Creates a new ClassPathFile for project.
      */
@@ -39,10 +46,10 @@ public class ProjectConfig extends PropObject {
         _proj = aProj;
 
         // Set defaults
-        _srcPath = "src";
-        _buildPath = "bin";
-        _libPaths = new String[0];
-        _projPaths = new String[0];
+        _srcPath = DEFAULT_SOURCE_PATH;
+        _buildPath = DEFAULT_BUILD_PATH;
+        _libPaths = DEFAULT_LIB_PATHS;
+        _projPaths = DEFAULT_PROJECT_PATHS;
     }
 
     /**
@@ -91,6 +98,9 @@ public class ProjectConfig extends PropObject {
      */
     public void setLibPaths(String[] libPaths)
     {
+        // If already set, just return
+        if (libPaths == _libPaths) return;
+
         // Convert to relative
         String[] relativeLibPaths = ArrayUtils.map(libPaths, path -> ProjectUtils.getRelativePath(_proj, path), String.class);
 
@@ -159,6 +169,9 @@ public class ProjectConfig extends PropObject {
      */
     public void setProjectPaths(String[] projectPaths)
     {
+        // If already set, just return
+        if (projectPaths == _projPaths) return;
+
         // Convert to relative
         String[] relativeProjPaths = ArrayUtils.map(projectPaths, path -> ProjectUtils.getRelativePath(_proj, path), String.class);
 
@@ -222,16 +235,58 @@ public class ProjectConfig extends PropObject {
     }
 
     /**
-     * Standard toString implementation.
+     * Initialize properties for this class.
      */
     @Override
-    public String toStringProps()
+    protected void initProps(PropSet aPropSet)
     {
-        StringBuffer sb = new StringBuffer();
-        StringUtils.appendProp(sb, SourcePath_Prop, getSourcePath());
-        StringUtils.appendProp(sb, BuildPath_Prop, getBuildPath());
-        StringUtils.appendProp(sb, LibPaths_Prop, Arrays.toString(getLibPaths()));
-        StringUtils.appendProp(sb, ProjectPaths_Prop, Arrays.toString(getProjectPaths()));
-        return sb.toString();
+        // Do normal version
+        super.initProps(aPropSet);
+
+        // SourcePath, BuildPath, LibPaths, ProjectPaths
+        aPropSet.addPropNamed(SourcePath_Prop, String.class, DEFAULT_SOURCE_PATH);
+        aPropSet.addPropNamed(BuildPath_Prop, String.class, DEFAULT_BUILD_PATH);
+        aPropSet.addPropNamed(LibPaths_Prop, String[].class, DEFAULT_LIB_PATHS);
+        aPropSet.addPropNamed(ProjectPaths_Prop, String[].class, DEFAULT_PROJECT_PATHS);
+    }
+
+    /**
+     * Returns the prop value for given key.
+     */
+    @Override
+    public Object getPropValue(String aPropName)
+    {
+        // Handle properties
+        switch (aPropName) {
+
+            // SourcePath, BuildPath, LibPaths, ProjectPaths
+            case SourcePath_Prop: return getSourcePath();
+            case BuildPath_Prop: return getBuildPath();
+            case LibPaths_Prop: return getLibPaths();
+            case ProjectPaths_Prop: return getProjectPaths();
+
+            // Handle super class properties (or unknown)
+            default: System.err.println("ProjectConfig.getPropValue: Unknown prop: " + aPropName); return null;
+        }
+    }
+
+    /**
+     * Sets the prop value for given key.
+     */
+    @Override
+    public void setPropValue(String aPropName, Object aValue)
+    {
+        // Handle properties
+        switch (aPropName) {
+
+            // SourcePath, BuildPath, LibPaths, ProjectPaths
+            case SourcePath_Prop: setSourcePath(Convert.stringValue(aValue)); break;
+            case BuildPath_Prop: setBuildPath(Convert.stringValue(aValue)); break;
+            case LibPaths_Prop: setLibPaths((String[]) aValue); break;
+            case ProjectPaths_Prop: setProjectPaths((String[]) aValue); break;
+
+            // Handle super class properties (or unknown)
+            default: System.err.println("ProjectConfig.setPropValue: Unknown prop: " + aPropName);
+        }
     }
 }

@@ -54,7 +54,7 @@ public class Project extends PropObject {
         // Set site
         setSite(aSite);
 
-        // If site doesn't exist, create root directory, src, bin and default .classpath file
+        // If site doesn't exist, create root directory, src and bin
         if (!aSite.getExists()) {
             aSite.getRootDir().save();
             aSite.createFileForPath("/src", true).save();
