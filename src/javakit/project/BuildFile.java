@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * This class manages project properties.
  */
-public class ProjectConfig extends PropObject {
+public class BuildFile extends PropObject {
 
     // The project
     private Project  _proj;
@@ -41,7 +41,7 @@ public class ProjectConfig extends PropObject {
     /**
      * Creates a new ClassPathFile for project.
      */
-    public ProjectConfig(Project aProj)
+    public BuildFile(Project aProj)
     {
         _proj = aProj;
 
@@ -156,7 +156,7 @@ public class ProjectConfig extends PropObject {
         String classPath = ProjectUtils.getClassPathForClass(aClass);
         if (classPath != null)
             addLibPath(classPath);
-        else System.out.println("ProjectConfig.addLibPathForClass: Couldn't find path for class: " + aClass.getName());
+        else System.out.println("BuildFile.addLibPathForClass: Couldn't find path for class: " + aClass.getName());
     }
 
     /**
@@ -266,7 +266,7 @@ public class ProjectConfig extends PropObject {
             case ProjectPaths_Prop: return getProjectPaths();
 
             // Handle super class properties (or unknown)
-            default: System.err.println("ProjectConfig.getPropValue: Unknown prop: " + aPropName); return null;
+            default: System.err.println("BuildFile.getPropValue: Unknown prop: " + aPropName); return null;
         }
     }
 
@@ -286,7 +286,7 @@ public class ProjectConfig extends PropObject {
             case ProjectPaths_Prop: setProjectPaths((String[]) aValue); break;
 
             // Handle super class properties (or unknown)
-            default: System.err.println("ProjectConfig.setPropValue: Unknown prop: " + aPropName);
+            default: System.err.println("BuildFile.setPropValue: Unknown prop: " + aPropName);
         }
     }
 }

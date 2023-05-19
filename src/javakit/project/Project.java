@@ -29,8 +29,8 @@ public class Project extends PropObject {
     // The child projects this project depends on
     private Project[]  _projects;
 
-    // ProjectConfig
-    protected ProjectConfig  _projConfig;
+    // BuildFile
+    protected BuildFile _buildFile;
 
     // ProjectFiles
     protected ProjectFiles  _projFiles;
@@ -102,29 +102,29 @@ public class Project extends PropObject {
     }
 
     /**
-     * Returns the ProjectConfig that manages project properties.
+     * Returns the BuildFile that manages project properties.
      */
-    public ProjectConfig getProjectConfig()
+    public BuildFile getBuildFile()
     {
         // If already set, just return
-        if (_projConfig != null) return _projConfig;
+        if (_buildFile != null) return _buildFile;
 
-        // Create ProjectConfig
-        ProjectConfig projConfig = createProjectConfig();
+        // Create BuildFile
+        BuildFile buildFile = createBuildFile();
 
         // Add PropChangeListener to clear ClassPathInfo when changed
-        projConfig.addPropChangeListener(pc -> projConfigDidPropChange(pc));
+        buildFile.addPropChangeListener(pc -> projConfigDidPropChange(pc));
 
         // Set, return
-        return _projConfig = projConfig;
+        return _buildFile = buildFile;
     }
 
     /**
-     * Returns the ProjectConfig that manages project properties.
+     * Returns the BuildFile that manages project properties.
      */
-    protected ProjectConfig createProjectConfig()
+    protected BuildFile createBuildFile()
     {
-        return new ProjectConfig(this);
+        return new BuildFile(this);
     }
 
     /**
@@ -133,11 +133,11 @@ public class Project extends PropObject {
     public String[] getClassPaths()
     {
         // Get build path
-        String buildPath = _projConfig.getBuildPathAbsolute();
+        String buildPath = _buildFile.getBuildPathAbsolute();
         String[] classPaths = { buildPath };
 
         // Get library paths
-        String[] libPaths = _projConfig.getLibPathsAbsolute();
+        String[] libPaths = _buildFile.getLibPathsAbsolute();
         if (libPaths.length > 0)
             classPaths = ArrayUtils.add(libPaths, buildPath, 0);
 
@@ -151,7 +151,7 @@ public class Project extends PropObject {
     public String[] getCompilerClassPaths()
     {
         // Get LibPaths for this proj
-        String[] libPaths = _projConfig.getLibPathsAbsolute();
+        String[] libPaths = _buildFile.getLibPathsAbsolute();
 
         // Get projects
         Project[] projects = getProjects();
@@ -265,9 +265,9 @@ public class Project extends PropObject {
             return;
         addProject(proj);
 
-        // Add to ProjectConfig
-        ProjectConfig projConfig = getProjectConfig();
-        projConfig.addProjectPath(projPath);
+        // Add to BuildFile
+        BuildFile buildFile = getBuildFile();
+        buildFile.addProjectPath(projPath);
     }
 
     /**
@@ -280,7 +280,7 @@ public class Project extends PropObject {
         removeProject(proj);
 
         // Remove from config
-        ProjectConfig projConfig = getProjectConfig();
+        BuildFile projConfig = getBuildFile();
         projConfig.removeProjectPath(projectPath);
     }
 
@@ -290,7 +290,7 @@ public class Project extends PropObject {
     private Project[] getProjectsFromConfig()
     {
         // Create list of projects from ClassPath.ProjectPaths
-        ProjectConfig projConfig = getProjectConfig();
+        BuildFile projConfig = getBuildFile();
         String[] projPaths = projConfig.getProjectPaths();
         List<Project> projs = new ArrayList<>();
 
@@ -384,7 +384,7 @@ public class Project extends PropObject {
     }
 
     /**
-     * Watches Project.ProjectConfig for JarPaths change to reset ClassPathInfo.
+     * Watches Project.BuildFile for dependency change to reset ClassPathInfo.
      */
     private void projConfigDidPropChange(PropChange anEvent)
     {

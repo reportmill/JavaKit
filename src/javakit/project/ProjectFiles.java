@@ -16,7 +16,7 @@ public class ProjectFiles {
     private Project  _proj;
 
     // The Project config
-    private ProjectConfig  _projConfig;
+    private BuildFile _projConfig;
 
     // The project source directory
     protected WebFile  _srcDir;
@@ -30,7 +30,7 @@ public class ProjectFiles {
     public ProjectFiles(Project aProject)
     {
         _proj = aProject;
-        _projConfig = aProject.getProjectConfig();
+        _projConfig = aProject.getBuildFile();
     }
 
     /**

@@ -194,8 +194,8 @@ public class ProjectUtils {
         Project newProj = newWorkspace.addProjectForSite(parentDirSite);
 
         // Clear source dir
-        ProjectConfig projectConfig = newProj.getProjectConfig();
-        projectConfig.setSourcePath("");
+        BuildFile buildFile = newProj.getBuildFile();
+        buildFile.setSourcePath("");
 
         // Create source file for SourceURL file name
         String fileName = '/' + aSourceURL.getFilename();
