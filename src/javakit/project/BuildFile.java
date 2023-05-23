@@ -19,16 +19,19 @@ public class BuildFile extends PropObject {
     private Project  _proj;
 
     // The project source path
-    public String  _srcPath;
+    private String  _srcPath;
 
     // The project build path
-    public String  _buildPath;
+    private String  _buildPath;
+
+    // The dependencies
+    private BuildDependency[] _dependencies;
 
     // The library paths
-    public String[]  _libPaths;
+    private String[]  _libPaths;
 
     // The project paths
-    public String[]  _projPaths;
+    private String[]  _projPaths;
 
     // The actual build file
     private WebFile _buildFile;
@@ -39,6 +42,7 @@ public class BuildFile extends PropObject {
     // Constants for BuildFile properties
     public static final String SourcePath_Prop = "SourcePaths";
     public static final String BuildPath_Prop = "BuildPath";
+    public static final String Dependencies_Prop = "Dependencies";
     public static final String LibPaths_Prop = "LibPaths";
     public static final String ProjectPaths_Prop = "ProjectPaths";
 
@@ -58,6 +62,7 @@ public class BuildFile extends PropObject {
         // Set defaults
         _srcPath = DEFAULT_SOURCE_PATH;
         _buildPath = DEFAULT_BUILD_PATH;
+        _dependencies = new BuildDependency[0];
         _libPaths = DEFAULT_LIB_PATHS;
         _projPaths = DEFAULT_PROJECT_PATHS;
 
@@ -101,6 +106,57 @@ public class BuildFile extends PropObject {
         // Set, firePropChange
         String newPath = aPath != null ? ProjectUtils.getRelativePath(_proj, aPath) : null;
         firePropChange(BuildPath_Prop, _buildPath, _buildPath = newPath);
+    }
+
+    /**
+     * Returns the dependencies.
+     */
+    public BuildDependency[] getDependencies()  { return _dependencies; }
+
+    /**
+     * Sets the dependencies.
+     */
+    public void setDependencies(BuildDependency[] theDependencies)
+    {
+        if (Arrays.equals(theDependencies, _dependencies)) return;
+        firePropChange(Dependencies_Prop, _dependencies, _dependencies = theDependencies);
+    }
+
+    /**
+     * Adds a dependency.
+     */
+    public void addDependency(BuildDependency aDependency)
+    {
+        addDependency(aDependency, getDependencies().length);
+    }
+
+    /**
+     * Adds a dependency at given index.
+     */
+    public void addDependency(BuildDependency aDependency, int anIndex)
+    {
+        if (ArrayUtils.contains(_dependencies, aDependency)) return;
+        BuildDependency[] newDependencies = ArrayUtils.add(_dependencies, aDependency, anIndex);
+        setDependencies(newDependencies);
+    }
+
+    /**
+     * Removes a dependency at given index.
+     */
+    public void removeDependency(int anIndex)
+    {
+        BuildDependency[] newDependencies = ArrayUtils.remove(_dependencies, anIndex);
+        setDependencies(newDependencies);
+    }
+
+    /**
+     * Removes a given dependency.
+     */
+    public void removeDependency(BuildDependency aDependency)
+    {
+        int index = ArrayUtils.indexOf(_dependencies, aDependency);
+        if (index >= 0)
+            removeDependency(index);
     }
 
     /**
@@ -310,11 +366,12 @@ public class BuildFile extends PropObject {
         // Do normal version
         super.initProps(aPropSet);
 
-        // SourcePath, BuildPath, LibPaths, ProjectPaths
-        aPropSet.addPropNamed(SourcePath_Prop, String.class, DEFAULT_SOURCE_PATH);
-        aPropSet.addPropNamed(BuildPath_Prop, String.class, DEFAULT_BUILD_PATH);
-        aPropSet.addPropNamed(LibPaths_Prop, String[].class, DEFAULT_LIB_PATHS);
-        aPropSet.addPropNamed(ProjectPaths_Prop, String[].class, DEFAULT_PROJECT_PATHS);
+        // SourcePath, BuildPath, Dependencies, LibPaths, ProjectPaths
+        aPropSet.addPropNamed(SourcePath_Prop, String.class);
+        aPropSet.addPropNamed(BuildPath_Prop, String.class);
+        aPropSet.addPropNamed(Dependencies_Prop, BuildDependency.class);
+        aPropSet.addPropNamed(LibPaths_Prop, String[].class);
+        aPropSet.addPropNamed(ProjectPaths_Prop, String[].class);
     }
 
     /**
@@ -326,9 +383,10 @@ public class BuildFile extends PropObject {
         // Handle properties
         switch (aPropName) {
 
-            // SourcePath, BuildPath, LibPaths, ProjectPaths
+            // SourcePath, BuildPath, Dependencies, LibPaths, ProjectPaths
             case SourcePath_Prop: return getSourcePath();
             case BuildPath_Prop: return getBuildPath();
+            case Dependencies_Prop: return getDependencies();
             case LibPaths_Prop: return getLibPaths();
             case ProjectPaths_Prop: return getProjectPaths();
 
@@ -346,9 +404,10 @@ public class BuildFile extends PropObject {
         // Handle properties
         switch (aPropName) {
 
-            // SourcePath, BuildPath, LibPaths, ProjectPaths
+            // SourcePath, BuildPath, Dependencies, LibPaths, ProjectPaths
             case SourcePath_Prop: setSourcePath(Convert.stringValue(aValue)); break;
             case BuildPath_Prop: setBuildPath(Convert.stringValue(aValue)); break;
+            case Dependencies_Prop: setDependencies((BuildDependency[]) aValue); break;
             case LibPaths_Prop: setLibPaths((String[]) aValue); break;
             case ProjectPaths_Prop: setProjectPaths((String[]) aValue); break;
 
