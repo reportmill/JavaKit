@@ -284,15 +284,6 @@ public class BuildFile extends PropObject {
     }
 
     /**
-     * Called when PropConfig does PropChange.
-     */
-    private void propConfigDidPropChange()
-    {
-        try { writeFile(); }
-        catch (Exception e) { throw new RuntimeException(e); }
-    }
-
-    /**
      * Returns the build file.
      */
     public WebFile getBuildFile()
