@@ -3,7 +3,6 @@
  */
 package javakit.project;
 import javakit.resolver.Resolver;
-import snap.props.PropChange;
 import snap.props.PropObject;
 import snap.util.ArrayUtils;
 import snap.util.ListUtils;
@@ -56,9 +55,12 @@ public class Project extends PropObject {
 
         // If site doesn't exist, create root directory, src and bin
         if (!aSite.getExists()) {
-            aSite.getRootDir().save();
-            aSite.createFileForPath("/src", true).save();
-            aSite.createFileForPath("/bin", true).save();
+            boolean isReadOnly = aSite.getURL().getScheme().startsWith("http");
+            if (!isReadOnly) {
+                aSite.getRootDir().save();
+                aSite.createFileForPath("/src", true).save();
+                aSite.createFileForPath("/bin", true).save();
+            }
         }
 
         // Create/set ProjectFiles, ProjectBuilder
@@ -66,7 +68,7 @@ public class Project extends PropObject {
         _projBuilder = new ProjectBuilder(this);
 
         // Get child projects
-        _projects = getProjectsFromConfig();
+        _projects = getProjectsFromBuildFile();
     }
 
     /**
@@ -110,10 +112,10 @@ public class Project extends PropObject {
         if (_buildFile != null) return _buildFile;
 
         // Create BuildFile
-        BuildFile buildFile = createBuildFile();
+        BuildFile buildFile = getBuildFileImpl();
 
-        // Add PropChangeListener to clear ClassPathInfo when changed
-        buildFile.addPropChangeListener(pc -> projConfigDidPropChange(pc));
+        // Add PropChangeListener to save changes to file and clear ClassPathInfo
+        buildFile.addPropChangeListener(pc -> buildFileDidChange());
 
         // Set, return
         return _buildFile = buildFile;
@@ -122,7 +124,7 @@ public class Project extends PropObject {
     /**
      * Returns the BuildFile that manages project properties.
      */
-    protected BuildFile createBuildFile()
+    protected BuildFile getBuildFileImpl()
     {
         return new BuildFile(this);
     }
@@ -279,19 +281,19 @@ public class Project extends PropObject {
         Project proj = getProjectForPath(projectPath);
         removeProject(proj);
 
-        // Remove from config
-        BuildFile projConfig = getBuildFile();
-        projConfig.removeProjectPath(projectPath);
+        // Remove from build file
+        BuildFile buildFile = getBuildFile();
+        buildFile.removeProjectPath(projectPath);
     }
 
     /**
      * Returns the projects this project depends on.
      */
-    private Project[] getProjectsFromConfig()
+    private Project[] getProjectsFromBuildFile()
     {
-        // Create list of projects from ClassPath.ProjectPaths
-        BuildFile projConfig = getBuildFile();
-        String[] projPaths = projConfig.getProjectPaths();
+        // Create list of projects from BuildFile.ProjectPaths
+        BuildFile buildFile = getBuildFile();
+        String[] projPaths = buildFile.getProjectPaths();
         List<Project> projs = new ArrayList<>();
 
         // Iterate over project paths
@@ -323,16 +325,6 @@ public class Project extends PropObject {
         Workspace workspace = getWorkspace();
         return workspace.getResolver();
     }
-
-    /**
-     * Returns whether file is config file.
-     */
-    protected boolean isConfigFile(WebFile aFile)  { return false; }
-
-    /**
-     * Reads the settings from project settings file(s).
-     */
-    public void readSettings()  { }
 
     /**
      * Returns the ProjectFiles that manages project files.
@@ -386,8 +378,17 @@ public class Project extends PropObject {
     /**
      * Watches Project.BuildFile for dependency change to reset ClassPathInfo.
      */
-    private void projConfigDidPropChange(PropChange anEvent)
+    private void buildFileDidChange()
     {
+        // Save build file
+        WebSite projectSite = getSite();
+        boolean isReadOnly = projectSite.getURL().getScheme().startsWith("http");
+        if (!isReadOnly) {
+            BuildFile buildFile = getBuildFile();
+            buildFile.writeFile();
+        }
+
+        // Clear Workspace classloader
         Workspace workspace = getWorkspace();
         workspace.clearClassLoader();
     }
@@ -397,9 +398,6 @@ public class Project extends PropObject {
      */
     public void fileAdded(WebFile aFile)
     {
-        if (isConfigFile(aFile))
-            readSettings();
-
         // Add build file
         _projBuilder.addBuildFile(aFile, false);
     }
@@ -423,10 +421,6 @@ public class Project extends PropObject {
      */
     public void fileSaved(WebFile aFile)
     {
-        // If File is config file, read file
-        if (isConfigFile(aFile))
-            readSettings();
-
         // If plain file, add as BuildFile
         if (!aFile.isDir())
             _projBuilder.addBuildFile(aFile, false);

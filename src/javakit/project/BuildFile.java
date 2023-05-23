@@ -1,8 +1,12 @@
 package javakit.project;
+import snap.props.PropArchiverJS;
 import snap.props.PropObject;
 import snap.props.PropSet;
 import snap.util.ArrayUtils;
 import snap.util.Convert;
+import snap.util.JSObject;
+import snap.web.WebFile;
+import snap.web.WebSite;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -26,7 +30,13 @@ public class BuildFile extends PropObject {
     // The project paths
     public String[]  _projPaths;
 
-    // Constants for ClassPath properties
+    // The actual build file
+    private WebFile _buildFile;
+
+    // Constants
+    public static final String BUILD_FILE_PATH = "/build.snapcode";
+
+    // Constants for BuildFile properties
     public static final String SourcePath_Prop = "SourcePaths";
     public static final String BuildPath_Prop = "BuildPath";
     public static final String LibPaths_Prop = "LibPaths";
@@ -50,6 +60,11 @@ public class BuildFile extends PropObject {
         _buildPath = DEFAULT_BUILD_PATH;
         _libPaths = DEFAULT_LIB_PATHS;
         _projPaths = DEFAULT_PROJECT_PATHS;
+
+        // Read actual build file if exists
+        WebFile buildFile = getBuildFile();
+        if (buildFile.getExists())
+            readFile();
     }
 
     /**
@@ -232,6 +247,67 @@ public class BuildFile extends PropObject {
         String[] libPaths = getLibPaths();
         String[] absPaths = ArrayUtils.map(libPaths, path -> ProjectUtils.getAbsolutePath(_proj, path, true), String.class);
         return absPaths;
+    }
+
+    /**
+     * Reads BuildFile properties from project build file.
+     */
+    public void readFile()
+    {
+        // Get config file and json string
+        WebFile configFile = getBuildFile();
+        String jsonStr = configFile.getText();
+
+        // Read BuildFile properties from JSON
+        PropArchiverJS archiver = new PropArchiverJS();
+        archiver.setRootObject(this);
+        archiver.readPropObjectFromJSONString(jsonStr);
+    }
+
+    /**
+     * Saves BuildFile properties to the project build file.
+     */
+    public void writeFile()
+    {
+        // Get config file
+        WebFile configFile = getBuildFile();
+
+        // Get BuildFile properties archived to JSON bytes
+        PropArchiverJS archiver = new PropArchiverJS();
+        JSObject jsonObj = archiver.writePropObjectToJSON(this);
+        String jsonStr = jsonObj.toString();
+        byte[] jsonBytes = jsonStr.getBytes();
+
+        // Set bytes and save
+        configFile.setBytes(jsonBytes);
+        configFile.save();
+    }
+
+    /**
+     * Called when PropConfig does PropChange.
+     */
+    private void propConfigDidPropChange()
+    {
+        try { writeFile(); }
+        catch (Exception e) { throw new RuntimeException(e); }
+    }
+
+    /**
+     * Returns the build file.
+     */
+    public WebFile getBuildFile()
+    {
+        // If already set, just return
+        if (_buildFile != null) return _buildFile;
+
+        // Get file (create if missing)
+        WebSite projSite = _proj.getSite();
+        WebFile file = projSite.getFileForPath(BUILD_FILE_PATH);
+        if (file == null)
+            file = projSite.createFileForPath(BUILD_FILE_PATH, false);
+
+        // Set/return
+        return _buildFile = file;
     }
 
     /**

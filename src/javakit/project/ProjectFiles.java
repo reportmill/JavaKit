@@ -15,9 +15,6 @@ public class ProjectFiles {
     // The Project
     private Project  _proj;
 
-    // The Project config
-    private BuildFile _projConfig;
-
     // The project source directory
     protected WebFile  _srcDir;
 
@@ -30,7 +27,6 @@ public class ProjectFiles {
     public ProjectFiles(Project aProject)
     {
         _proj = aProject;
-        _projConfig = aProject.getBuildFile();
     }
 
     /**
@@ -42,7 +38,8 @@ public class ProjectFiles {
         if (_srcDir != null) return _srcDir;
 
         // Get SourcePath
-        String path = _projConfig.getSourcePath();
+        BuildFile buildFile = _proj.getBuildFile();
+        String path = buildFile.getSourcePath();
         if (path != null && !path.startsWith("/"))
             path = '/' + path;
 
@@ -65,7 +62,8 @@ public class ProjectFiles {
         if (_buildDir != null) return _buildDir;
 
         // Get from BuildPath and site
-        String path = _projConfig.getBuildPath();
+        BuildFile buildFile = _proj.getBuildFile();
+        String path = buildFile.getBuildPath();
         if (path != null && !path.startsWith("/"))
             path = '/' + path;
 
