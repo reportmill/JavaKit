@@ -76,7 +76,7 @@ public abstract class BuildDependency extends PropObject {
     public void setPropValue(String aPropName, Object aValue)
     {
         if (aPropName.equals(Id_Prop))
-            setPropValue(Id_Prop, Convert.stringValue(aValue));
+            setId(Convert.stringValue(aValue));
         else super.setPropValue(aPropName, aValue);
     }
 

@@ -53,11 +53,11 @@ public class BuildFile extends PropObject {
     private static final String[] DEFAULT_PROJECT_PATHS = new String[0];
 
     /**
-     * Creates a new ClassPathFile for project.
+     * Constructor.
      */
-    public BuildFile(Project aProj)
+    public BuildFile()
     {
-        _proj = aProj;
+        super();
 
         // Set defaults
         _srcPath = DEFAULT_SOURCE_PATH;
@@ -65,6 +65,15 @@ public class BuildFile extends PropObject {
         _dependencies = new BuildDependency[0];
         _libPaths = DEFAULT_LIB_PATHS;
         _projPaths = DEFAULT_PROJECT_PATHS;
+    }
+
+    /**
+     * Constructor for project.
+     */
+    public BuildFile(Project aProj)
+    {
+        this();
+        _proj = aProj;
 
         // Read actual build file if exists
         WebFile buildFile = getBuildFile();
@@ -315,7 +324,7 @@ public class BuildFile extends PropObject {
         String jsonStr = configFile.getText();
 
         // Read BuildFile properties from JSON
-        PropArchiverJS archiver = new PropArchiverJS();
+        PropArchiverJS archiver = createArchiver();
         archiver.setRootObject(this);
         archiver.readPropObjectFromJSONString(jsonStr);
     }
@@ -329,7 +338,7 @@ public class BuildFile extends PropObject {
         WebFile configFile = getBuildFile();
 
         // Get BuildFile properties archived to JSON bytes
-        PropArchiverJS archiver = new PropArchiverJS();
+        PropArchiverJS archiver = createArchiver();
         JSObject jsonObj = archiver.writePropObjectToJSON(this);
         String jsonStr = jsonObj.toString();
         byte[] jsonBytes = jsonStr.getBytes();
@@ -369,7 +378,7 @@ public class BuildFile extends PropObject {
         // SourcePath, BuildPath, Dependencies, LibPaths, ProjectPaths
         aPropSet.addPropNamed(SourcePath_Prop, String.class);
         aPropSet.addPropNamed(BuildPath_Prop, String.class);
-        aPropSet.addPropNamed(Dependencies_Prop, BuildDependency.class);
+        aPropSet.addPropNamed(Dependencies_Prop, BuildDependency[].class);
         aPropSet.addPropNamed(LibPaths_Prop, String[].class);
         aPropSet.addPropNamed(ProjectPaths_Prop, String[].class);
     }
@@ -414,5 +423,17 @@ public class BuildFile extends PropObject {
             // Handle super class properties (or unknown)
             default: System.err.println("BuildFile.setPropValue: Unknown prop: " + aPropName);
         }
+    }
+
+    /**
+     * Creates the archiver.
+     */
+    private PropArchiverJS createArchiver()
+    {
+        PropArchiverJS archiver = new PropArchiverJS();
+        archiver.addClassMapClass(BuildDependency.JarFileDependency.class);
+        archiver.addClassMapClass(BuildDependency.ProjectDependency.class);
+        archiver.addClassMapClass(BuildDependency.MavenDependency.class);
+        return archiver;
     }
 }
