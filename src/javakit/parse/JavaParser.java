@@ -546,14 +546,18 @@ public class JavaParser extends JavaParserStmt {
             // Get field decl
             JFieldDecl fieldDecl = getPart();
 
-            // Handle Type
-            if (anId == "Type")
-                fieldDecl.setType(aNode.getCustomNode(JType.class));
+            switch (anId) {
 
-            // Handle VarDecl(s)
-            else if (anId == "VarDecl") {
-                JVarDecl vd = aNode.getCustomNode(JVarDecl.class);
-                fieldDecl.addVarDecl(vd);
+                // Handle Type
+                case "Type":
+                    fieldDecl.setType(aNode.getCustomNode(JType.class));
+                    break;
+
+                // Handle VarDecl(s)
+                case "VarDecl":
+                    JVarDecl vd = aNode.getCustomNode(JVarDecl.class);
+                    fieldDecl.addVarDecl(vd);
+                    break;
             }
         }
 
@@ -573,29 +577,38 @@ public class JavaParser extends JavaParserStmt {
             // Get method decl
             JMethodDecl methodDecl = getPart();
 
-            // Handle TypeParams
-            if (anId == "TypeParams")
-                methodDecl.setTypeVars(aNode.getCustomNode(List.class));
+            switch (anId) {
 
-            // Handle ResultType
-            else if (anId == "ResultType")
-                methodDecl.setType(aNode.getCustomNode(JType.class));
+                // Handle TypeParams
+                case "TypeParams":
+                    methodDecl.setTypeVars(aNode.getCustomNode(List.class));
+                    break;
 
-            // Handle MethodDeclarator Identifier
-            else if (anId == "Identifier")
-                methodDecl.setId(aNode.getCustomNode(JExprId.class));
+                // Handle ResultType
+                case "ResultType":
+                    methodDecl.setType(aNode.getCustomNode(JType.class));
+                    break;
 
-            // Handle MethodDeclarator FormalParam
-            else if (anId == "FormalParam")
-                methodDecl.addParam(aNode.getCustomNode(JVarDecl.class));
+                // Handle MethodDeclarator Identifier
+                case "Identifier":
+                    methodDecl.setId(aNode.getCustomNode(JExprId.class));
+                    break;
 
-            // Handle ThrowsList
-            else if (anId == "ThrowsList")
-                methodDecl.setThrowsList(aNode.getCustomNode(List.class));
+                // Handle MethodDeclarator FormalParam
+                case "FormalParam":
+                    methodDecl.addParam(aNode.getCustomNode(JVarDecl.class));
+                    break;
 
-            // Handle Block
-            else if (anId == "Block")
-                methodDecl.setBlock(aNode.getCustomNode(JStmtBlock.class));
+                // Handle ThrowsList
+                case "ThrowsList":
+                    methodDecl.setThrowsList(aNode.getCustomNode(List.class));
+                    break;
+
+                // Handle Block
+                case "Block":
+                    methodDecl.setBlock(aNode.getCustomNode(JStmtBlock.class));
+                    break;
+            }
         }
 
         protected Class<JMethodDecl> getPartClass()  { return JMethodDecl.class; }
@@ -614,41 +627,51 @@ public class JavaParser extends JavaParserStmt {
             // Get constructor decl
             JConstrDecl constrDecl = getPart();
 
-            // Handle TypeParams
-            if (anId == "TypeParams")
-                constrDecl.setTypeVars(aNode.getCustomNode(List.class));
+            switch (anId) {
 
-            // Handle Identifier
-            else if (anId == "Identifier")
-                constrDecl.setId(aNode.getCustomNode(JExprId.class));
+                // Handle TypeParams
+                case "TypeParams":
+                    constrDecl.setTypeVars(aNode.getCustomNode(List.class));
+                    break;
 
-            // Handle FormalParam
-            else if (anId == "FormalParam")
-                constrDecl.addParam(aNode.getCustomNode(JVarDecl.class));
+                // Handle Identifier
+                case "Identifier":
+                    constrDecl.setId(aNode.getCustomNode(JExprId.class));
+                    break;
 
-            // Handle ThrowsList
-            else if (anId == "ThrowsList")
-                constrDecl.setThrowsList(aNode.getCustomNode(List.class));
+                // Handle FormalParam
+                case "FormalParam":
+                    constrDecl.addParam(aNode.getCustomNode(JVarDecl.class));
+                    break;
 
-            // Handle BlockStatement start "{"
-            else if (anId == "{") {
-                JStmtBlock block = new JStmtBlock();
-                block.setStartToken(aNode.getStartToken());
-                block.setEndToken(aNode.getEndToken());
-                constrDecl.setBlock(block);
+                // Handle ThrowsList
+                case "ThrowsList":
+                    constrDecl.setThrowsList(aNode.getCustomNode(List.class));
+                    break;
+
+                // Handle BlockStatement start "{"
+                case "{":
+                    JStmtBlock block = new JStmtBlock();
+                    block.setStartToken(aNode.getStartToken());
+                    block.setEndToken(aNode.getEndToken());
+                    constrDecl.setBlock(block);
+                    break;
+
+                // Handle ConstrCall
+                case "ConstrCall":
+                    constrDecl.getBlock().addStatement(aNode.getCustomNode(JStmtConstrCall.class));
+                    break;
+
+                // Handle BlockStatement
+                case "BlockStatement":
+                    constrDecl.getBlock().addStatement(aNode.getCustomNode(JStmt.class));
+                    break;
+
+                // Handle BlockStatement end
+                case "}":
+                    constrDecl.getBlock().setEndToken(aNode.getEndToken());
+                    break;
             }
-
-            // Handle ConstrCall
-            else if (anId == "ConstrCall")
-                constrDecl.getBlock().addStatement(aNode.getCustomNode(JStmtConstrCall.class));
-
-            // Handle BlockStatement
-            else if (anId == "BlockStatement")
-                constrDecl.getBlock().addStatement(aNode.getCustomNode(JStmt.class));
-
-            // Handle BlockStatement end
-            else if (aNode.getPattern() == "}")
-                constrDecl.getBlock().setEndToken(aNode.getEndToken());
         }
 
         protected Class<JConstrDecl> getPartClass()  { return JConstrDecl.class; }

@@ -286,7 +286,8 @@ public class JavaParserExpr extends Parser {
             // Handle KeyChain
             if (aNode.getCustomNode() instanceof JExpr) {
                 JExpr part = aNode.getCustomNode(JExpr.class);
-                if (_part == null) _part = part;
+                if (_part == null)
+                    _part = part;
                 else {
                     _part = new JExprMath(_op, _part, part);
                     _op = null;
@@ -294,29 +295,40 @@ public class JavaParserExpr extends Parser {
             }
 
             // Handle Ops
-            else if (anId == "||") _op = JExprMath.Op.Or;
-            else if (anId == "&&") _op = JExprMath.Op.And;
-            else if (anId == "|") _op = JExprMath.Op.BitOr;
-            else if (anId == "^") _op = JExprMath.Op.BitXOr;
-            else if (anId == "&") _op = JExprMath.Op.BitAnd;
-            else if (anId == "==") _op = JExprMath.Op.Equal;
-            else if (anId == "!=") _op = JExprMath.Op.NotEqual;
-            else if (anId == "<") _op = JExprMath.Op.LessThan;
-            else if (anId == ">") _op = JExprMath.Op.GreaterThan;
-            else if (anId == "<=") _op = JExprMath.Op.LessThanOrEqual;
-            else if (anId == ">=") _op = JExprMath.Op.GreaterThanOrEqual;
-            else if (anId == "<<") _op = JExprMath.Op.ShiftLeft;
-            else if (anId == "ShiftRight") _op = JExprMath.Op.ShiftRight;
-            else if (anId == "ShiftRightUnsigned") _op = JExprMath.Op.ShiftRightUnsigned;
-            else if (anId == "+") _op = JExprMath.Op.Add;
-            else if (anId == "-") _op = JExprMath.Op.Subtract;
-            else if (anId == "*") _op = JExprMath.Op.Multiply;
-            else if (anId == "/") _op = JExprMath.Op.Divide;
-            else if (anId == "%") _op = JExprMath.Op.Mod;
+            else _op = getOpForString(anId);
         }
 
         @Override
         protected Class<JExpr> getPartClass()  { return JExpr.class; }
+
+        /**
+         * Returns a JExprMath.Op for given op string.
+         */
+        public static JExprMath.Op getOpForString(String anId)
+        {
+            switch (anId) {
+                case "||": return JExprMath.Op.Or;
+                case "&&": return JExprMath.Op.And;
+                case "|": return JExprMath.Op.BitOr;
+                case "^": return JExprMath.Op.BitXOr;
+                case "&": return JExprMath.Op.BitAnd;
+                case "==": return JExprMath.Op.Equal;
+                case "!=": return JExprMath.Op.NotEqual;
+                case "<": return JExprMath.Op.LessThan;
+                case ">": return JExprMath.Op.GreaterThan;
+                case "<=": return JExprMath.Op.LessThanOrEqual;
+                case ">=": return JExprMath.Op.GreaterThanOrEqual;
+                case "<<": return JExprMath.Op.ShiftLeft;
+                case "ShiftRight": return JExprMath.Op.ShiftRight;
+                case "ShiftRightUnsigned": return JExprMath.Op.ShiftRightUnsigned;
+                case "+": return JExprMath.Op.Add;
+                case "-": return JExprMath.Op.Subtract;
+                case "*": return JExprMath.Op.Multiply;
+                case "/": return JExprMath.Op.Divide;
+                case "%": return JExprMath.Op.Mod;
+                default: throw new RuntimeException("Unknown op string: " + anId);
+            }
+        }
     }
 
     /**
