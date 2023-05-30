@@ -4,6 +4,7 @@
 package javakit.parse;
 import javakit.project.JavaAgent;
 import snap.gfx.Color;
+import snap.gfx.Font;
 import snap.parse.*;
 import snap.text.TextDocUtils;
 import snap.text.TextLine;
@@ -17,10 +18,31 @@ import java.util.List;
  */
 public class JavaTextDocUtils {
 
+    // The recommended default font for code
+    private static Font _codeFont;
+
     // Constants for Syntax Coloring
     private static Color COMMENT_COLOR = new Color("#3F7F5F"); //336633
     private static Color RESERVED_WORD_COLOR = new Color("#660033");
     private static Color STRING_LITERAL_COLOR = new Color("#C80000"); // CC0000
+
+    /**
+     * Returns a suitable code font.
+     */
+    public static Font getCodeFont()
+    {
+        if (_codeFont == null) {
+            String[] names = { "Monaco", "Consolas", "Courier"};
+            for (String name : names) {
+                _codeFont = new Font(name, 12);
+                if (_codeFont.getFamily().startsWith(name))
+                    break;
+            }
+        }
+
+        // Return
+        return _codeFont;
+    }
 
     /**
      * Returns the next token for tokenizer and text line.

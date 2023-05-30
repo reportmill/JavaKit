@@ -3,7 +3,6 @@
  */
 package javakit.parse;
 import javakit.project.JavaAgent;
-import javakit.ide.JavaTextUtils;
 import javakit.project.ProjectUtils;
 import snap.gfx.Color;
 import snap.gfx.Font;
@@ -31,7 +30,7 @@ public class JavaTextDoc extends TextDoc {
 
         // Reset default TextStyle for code
         TextStyle textStyle = getDefaultStyle();
-        Font codeFont = JavaTextUtils.getCodeFont();
+        Font codeFont = JavaTextDocUtils.getCodeFont();
         TextStyle codeTextStyle = textStyle.copyFor(codeFont);
         setDefaultStyle(codeTextStyle);
 
