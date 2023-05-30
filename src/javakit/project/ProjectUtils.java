@@ -192,6 +192,7 @@ public class ProjectUtils {
         // Create new project for parent dir site
         Workspace newWorkspace = new Workspace();
         Project newProj = newWorkspace.addProjectForSite(parentDirSite);
+        newProj.setReadOnly(true); // Not sure I love this
 
         // Clear source dir
         BuildFile buildFile = newProj.getBuildFile();

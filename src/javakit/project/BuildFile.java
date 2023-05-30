@@ -40,7 +40,7 @@ public class BuildFile extends PropObject {
     public static final String BUILD_FILE_PATH = "/build.snapcode";
 
     // Constants for BuildFile properties
-    public static final String SourcePath_Prop = "SourcePaths";
+    public static final String SourcePath_Prop = "SourcePath";
     public static final String BuildPath_Prop = "BuildPath";
     public static final String Dependencies_Prop = "Dependencies";
     public static final String LibPaths_Prop = "LibPaths";

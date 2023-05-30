@@ -25,6 +25,9 @@ public class Project extends PropObject {
     // The encapsulated data site
     protected WebSite  _site;
 
+    // Whether this project is read-only
+    private boolean _readOnly;
+
     // The child projects this project depends on
     private Project[]  _projects;
 
@@ -50,12 +53,16 @@ public class Project extends PropObject {
     {
         _workspace = aWorkspace;
 
-        // Set site
+        // Set Site
         setSite(aSite);
+
+        // Set ReadOnly
+        boolean isReadOnly = aSite.getURL().getScheme().startsWith("http");
+        if (isReadOnly)
+            setReadOnly(isReadOnly);
 
         // If site doesn't exist, create root directory, src and bin
         if (!aSite.getExists()) {
-            boolean isReadOnly = aSite.getURL().getScheme().startsWith("http");
             if (!isReadOnly) {
                 aSite.getRootDir().save();
                 aSite.createFileForPath("/src", true).save();
@@ -102,6 +109,16 @@ public class Project extends PropObject {
         _site = aSite;
         _site.setProp(Project.class.getSimpleName(), this);
     }
+
+    /**
+     * Returns whether project is read-only.
+     */
+    public boolean isReadOnly()  { return _readOnly; }
+
+    /**
+     * Sets whether project is read-only.
+     */
+    public void setReadOnly(boolean aValue)  { _readOnly = aValue; }
 
     /**
      * Returns the BuildFile that manages project properties.
@@ -381,9 +398,7 @@ public class Project extends PropObject {
     private void buildFileDidChange()
     {
         // Save build file
-        WebSite projectSite = getSite();
-        boolean isReadOnly = projectSite.getURL().getScheme().startsWith("http");
-        if (!isReadOnly) {
+        if (!isReadOnly()) {
             BuildFile buildFile = getBuildFile();
             buildFile.writeFile();
         }
